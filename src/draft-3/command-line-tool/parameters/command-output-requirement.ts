@@ -1,4 +1,4 @@
-import {SecondaryFileList, IOFormat, CWLType} from "../aggregate-types";
+import {CWLType} from "../aggregate-types";
 import {CommandOutputBinding} from "../bindings";
 import {
     CommandOutputRecordSchema,

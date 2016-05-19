@@ -1,4 +1,4 @@
-import {CWLType, SecondaryFileList, IOFormat} from "../aggregate-types";
+import {CWLType} from "../aggregate-types";
 import {
     CommandInputArraySchema,
     CommandInputEnumSchema,

@@ -5,9 +5,8 @@ import {
     InlineJavascriptRequirement,
     ResourceRequirement,
     SchemaDefRequirement,
-    ShellCommandRequirement,
+    ShellCommandRequirement
 } from "./requirements";
-
 import {CommandInputParameter, CommandOutputParameter} from "./parameters";
 import {CommandLineBinding} from "./bindings";
 import {Expression} from "./expression";
