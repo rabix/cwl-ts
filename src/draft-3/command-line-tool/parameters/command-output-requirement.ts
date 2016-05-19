@@ -1,11 +1,11 @@
-import {SecondaryFileList, IOFormat, CWLType} from "../Symbols";
+import {SecondaryFileList, IOFormat, CWLType} from "../aggregate-types";
 import {CommandOutputBinding} from "../bindings";
 import {
     CommandOutputRecordSchema,
     CommandOutputArraySchema,
     CommandOutputEnumSchema
 } from "../schemas";
-import {Parameter} from "./Parameter";
+import {Parameter} from "./parameter";
 
 export interface CommandOutputParameter extends Parameter {
 

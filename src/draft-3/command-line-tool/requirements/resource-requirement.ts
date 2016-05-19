@@ -1,6 +1,6 @@
-import {SystemResourceValue} from "../Symbols";
-import {BaseRequirement} from "./BaseRequirement";
-export interface ResourceRequirement extends BaseRequirement {
+import {SystemResourceValue} from "../aggregate-types";
+import {Requirement} from "./requirement";
+export interface ResourceRequirement extends Requirement {
     coresMin?: SystemResourceValue;
 
     coresMax?: SystemResourceValue;

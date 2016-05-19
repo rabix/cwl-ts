@@ -1,7 +1,7 @@
-import {PrimitiveType} from "../Symbols";
+import {PrimitiveType} from "../aggregate-types";
 import {InputRecordSchema, InputEnumSchema, InputArraySchema} from "../schemas";
 import {CommandLineBinding} from "../bindings";
-import {InputArraySchema} from "../schemas/InputArraySchema";
+import {InputArraySchema} from "../schemas/input-array-schema";
 
 export interface InputRecordField {
     name: string;

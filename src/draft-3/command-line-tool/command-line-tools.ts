@@ -10,8 +10,8 @@ import {
 
 import {CommandInputParameter, CommandOutputParameter} from "./parameters";
 import {CommandLineBinding} from "./bindings";
-import {Expression} from "./Expression";
-import {CWLVersions} from "./Symbols";
+import {Expression} from "./expression";
+import {CWLVersions} from "./aggregate-types";
 
 export interface CommandLineTool {
 

@@ -1,5 +1,5 @@
 import {InputRecordField} from "../fields";
-import {Schema} from "./Schema";
+import {Schema} from "./schema";
 
 export interface InputRecordSchema extends Schema {
 

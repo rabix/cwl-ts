@@ -1,8 +1,8 @@
-import {PrimitiveType} from "../Symbols";
-import {CommandOutputRecordSchema} from "./CommandOutputRecordSchema";
-import {CommandOutputEnumSchema} from "./CommandOutputEnumSchema";
+import {PrimitiveType} from "../aggregate-types";
+import {CommandOutputRecordSchema} from "./command-output-record-schema.ts";
+import {CommandOutputEnumSchema} from "./command-output-enum-schema.ts";
 import {CommandOutputBinding} from "../bindings";
-import {Schema} from "./Schema";
+import {Schema} from "./schema";
 
 export interface CommandOutputArraySchema extends Schema {
     type: "array";

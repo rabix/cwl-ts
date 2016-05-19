@@ -1,5 +1,5 @@
 import {CommandLineBinding} from "../bindings";
-import {Schema} from "./Schema";
+import {Schema} from "./schema";
 
 export interface CommandInputEnumSchema extends Schema {
     type: "enum";

@@ -1,5 +1,5 @@
 import {CommandOutputRecordField} from "../fields";
-import {Schema} from "./Schema";
+import {Schema} from "./schema";
 
 export interface CommandOutputRecordSchema extends Schema {
     type: "record";

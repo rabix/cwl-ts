@@ -1,8 +1,8 @@
-import {PrimitiveType} from "../Symbols";
-import {CommandInputRecordSchema} from "./CommandInputRecordSchema";
-import {CommandInputEnumSchema} from "./CommandInputEnumSchema";
-import {CommandLineBinding} from "../bindings/CommandLineBinding";
-import {Schema} from "./Schema";
+import {PrimitiveType} from "../aggregate-types";
+import {CommandInputRecordSchema} from "./command-input-record-schema";
+import {CommandInputEnumSchema} from "./command-input-enum-schema";
+import {CommandLineBinding} from "../bindings/command-line-binding";
+import {Schema} from "./schema";
 export interface CommandInputArraySchema extends Schema {
     type: "array";
 

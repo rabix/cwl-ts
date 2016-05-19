@@ -1,6 +1,6 @@
 import {InputEnumSchema, InputArraySchema, InputRecordSchema} from "../schemas";
-import {BaseRequirement} from "./BaseRequirement";
+import {Requirement} from "./requirement";
 
-export interface SchemaDefRequirement extends BaseRequirement {
+export interface SchemaDefRequirement extends Requirement {
     types: Array<InputRecordSchema | InputEnumSchema | InputArraySchema>;
 }

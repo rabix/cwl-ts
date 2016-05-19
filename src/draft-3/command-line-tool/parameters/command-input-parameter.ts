@@ -1,11 +1,11 @@
-import {CWLType, SecondaryFileList, IOFormat} from "../Symbols";
+import {CWLType, SecondaryFileList, IOFormat} from "../aggregate-types";
 import {
     CommandInputArraySchema,
     CommandInputEnumSchema,
     CommandInputRecordSchema
 } from "./../schemas";
-import {CommandLineBinding} from "../bindings/CommandLineBinding";
-import {Parameter} from "./Parameter";
+import {CommandLineBinding} from "../bindings/command-line-binding";
+import {Parameter} from "./parameter";
 
 export interface CommandInputParameter extends Parameter {
 

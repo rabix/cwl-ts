@@ -1,4 +1,4 @@
-import {Expression} from "./Expression";
+import {Expression} from "./expression";
 
 export type PrimitiveType = "null" | "boolean" | "int" | "long" | "float" | "double" | "string";
 

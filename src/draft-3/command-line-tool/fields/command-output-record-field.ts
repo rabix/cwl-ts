@@ -1,12 +1,12 @@
-import {CommandLineBinding} from "../bindings";
-import {PrimitiveType} from "./../Symbols";
+import {CommandOutputBinding} from "../bindings";
+import {PrimitiveType} from "../aggregate-types";
 import {
     CommandInputArraySchema,
     CommandInputEnumSchema,
     CommandInputRecordSchema
 } from "../schemas";
 
-export interface CommandInputRecordField {
+export interface CommandOutputRecordField {
     name: string;
 
     type: string
@@ -18,5 +18,5 @@ export interface CommandInputRecordField {
 
     doc?: string;
 
-    inputBinding?: CommandLineBinding;
+    outputBinding?: CommandOutputBinding;
 }

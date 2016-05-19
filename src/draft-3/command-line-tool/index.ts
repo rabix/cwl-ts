@@ -4,9 +4,9 @@ export * from "./parameters";
 export * from "./requirements";
 export * from "./schemas";
 
-export * from "./CommandLineTool";
-export * from "./EnvironmentDef";
-export * from "./Expression";
-export * from "./File";
-export * from "./FileDef";
-export * from "./Symbols";
+export * from "./command-line-tools";
+export * from "./environment-def";
+export * from "./expression";
+export * from "./file";
+export * from "./file-def";
+export * from "./aggregate-types";

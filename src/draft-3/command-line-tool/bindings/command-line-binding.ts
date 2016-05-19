@@ -1,4 +1,4 @@
-import {Expression} from "../Expression";
+import {Expression} from "../expression";
 export interface CommandLineBinding {
     /**
      * Only valid when type: File or is an array of items: File.

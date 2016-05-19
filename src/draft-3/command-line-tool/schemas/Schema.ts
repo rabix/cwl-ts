@@ -1,4 +1,4 @@
-import {SecondaryFileList, IOFormat} from "../Symbols";
+import {SecondaryFileList, IOFormat} from "../aggregate-types";
 
 export interface Schema {
     secondaryFiles?: SecondaryFileList;

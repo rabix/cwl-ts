@@ -1,5 +1,5 @@
-import {BaseRequirement} from "./BaseRequirement";
-export interface DockerRequirement extends BaseRequirement {
+import {Requirement} from "./requirement";
+export interface DockerRequirement extends Requirement {
     dockerPull?: string;
 
     dockerLoad?: string;

@@ -1,11 +1,11 @@
-export * from "./CommandInputArraySchema";
-export * from "./CommandInputEnumSchema";
-export * from "./CommandInputRecordSchema";
+export * from "./command-input-array-schema";
+export * from "./command-input-enum-schema";
+export * from "./command-input-record-schema";
 
-export * from "./CommandOutputArraySchema";
-export * from "./CommandOutputEnumSchema";
-export * from "./CommandOutputRecordSchema";
+export * from "./command-output-array-schema";
+export * from "./command-output-enum-schema.ts";
+export * from "./command-output-record-schema.ts";
 
-export * from "./InputArraySchema";
-export * from "./InputEnumSchema";
-export * from "./InputRecordSchema";
+export * from "./input-array-schema";
+export * from "./input-enum-schema";
+export * from "./input-record-schema";

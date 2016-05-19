@@ -1,2 +1,2 @@
-export * from "./CommandInputParameter";
-export * from "./CommandOutputParameter";
+export * from "./command-input-parameter";
+export * from "./command-output-requirement";
