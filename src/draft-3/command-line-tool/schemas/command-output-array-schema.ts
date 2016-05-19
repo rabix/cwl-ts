@@ -7,7 +7,12 @@ import {Schema} from "./schema";
 export interface CommandOutputArraySchema extends Schema {
     type: "array";
 
-    items: PrimitiveType | CommandOutputRecordSchema | CommandOutputEnumSchema | CommandOutputArraySchema | string | Array<PrimitiveType | CommandOutputRecordSchema | CommandOutputEnumSchema | CommandOutputArraySchema | string>;
+    items: string
+        | PrimitiveType
+        | CommandOutputRecordSchema
+        | CommandOutputEnumSchema
+        | CommandOutputArraySchema
+        | Array<PrimitiveType | CommandOutputRecordSchema | CommandOutputEnumSchema | CommandOutputArraySchema | string>;
 
     outputBinding?: CommandOutputBinding;
 }
