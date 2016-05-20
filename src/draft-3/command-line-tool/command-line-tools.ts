@@ -9,7 +9,7 @@ import {
 } from "./requirements";
 import {CommandInputParameter, CommandOutputParameter} from "./parameters";
 import {CommandLineBinding} from "./bindings";
-import {Expression} from "./expression";
+import {Expression} from "./exxpression";
 import {CWLVersions} from "./aggregate-types";
 
 export interface CommandLineTool {

@@ -8,9 +8,7 @@ import {CommandLineBinding} from "../bindings/command-line-binding";
 import {Parameter} from "./parameter";
 
 export interface CommandInputParameter extends Parameter {
-
-
-
+    
     type?: string 
         | CWLType
         | CommandInputRecordSchema 

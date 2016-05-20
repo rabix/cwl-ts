@@ -1,4 +1,4 @@
-import {Expression} from "../expression";
+import {Expression} from "../exxpression";
 export interface CommandOutputBinding {
     glob?: string | Expression | string[];
 
