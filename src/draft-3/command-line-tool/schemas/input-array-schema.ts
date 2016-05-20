@@ -4,6 +4,9 @@ import {InputEnumSchema} from "./input-enum-schema";
 import {CommandLineBinding} from "../bindings/command-line-binding";
 import {Schema} from "./schema";
 export interface InputArraySchema extends Schema {
+
+    name: string;
+
     type: "array";
 
     items: string
