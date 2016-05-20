@@ -1,6 +1,9 @@
 import {SystemResourceValue} from "../aggregate-types";
 import {Requirement} from "./requirement";
 export interface ResourceRequirement extends Requirement {
+
+    class: "ResourceRequirement";
+
     coresMin?: SystemResourceValue;
 
     coresMax?: SystemResourceValue;

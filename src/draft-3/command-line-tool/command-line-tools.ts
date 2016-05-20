@@ -53,9 +53,13 @@ export interface CommandLineTool {
      * implementation, it is a fatal error and the implementation must not attempt
      * to run the process, unless overridden at user option.
      */
-    requirements?: InlineJavascriptRequirement | SchemaDefRequirement
-        | DockerRequirement | CreateFileRequirement| EnvVarRequirement
-        | ShellCommandRequirement | ResourceRequirement;
+    requirements?: CreateFileRequirement
+        | DockerRequirement
+        | EnvVarRequirement
+        | InlineJavascriptRequirement
+        | ResourceRequirement
+        | SchemaDefRequirement
+        | ShellCommandRequirement;
 
     /**
      * Declares hints applying to either the runtime environment or the workflow engine that
