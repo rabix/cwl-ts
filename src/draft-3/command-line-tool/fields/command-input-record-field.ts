@@ -1,5 +1,5 @@
 import {CommandLineBinding} from "../bindings";
-import {PrimitiveType} from "../aggregate-types";
+import {CWLType} from "../aggregate-types";
 import {
     CommandInputArraySchema,
     CommandInputEnumSchema,
@@ -10,11 +10,11 @@ export interface CommandInputRecordField {
     name: string;
 
     type: string
-        | PrimitiveType
+        | CWLType
         | CommandInputRecordSchema
         | CommandInputEnumSchema
         | CommandInputArraySchema
-        | Array<PrimitiveType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string>;
+        | Array<CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string>;
 
     doc?: string;
 

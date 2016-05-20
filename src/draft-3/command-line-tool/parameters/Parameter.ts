@@ -1,16 +1,10 @@
-import {SecondaryFileList, IOFormat} from "../aggregate-types";
-export interface Parameter {
+import {FileSchemaOptional} from "../schemas/file-schema-optional";
+
+export interface Parameter extends FileSchemaOptional {
 
     id: string;
-
-    secondaryFiles?: SecondaryFileList;
-
-    format?: IOFormat;
-
-    streamable?: boolean;
 
     label?: string;
 
     description?: string;
-
 }

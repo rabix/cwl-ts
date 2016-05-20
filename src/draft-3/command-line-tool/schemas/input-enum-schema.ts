@@ -1,12 +1,7 @@
-import {CommandLineBinding} from "../bindings/command-line-binding";
+import {CommandInputEnumSchema} from "./command-input-enum-schema";
 
-export interface InputEnumSchema {
+export interface InputEnumSchema extends CommandInputEnumSchema {
     
     name: string;
     
-    type: "enum";
-
-    symbols: string[];
-
-    inputBinding ?: CommandLineBinding;
 }

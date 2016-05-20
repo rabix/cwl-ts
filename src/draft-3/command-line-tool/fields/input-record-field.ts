@@ -1,10 +1,9 @@
 import {PrimitiveType} from "../aggregate-types";
 import {InputRecordSchema, InputEnumSchema, InputArraySchema} from "../schemas";
-import {CommandLineBinding} from "../bindings";
 import {InputArraySchema} from "../schemas/input-array-schema";
+import {CommandInputRecordField} from "./command-input-record-field";
 
-export interface InputRecordField {
-    name: string;
+export interface InputRecordField extends CommandInputRecordField {
 
     type: string
         | PrimitiveType
@@ -13,7 +12,4 @@ export interface InputRecordField {
         | InputArraySchema
         | Array<PrimitiveType | InputRecordSchema | InputEnumSchema | InputArraySchema | string>;
 
-    doc?: string;
-
-    inputBinding?: CommandLineBinding;
 }
