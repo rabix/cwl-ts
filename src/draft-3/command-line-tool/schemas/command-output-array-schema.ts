@@ -1,18 +1,18 @@
-import {PrimitiveType} from "../aggregate-types";
+import {CWLType} from "../aggregate-types";
 import {CommandOutputRecordSchema} from "./command-output-record-schema.ts";
 import {CommandOutputEnumSchema} from "./command-output-enum-schema.ts";
 import {CommandOutputBinding} from "../bindings";
-import {Schema} from "./schema";
+import {FileArraySchema} from "./file-array-schema";
 
-export interface CommandOutputArraySchema extends Schema {
+export interface CommandOutputArraySchema extends FileArraySchema {
     type: "array";
 
     items: string
-        | PrimitiveType
+        | CWLType
         | CommandOutputRecordSchema
         | CommandOutputEnumSchema
         | CommandOutputArraySchema
-        | Array<PrimitiveType | CommandOutputRecordSchema | CommandOutputEnumSchema | CommandOutputArraySchema | string>;
+        | Array<CWLType | CommandOutputRecordSchema | CommandOutputEnumSchema | CommandOutputArraySchema | string>;
 
     outputBinding?: CommandOutputBinding;
 }

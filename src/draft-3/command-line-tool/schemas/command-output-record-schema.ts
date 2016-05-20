@@ -1,7 +1,6 @@
 import {CommandOutputRecordField} from "../fields";
-import {Schema} from "./schema";
 
-export interface CommandOutputRecordSchema extends Schema {
+export interface CommandOutputRecordSchema {
     type: "record";
 
     fields?: CommandOutputRecordField[];

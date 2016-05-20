@@ -1,6 +1,6 @@
 import {SecondaryFileList, IOFormat} from "../aggregate-types";
 
-export interface Schema {
+export interface FileArraySchema {
     secondaryFiles?: SecondaryFileList;
 
     format?: IOFormat;

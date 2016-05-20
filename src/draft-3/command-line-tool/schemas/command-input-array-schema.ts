@@ -1,17 +1,18 @@
-import {PrimitiveType} from "../aggregate-types";
+import {CWLType} from "../aggregate-types";
 import {CommandInputRecordSchema} from "./command-input-record-schema";
 import {CommandInputEnumSchema} from "./command-input-enum-schema";
 import {CommandLineBinding} from "../bindings/command-line-binding";
-import {Schema} from "./schema";
-export interface CommandInputArraySchema extends Schema {
+import {FileArraySchema} from "./file-array-schema";
+
+export interface CommandInputArraySchema extends FileArraySchema {
     type: "array";
 
     items: string
-        | PrimitiveType 
+        | CWLType
         | CommandInputRecordSchema 
         | CommandInputEnumSchema 
         | CommandInputArraySchema 
-        | Array<PrimitiveType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string>;
+        | Array<CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string>;
 
     inputBinding?: CommandLineBinding;
 }

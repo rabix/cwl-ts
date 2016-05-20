@@ -1,7 +1,6 @@
 import {CommandInputRecordField} from "../fields";
-import {Schema} from "./schema";
 
-export interface CommandInputRecordSchema extends Schema {
+export interface CommandInputRecordSchema {
 
     type: "record";
 
