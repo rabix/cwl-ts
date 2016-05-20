@@ -1,4 +1,4 @@
-import {Expression} from "./exxpression";
+import {Expression} from "./expression";
 export interface FileDef {
     filename: string | Expression;
 

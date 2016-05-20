@@ -6,7 +6,7 @@ export * from "./schemas";
 
 export * from "./command-line-tools";
 export * from "./environment-def";
-export * from "./exxpression";
-export * from "./ffile";
+export * from "./expression";
+export * from "./file";
 export * from "./file-def";
 export * from "./aggregate-types";
