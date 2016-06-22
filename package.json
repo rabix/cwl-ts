@@ -1,0 +1,23 @@
+{
+    "name": "cwlts",
+    "version": "1.0.0",
+    "description": "Typescript data model for Common Workflow Language",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "regenerate": "node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://ivanbatic@github.com/rabix/cwl-ts.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/rabix/cwl-ts/issues"
+    },
+    "homepage": "https://github.com/rabix/cwl-ts#readme",
+    "devDependencies": {
+        "cwl-ts-parser": "git+https://github.com/ivanbatic/cwl-ts-parser.git"
+    }
+}
