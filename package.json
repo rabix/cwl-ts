@@ -9,10 +9,10 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://ivanbatic@github.com/rabix/cwl-ts.git"
+        "url": "git+https://github.com/rabix/cwl-ts.git"
     },
-    "author": "",
-    "license": "ISC",
+    "author": "Ivan Batić",
+    "license": "Apache 2.0",
     "bugs": {
         "url": "https://github.com/rabix/cwl-ts/issues"
     },
