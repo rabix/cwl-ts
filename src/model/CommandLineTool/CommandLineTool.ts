@@ -3,15 +3,21 @@ import {ProcessRequirement} from "../../mappings/draft-4/ProcessRequirement";
 import {CWLVersions} from "../../mappings/draft-3/CWLVersions";
 import {CommandLineBinding} from "../../mappings/draft-3/CommandLineBinding";
 import {Expression} from "../../mappings/draft-4/Expression";
-import {CommandInputParameter} from "../../mappings/draft-3/CommandInputParameter";
-import {CommandOutputParameter} from "../../mappings/draft-3/CommandOutputParameter";
+import {CommandInputParameterModel} from "./CommandInputParameterModel";
+import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
+import {CWLCollection} from "./CWLCollection";
 
 export class CommandLineToolModel implements CommandLineTool {
+    inputs: Array<CommandInputParameter>;
+    outputs: Array<CommandOutputParameter>;
+    inputs: Array<InputParameter>;
+    outputs: Array<OutputParameter>;
     id: string;
     requirements: Array<ProcessRequirement>;
 
-    inputs: Array<CommandInputParameter>;
-    outputs: Array<CommandOutputParameter>;
+    mappedInputs: CWLCollection<CommandInputParameterModel>;
+    mappedOutputs: CWLCollection<CommandOutputParameterModel>;
+
 
     hints: Array<any>;
     label: string;
