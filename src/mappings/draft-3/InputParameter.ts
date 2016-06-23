@@ -1,5 +1,9 @@
 import {Parameter} from "./Parameter";
 import {InputBinding} from "./InputBinding";
+import {CWLType} from "./CWLType";
+import {InputRecordSchema} from "./InputRecordSchema";
+import {InputEnumSchema} from "./InputEnumSchema";
+import {InputArraySchema} from "./InputArraySchema";
 
 
 export interface InputParameter extends Parameter {
@@ -25,5 +29,12 @@ export interface InputParameter extends Parameter {
      *
      */
         default?: any;
+
+
+    /**
+     * Specify valid types of data that may be assigned to this parameter.
+     *
+     */
+        type?: CWLType | InputRecordSchema | InputEnumSchema | InputArraySchema | string | Array<CWLType | InputRecordSchema | InputEnumSchema | InputArraySchema | string>;
 
 }

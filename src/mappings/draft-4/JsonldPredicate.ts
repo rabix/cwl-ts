@@ -94,7 +94,7 @@ export interface JsonldPredicate {
      * level scope before determining if the identifier cannot be resolved.
      *
      */
-    refScope?: number;
+    refScope?: int;
 
 
     /**

@@ -1,5 +1,6 @@
 import {Process} from "./Process";
 import {Expression} from "./Expression";
+import {ExpressionToolOutputParameter} from "./ExpressionToolOutputParameter";
 
 
 /**
@@ -19,5 +20,13 @@ export interface ExpressionTool extends Process {
      *
      */
     expression: string | Expression;
+
+
+    /**
+     * Defines the parameters representing the output of the process.  May be
+     * used to generate and/or validate the output object.
+     *
+     */
+    outputs: Array<ExpressionToolOutputParameter>;
 
 }

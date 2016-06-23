@@ -1,6 +1,6 @@
 {
     "name": "cwlts",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Typescript data model for Common Workflow Language",
     "main": "index.js",
     "scripts": {
@@ -12,12 +12,12 @@
         "url": "git+https://github.com/rabix/cwl-ts.git"
     },
     "author": "Ivan Batić",
-    "license": "Apache 2.0",
+    "license": "Apache-2.0",
     "bugs": {
         "url": "https://github.com/rabix/cwl-ts/issues"
     },
     "homepage": "https://github.com/rabix/cwl-ts#readme",
     "devDependencies": {
-        "cwl-ts-parser": "git+https://github.com/ivanbatic/cwl-ts-parser.git"
+        "cwl-ts-parser": "^1.1.0"
     }
 }

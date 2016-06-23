@@ -5,6 +5,7 @@ import {stderr} from "./stderr";
 import {CommandOutputRecordSchema} from "./CommandOutputRecordSchema";
 import {CommandOutputEnumSchema} from "./CommandOutputEnumSchema";
 import {CommandOutputArraySchema} from "./CommandOutputArraySchema";
+import {CommandOutputBinding} from "./CommandOutputBinding";
 
 
 /**
@@ -19,5 +20,12 @@ export interface CommandOutputParameter extends OutputParameter {
      *
      */
         type?: CWLType | stdout | stderr | CommandOutputRecordSchema | CommandOutputEnumSchema | CommandOutputArraySchema | string | Array<CWLType | CommandOutputRecordSchema | CommandOutputEnumSchema | CommandOutputArraySchema | string>;
+
+
+    /**
+     * Describes how to handle the outputs of a process.
+     *
+     */
+    outputBinding?: CommandOutputBinding;
 
 }

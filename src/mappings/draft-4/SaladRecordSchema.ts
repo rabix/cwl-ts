@@ -31,4 +31,10 @@ export interface SaladRecordSchema extends NamedType, RecordSchema, SchemaDefine
      */
     specialize?: SpecializeDef | SpecializeDef[];
 
+
+    /**
+     * Defines the fields of the record.
+     */
+    fields?: SaladRecordField[];
+
 }

@@ -1,6 +1,8 @@
 import {Process} from "./Process";
 import {CommandLineBinding} from "./CommandLineBinding";
 import {Expression} from "./Expression";
+import {CommandInputParameter} from "./CommandInputParameter";
+import {CommandOutputParameter} from "./CommandOutputParameter";
 
 
 /**
@@ -93,5 +95,24 @@ export interface CommandLineTool extends Process {
      * Exit codes that indicate the process failed due to a permanent logic error, where excuting the process with the same runtime environment and same inputs is expected to always fail.
      */
     permanentFailCodes?: Array<number>;
+
+
+    /**
+     * Defines the input parameters of the process.  The process is ready to
+     * run when all required input parameters are associated with concrete
+     * values.  Input parameters include a schema for each parameter which is
+     * used to validate the input object.  It may also be used to build a user
+     * interface for constructing the input object.
+     *
+     */
+    inputs: Array<CommandInputParameter>;
+
+
+    /**
+     * Defines the parameters representing the output of the process.  May be
+     * used to generate and/or validate the output object.
+     *
+     */
+    outputs: Array<CommandOutputParameter>;
 
 }

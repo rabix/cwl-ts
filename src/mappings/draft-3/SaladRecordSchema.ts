@@ -2,6 +2,7 @@ import {NamedType} from "./NamedType";
 import {RecordSchema} from "./RecordSchema";
 import {SchemaDefinedType} from "./SchemaDefinedType";
 import {SpecializeDef} from "./SpecializeDef";
+import {SaladRecordField} from "./SaladRecordField";
 
 
 export interface SaladRecordSchema extends NamedType, RecordSchema, SchemaDefinedType {
@@ -30,5 +31,11 @@ export interface SaladRecordSchema extends NamedType, RecordSchema, SchemaDefine
      *
      */
     specialize?: SpecializeDef | Array<SpecializeDef>;
+
+
+    /**
+     * Defines the fields of the record.
+     */
+    fields?: Array<SaladRecordField>;
 
 }

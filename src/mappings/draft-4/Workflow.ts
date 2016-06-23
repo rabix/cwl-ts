@@ -1,5 +1,6 @@
 import {Process} from "./Process";
 import {WorkflowStep} from "./WorkflowStep";
+import {WorkflowOutputParameter} from "./WorkflowOutputParameter";
 
 
 /**
@@ -64,5 +65,13 @@ export interface Workflow extends Process {
      *
      */
     steps: Array<WorkflowStep>;
+
+
+    /**
+     * Defines the parameters representing the output of the process.  May be
+     * used to generate and/or validate the output object.
+     *
+     */
+    outputs: Array<WorkflowOutputParameter>;
 
 }
