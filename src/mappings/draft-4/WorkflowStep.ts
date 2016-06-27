@@ -1,6 +1,8 @@
 import {WorkflowStepOutput} from "./WorkflowStepOutput";
 import {Process} from "./Process";
 import {ScatterMethod} from "./ScatterMethod";
+import {WorkflowStepInput} from "./WorkflowStepInput";
+import {ProcessRequirement} from "./ProcessRequirement";
 
 
 /**
@@ -101,7 +103,7 @@ export interface WorkflowStep {
      * the implementation may report a warning.
      *
      */
-    hints?: Any[];
+    hints?: any[];
 
 
     /**
