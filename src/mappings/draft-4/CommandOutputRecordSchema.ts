@@ -1,4 +1,5 @@
 import {OutputRecordSchema} from "./OutputRecordSchema";
+import {CommandOutputRecordField} from "./CommandOutputRecordField";
 
 
 export interface CommandOutputRecordSchema extends OutputRecordSchema {

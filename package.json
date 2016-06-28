@@ -1,6 +1,6 @@
 {
     "name": "cwlts",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Typescript data model for Common Workflow Language",
     "main": "index.js",
     "scripts": {
@@ -18,6 +18,6 @@
     },
     "homepage": "https://github.com/rabix/cwl-ts#readme",
     "devDependencies": {
-        "cwl-ts-parser": "^1.1.0"
+        "cwl-ts-parser": "^1.1.1"
     }
 }
