@@ -1,11 +1,11 @@
-import {Parameter} from "./Parameter";
 import {CWLType} from "./CWLType";
 import {RecordSchema} from "./RecordSchema";
 import {EnumSchema} from "./EnumSchema";
 import {ArraySchema} from "./ArraySchema";
+import {OutputParameter} from "./OutputParameter";
 
 
-export interface ExpressionToolOutputParameter extends Parameter {
+export interface ExpressionToolOutputParameter extends OutputParameter {
 
 
     /**
