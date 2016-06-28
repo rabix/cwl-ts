@@ -1,4 +1,6 @@
+import {WorkflowStepInput} from "./WorkflowStepInput";
 import {WorkflowStepOutput} from "./WorkflowStepOutput";
+import {ProcessRequirement} from "./ProcessRequirement";
 import {Process} from "./Process";
 import {ScatterMethod} from "./ScatterMethod";
 import {WorkflowStepInput} from "./WorkflowStepInput";
@@ -73,7 +75,7 @@ export interface WorkflowStep {
      * interface for constructing the input object.
      *
      */
-        in: WorkflowStepInput[];
+     in: WorkflowStepInput[];
 
 
     /**
