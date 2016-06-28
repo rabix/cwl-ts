@@ -1,23 +1,24 @@
-import {CommandLineTool} from "../../mappings/draft-3/CommandLineTool";
+import {CommandLineTool} from "../../mappings/draft-4/CommandLineTool";
 import {ProcessRequirement} from "../../mappings/draft-4/ProcessRequirement";
-import {CWLVersions} from "../../mappings/draft-3/CWLVersions";
-import {CommandLineBinding} from "../../mappings/draft-3/CommandLineBinding";
+import {CWLVersions} from "../../mappings/draft-4/CWLVersions";
+import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
 import {Expression} from "../../mappings/draft-4/Expression";
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
 import {CWLCollection} from "./CWLCollection";
+import {CommandOutputParameter} from "../../mappings/draft-4/CommandOutputParameter";
+import {CommandInputParameter} from "../../mappings/draft-4/CommandInputParameter";
+import {CommandLinePart} from "../helpers/CommandLinePart";
 
 export class CommandLineToolModel implements CommandLineTool {
     inputs: Array<CommandInputParameter>;
     outputs: Array<CommandOutputParameter>;
-    inputs: Array<InputParameter>;
-    outputs: Array<OutputParameter>;
+
     id: string;
     requirements: Array<ProcessRequirement>;
 
     mappedInputs: CWLCollection<CommandInputParameterModel>;
     mappedOutputs: CWLCollection<CommandOutputParameterModel>;
-
 
     hints: Array<any>;
     label: string;
@@ -56,15 +57,12 @@ export class CommandLineToolModel implements CommandLineTool {
         return parts.map(part => part.value).join(' ');
     }
 
-    private generateCommandLineParts(): CommandLineParts[] {
+    private generateCommandLineParts(): CommandLinePart[] {
 
-        let argParts = this.arguments.map(arg => arg.getCommandPart());
-        let inputPart = this.inputs.map(input => input.getCommandPart());
+        // let argParts = this.arguments.map(arg => arg.getCommandPart());
+        let inputParts = this.mappedInputs.map(input => input.getCommandPart());
+
+        return inputParts;
     }
 
-}
-
-class CommandLineParts {
-    value: string;
-    sortingKey: Array<string|number>; // [position, index/name]
 }

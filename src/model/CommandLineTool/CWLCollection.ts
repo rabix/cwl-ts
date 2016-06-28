@@ -1,11 +1,26 @@
-export class CWLCollection<T> {
-    map: {id: string, value: T};
+import {Identifiable} from "../interfaces/Identifiable";
+
+
+export class CWLCollection<T extends Identifiable> {
+    hashMap: {id: string, value: T};
 
     add (item: T) : boolean{
-        if (this.map[item.id]) {
+        if (this.hashMap[item.id]) {
             return false;
         }
 
-        this.map[item.id] = item;
+        this.hashMap[item.id] = item;
+    }
+
+    map(fn: Function): Array<any> {
+        let result = [];
+
+        for (let key in this.hashMap) {
+            if (this.hashMap.hasOwnProperty(key)) {
+                result.push(fn(this.hashMap[key]));
+            }
+        }
+
+        return result;
     }
 }
