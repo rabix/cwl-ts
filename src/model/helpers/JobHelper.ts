@@ -3,7 +3,7 @@ import {CommandInputParameterModel} from "../CommandLineTool/CommandInputParamet
 
 export class JobHelper {
 
-    private getJobPart(input: CommandInputParameterModel, symbols) {
+    private getJobPart(input: CommandInputParameterModel, symbols?) {
         let type = <any> input.type;
         let name: string = input.id;
 
@@ -83,5 +83,3 @@ inputs.add(new CommandInputParameterModel({id: 'c', type: 'float'}));
 inputs.add(new CommandInputParameterModel({id: 'd', type: 'float'}));
 
 let job = jobHelper.getJob(inputs);
-
-console.log(job);

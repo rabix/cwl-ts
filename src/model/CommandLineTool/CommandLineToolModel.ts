@@ -20,6 +20,7 @@ export class CommandLineToolModel implements CommandLineTool {
     mappedInputs: CWLCollection<CommandInputParameterModel>;
     mappedOutputs: CWLCollection<CommandOutputParameterModel>;
 
+
     hints: Array<any>;
     label: string;
     description: string;
@@ -64,5 +65,4 @@ export class CommandLineToolModel implements CommandLineTool {
 
         return inputParts;
     }
-
 }
