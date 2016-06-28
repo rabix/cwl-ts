@@ -1,2 +1,2 @@
 "use strict";
-//# sourceMappingURL=CommandLineGeneratable.js.map
+//# sourceMappingURL=CommandLineInjectable.js.map
