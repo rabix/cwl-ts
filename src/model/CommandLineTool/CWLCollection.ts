@@ -13,6 +13,9 @@ export class CWLCollection<T extends Identifiable> {
         }
 
         this.values[item.id] = item;
+        delete this.values[item.id].id;
+
+        return true;
     }
 
     remove (item: string|T) : boolean {
@@ -36,7 +39,13 @@ export class CWLCollection<T extends Identifiable> {
         return result;
     }
 
-    constructor() {
+    constructor(items: Array<T> = []) {
         this.values = <IdentifiableMap<T>>{};
+
+        debugger;
+        items.forEach(item => {
+            this.values[item.id] = item;
+            delete this.values[item.id].id;
+        });
     }
 }

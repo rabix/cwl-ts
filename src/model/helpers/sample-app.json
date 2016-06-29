@@ -1,0 +1,27 @@
+{
+    "class": "CommandLineTool",
+    "cwlVersion": "cwl:draft-4.dev2",
+    "requirements": [
+        {
+            "class": "InlineJavascriptRequirement"
+        }
+    ],
+    "inputs": {
+        "file1": {
+            "type": "File[]",
+            "inputBinding": {}
+        }
+    },
+    "outputs": {
+        "output": {
+            "type": "int",
+            "outputBinding": {
+                "glob": "output.txt",
+                "loadContents": true,
+                "outputEval": "${\n  var s = self[0].contents.split(/\\r?\\n/);\n  return parseInt(s[s.length-2]);\n}\n"
+            }
+        }
+    },
+    "stdout": "output.txt",
+    "baseCommand": "wc"
+}
