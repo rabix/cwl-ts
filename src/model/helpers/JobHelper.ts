@@ -1,4 +1,3 @@
-import {CWLCollection} from "../CommandLineTool/CWLCollection";
 import {CommandInputParameterModel} from "../CommandLineTool/CommandInputParameterModel";
 import {CommandLineToolModel} from "../CommandLineTool/CommandLineToolModel";
 
@@ -73,10 +72,3 @@ export class JobHelper {
     }
 }
 
-let sampleTool = require('./sample-app.json');
-
-let tool = new CommandLineToolModel(sampleTool);
-
-console.log(tool);
-let job = JobHelper.getJob(tool);
-console.log(job);

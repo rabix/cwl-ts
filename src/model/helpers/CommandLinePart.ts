@@ -1,11 +1,11 @@
 export class CommandLinePart {
-    value: string;
-    sortingKey: Array<string|number>; // [position, index/name]
+    public value: string;
+    public sortingKey: Array<string|number>; // [position, index/name]
 
     constructor(value: string, sortingKey: Array<string|number> | string | number) {
-        this.value = value;
+        this.value = value.trim();
 
-        if (typeof sortingKey === "Array") {
+        if (Array.isArray(sortingKey)) {
             this.sortingKey = sortingKey;
         } else {
             this.sortingKey = [];

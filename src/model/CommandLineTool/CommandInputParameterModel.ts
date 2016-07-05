@@ -8,6 +8,7 @@ import {CommandInputArraySchema} from "../../mappings/draft-4/CommandInputArrayS
 import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
 import {Expression} from "../../mappings/draft-4/Expression";
 import {Identifiable} from "../interfaces/Identifiable";
+import {TypeResolver} from "../helpers/TypeResolver";
 
 
 export class CommandInputParameterModel implements CommandInputParameter, CommandLineInjectable, Identifiable {
@@ -15,6 +16,8 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
 
     isRequired: boolean = true;
     items: string;
+    fields: Array<CommandInputParameterModel>;
+    resolvedType: string;
 
     type: CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string | Array<CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string>;
     inputBinding: CommandLineBinding;
@@ -25,86 +28,133 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
     streamable: boolean;
 
     constructor(attr: any) {
-        this.id             = attr.id ? attr.id : null;
-        this.type           = attr.type ? attr.type : null;
-        this.inputBinding   = attr.inputBinding ? attr.inputBinding : null;
-        this.label          = attr.label ? attr.label : null;
-        this.description    = attr.description ? attr.description : null;
-        this.secondaryFiles = attr.secondaryFiles ? attr.secondaryFiles : null;
-        this.format         = attr.format ? attr.format : null;
-        this.streamable     = attr.streamable ? attr.streamable : null;
+        this.id             = attr.id;
+        this.type           = attr.type || null;
+        this.inputBinding   = attr.inputBinding || null;
+        this.label          = attr.label || null;
+        this.description    = attr.description || null;
+        this.secondaryFiles = attr.secondaryFiles || null;
+        this.format         = attr.format || null;
+        this.streamable     = attr.streamable || null;
 
         let typeResolution = TypeResolver.resolveType(this.type);
-        this.type = typeResolution.type;
-        this.items = typeResolution.items;
-        this.isRequired = typeResolution.isRequired;
 
-        this.validate();
+        this.resolvedType = typeResolution.type;
+
+        // create CommandInputParameterModel from fields, so they can generate their own command line
+        this.fields = typeResolution.fields ? typeResolution.fields.map(field => {
+            return new CommandInputParameterModel(field);
+        }) : typeResolution.fields;
+
+        if (typeResolution.items) {
+            // in case there are items, resolve their type
+            let resolvedItems = TypeResolver.resolveType(typeResolution.items);
+
+            this.items = resolvedItems.type;
+            // if items is type record, resolve their fields to CommandInputParameterModel, for cmd
+            if (resolvedItems.fields) {
+                this.fields = resolvedItems.fields.map(field => new CommandInputParameterModel(field));
+            }
+        } else {
+            this.items = null;
+        }
+
+        this.isRequired = typeResolution.isRequired;
     }
 
     getCommandPart(job?: any, value?: any, self?: any): CommandLinePart {
-        return undefined;
-    }
 
-
-    public validate() {
-
-    }
-}
-
-interface TypeResolution {
-    type: string;
-    items: string;
-    isRequired: boolean;
-}
-
-class TypeResolver {
-
-    static resolveType(type: any, result?: TypeResolution): TypeResolution {
-        result = result || {type: '', items: null, isRequired: true};
-
-        if (typeof type === 'string') {
-            let matches = /(\w+)([\[\]?]+)/g.exec(<string> type);
-            if (matches) {
-                if (/\?/.test(matches[2])) {
-                    result.isRequired = false;
-                }
-
-                if (/\[]/.test(matches[2])) {
-                    result.type = 'array';
-                    result.items = matches[1];
-                } else {
-                    result.type = matches[1];
-                }
-
-                return result;
-            } else {
-                result.type = type;
-                return result;
-            }
-        } else if (Array.isArray(result.type)) {
-            // check if type is required
-            let nullIndex = (<Array<any>> type).indexOf('null');
-
-            if (nullIndex > -1) {
-                result.isRequired = false;
-                type.splice(nullIndex, 1);
-            }
-
-            if (type.length !== 1) {
-                throw("Union types not supported yet! Sorry");
-            }
-
-            if (typeof type[0] === 'string') {
-                return TypeResolver.resolveType(type[0], result);
-            } else {
-                // resolve object type
-            }
-        } else {
-            // resolve object type
+        // only include if they have command line binding
+        if (!this.inputBinding) {
+            return null;
         }
 
-        return result;
+        // If type declared does not match type of value, throw error
+        if (!TypeResolver.doesTypeMatch(this.resolvedType, value)) {
+            // If there are items, only throw exception if items don't match either
+            if (!this.items || !TypeResolver.doesTypeMatch(this.items, value)) {
+                throw("Mismatched value and type definition");
+            }
+        }
 
+        let prefix    = this.inputBinding.prefix || "";
+        let separator = (!!prefix && this.inputBinding.separate !== false) ? " " : "";
+        let position  = this.inputBinding.position || 0;
+
+        // array
+        if (Array.isArray(value)) {
+            let parts                   = value.map(val => this.getCommandPart(job, val));
+            let calculatedValue: string = '';
+
+            parts.sort(this.sortingKeySort);
+
+            parts.forEach(part => {
+                calculatedValue += " " + part.value;
+            });
+
+            // if array has itemSeparator, resolve as --prefix [separate] value1(delimiter) value2(delimiter) value3
+            if (this.inputBinding.itemSeparator) {
+                calculatedValue = prefix + separator + parts.map((val) => {
+                        return val.value;
+                        // return this.resolveValue(job, val, this.inputBinding);
+                    }).join(this.inputBinding.itemSeparator + " ");
+
+                // no separator, resolve as --prefix [separate] value1 --prefix [separate] value2 --prefix [separate] value3
+            } else {
+                calculatedValue = parts.map((val) => {
+                    return prefix + separator + val.value;
+                }).join(" ");
+            }
+
+            return new CommandLinePart(calculatedValue, position);
+        }
+
+        // record
+        if (typeof value === "object") {
+            // make sure object isn't a file, resolveValue handles files
+            if (!value.path) {
+                // evaluate record by calling generate part for each field
+                let parts = this.fields.map((field) => field.getCommandPart(job, value[field.id]));
+                parts.sort(this.sortingKeySort);
+
+                let calculatedValue: string = '';
+
+                parts.forEach((part) => {
+                    calculatedValue += " " + part.value;
+                });
+
+                return new CommandLinePart(calculatedValue, position);
+            }
+        }
+
+        // not record or array
+        // if the input has items, this is a recursive call and prefix should not be added again
+        prefix = this.items ? '' : prefix;
+        let calculatedValue = prefix + separator + this.resolveValue(job, value, this.inputBinding);
+        return new CommandLinePart(calculatedValue, position);
+    }
+
+    private resolveValue(job: any, value: any, inputBinding: CommandLineBinding) {
+        //@todo(maya): implement expression evaluation
+        if (value.path) {
+            value = value.path;
+        }
+
+        return value;
+    }
+
+    toString(): string {
+        return JSON.stringify(this, null, 4);
+    }
+
+    //@todo(maya): implement MSD radix sort for sorting key
+    private sortingKeySort(a: CommandLinePart, b: CommandLinePart) {
+        if (a.sortingKey[0] < b.sortingKey[0]) {
+            return -1;
+        }
+        if (a.sortingKey[0] > b.sortingKey[0]) {
+            return 1;
+        }
+        return 0;
     }
 }

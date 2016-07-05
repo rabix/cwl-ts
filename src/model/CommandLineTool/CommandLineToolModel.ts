@@ -63,7 +63,7 @@ export class CommandLineToolModel implements CommandLineTool {
     description: string;
     cwlVersion: CWLVersions;
 
-    class: string = 'CommandLineTool';
+    'class': string = 'CommandLineTool';
     baseCommand: string|Array<string>;
 
 
@@ -112,8 +112,11 @@ export class CommandLineToolModel implements CommandLineTool {
         }
 
         // let argParts = this.arguments.map(arg => arg.getCommandPart());
-        let inputParts = this.inputs.map(input => input.getCommandPart(job, job[input.id]));
 
-        return inputParts;
+        return this.inputs.map(input => input.getCommandPart(job, job[input.id]));
+    }
+
+    public toString(): string {
+        return JSON.stringify(this, null, 2);
     }
 }
