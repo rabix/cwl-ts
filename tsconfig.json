@@ -5,8 +5,17 @@
         "sourceMap": true,
         "pretty": true,
         "emitDecoratorMetadata": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "declaration": true,
+        "outDir": "lib/"
     },
+    "filesGlob": [
+        "./**/*.ts"
+    ],
+    "files": [
+        "./src/index.ts",
+        "./typings/main.d.ts"
+    ],
     "exclude": [
         "node_modules",
         "wwwroot"
