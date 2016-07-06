@@ -1,27 +1,27 @@
 {
-    "name": "cwlts",
-    "version": "1.2.0",
-    "description": "Typescript data model for Common Workflow Language",
-    "main": "lib/index.ts",
-    "typings": "lib/index",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "regenerate": "node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
-        "schemas": "scripts/schemas.sh"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/rabix/cwl-ts.git"
-    },
-    "author": "Ivan Batić",
-    "license": "Apache-2.0",
-    "bugs": {
-        "url": "https://github.com/rabix/cwl-ts/issues"
-    },
-    "homepage": "https://github.com/rabix/cwl-ts#readme",
-    "devDependencies": {
-        "cwl-ts-parser": "^1.1.1",
-        "jsonschema": "^1.1.0",
-        "typescript-json-schema": "^0.1.1"
-    }
+  "name": "cwlts",
+  "version": "1.2.1",
+  "description": "Typescript data model for Common Workflow Language",
+  "main": "lib/index.ts",
+  "typings": "lib/index",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "regenerate": "node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
+    "schemas": "scripts/schemas.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rabix/cwl-ts.git"
+  },
+  "author": "Ivan Batić",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/rabix/cwl-ts/issues"
+  },
+  "homepage": "https://github.com/rabix/cwl-ts#readme",
+  "devDependencies": {
+    "cwl-ts-parser": "^1.1.1",
+    "jsonschema": "^1.1.0",
+    "typescript-json-schema": "^0.1.1"
+  }
 }
