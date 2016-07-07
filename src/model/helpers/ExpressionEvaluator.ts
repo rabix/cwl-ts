@@ -1,48 +1,58 @@
+import {JSExecutor} from "./JSExecutor";
 export class ExpressionEvaluator {
-    public static evaluate(expr: string, job: any): any {
+    public static evaluate(expr: string, job?: any, self?: any): any {
+        let results = ExpressionEvaluator.grabExpressions(expr).map(token => {
+            switch (token.type) {
+                case "func":
+                    return JSExecutor.evaluate("(function() {" + token.value + "})()", job, self);
+                case "expr":
+                    return JSExecutor.evaluate(token.value, job, self);
+                case "literal":
+                    return token.value;
+            }
+        });
 
-        let tokens = ExpressionEvaluator.grabExpressions(expr);
-        if (tokens.length > 1 && tokens[0].type === "expr") {
-
+        if (results.length === 1) {
+            return results[0];
+        } else {
+            return results.join('');
         }
-
-        return undefined;
     }
 
     public static grabExpressions(exprStr: string): exprObj[] {
-        let tokens = [];
-        let i = 0;
-        let state = State.LITERAL;
-        let literal = "";
-        let expr = "";
-        let func = "";
+        let tokens       = [];
+        let i            = 0;
+        let state        = State.LITERAL;
+        let literal      = "";
+        let expr         = "";
+        let func         = "";
         let bracketCount = 0;
-        let parenCount = 0;
+        let parenCount   = 0;
 
         // go through character by character
         while (i < exprStr.length) {
             let currentChar = exprStr[i];
 
-            switch(state) {
+            switch (state) {
                 case State.LITERAL:
-                    if (currentChar === "$" && exprStr[i + 1] === "{") {
+                    if (currentChar === "$" && exprStr[i + 1] === "(") {
                         // start expression and push past literal
                         if (literal) {
                             tokens.push({type: "literal", value: literal});
                             literal = "";
                         }
                         i++;
-                        expr = "${";
+                        expr  = "";
                         state = State.EXPR;
 
-                    } else if (currentChar === "$" && exprStr[i + 1] === "(") {
+                    } else if (currentChar === "$" && exprStr[i + 1] === "{") {
                         // start expression and push past literal
                         if (literal) {
                             tokens.push({type: "literal", value: literal});
                             literal = "";
                         }
                         i++;
-                        func = "$(";
+                        func  = "";
                         state = State.FUNC;
                     } else if (currentChar === "\\" && exprStr[i + 1] === "$") {
                         literal += "\\$";
@@ -52,35 +62,44 @@ export class ExpressionEvaluator {
                     }
                     break;
                 case State.EXPR:
-                    expr += currentChar;
 
-                    if (currentChar === "{") {
-                        bracketCount++;
-                    }
-
-                    if (currentChar === "}") {
-                        if (bracketCount === 0) {
-                            tokens.push({type: "expr", value: expr});
-                            state = State.LITERAL;
-                        } else {
-                            bracketCount--;
-                        }
+                    switch (currentChar) {
+                        case "(":
+                            expr += currentChar;
+                            parenCount++;
+                            break;
+                        case ")":
+                            if (parenCount === 0) {
+                                tokens.push({type: "expr", value: expr});
+                                state = State.LITERAL;
+                            } else {
+                                expr += currentChar;
+                                parenCount--;
+                            }
+                            break;
+                        default:
+                            expr += currentChar;
                     }
                     break;
                 case State.FUNC:
-                    func += currentChar;
 
-                    if (currentChar === "(") {
-                        bracketCount++;
-                    }
-
-                    if (currentChar === ")") {
-                        if (bracketCount === 0) {
-                            tokens.push({type: "func", value: func});
-                            state = State.LITERAL;
-                        } else {
-                            bracketCount--;
-                        }
+                    switch (currentChar) {
+                        case "{":
+                            func += currentChar;
+                            bracketCount++;
+                            break;
+                        case "}":
+                            if (bracketCount === 0) {
+                                tokens.push({type: "func", value: func});
+                                state = State.LITERAL;
+                            } else {
+                                func += currentChar;
+                                bracketCount--;
+                            }
+                            break;
+                        default:
+                            func += currentChar;
+                            break;
                     }
                     break;
             }
@@ -96,11 +115,6 @@ export class ExpressionEvaluator {
             throw("Invalid expression");
         }
         return tokens;
-    }
-
-    private static evaluateExpression(expr: string): any {
-        // sandbox evaluation
-        return expr;
     }
 }
 
