@@ -1,15 +1,16 @@
+import {CommandInputArraySchema} from "../../mappings/draft-4/CommandInputArraySchema";
+import {CommandInputEnumSchema} from "../../mappings/draft-4/CommandInputEnumSchema";
 import {CommandInputParameter} from "../../mappings/draft-4/CommandInputParameter";
+import {CommandInputRecordField} from "../../mappings/draft-4/CommandInputRecordField";
+import {CommandInputRecordSchema} from "../../mappings/draft-4/CommandInputRecordSchema";
+import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
 import {CommandLineInjectable} from "../interfaces/CommandLineInjectable";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {CWLType} from "../../mappings/draft-4/CWLType";
-import {CommandInputRecordSchema} from "../../mappings/draft-4/CommandInputRecordSchema";
-import {CommandInputEnumSchema} from "../../mappings/draft-4/CommandInputEnumSchema";
-import {CommandInputArraySchema} from "../../mappings/draft-4/CommandInputArraySchema";
-import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {Expression} from "../../mappings/draft-4/Expression";
 import {Identifiable} from "../interfaces/Identifiable";
 import {TypeResolver} from "../helpers/TypeResolver";
-import {CommandInputRecordField} from "../../mappings/draft-4/CommandInputRecordField";
 
 
 export class CommandInputParameterModel implements CommandInputParameter, CommandLineInjectable, Identifiable {
@@ -81,7 +82,8 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         if (!TypeResolver.doesTypeMatch(this.resolvedType, value)) {
             // If there are items, only throw exception if items don't match either
             if (!this.items || !TypeResolver.doesTypeMatch(this.items, value)) {
-                throw("Mismatched value and type definition");
+                throw(`Mismatched value and type definition expected. ${this.resolvedType} 
+                or ${this.items}, but instead got ${typeof value}`);
             }
         }
 
@@ -142,8 +144,11 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         return new CommandLinePart(calculatedValue, position);
     }
 
-    private resolveValue(job: any, value: any, inputBinding: CommandLineBinding) {
-        //@todo(maya): implement expression evaluation
+    private resolveValue(jobInputs: any, value: any, inputBinding: CommandLineBinding) {
+        if (inputBinding.valueFrom) {
+            return ExpressionEvaluator.evaluate(inputBinding.valueFrom, jobInputs, value);
+        }
+
         if (value.path) {
             value = value.path;
         }

@@ -128,16 +128,16 @@ describe("ExpressionEvaluator", () => {
             expect(ExpressionEvaluator.evaluate("$(3 + 3) + ${ return 5}")).to.equal("6 + 5");
         });
 
-        it("should evaluate an expression with a $job reference", () => {
+        it("should evaluate an expression with an inputs reference", () => {
             expect(ExpressionEvaluator.evaluate(
-                "${ return $job.text }",
+                "${ return inputs.text }",
                 {text: "hello"}
                 )).to.equal("hello");
         });
 
-        it("should evaluate an expression with a $self reference", () => {
+        it("should evaluate an expression with a self reference", () => {
             expect(ExpressionEvaluator.evaluate(
-                "${ return $self.prop }",
+                "${ return self.prop }",
                 null,
                 {prop: "baz"}
                 )).to.equal("baz");

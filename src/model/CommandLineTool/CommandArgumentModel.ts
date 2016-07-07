@@ -2,6 +2,7 @@ import {CommandLineInjectable} from "../interfaces/CommandLineInjectable";
 import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {Expression} from "../../mappings/draft-4/Expression";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 
 export class CommandArgumentModel implements CommandLineBinding, CommandLineInjectable {
     private value: string;
@@ -27,7 +28,7 @@ export class CommandArgumentModel implements CommandLineBinding, CommandLineInje
         }
     }
 
-    getCommandPart(job?: any): CommandLinePart {
+    getCommandPart(jobInputs?: any): CommandLinePart {
         let position  = this.position || 0;
 
         if (this.value) {
@@ -36,7 +37,7 @@ export class CommandArgumentModel implements CommandLineBinding, CommandLineInje
 
         let prefix    = this.prefix || "";
         let separator = (!!prefix && this.separate !== false) ? " " : "";
-        let value = this.evaluate(this.valueFrom, job);
+        let value = this.evaluate(this.valueFrom, jobInputs);
         let calculatedValue = '';
 
         if (Array.isArray(value)) {
@@ -55,8 +56,7 @@ export class CommandArgumentModel implements CommandLineBinding, CommandLineInje
         return new CommandLinePart(calculatedValue, position);
     }
 
-    private evaluate(valueFrom: string|Expression, job: any): any {
-        //@todo(maya): implement expression evaluation
-        return valueFrom || '';
+    private evaluate(valueFrom: string|Expression, jobInputs: any): any {
+        return valueFrom ? ExpressionEvaluator.evaluate(valueFrom, jobInputs) : "";
     }
 }

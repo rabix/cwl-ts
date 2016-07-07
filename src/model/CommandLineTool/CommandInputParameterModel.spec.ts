@@ -262,6 +262,70 @@ describe("CommandInputParameterModel", () => {
             expect(part.value).to.equal("foo -o 6 boo");
         });
 
+        it("should evaluate inputBinding valueFrom that is a string", () => {
+            const input = new CommandInputParameterModel({
+                type: "int",
+                id: "test1",
+                inputBinding: {prefix: "p-", valueFrom: "value"}
+            });
 
+            const part  = input.getCommandPart({}, 34);
+
+            expect(part).to.have.property("value");
+            expect(part.value).to.equal("p- value");
+        });
+
+        it("should evaluate inputBinding valueFrom that is an expression", () => {
+            const input = new CommandInputParameterModel({
+                type: "int",
+                id: "test1",
+                inputBinding: {prefix: "p-", valueFrom: "$(3+2)"}
+            });
+
+            const part  = input.getCommandPart({}, 34);
+
+            expect(part).to.have.property("value");
+            expect(part.value).to.equal("p- 5");
+        });
+
+        it("should evaluate inputBinding valueFrom that is a function", () => {
+            const input = new CommandInputParameterModel({
+                type: "int",
+                id: "test1",
+                inputBinding: {prefix: "p-", valueFrom: "${return 3+7}"}
+            });
+
+            const part  = input.getCommandPart({}, 34);
+
+            expect(part).to.have.property("value");
+            expect(part.value).to.equal("p- 10");
+        });
+
+
+        it("should evaluate inputBinding valueFrom that references inputs", () => {
+            const input = new CommandInputParameterModel({
+                type: "int",
+                id: "test1",
+                inputBinding: {prefix: "p-", valueFrom: "$(inputs.test1 + inputs.test2)"}
+            });
+
+            const part  = input.getCommandPart({test1: 34, test2: 55}, 34);
+
+            expect(part).to.have.property("value");
+            expect(part.value).to.equal("p- 89");
+        });
+
+        it("should evaluate inputBinding valueFrom that references self", () => {
+            const input = new CommandInputParameterModel({
+                type: "int",
+                id: "test1",
+                inputBinding: {prefix: "p-", valueFrom: "$(++self)"}
+            });
+
+            const part  = input.getCommandPart({test1: 34, test2: 55}, 34);
+
+            expect(part).to.have.property("value");
+            expect(part.value).to.equal("p- 35");
+        });
     });
 });

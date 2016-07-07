@@ -8,6 +8,9 @@ export class JSExecutor {
 
         let script = new vm.Script(expr, options);
 
-        return script.runInContext(vm.createContext({$job: job, $self: self}));
+        // IMPORTANT!
+        // this is draft-4/v1.0 specific, before inputs ==> $job and self ==> $self
+        //@todo(maya): add runtime variable
+        return script.runInContext(vm.createContext({inputs: job, self: self}));
     }
 }
