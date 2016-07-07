@@ -3,8 +3,6 @@ import {WorkflowStepOutput} from "./WorkflowStepOutput";
 import {ProcessRequirement} from "./ProcessRequirement";
 import {Process} from "./Process";
 import {ScatterMethod} from "./ScatterMethod";
-import {WorkflowStepInput} from "./WorkflowStepInput";
-import {ProcessRequirement} from "./ProcessRequirement";
 
 
 /**

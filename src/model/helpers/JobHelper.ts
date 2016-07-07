@@ -1,9 +1,9 @@
-import {CWLCollection} from "../CommandLineTool/CWLCollection";
 import {CommandInputParameterModel} from "../CommandLineTool/CommandInputParameterModel";
+import {CommandLineToolModel} from "../CommandLineTool/CommandLineToolModel";
 
 export class JobHelper {
 
-    private getJobPart(input: CommandInputParameterModel, symbols?) {
+    private static getJobPart(input: CommandInputParameterModel, symbols?) {
         let type = <any> input.type;
         let name: string = input.id;
 
@@ -61,25 +61,14 @@ export class JobHelper {
         return map[type];
     }
 
-    public getJob(inputs: CWLCollection<CommandInputParameterModel>): any {
+    public static getJob(tool: CommandLineToolModel): any {
         let job = {};
 
-        for (let id in inputs.values) {
-            if(inputs.values.hasOwnProperty(id)) {
-                job[id] = this.getJobPart(inputs.values[id]);
-            }
-        }
+        tool.inputs.forEach(input => {
+            job[input.id] = JobHelper.getJobPart(input);
+        });
 
         return job;
     }
 }
 
-let jobHelper = new JobHelper();
-
-let inputs = new CWLCollection<CommandInputParameterModel>();
-inputs.add(new CommandInputParameterModel({id: 'a', type: 'string'}));
-inputs.add(new CommandInputParameterModel({id: 'b', type: 'boolean'}));
-inputs.add(new CommandInputParameterModel({id: 'c', type: 'float'}));
-inputs.add(new CommandInputParameterModel({id: 'd', type: 'float'}));
-
-let job = jobHelper.getJob(inputs);
