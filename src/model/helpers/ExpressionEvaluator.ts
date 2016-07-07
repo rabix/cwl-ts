@@ -118,7 +118,7 @@ export class ExpressionEvaluator {
     }
 }
 
-interface exprObj {
+export interface exprObj {
     type: string;
     value: string;
 }

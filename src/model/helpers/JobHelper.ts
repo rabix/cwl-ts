@@ -1,5 +1,5 @@
-import {CommandInputParameterModel} from "../CommandLineTool/CommandInputParameterModel";
-import {CommandLineToolModel} from "../CommandLineTool/CommandLineToolModel";
+import {CommandInputParameterModel} from "../draft-4/CommandInputParameterModel";
+import {CommandLineToolModel} from "../draft-4/CommandLineToolModel";
 
 export class JobHelper {
 
