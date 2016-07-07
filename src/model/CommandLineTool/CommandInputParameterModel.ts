@@ -1,7 +1,7 @@
 import {CommandInputParameter} from "../../mappings/draft-4/CommandInputParameter";
 import {CommandLineInjectable} from "../interfaces/CommandLineInjectable";
 import {CommandLinePart} from "../helpers/CommandLinePart";
-import {CWLType} from "../../mappings/draft-3/CWLType";
+import {CWLType} from "../../mappings/draft-4/CWLType";
 import {CommandInputRecordSchema} from "../../mappings/draft-4/CommandInputRecordSchema";
 import {CommandInputEnumSchema} from "../../mappings/draft-4/CommandInputEnumSchema";
 import {CommandInputArraySchema} from "../../mappings/draft-4/CommandInputArraySchema";
@@ -9,6 +9,7 @@ import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
 import {Expression} from "../../mappings/draft-4/Expression";
 import {Identifiable} from "../interfaces/Identifiable";
 import {TypeResolver} from "../helpers/TypeResolver";
+import {CommandInputRecordField} from "../../mappings/draft-4/CommandInputRecordField";
 
 
 export class CommandInputParameterModel implements CommandInputParameter, CommandLineInjectable, Identifiable {
@@ -27,15 +28,22 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
     format: string | Array<string> | Expression;
     streamable: boolean;
 
-    constructor(attr: any) {
-        this.id             = attr.id;
-        this.type           = attr.type || null;
-        this.inputBinding   = attr.inputBinding || null;
-        this.label          = attr.label || null;
-        this.description    = attr.description || null;
-        this.secondaryFiles = attr.secondaryFiles || null;
-        this.format         = attr.format || null;
-        this.streamable     = attr.streamable || null;
+    constructor(attr: CommandInputParameter | CommandInputRecordField) {
+        if ((<CommandInputRecordField> attr).name) {
+            this.id           = (<CommandInputRecordField> attr).name;
+            this.type         = attr.type || null;
+            this.inputBinding = attr.inputBinding || null;
+        } else {
+            this.id             = (<CommandInputParameter> attr).id;
+            this.type           = attr.type || null;
+            this.inputBinding   = attr.inputBinding || null;
+            this.label          = (<CommandInputParameter> attr).label || null;
+            this.description    = (<CommandInputParameter> attr).description || null;
+            this.secondaryFiles = (<CommandInputParameter> attr).secondaryFiles || null;
+            this.format         = (<CommandInputParameter> attr).format || null;
+            this.streamable     = (<CommandInputParameter> attr).streamable || null;
+        }
+
 
         let typeResolution = TypeResolver.resolveType(this.type);
 
@@ -129,7 +137,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
 
         // not record or array
         // if the input has items, this is a recursive call and prefix should not be added again
-        prefix = this.items ? '' : prefix;
+        prefix              = this.items ? '' : prefix;
         let calculatedValue = prefix + separator + this.resolveValue(job, value, this.inputBinding);
         return new CommandLinePart(calculatedValue, position);
     }

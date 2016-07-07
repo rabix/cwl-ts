@@ -1,10 +1,9 @@
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {expect} from "chai";
 import {CommandLinePart} from "../helpers/CommandLinePart";
+
 describe("CommandInputParameterModel", () => {
     describe("getCommandLinePart", () => {
-
-
 
         it("Should return null if input has no inputBinding", () => {
             let input = new CommandInputParameterModel({type: "string", id: "test1"});
@@ -151,7 +150,7 @@ describe("CommandInputParameterModel", () => {
                 id: "test1",
                 inputBinding: {prefix: '-o'}
             });
-            let part = input.getCommandPart({}, {path: "path/to/file", class: "File"});
+            let part  = input.getCommandPart({}, {path: "path/to/file", class: "File"});
             expect(part).to.have.property("value");
             expect((<CommandLinePart> part).value).to.equal("-o path/to/file");
         });
@@ -166,10 +165,13 @@ describe("CommandInputParameterModel", () => {
                     type: "record", fields: [
                         {
                             type: "string",
-                            id: "rec_string",
+                            name: "rec_string",
                             inputBinding: {position: 2, prefix: '-b'}
                         },
-                        {type: "int", id: "rec_int", inputBinding: {position: 0, prefix: '-o'}}
+                        {
+                            type: "int",
+                            name: "rec_int",
+                            inputBinding: {position: 0, prefix: '-o'}}
                     ]
                 },
                 id: "test1",
@@ -186,13 +188,17 @@ describe("CommandInputParameterModel", () => {
         it("Should evaluate record with fields type File array", () => {
             let input = new CommandInputParameterModel({
                 type: {
-                    type: "record", fields: [
+                    type: "record",
+                    fields: [
                         {
                             type: "File[]",
-                            id: "rec_file_arr",
+                            name: "rec_file_arr",
                             inputBinding: {position: 2, prefix: '-f', itemSeparator: ","}
                         },
-                        {type: "int", id: "rec_int", inputBinding: {position: 0, prefix: '-o'}}
+                        {
+                            type: "int",
+                            name: "rec_int",
+                            inputBinding: {position: 0, prefix: '-o'}}
                     ]
                 },
                 id: "test1",
@@ -212,29 +218,30 @@ describe("CommandInputParameterModel", () => {
         it("Should evaluated a nested record", () => {
             let input = new CommandInputParameterModel({
                 type: {
-                    type: "record", fields: [
+                    type: "record",
+                    fields: [
                         {
                             type: {
                                 type: "record",
                                 fields: [
                                     {
                                         type: "int",
-                                        id: "rec_int",
+                                        name: "rec_int",
                                         inputBinding: {position: 0, prefix: '-o'}
                                     },
                                     {
                                         type: "string",
-                                        id: "rec_string",
+                                        name: "rec_string",
                                         inputBinding: {}
                                     }
                                 ]
                             },
-                            id: "nested_rec",
+                            name: "nested_rec",
                             inputBinding: {position: 2}
                         },
                         {
                             type: "string",
-                            id: "outside_nested",
+                            name: "outside_nested",
                             inputBinding: {}
                         }
                     ]
@@ -254,7 +261,6 @@ describe("CommandInputParameterModel", () => {
             expect(part).to.have.property("value");
             expect(part.value).to.equal("foo -o 6 boo");
         });
-
 
 
     });

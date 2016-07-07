@@ -7,6 +7,7 @@ import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {JobHelper} from "../helpers/JobHelper";
+import {CommandArgumentModel} from "./CommandArgumentModel";
 
 export class CommandLineToolModel implements CommandLineTool {
     constructor(json: any) {
@@ -39,7 +40,7 @@ export class CommandLineToolModel implements CommandLineTool {
 
         this.requirements = json.requirements || null;
         this.hints        = json.hints || null;
-        this.arguments    = json.arguments || null;
+        this.arguments    = json.arguments.map(arg => new CommandArgumentModel(arg));
 
         this.stdin  = json.stdin || null;
         this.stderr = json.stderr || null;
@@ -66,8 +67,7 @@ export class CommandLineToolModel implements CommandLineTool {
     'class': string = 'CommandLineTool';
     baseCommand: string|Array<string>;
 
-
-    arguments: Array<string|CommandLineBinding>;
+    arguments: Array<CommandArgumentModel>;
     stdin: string|Expression;
     stdout: string|Expression;
     stderr: string|Expression;
@@ -111,9 +111,12 @@ export class CommandLineToolModel implements CommandLineTool {
             job = JobHelper.getJob(this);
         }
 
-        // let argParts = this.arguments.map(arg => arg.getCommandPart());
+        let allParts:CommandLinePart[] = [];
 
-        return this.inputs.map(input => input.getCommandPart(job, job[input.id]));
+        allParts.concat(this.inputs.map(input => input.getCommandPart(job, job[input.id])));
+        allParts.concat(this.arguments.map(arg => arg.getCommandPart(job)));
+
+        return allParts;
     }
 
     public toString(): string {
