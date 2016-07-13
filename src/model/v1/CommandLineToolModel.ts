@@ -11,46 +11,35 @@ import {CommandArgumentModel} from "./CommandArgumentModel";
 
 export class CommandLineToolModel implements CommandLineTool {
     constructor(json: any) {
-        function objToArr(obj) {
-            let arr = [];
-            for (let key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    obj[key].id = key;
-                    arr.push(obj[key]);
-                }
-            }
-            return arr;
-        }
-
         if (!Array.isArray(json.inputs)) {
-            json.inputs = objToArr(json.inputs);
+            json.inputs = Object.keys(json.inputs).map(id =>(<any> Object).assign(json.inputs[id], {id}));
         }
 
         if (!Array.isArray(json.outputs)) {
-            json.outputs = objToArr(json.outputs);
+            json.inputs = Object.keys(json.outputs).map(id =>(<any> Object).assign(json.outputs[id], {id}));
         }
 
         this.inputs      = json.inputs.map(input => new CommandInputParameterModel(input));
         this.outputs     = json.outputs.map(output => new CommandOutputParameterModel(output));
-        this.baseCommand = json.baseCommand;
+        this.baseCommand = Array.isArray(json.baseCommand) ? json.baseCommand : [json.baseCommand];
 
-        this.id          = json.id || null;
-        this.description = json.description || null;
-        this.label       = json.label || null;
+        this.id          = json.id;
+        this.description = json.description;
+        this.label       = json.label;
 
-        this.requirements = json.requirements || null;
-        this.hints        = json.hints || null;
+        this.requirements = json.requirements;
+        this.hints        = json.hints;
         this.arguments    = json.arguments.map(arg => new CommandArgumentModel(arg));
 
-        this.stdin  = json.stdin || null;
-        this.stderr = json.stderr || null;
-        this.stdout = json.stdout || null;
+        this.stdin  = json.stdin;
+        this.stderr = json.stderr;
+        this.stdout = json.stdout;
 
-        this.successCodes       = json.successCodes || null;
-        this.temporaryFailCodes = json.temporaryFailCodes || null;
-        this.permanentFailCodes = json.permanentFailCodes || null;
+        this.successCodes       = json.successCodes;
+        this.temporaryFailCodes = json.temporaryFailCodes;
+        this.permanentFailCodes = json.permanentFailCodes;
 
-        this.cwlVersion = json.cwlVersion || null;
+        this.cwlVersion = json.cwlVersion;
     }
 
     inputs: Array<CommandInputParameterModel>;
@@ -78,31 +67,8 @@ export class CommandLineToolModel implements CommandLineTool {
 
     generateCommandLine(): string {
         let parts = this.generateCommandLineParts();
-        parts.sort((a, b) => {
-            let posA = a.sortingKey[0];
-            let posB = b.sortingKey[0];
-            if (posA > posB) {
-                return 1;
-            }
-            if (posA < posB) {
-                return -1;
-            }
 
-            let indA = a.sortingKey[1];
-            let indB = b.sortingKey[1];
-
-            if (indA > indB) {
-                return 1;
-            }
-            if (indA < indB) {
-                return -1;
-            }
-
-            // defaults to returning 1 in case both position and index match (should never happen)
-            return 1;
-        });
-
-        return parts.map(part => part.value).join(' ');
+        return (<string []> this.baseCommand).concat(parts.map(part => part.value)).join(' ');
     }
 
     private generateCommandLineParts(job?: any): CommandLinePart[] {
@@ -116,7 +82,35 @@ export class CommandLineToolModel implements CommandLineTool {
         allParts.concat(this.inputs.map(input => input.getCommandPart(job, job[input.id])));
         allParts.concat(this.arguments.map(arg => arg.getCommandPart(job)));
 
+        allParts.sort(this.sortingKeySort);
+
+        //@todo(maya) add stdin and stdout
         return allParts;
+    }
+
+    //@todo(maya): implement MSD radix sort for sorting key
+    private sortingKeySort(a: CommandLinePart, b: CommandLinePart) {
+        let posA = a.sortingKey[0];
+        let posB = b.sortingKey[0];
+        if (posA > posB) {
+            return 1;
+        }
+        if (posA < posB) {
+            return -1;
+        }
+
+        let indA = a.sortingKey[1];
+        let indB = b.sortingKey[1];
+
+        if (indA > indB) {
+            return 1;
+        }
+        if (indA < indB) {
+            return -1;
+        }
+
+        // defaults to returning 1 in case both position and index match (should never happen)
+        return 0;
     }
 
     public toString(): string {

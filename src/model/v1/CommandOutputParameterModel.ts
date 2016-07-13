@@ -19,12 +19,12 @@ export class CommandOutputParameterModel implements CommandOutputParameter, Iden
 
     constructor(attr: any) {
         this.id             = attr.id;
-        this.type           = attr.type || null;
-        this.outputBinding  = attr.outputBinding || null;
-        this.label          = attr.label || null;
-        this.description    = attr.description || null;
-        this.secondaryFiles = attr.secondaryFiles || null;
-        this.format         = attr.format || null;
-        this.streamable     = attr.streamable || null;
+        this.type           = attr.type;
+        this.outputBinding  = attr.outputBinding;
+        this.label          = attr.label;
+        this.description    = attr.description;
+        this.secondaryFiles = attr.secondaryFiles;
+        this.format         = attr.format;
+        this.streamable     = attr.streamable;
     }
 }

@@ -17,12 +17,12 @@ export class CommandArgumentModel implements CommandLineBinding, CommandLineInje
         if (typeof attr === 'string') {
             this.value = attr;
         } else if (typeof attr === 'object') {
-            this.position = attr.position || null;
-            this.prefix = attr.prefix || null;
-            this.separate = attr.separate || null;
-            this.itemSeparator = attr.itemSeparator || null;
-            this.valueFrom = attr.valueFrom || null;
-            this.shellQuote = attr.shellQuote || null;
+            this.position = attr.position;
+            this.prefix = attr.prefix;
+            this.separate = attr.separate;
+            this.itemSeparator = attr.itemSeparator;
+            this.valueFrom = attr.valueFrom;
+            this.shellQuote = attr.shellQuote;
         } else {
             throw("Invalid argument error");
         }

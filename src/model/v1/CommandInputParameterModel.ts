@@ -32,17 +32,17 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
     constructor(attr: CommandInputParameter | CommandInputRecordField) {
         if ((<CommandInputRecordField> attr).name) {
             this.id           = (<CommandInputRecordField> attr).name;
-            this.type         = attr.type || null;
-            this.inputBinding = attr.inputBinding || null;
+            this.type         = attr.type;
+            this.inputBinding = attr.inputBinding;
         } else {
             this.id             = (<CommandInputParameter> attr).id;
-            this.type           = attr.type || null;
-            this.inputBinding   = attr.inputBinding || null;
-            this.label          = (<CommandInputParameter> attr).label || null;
-            this.description    = (<CommandInputParameter> attr).description || null;
-            this.secondaryFiles = (<CommandInputParameter> attr).secondaryFiles || null;
-            this.format         = (<CommandInputParameter> attr).format || null;
-            this.streamable     = (<CommandInputParameter> attr).streamable || null;
+            this.type           = attr.type;
+            this.inputBinding   = attr.inputBinding;
+            this.label          = (<CommandInputParameter> attr).label;
+            this.description    = (<CommandInputParameter> attr).description;
+            this.secondaryFiles = (<CommandInputParameter> attr).secondaryFiles;
+            this.format         = (<CommandInputParameter> attr).format;
+            this.streamable     = (<CommandInputParameter> attr).streamable;
         }
 
 

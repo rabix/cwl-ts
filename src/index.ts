@@ -1,4 +1,4 @@
-import {CommandLineToolModel} from "./model/draft-4/CommandLineToolModel";
+import {CommandLineToolModel} from "./model/v1/CommandLineToolModel";
 
 declare function require(name:string);
 
