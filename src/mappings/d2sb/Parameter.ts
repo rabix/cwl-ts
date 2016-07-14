@@ -7,4 +7,6 @@ export interface Parameter {
     description?: string;
     streamable?: boolean; //todo exists in SBG?
     default?: any; //todo exists in SBG?
+
+    'sbg:fileTypes'?: string;
 }
