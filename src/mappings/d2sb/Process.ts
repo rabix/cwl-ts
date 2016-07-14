@@ -9,7 +9,7 @@ import {SchemaDefRequirement} from "./SchemaDefRequirement";
 import {ExpressionEngineRequirement} from "./ExpressionEngineRequirement";
 import {SBGRevision} from "./SBGRevision";
 
-interface SBGLink {
+export interface SBGLink {
     label: string;
     id: string;
 }

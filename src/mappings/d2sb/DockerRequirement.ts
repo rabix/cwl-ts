@@ -1,4 +1,4 @@
-type DockerRequirementClass = "DockerRequirement";
+export type DockerRequirementClass = "DockerRequirement";
 
 export interface DockerRequirement {
     class: DockerRequirementClass;

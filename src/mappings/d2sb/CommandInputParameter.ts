@@ -3,7 +3,7 @@ import {Datatype} from "./Datatype";
 import {CommandInputSchema} from "./CommandInputSchema";
 import {CommandLineBinding} from "./CommandLineBinding";
 
-type SBGStageInput = 'copy' | 'link' | null;
+type SBGStageInput = 'copy' | 'link';
 
 export interface CommandInputParameter extends InputParameter {
     type?: Datatype | CommandInputSchema | string | Array<Datatype | CommandInputSchema | string>;

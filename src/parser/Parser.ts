@@ -1,3 +1,5 @@
+declare function require(name:string);
+
 let Validator = require('jsonschema').Validator;
 let v = new Validator();
 

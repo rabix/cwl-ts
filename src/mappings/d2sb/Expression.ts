@@ -1,4 +1,4 @@
-type ExpressionClass = "Expression";
+export type ExpressionClass = "Expression";
 
 export interface Expression {
     engine: string;

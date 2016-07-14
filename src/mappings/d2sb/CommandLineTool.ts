@@ -12,7 +12,7 @@ export interface CommandLineTool extends Process {
     inputs: CommandInputParameter[];
     outputs: CommandOutputParameter[];
 
-    hints: Array<any |
+    hints?: Array<any |
         DockerRequirement |
         SBGCPURequirement |
         SBGMemRequirement>

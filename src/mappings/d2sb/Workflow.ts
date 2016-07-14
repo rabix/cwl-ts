@@ -1,7 +1,6 @@
 import {Process} from "./Process";
 import {WorkflowStep} from "./WorkflowStep";
 import {SBGWorkflowInputParameter} from "./SBGWorkflowInputParameter";
-import {SBGWorkflowOutputParameter} from "./SBGWorkflowOutputParameter";
 import {WorkflowOutputParameter} from "./WorkflowOutputParameter";
 
 type WorkflowClass = "Workflow";

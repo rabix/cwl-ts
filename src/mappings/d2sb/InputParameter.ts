@@ -5,7 +5,7 @@ import {InputSchema} from "./InputSchema";
 
 
 export interface InputParameter extends Parameter {
-    type?: Datatype | InputSchema | string | array<Datatype | InputSchema | string>;
+    type?: Datatype | InputSchema | string | Array<Datatype | InputSchema | string>;
     id: string;
     inputBinding?: Binding;
 }

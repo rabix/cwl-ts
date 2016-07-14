@@ -1,8 +1,0 @@
-import {Datatype} from "./Datatype";
-import {CommandLineBinding} from "./CommandLineBinding";
-
-export type CommandInputSchema = {type: "record", fields: Array<CommandInputSchema>, inputBinding?: CommandLineBinding} |
-    {type: "array", items: Datatype | CommandInputSchema | string | Array<Datatype | CommandInputSchema | string>, inputBinding?: CommandLineBinding} |
-    {type: "enum", symbols: Array<string>, inputBinding?: CommandLineBinding} |
-    {type: "map", values: Datatype | CommandInputSchema | string | Array<Datatype | CommandInputSchema | string>, inputBinding?: CommandLineBinding} | //todo does SBG support all these or just string?
-    {type: Datatype | CommandInputSchema | string | Array<Datatype | CommandInputSchema | string>, inputBinding?: CommandLineBinding}

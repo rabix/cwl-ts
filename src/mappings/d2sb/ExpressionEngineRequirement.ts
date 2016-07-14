@@ -5,7 +5,7 @@ import {CreateFileRequirement} from "./CreateFileRequirement";
 import {SubworkflowFeatureRequirement} from "./SubworkflowFeatureRequirement";
 import {DockerRequirement} from "./DockerRequirement";
 
-type ExpressionEngineRequirementClass = "ExpressionEngineRequirement";
+export type ExpressionEngineRequirementClass = "ExpressionEngineRequirement";
 
 export interface ExpressionEngineRequirement {
     class: ExpressionEngineRequirementClass;

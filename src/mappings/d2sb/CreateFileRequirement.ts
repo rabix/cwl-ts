@@ -1,5 +1,5 @@
 import {FileDef} from "./FileDef";
-type CreateFileRequirementClass = "CreateFileRequirement";
+export type CreateFileRequirementClass = "CreateFileRequirement";
 
 export interface CreateFileRequirement {
     class: CreateFileRequirementClass;

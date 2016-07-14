@@ -1,1 +1,1 @@
-export type Datatype = 'null' | 'boolean' | 'int' | 'long' | 'float' | 'double' | 'bytes' | 'string';
+export type Datatype = 'null' | 'boolean' | 'int' | 'long' | 'float' | 'double' | 'bytes' | 'string' | 'File';
