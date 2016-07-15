@@ -1,9 +1,5 @@
 import {Datatype} from "./Datatype";
 import {CommandLineBinding} from "./CommandLineBinding";
-import {InputSchema} from "./InputSchema";
-import {ComplexType} from "./ComplexType";
-
-
 
 export interface CommandInputSchema {
     inputBinding?: CommandLineBinding;

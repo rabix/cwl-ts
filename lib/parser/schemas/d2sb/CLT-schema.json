@@ -346,16 +346,28 @@
                     "$ref": "#/definitions/CommandLineBinding"
                 },
                 "sbg:category": {
-                    "type": "string"
+                    "oneOf": [
+                        {"type": "string"},
+                        {"type": "null"}
+                    ]
                 },
                 "sbg:toolDefaultValue": {
-                    "type": "string"
+                    "oneOf": [
+                        {"type": "string"},
+                        {"type": "null"}
+                    ]
                 },
                 "sbg:altPrefix": {
-                    "type": "string"
+                    "oneOf": [
+                        {"type": "string"},
+                        {"type": "null"}
+                    ]
                 },
                 "sbg:stageInput": {
-                    "$ref": "#/definitions/SBGStageInput"
+                    "oneOf": [
+                        {"$ref": "#/definitions/SBGStageInput"},
+                        {"type": "null"}
+                    ]
                 },
                 "id": {
                     "type": "string"
@@ -557,7 +569,10 @@
                     "type": "boolean"
                 },
                 "itemSeparator": {
-                    "type": "string"
+                    "oneOf": [
+                        {"type": "string"},
+                        {"type": "null"}
+                    ]
                 },
                 "valueFrom": {
                     "oneOf": [

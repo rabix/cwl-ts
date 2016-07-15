@@ -5,6 +5,6 @@ export interface CommandLineBinding extends Binding {
     position?: number;
     prefix?: string;
     separate?: boolean;
-    itemSeparator?: string;
+    itemSeparator?: string | null;
     valueFrom?: string | Expression;
 }

@@ -8,7 +8,7 @@
         "test": "tsc -p tsconfig.json && mocha ./**/*.spec.js",
         "regenerate": "node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
         "schemas": "scripts/schemas.sh",
-        "d2sb-test": "mocha src/parser/schemas/d2sb/clt.d2sb.spec.js"
+        "d2sb-test": "mocha src/parser/schemas/d2sb/*.d2sb.spec.js"
     },
     "repository": {
         "type": "git",

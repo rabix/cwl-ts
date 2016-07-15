@@ -10,21 +10,18 @@ describe("schema for D2SB CommandLineTool", function () {
         var bamToolsSplit = require('./apps/bamtools-split.json');
         var result = v.validate(bamToolsSplit, d2sbCLTSchema);
         expect(result.valid).to.be.true;
-        console.log(JSON.stringify(result.errors, null, 4));
     });
 
     describe("BamTools Index", function () {
         var bamToolsIndex = require('./apps/bamtools-index.json');
         var result = v.validate(bamToolsIndex, d2sbCLTSchema);
         expect(result.valid).to.be.true;
-        console.log(JSON.stringify(result.errors, null, 4));
     });
 
     describe("BCFTools Annotate", function () {
         var bcfToolsAnnotate = require("./apps/bcftools-annotate.json");
         var result = v.validate(bcfToolsAnnotate, d2sbCLTSchema);
         expect(result.valid).to.be.true;
-        console.log(JSON.stringify(result.errors, null, 4));
     });
 
     //todo: write tests for major cases were validation should fail (no class, no base command, etc)

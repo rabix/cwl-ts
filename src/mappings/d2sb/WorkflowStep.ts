@@ -29,7 +29,7 @@ export interface WorkflowStep {
     label?: string;
     description?: string;
 
-    run: CommandLineTool | ExpressionTool | Workflow;
+    run: CommandLineTool | ExpressionTool | Workflow | string; //for references
     scatter?: string | string[];
     scatterMethod?: ScatterMethod
 

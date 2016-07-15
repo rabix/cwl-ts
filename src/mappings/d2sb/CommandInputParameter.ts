@@ -9,8 +9,8 @@ export interface CommandInputParameter extends InputParameter {
     type?: Datatype | CommandInputSchema | string | Array<Datatype | CommandInputSchema | string>;
     inputBinding?: CommandLineBinding;
 
-    'sbg:category'?: string;
-    'sbg:toolDefaultValue'?: string;
-    'sbg:altPrefix'?: string;
-    'sbg:stageInput'?: SBGStageInput;
+    'sbg:category'?: string | null;
+    'sbg:toolDefaultValue'?: string | null;
+    'sbg:altPrefix'?: string | null;
+    'sbg:stageInput'?: SBGStageInput | null;
 }

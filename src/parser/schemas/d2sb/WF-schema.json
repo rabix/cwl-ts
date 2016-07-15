@@ -43,7 +43,7 @@
         "requirements": {
             "type": "array",
             "items": {
-                "oneOf": [
+                "anyOf": [
                     {
                         "$ref": "#/definitions/DockerRequirement"
                     },
@@ -155,14 +155,8 @@
         "SBGWorkflowInputParameter": {
             "type": "object",
             "properties": {
-                "sbg:x": {
-                    "type": "number"
-                },
-                "sbg:y": {
-                    "type": "number"
-                },
                 "type": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -218,7 +212,7 @@
                             ]
                         },
                         {
-                            "$ref": "#/definitions/InputSchema"
+                            "$ref": "#/definitions/WorkflowInputSchema"
                         },
                         {
                             "type": "string"
@@ -226,7 +220,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -282,7 +276,7 @@
                                         ]
                                     },
                                     {
-                                        "$ref": "#/definitions/InputSchema"
+                                        "$ref": "#/definitions/WorkflowInputSchema"
                                     },
                                     {
                                         "type": "string"
@@ -295,56 +289,25 @@
                 "id": {
                     "type": "string"
                 },
-                "inputBinding": {
-                    "$ref": "#/definitions/Binding"
-                },
-                "label": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "streamable": {
+                "sbg:includeInPorts": {
                     "type": "boolean"
                 },
-                "default": {},
-                "sbg:fileTypes": {
-                    "type": "string"
+                "sbg:x": {
+                    "type": "number"
+                },
+                "sbg:y": {
+                    "type": "number"
                 }
             },
             "required": [
                 "id"
             ]
         },
-        "InputSchema": {
+        "WorkflowInputSchema": {
             "type": "object",
             "properties": {
                 "type": {
-                    "oneOf": [
-                        {
-                            "type": "string",
-                            "enum": [
-                                "record"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "array"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "enum"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "map"
-                            ]
-                        },
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -400,39 +363,27 @@
                             ]
                         },
                         {
-                            "$ref": "#/definitions/InputSchema"
+                            "$ref": "#/definitions/WorkflowInputSchema"
                         },
                         {
                             "type": "string"
                         },
                         {
+                            "$ref": "#/definitions/WorkflowInputMapSchema"
+                        },
+                        {
+                            "$ref": "#/definitions/WorkflowInputArraySchema"
+                        },
+                        {
+                            "$ref": "#/definitions/WorkflowInputRecordSchema"
+                        },
+                        {
+                            "$ref": "#/definitions/WorkflowInputEnumSchema"
+                        },
+                        {
                             "type": "array",
                             "items": {
-                                "oneOf": [
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "record"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "array"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "enum"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "map"
-                                        ]
-                                    },
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -488,228 +439,284 @@
                                         ]
                                     },
                                     {
-                                        "$ref": "#/definitions/InputSchema"
+                                        "$ref": "#/definitions/WorkflowInputSchema"
                                     },
                                     {
                                         "type": "string"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/WorkflowInputMapSchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/WorkflowInputArraySchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/WorkflowInputEnumSchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/WorkflowInputRecordSchema"
                                     }
                                 ]
                             }
                         }
                     ]
-                },
-                "inputBinding": {
-                    "$ref": "#/definitions/Binding"
-                },
-                "items": {
-                    "oneOf": [
-                        {
-                            "type": "string",
-                            "enum": [
-                                "null"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "boolean"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "int"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "long"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "float"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "double"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "bytes"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "string"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "File"
-                            ]
-                        },
-                        {
-                            "$ref": "#/definitions/InputSchema"
-                        },
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "oneOf": [
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "null"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "boolean"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "int"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "long"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "float"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "double"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "bytes"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "string"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "File"
-                                        ]
-                                    },
-                                    {
-                                        "$ref": "#/definitions/InputSchema"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "values": {
-                    "type": "string"
-                },
-                "symbols": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/InputSchema"
-                    }
                 }
             },
             "required": [
                 "type"
             ]
         },
-        "Binding": {
+        "WorkflowInputMapSchema": {
             "type": "object",
             "properties": {
-                "loadContents": {
-                    "type": "boolean"
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "map"
+                    ]
                 },
-                "secondaryFiles": {
-                    "oneOf": [
+                "values": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "values"
+            ]
+        },
+        "WorkflowInputArraySchema": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "null"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "boolean"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "int"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "long"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "float"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "double"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "bytes"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "string"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "File"
+                            ]
+                        },
+                        {
+                            "$ref": "#/definitions/WorkflowInputSchema"
+                        },
+                        {
+                            "$ref": "#/definitions/WorkflowInputMapSchema"
+                        },
+                        {
+                            "$ref": "#/definitions/WorkflowInputArraySchema"
+                        },
+                        {
+                            "$ref": "#/definitions/WorkflowInputRecordSchema"
+                        },
+                        {
+                            "$ref": "#/definitions/WorkflowInputEnumSchema"
+                        },
                         {
                             "type": "string"
                         },
                         {
-                            "$ref": "#/definitions/Expression"
-                        },
-                        {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
-                                        "type": "string"
+                                        "type": "string",
+                                        "enum": [
+                                            "null"
+                                        ]
                                     },
                                     {
-                                        "$ref": "#/definitions/Expression"
+                                        "type": "string",
+                                        "enum": [
+                                            "boolean"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "int"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "long"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "float"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "double"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "bytes"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "string"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "File"
+                                        ]
+                                    },
+                                    {
+                                        "$ref": "#/definitions/WorkflowInputSchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/WorkflowInputMapSchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/WorkflowInputArraySchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/WorkflowInputEnumSchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/WorkflowInputRecordSchema"
+                                    },
+                                    {
+                                        "type": "string"
                                     }
                                 ]
                             }
                         }
                     ]
-                }
-            }
-        },
-        "Expression": {
-            "type": "object",
-            "properties": {
-                "engine": {
-                    "type": "string"
                 },
-                "script": {
-                    "type": "string"
-                },
-                "class": {
+                "type": {
                     "type": "string",
                     "enum": [
-                        "Expression"
+                        "array"
                     ]
                 }
             },
             "required": [
-                "engine",
-                "script",
-                "class"
+                "items",
+                "type"
+            ]
+        },
+        "WorkflowInputRecordSchema": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "record"
+                    ]
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/WorkflowInputSchema"
+                            },
+                            {
+                                "$ref": "#/definitions/WorkflowInputArraySchema"
+                            },
+                            {
+                                "$ref": "#/definitions/WorkflowInputRecordSchema"
+                            },
+                            {
+                                "$ref": "#/definitions/WorkflowInputEnumSchema"
+                            },
+                            {
+                                "$ref": "#/definitions/WorkflowInputMapSchema"
+                            }
+                        ]
+                    }
+                }
+            },
+            "required": [
+                "type",
+                "fields"
+            ]
+        },
+        "WorkflowInputEnumSchema": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "enum"
+                    ]
+                },
+                "symbols": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "type",
+                "symbols"
             ]
         },
         "WorkflowOutputParameter": {
             "type": "object",
             "properties": {
                 "source": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -731,7 +738,7 @@
                     "type": "number"
                 },
                 "type": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -795,7 +802,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -879,8 +886,6 @@
                 }
             },
             "required": [
-                "source",
-                "linkMerge",
                 "id"
             ]
         },
@@ -895,7 +900,7 @@
             "type": "object",
             "properties": {
                 "type": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -983,7 +988,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1074,7 +1079,7 @@
                     ]
                 },
                 "items": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -1138,7 +1143,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1245,7 +1250,7 @@
                 "requirements": {
                     "type": "array",
                     "items": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "$ref": "#/definitions/DockerRequirement"
                             },
@@ -1281,7 +1286,7 @@
                     "type": "string"
                 },
                 "run": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "$ref": "#/definitions/CommandLineTool"
                         },
@@ -1290,11 +1295,14 @@
                         },
                         {
                             "$ref": "#/definitions/Workflow"
+                        },
+                        {
+                            "type": "string"
                         }
                     ]
                 },
                 "scatter": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1323,7 +1331,7 @@
                     "type": "string"
                 },
                 "source": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1413,7 +1421,7 @@
             "type": "object",
             "properties": {
                 "filename": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1423,7 +1431,7 @@
                     ]
                 },
                 "fileContent": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1436,6 +1444,28 @@
             "required": [
                 "filename",
                 "fileContent"
+            ]
+        },
+        "Expression": {
+            "type": "object",
+            "properties": {
+                "engine": {
+                    "type": "string"
+                },
+                "script": {
+                    "type": "string"
+                },
+                "class": {
+                    "type": "string",
+                    "enum": [
+                        "Expression"
+                    ]
+                }
+            },
+            "required": [
+                "engine",
+                "script",
+                "class"
             ]
         },
         "EnvVarRequirement": {
@@ -1465,7 +1495,7 @@
                 "requirements": {
                     "type": "array",
                     "items": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "$ref": "#/definitions/DockerRequirement"
                             },
@@ -1491,7 +1521,7 @@
                     }
                 },
                 "engineCommand": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1541,7 +1571,7 @@
                     ]
                 },
                 "baseCommand": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1551,7 +1581,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -1566,7 +1596,7 @@
                 "arguments": {
                     "type": "array",
                     "items": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "type": "string"
                             },
@@ -1577,7 +1607,7 @@
                     }
                 },
                 "stdin": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1587,7 +1617,7 @@
                     ]
                 },
                 "stdout": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1620,7 +1650,7 @@
                 "requirements": {
                     "type": "array",
                     "items": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "$ref": "#/definitions/DockerRequirement"
                             },
@@ -1729,7 +1759,7 @@
             "type": "object",
             "properties": {
                 "type": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -1793,7 +1823,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1863,16 +1893,28 @@
                     "$ref": "#/definitions/CommandLineBinding"
                 },
                 "sbg:category": {
-                    "type": "string"
+                    "oneOf": [
+                        {"type": "string"},
+                        {"type": "null"}
+                    ]
                 },
                 "sbg:toolDefaultValue": {
-                    "type": "string"
+                    "oneOf": [
+                        {"type": "string"},
+                        {"type": "null"}
+                    ]
                 },
                 "sbg:altPrefix": {
-                    "type": "string"
+                    "oneOf": [
+                        {"type": "string"},
+                        {"type": "null"}
+                    ]
                 },
                 "sbg:stageInput": {
-                    "$ref": "#/definitions/SBGStageInput"
+                    "oneOf": [
+                        {"$ref": "#/definitions/SBGStageInput"},
+                        {"type": "null"}
+                    ]
                 },
                 "id": {
                     "type": "string"
@@ -1902,7 +1944,7 @@
                     "$ref": "#/definitions/CommandLineBinding"
                 },
                 "type": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -1978,7 +2020,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -2074,10 +2116,13 @@
                     "type": "boolean"
                 },
                 "itemSeparator": {
-                    "type": "string"
+                    "oneOf": [
+                        {"type": "string"},
+                        {"type": "null"}
+                    ]
                 },
                 "valueFrom": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -2090,7 +2135,7 @@
                     "type": "boolean"
                 },
                 "secondaryFiles": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -2100,7 +2145,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -2142,7 +2187,7 @@
                     "$ref": "#/definitions/CommandLineBinding"
                 },
                 "items": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -2218,7 +2263,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -2323,7 +2368,7 @@
                 "fields": {
                     "type": "array",
                     "items": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "$ref": "#/definitions/CommandInputSchema"
                             },
@@ -2383,7 +2428,7 @@
             "type": "object",
             "properties": {
                 "type": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -2447,7 +2492,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -2544,7 +2589,7 @@
                     "$ref": "#/definitions/CommandOutputBinding"
                 },
                 "type": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -2620,7 +2665,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -2707,7 +2752,7 @@
             "type": "object",
             "properties": {
                 "glob": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -2738,7 +2783,7 @@
                     "type": "boolean"
                 },
                 "secondaryFiles": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -2748,7 +2793,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -2790,7 +2835,7 @@
                     "$ref": "#/definitions/CommandOutputBinding"
                 },
                 "items": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -2866,7 +2911,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -2971,7 +3016,7 @@
                 "fields": {
                     "type": "array",
                     "items": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "$ref": "#/definitions/CommandOutputSchema"
                             },
@@ -3088,7 +3133,7 @@
                 "requirements": {
                     "type": "array",
                     "items": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "$ref": "#/definitions/DockerRequirement"
                             },
@@ -3201,7 +3246,7 @@
             "type": "object",
             "properties": {
                 "type": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -3265,7 +3310,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -3355,11 +3400,378 @@
                 "id"
             ]
         },
+        "InputSchema": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "record"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "array"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "enum"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "map"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "null"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "boolean"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "int"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "long"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "float"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "double"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "bytes"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "string"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "File"
+                            ]
+                        },
+                        {
+                            "$ref": "#/definitions/InputSchema"
+                        },
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "record"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "array"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "enum"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "map"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "null"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "boolean"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "int"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "long"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "float"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "double"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "bytes"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "string"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "File"
+                                        ]
+                                    },
+                                    {
+                                        "$ref": "#/definitions/InputSchema"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "inputBinding": {
+                    "$ref": "#/definitions/Binding"
+                },
+                "items": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "null"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "boolean"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "int"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "long"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "float"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "double"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "bytes"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "string"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "File"
+                            ]
+                        },
+                        {
+                            "$ref": "#/definitions/InputSchema"
+                        },
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "null"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "boolean"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "int"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "long"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "float"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "double"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "bytes"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "string"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "File"
+                                        ]
+                                    },
+                                    {
+                                        "$ref": "#/definitions/InputSchema"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "values": {
+                    "type": "string"
+                },
+                "symbols": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/InputSchema"
+                    }
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "Binding": {
+            "type": "object",
+            "properties": {
+                "loadContents": {
+                    "type": "boolean"
+                },
+                "secondaryFiles": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/Expression"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/Expression"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
         "OutputParameter": {
             "type": "object",
             "properties": {
                 "type": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -3423,7 +3835,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -3555,7 +3967,7 @@
                 "requirements": {
                     "type": "array",
                     "items": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "$ref": "#/definitions/DockerRequirement"
                             },
