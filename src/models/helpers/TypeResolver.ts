@@ -24,7 +24,7 @@ export class TypeResolver {
                 }
 
                 if (/\[]/.test(matches[2])) {
-                    result.type = 'array';
+                    result.type  = 'array';
                     result.items = matches[1];
                 } else {
                     result.type = matches[1];
@@ -59,11 +59,23 @@ export class TypeResolver {
             }
         } else if (typeof type === 'object') {
             if (type.type) {
-                result.type = type.type;
-                switch(result.type) {
+                // result type has already been set, pass through is evaluating complex items type
+                if (result.type === "array") {
+                    result.items = type.type;
+                } else {
+                    // first pass through, type should be set  on result
+                    result.type = type.type;
+                }
+                switch (type.type) {
                     case "array":
-                        result.items = type.items;
-                        return result;
+                        if (typeof type.items === 'string') {
+                            // primitive types don't need to be reevaluated
+                            result.items = type.items;
+                            return result;
+                        } else {
+                            // complex types should be reevaluated to set fields/symbols/items properties
+                            return TypeResolver.resolveType(type.items, result);
+                        }
                     case "record":
                         result.fields = type.fields;
                         return result;
@@ -71,7 +83,7 @@ export class TypeResolver {
                         result.symbols = type.symbols;
                         return result;
                     default:
-                        throw("unmatched complex type, expected 'enum', 'array', or 'record', got '"+ result.type + "'");
+                        throw("unmatched complex type, expected 'enum', 'array', or 'record', got '" + result.type + "'");
                 }
 
             } else {
@@ -83,10 +95,10 @@ export class TypeResolver {
         }
     }
 
-    static doesTypeMatch(type: string, value: any) {
+    static doesTypeMatch(type: string | null, value: any) {
 
         if (type) {
-            switch(type) {
+            switch (type) {
                 case 'int':
                 case 'float':
                 case 'long':

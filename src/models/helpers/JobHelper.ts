@@ -1,12 +1,13 @@
 import {CommandInputParameterModel} from "../v1/CommandInputParameterModel";
 import {CommandLineToolModel} from "../v1/CommandLineToolModel";
+import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
 
 export class JobHelper {
 
-    private static getJobPart(input: CommandInputParameterModel, symbols?) {
+    private static getJobPart(input: CommandInputParameterModel) {
         let type = <any> input.type;
         let name: string = input.id;
-
+        let symbols: string[] = input.symbols;
 
         /**
          * Returns a random integer between min (included) and max (excluded)
@@ -61,7 +62,7 @@ export class JobHelper {
         return map[type];
     }
 
-    public static getJob(tool: CommandLineToolModel): any {
+    public static getJob(tool: CommandLineRunnable): any {
         let job = {};
 
         tool.inputs.forEach(input => {

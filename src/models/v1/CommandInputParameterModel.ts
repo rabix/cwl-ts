@@ -19,6 +19,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
     isRequired: boolean = true;
     items: string;
     fields: Array<CommandInputParameterModel>;
+    symbols: string[];
     resolvedType: string;
 
     type: CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string | Array<CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string>;
@@ -45,7 +46,6 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
             this.streamable     = (<CommandInputParameter> attr).streamable;
         }
 
-
         let typeResolution = TypeResolver.resolveType(this.type);
 
         this.resolvedType = typeResolution.type;
@@ -54,6 +54,8 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         this.fields = typeResolution.fields ? typeResolution.fields.map(field => {
             return new CommandInputParameterModel(field);
         }) : typeResolution.fields;
+
+        this.symbols = typeResolution.symbols;
 
         if (typeResolution.items) {
             // in case there are items, resolve their type

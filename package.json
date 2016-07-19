@@ -2,13 +2,13 @@
     "name": "cwlts",
     "version": "1.2.0",
     "description": "TypeScript data model for Common Workflow Language",
-    "main": "lib/index.ts",
+    "main": "lib/index.js",
     "typings": "lib/index",
     "scripts": {
         "test": "tsc -p tsconfig.json && mocha ./**/*.spec.js",
         "regenerate": "node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
         "schemas": "scripts/schemas.sh",
-        "d2sb-test": "mocha src/parser/schemas/d2sb/*.d2sb.spec.js"
+        "d2sb-test": "mocha src/tests/*.d2sb.spec.js"
     },
     "repository": {
         "type": "git",
@@ -28,6 +28,6 @@
         "typescript-json-schema": "git+ssh://git@github.com:YousefED/typescript-json-schema.git"
     },
     "dependencies": {
-        "typescript": "^1.8.10"
+        "typescript": "^2.0.0-beta"
     }
 }

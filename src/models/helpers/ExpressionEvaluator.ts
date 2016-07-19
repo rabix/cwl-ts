@@ -1,33 +1,39 @@
 import {JSExecutor} from "./JSExecutor";
-export class ExpressionEvaluator {
-    public static evaluate(expr: string, job?: any, self?: any): any {
-        let results = ExpressionEvaluator.grabExpressions(expr).map(token => {
-            switch (token.type) {
-                case "func":
-                    return JSExecutor.evaluate("(function() {" + token.value + "})()", job, self);
-                case "expr":
-                    return JSExecutor.evaluate(token.value, job, self);
-                case "literal":
-                    return token.value;
-            }
-        });
+import {Expression} from "../../mappings/d2sb/Expression";
 
-        if (results.length === 1) {
-            return results[0];
+export class ExpressionEvaluator {
+    public static evaluate(expr: string | Expression, job?: any, self?: any): any {
+        if (typeof expr === "string") {
+            let results = ExpressionEvaluator.grabExpressions(expr).map(token => {
+                switch (token.type) {
+                    case "func":
+                        return JSExecutor.evaluate("(function() {" + token.value + "})()", job, self);
+                    case "expr":
+                        return JSExecutor.evaluate(token.value, job, self);
+                    case "literal":
+                        return token.value;
+                }
+            });
+
+            if (results.length === 1) {
+                return results[0];
+            } else {
+                return results.join('');
+            }
         } else {
-            return results.join('');
+            return JSExecutor.evaluate("(function() {" + expr.script + "})()", job, self);
         }
     }
 
     public static grabExpressions(exprStr: string): exprObj[] {
-        let tokens       = [];
-        let i            = 0;
-        let state        = State.LITERAL;
-        let literal      = "";
-        let expr         = "";
-        let func         = "";
-        let bracketCount = 0;
-        let parenCount   = 0;
+        let tokens: exprObj[] = [];
+        let i                 = 0;
+        let state             = State.LITERAL;
+        let literal           = "";
+        let expr              = "";
+        let func              = "";
+        let bracketCount      = 0;
+        let parenCount        = 0;
 
         // go through character by character
         while (i < exprStr.length) {

@@ -1,15 +1,15 @@
 import {CommandLineTool} from "../../mappings/draft-4/CommandLineTool";
 import {ProcessRequirement} from "../../mappings/draft-4/ProcessRequirement";
 import {CWLVersions} from "../../mappings/draft-4/CWLVersions";
-import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
 import {Expression} from "../../mappings/draft-4/Expression";
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {JobHelper} from "../helpers/JobHelper";
 import {CommandArgumentModel} from "./CommandArgumentModel";
+import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
 
-export class CommandLineToolModel implements CommandLineTool {
+export class CommandLineToolModel implements CommandLineTool, CommandLineRunnable {
     constructor(json: any) {
         if (!Array.isArray(json.inputs)) {
             json.inputs = Object.keys(json.inputs).map(id =>(<any> Object).assign(json.inputs[id], {id}));
@@ -77,7 +77,7 @@ export class CommandLineToolModel implements CommandLineTool {
             job = JobHelper.getJob(this);
         }
 
-        let allParts:CommandLinePart[] = [];
+        let allParts: CommandLinePart[] = [];
 
         allParts.concat(this.inputs.map(input => input.getCommandPart(job, job[input.id])));
         allParts.concat(this.arguments.map(arg => arg.getCommandPart(job)));

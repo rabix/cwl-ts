@@ -1892,30 +1892,6 @@
                 "inputBinding": {
                     "$ref": "#/definitions/CommandLineBinding"
                 },
-                "sbg:category": {
-                    "oneOf": [
-                        {"type": "string"},
-                        {"type": "null"}
-                    ]
-                },
-                "sbg:toolDefaultValue": {
-                    "oneOf": [
-                        {"type": "string"},
-                        {"type": "null"}
-                    ]
-                },
-                "sbg:altPrefix": {
-                    "oneOf": [
-                        {"type": "string"},
-                        {"type": "null"}
-                    ]
-                },
-                "sbg:stageInput": {
-                    "oneOf": [
-                        {"$ref": "#/definitions/SBGStageInput"},
-                        {"type": "null"}
-                    ]
-                },
                 "id": {
                     "type": "string"
                 },
@@ -2116,10 +2092,7 @@
                     "type": "boolean"
                 },
                 "itemSeparator": {
-                    "oneOf": [
-                        {"type": "string"},
-                        {"type": "null"}
-                    ]
+                    "type": ["string", "null"]
                 },
                 "valueFrom": {
                     "anyOf": [
@@ -2415,13 +2388,6 @@
             "required": [
                 "type",
                 "symbols"
-            ]
-        },
-        "SBGStageInput": {
-            "type": "string",
-            "enum": [
-                "copy",
-                "link"
             ]
         },
         "CommandOutputParameter": {

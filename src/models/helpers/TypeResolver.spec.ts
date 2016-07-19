@@ -1,5 +1,5 @@
 import {TypeResolver} from "./TypeResolver";
-import {expect} from "chai";
+import {expect} from "chai/index";
 
 describe("TypeResolver", () => {
     describe("resolveType", () => {
@@ -20,7 +20,7 @@ describe("TypeResolver", () => {
         });
 
         it("Should resolve type shorthand for optional single item", () => {
-            let resolved = TypeResolver.resolveType( "string?");
+            let resolved = TypeResolver.resolveType("string?");
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("string");
             expect(resolved.items).to.be.null;
@@ -68,7 +68,10 @@ describe("TypeResolver", () => {
         });
 
         it("Should resolve complex record type", () => {
-            let resolved = TypeResolver.resolveType({type: "record", fields: [{id: "hello", type: "string"}]});
+            let resolved = TypeResolver.resolveType({
+                type: "record",
+                fields: [{id: "hello", type: "string"}]
+            });
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("record");
             expect(resolved.items).to.be.null;
@@ -86,8 +89,45 @@ describe("TypeResolver", () => {
             expect(resolved.isRequired).to.be.true;
         });
 
+        it("Should resolve complex array of enum type", () => {
+            let resolved = TypeResolver.resolveType({
+                type: "array",
+                items: {type: "enum", symbols: ["hello", "enum"]}
+            });
+            expect(resolved).to.not.be.undefined;
+            expect(resolved.type).to.equal("array");
+            expect(resolved.symbols).to.have.lengthOf(2);
+            expect(resolved.items).to.equal("enum");
+            expect(resolved.fields).to.be.null;
+            expect(resolved.isRequired).to.be.true;
+        });
+
+        it("Should resolve complex array of record type", () => {
+            let resolved = TypeResolver.resolveType({
+                type: "array",
+                items: {
+                    type: "record",
+                    fields: [
+                        {
+                            name: "meow",
+                            type: "string"
+                        }
+                    ]
+                }
+            });
+            expect(resolved).to.not.be.undefined;
+            expect(resolved.type).to.equal("array");
+            expect(resolved.fields).to.have.lengthOf(1);
+            expect(resolved.items).to.equal("record");
+            expect(resolved.symbols).to.be.null;
+            expect(resolved.isRequired).to.be.true;
+        });
+
         it("Should resolve optional complex record type defined as union", () => {
-            let resolved = TypeResolver.resolveType(['null', {type: "record", fields: [{id: "hello", type: "string"}]}]);
+            let resolved = TypeResolver.resolveType(['null', {
+                type: "record",
+                fields: [{id: "hello", type: "string"}]
+            }]);
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("record");
             expect(resolved.items).to.be.null;
@@ -96,7 +136,10 @@ describe("TypeResolver", () => {
         });
 
         it("Should resolve required complex record type defined as union", () => {
-            let resolved = TypeResolver.resolveType([{type: "record", fields: [{id: "hello", type: "string"}]}]);
+            let resolved = TypeResolver.resolveType([{
+                type: "record",
+                fields: [{id: "hello", type: "string"}]
+            }]);
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("record");
             expect(resolved.items).to.be.null;

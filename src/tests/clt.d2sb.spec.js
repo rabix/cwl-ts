@@ -4,7 +4,7 @@ var expect = chai.expect;
 describe("schema for D2SB CommandLineTool", function () {
     var Validator = require('jsonschema').Validator;
     var v = new Validator();
-    var d2sbCLTSchema = require('./CLT-schema.json');
+    var d2sbCLTSchema = require('../schemas/d2sb/CLT-schema.json');
 
     describe("BamTools Split", function () {
         var bamToolsSplit = require('./apps/bamtools-split.json');

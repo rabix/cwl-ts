@@ -6,16 +6,8 @@
         "pretty": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "declaration": true,
-        "outDir": "lib/"
+        "outDir": "./out"
     },
-    "filesGlob": [
-        "./**/*.ts"
-    ],
-    "files": [
-        "./src/index.ts",
-        "./typings/main.d.ts"
-    ],
     "exclude": [
         "node_modules",
         "wwwroot"
