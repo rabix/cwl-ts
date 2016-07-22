@@ -1,15 +1,26 @@
+import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
+import {CWLType} from "../../mappings/draft-4/CWLType";
+
 export interface TypeResolution {
     type: string;
     items: string;
     fields: any[];
     symbols: string[];
     isRequired: boolean;
+    itemsBinding: CommandLineBinding
 }
 
 export class TypeResolver {
 
     static resolveType(type: any, result?: TypeResolution): TypeResolution {
-        result = result || {type: null, items: null, fields: null, symbols: null, isRequired: true};
+        result = result || {
+                type: null,
+                items: null,
+                fields: null,
+                symbols: null,
+                isRequired: true,
+                itemsBinding: null
+            };
 
         if (type === null) {
             result.isRequired = false;
@@ -68,6 +79,7 @@ export class TypeResolver {
                 }
                 switch (type.type) {
                     case "array":
+                        result.itemsBinding = type.inputBinding || null;
                         if (typeof type.items === 'string') {
                             // primitive types don't need to be reevaluated
                             result.items = type.items;
@@ -82,8 +94,16 @@ export class TypeResolver {
                     case "enum":
                         result.symbols = type.symbols;
                         return result;
+                    case "string":
+                    case "File":
+                    case "null":
+                    case "boolean":
+                    case "int":
+                    case "long":
+                    case "double":
+                        return result;
                     default:
-                        throw("unmatched complex type, expected 'enum', 'array', or 'record', got '" + result.type + "'");
+                        throw("unmatched complex type, expected 'enum', 'array', or 'record', got '" + type.type + "'");
                 }
 
             } else {
@@ -95,7 +115,7 @@ export class TypeResolver {
         }
     }
 
-    static doesTypeMatch(type: string | null, value: any) {
+    static doesTypeMatch(type: string, value: any) {
 
         if (type) {
             switch (type) {

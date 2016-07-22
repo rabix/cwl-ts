@@ -1,8 +1,10 @@
-export class CommandLinePart {
-    public value: string;
-    public sortingKey: Array<string|number>; // [position, index/name]
+import {MSDSortable} from "./MSDSort";
 
-    constructor(value: string, sortingKey: Array<string|number> | string | number) {
+export class CommandLinePart implements MSDSortable {
+    public value: string;
+    public sortingKey: Array<number | string>; // [position, index/name]
+
+    constructor(value: string, sortingKey: Array<number | string> | number | string) {
         this.value = value.trim();
 
         if (Array.isArray(sortingKey)) {
@@ -13,7 +15,11 @@ export class CommandLinePart {
         }
     }
 
-    addSortingKey(key: string | number) {
+    pushKey(key: number | string) {
         this.sortingKey.push(key);
+    }
+
+    unshiftKey(key: number | string) {
+        this.sortingKey.unshift(key);
     }
 }

@@ -1,17 +1,34 @@
+import {CWLVersions} from "../../mappings/draft-4/CWLVersions";
 declare function require(name:string);
 const vm = require('vm');
 
 export class JSExecutor {
-    static evaluate(expr: string, job?: any, self?: any): any {
+    static evaluate(version: CWLVersions, expr: string, job?: any, self?: any): any {
         const options = {
             displayErrors: true
         };
 
-        let script = new vm.Script(expr, options);
+        const script = new vm.Script(expr, options);
+        let context = {};
 
-        // IMPORTANT!
-        // this is draft-4/v1.0 specific, before inputs ==> $job and self ==> $self
+        switch(version) {
+            case "draft-2":
+                context = {
+                    $job: job,
+                    $self: self
+                };
+                break;
+            case "v1.0":
+                context = {
+                    inputs: job,
+                    self: self
+                };
+                break;
+        }
+
         //@todo(maya): add runtime variable
-        return script.runInContext(vm.createContext({inputs: job, self: self}));
+        const result = script.runInContext(vm.createContext(context));
+
+        return result;
     }
 }

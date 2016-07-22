@@ -147,6 +147,18 @@ describe("TypeResolver", () => {
             expect(resolved.isRequired).to.be.true;
         });
 
+        it("Should resolve array of records type", () => {
+            let resolved = TypeResolver.resolveType([{
+                type: "record",
+                fields: [{id: "hello", type: "string"}]
+            }]);
+            expect(resolved).to.not.be.undefined;
+            expect(resolved.type).to.be.equal("record");
+            expect(resolved.items).to.be.null;
+            expect(resolved.fields).to.have.length(1);
+            expect(resolved.isRequired).to.be.true;
+        });
+
         it("Should throw an exception for an unexpected complex type", () => {
             expect(function () {
                 TypeResolver.resolveType({type: "baz"})
@@ -164,6 +176,23 @@ describe("TypeResolver", () => {
                 TypeResolver.resolveType({notType: "foo"})
             }).to.throw('expected complex object with type field, instead got {"notType":"foo"}');
         });
+
+        it("Should return inputBinding on items if it exists", () => {
+            let resolved = TypeResolver.resolveType([{
+                type: "array",
+                items: "string",
+                inputBinding: {
+                    prefix: '-p'
+                }
+            }]);
+            expect(resolved).to.not.be.undefined;
+            expect(resolved.type).to.be.equal("array");
+            expect(resolved.items).to.equal("string");
+            expect(resolved.itemsBinding).to.not.be.null;
+            expect(resolved.itemsBinding).to.have.property('prefix');
+            expect(resolved.itemsBinding.prefix).to.equal("-p");
+            expect(resolved.isRequired).to.be.true;
+        })
     });
 
     describe("doesTypeMatch", () => {

@@ -56,24 +56,14 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         }) : typeResolution.fields;
 
         this.symbols = typeResolution.symbols;
-
-        if (typeResolution.items) {
-            // in case there are items, resolve their type
-            let resolvedItems = TypeResolver.resolveType(typeResolution.items);
-
-            this.items = resolvedItems.type;
-            // if items is type record, resolve their fields to CommandInputParameterModel, for cmd
-            if (resolvedItems.fields) {
-                this.fields = resolvedItems.fields.map(field => new CommandInputParameterModel(field));
-            }
-        } else {
-            this.items = null;
-        }
+        this.items = typeResolution.items;
 
         this.isRequired = typeResolution.isRequired;
     }
 
     getCommandPart(job?: any, value?: any, self?: any): CommandLinePart {
+
+        //@todo(maya) IMPLEMENT NESTED INPUTBINDINGS FOR ITEMS
 
         // only include if they have command line binding
         if (!this.inputBinding) {

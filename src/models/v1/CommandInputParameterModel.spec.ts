@@ -2,7 +2,62 @@ import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {expect} from "chai/index";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 
-describe("CommandInputParameterModel", () => {
+describe("CommandInputParameterModel v1", () => {
+    describe("constructor", () => {
+        it("should assign required field", () => {
+            let input = new CommandInputParameterModel({
+                id: "input",
+                type: ["string"]
+            });
+            expect(input.isRequired).to.be.true;
+        });
+
+        it("should assign non required field", () => {
+            let input = new CommandInputParameterModel({
+                id: "input",
+                type: ["null", "string"]
+            });
+            expect(input.isRequired).to.be.false;
+        });
+
+        it("Should assign input type array, items record", () => {
+            let input = new CommandInputParameterModel({
+                id: "input",
+                type: {
+                    type: "array",
+                    items: {
+                        type: "record",
+                        fields: [
+                            {
+                                name: "field1",
+                                type: "string"
+                            }
+                        ]
+                    }
+                }
+            });
+
+            expect(input.resolvedType).to.equal('array');
+            expect(input.items).to.equal('record');
+            expect(input.fields).to.have.length(1);
+        });
+
+
+        it("Should assign input type array, items string", () => {
+            let input = new CommandInputParameterModel({
+                id: "input",
+                type: {
+                    type: "array",
+                    items: "string"
+                }
+            });
+
+            expect(input.resolvedType).to.equal('array');
+            expect(input.items).to.equal('string');
+        });
+
+    });
+
     describe("getCommandLinePart", () => {
 
         it("Should return null if input has no inputBinding", () => {
@@ -171,7 +226,8 @@ describe("CommandInputParameterModel", () => {
                         {
                             type: "int",
                             name: "rec_int",
-                            inputBinding: {position: 0, prefix: '-o'}}
+                            inputBinding: {position: 0, prefix: '-o'}
+                        }
                     ]
                 },
                 id: "test1",
@@ -198,7 +254,8 @@ describe("CommandInputParameterModel", () => {
                         {
                             type: "int",
                             name: "rec_int",
-                            inputBinding: {position: 0, prefix: '-o'}}
+                            inputBinding: {position: 0, prefix: '-o'}
+                        }
                     ]
                 },
                 id: "test1",
@@ -269,7 +326,7 @@ describe("CommandInputParameterModel", () => {
                 inputBinding: {prefix: "p-", valueFrom: "value"}
             });
 
-            const part  = input.getCommandPart({}, 34);
+            const part = input.getCommandPart({}, 34);
 
             expect(part).to.have.property("value");
             expect(part.value).to.equal("p- value");
@@ -282,7 +339,7 @@ describe("CommandInputParameterModel", () => {
                 inputBinding: {prefix: "p-", valueFrom: "$(3+2)"}
             });
 
-            const part  = input.getCommandPart({}, 34);
+            const part = input.getCommandPart({}, 34);
 
             expect(part).to.have.property("value");
             expect(part.value).to.equal("p- 5");
@@ -295,7 +352,7 @@ describe("CommandInputParameterModel", () => {
                 inputBinding: {prefix: "p-", valueFrom: "${return 3+7}"}
             });
 
-            const part  = input.getCommandPart({}, 34);
+            const part = input.getCommandPart({}, 34);
 
             expect(part).to.have.property("value");
             expect(part.value).to.equal("p- 10");
@@ -309,7 +366,7 @@ describe("CommandInputParameterModel", () => {
                 inputBinding: {prefix: "p-", valueFrom: "$(inputs.test1 + inputs.test2)"}
             });
 
-            const part  = input.getCommandPart({test1: 34, test2: 55}, 34);
+            const part = input.getCommandPart({test1: 34, test2: 55}, 34);
 
             expect(part).to.have.property("value");
             expect(part.value).to.equal("p- 89");
@@ -322,7 +379,7 @@ describe("CommandInputParameterModel", () => {
                 inputBinding: {prefix: "p-", valueFrom: "$(++self)"}
             });
 
-            const part  = input.getCommandPart({test1: 34, test2: 55}, 34);
+            const part = input.getCommandPart({test1: 34, test2: 55}, 34);
 
             expect(part).to.have.property("value");
             expect(part.value).to.equal("p- 35");

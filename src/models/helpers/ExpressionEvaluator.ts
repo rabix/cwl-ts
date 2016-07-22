@@ -1,27 +1,36 @@
 import {JSExecutor} from "./JSExecutor";
-import {Expression} from "../../mappings/d2sb/Expression";
+import {Expression as ExpressionD2} from "../../mappings/d2sb/Expression";
+import {Expression as ExpressionV1} from "../../mappings/draft-4/Expression";
 
 export class ExpressionEvaluator {
-    public static evaluate(expr: string | Expression, job?: any, self?: any): any {
-        if (typeof expr === "string") {
-            let results = ExpressionEvaluator.grabExpressions(expr).map(token => {
-                switch (token.type) {
-                    case "func":
-                        return JSExecutor.evaluate("(function() {" + token.value + "})()", job, self);
-                    case "expr":
-                        return JSExecutor.evaluate(token.value, job, self);
-                    case "literal":
-                        return token.value;
-                }
-            });
-
-            if (results.length === 1) {
-                return results[0];
-            } else {
-                return results.join('');
+    public static evaluate(expr: string | ExpressionV1, job?: any, self?: any): any {
+        let results = ExpressionEvaluator.grabExpressions(expr).map(token => {
+            switch (token.type) {
+                case "func":
+                    return JSExecutor.evaluate("v1.0", "(function() {" + token.value + "})()", job, self);
+                case "expr":
+                    return JSExecutor.evaluate("v1.0", token.value, job, self);
+                case "literal":
+                    return token.value;
             }
+        });
+
+        if (results.length === 1) {
+            return results[0];
         } else {
-            return JSExecutor.evaluate("(function() {" + expr.script + "})()", job, self);
+            return results.join('');
+        }
+    }
+
+    public static evaluateD2(expr: string | ExpressionD2, job?: any, self?: any) {
+        if (typeof expr === "string") {
+            return expr;
+        } else {
+            let script = expr.script.charAt(0) === '{'
+                ? "(function()" + expr.script + ")()"
+                : expr.script;
+
+            return JSExecutor.evaluate("draft-2", script, job, self);
         }
     }
 
