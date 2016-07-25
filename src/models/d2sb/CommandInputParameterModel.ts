@@ -46,7 +46,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
     getCommandPart(job?: any, value?: any, self?: any): CommandLinePart {
 
         // only include if they have command line binding
-        if (!this.inputBinding || !(!!value)) {
+        if (!this.inputBinding || typeof value === "undefined") {
             return null;
         }
 
@@ -59,9 +59,9 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
             }
         }
 
-        let prefix      = this.inputBinding.prefix || "";
-        const separator = (!!prefix && this.inputBinding.separate !== false) ? " " : "";
-        const position  = this.inputBinding.position || 0;
+        let prefix          = this.inputBinding.prefix || "";
+        const separator     = (!!prefix && this.inputBinding.separate !== false) ? " " : "";
+        const position      = this.inputBinding.position || 0;
         const itemSeparator = this.inputBinding.itemSeparator;
 
         const itemsPrefix = (this.itemsBinding && this.itemsBinding.prefix)
@@ -69,60 +69,84 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
 
         // array
         if (Array.isArray(value)) {
-            const parts                 = value.map(val => this.getCommandPart(job, val));
-            let calculatedValue: string = '';
+            const parts         = value.map(val => this.getCommandPart(job, val));
+            let calcVal: string = '';
 
-            parts.forEach(part => {
-                calculatedValue += " " + part.value;
-            });
-
-            // if array has itemSeparator, resolve as --prefix [separate] value1(delimiter) value2(delimiter) value3
+            // if array has itemSeparator resolve as
+            // --prefix [separate] value1(delimiter)value2(delimiter)value3
             if (itemSeparator) {
-                calculatedValue = prefix + separator + parts.map((val) => {
+                calcVal = prefix + separator + parts.map((val) => {
                         return val.value;
-                        // return this.resolveValue(job, val, this.inputBinding);
+                        // return this.resolve(job, val, this.inputBinding);
                     }).join(itemSeparator);
 
-                // null separator, resolve as --prefix [separate] value1
-                // --prefix [separate] value2 --prefix [separate] value3
+                // null separator, resolve as
+                // --prefix [separate] value1
+                // --prefix [separate] value2
+                // --prefix [separate] value3
+
             } else if (itemSeparator === null) {
-                calculatedValue = parts.map((val) => {
+                calcVal = parts.map((val) => {
                     return prefix + separator + val.value;
-                }).join( + " ");
+                }).join(+" ");
+
+                // no separator, resolve as
+                // --prefix [separate] (itemPrefix) value1
+                // (itemPrefix) value2
+                // (itemPrefix) value3
             } else {
-                calculatedValue = prefix + separator + parts
-                        .map(val => itemsPrefix  + separator + val.value)
-                        .join(" ");
+                // booleans are a special
+                if (this.items === "boolean") {
+                    calcVal = prefix + separator + parts
+                            .map(part => part.value)
+                            .join(" ");
+                } else {
+                    calcVal = prefix + separator + parts
+                            .map(part => itemsPrefix + separator + part.value)
+                            .join(" ");
+                }
+
             }
 
-            return new CommandLinePart(calculatedValue, [position, this.id]);
+            return new CommandLinePart(calcVal, [position, this.id]);
         }
 
         // record
         if (typeof value === "object") {
-            // make sure object isn't a file, resolveValue handles files
+            // make sure object isn't a file, resolve handles files
             if (!value.path) {
                 // evaluate record by calling generate part for each field
                 let parts = this.fields.map((field) => field.getCommandPart(job, value[field.id]));
 
-                let calculatedValue: string = '';
+                let calcVal: string = '';
 
                 parts.forEach((part) => {
-                    calculatedValue += " " + part.value;
+                    calcVal += " " + part.value;
                 });
 
-                return new CommandLinePart(calculatedValue, [position, this.id]);
+                return new CommandLinePart(calcVal, [position, this.id]);
             }
         }
 
-        // not record or array
+        // boolean should only include prefix and valueFrom (booleans === flags)
+        if (typeof value === "boolean") {
+            if (value) {
+                prefix = this.items === "boolean" ? itemsPrefix : prefix;
+                const calcVal = prefix + separator + this.resolve(job, '', this.inputBinding);
+                return new CommandLinePart(calcVal, [position, this.id]);
+            } else {
+                return new CommandLinePart('', [position, this.id]);
+            }
+        }
+
+        // not record or array or boolean
         // if the input has items, this is a recursive call and prefix should not be added again
-        prefix              = this.items ? '' : prefix;
-        let calculatedValue = prefix + separator + this.resolveValue(job, value, this.inputBinding);
-        return new CommandLinePart(calculatedValue, [position, this.id]);
+        prefix        = this.items ? '' : prefix;
+        const calcVal = prefix + separator + this.resolve(job, value, this.inputBinding);
+        return new CommandLinePart(calcVal, [position, this.id]);
     }
 
-    private resolveValue(jobInputs: any, value: any, inputBinding: CommandLineBinding) {
+    private resolve(jobInputs: any, value: any, inputBinding: CommandLineBinding) {
         if (inputBinding.valueFrom) {
             return ExpressionEvaluator.evaluateD2(inputBinding.valueFrom, jobInputs, value);
         }

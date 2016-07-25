@@ -5,7 +5,8 @@ import {CommandInputParameterModel} from "../d2sb/CommandInputParameterModel";
 import * as BWAMemTool from "../../tests/apps/bwa-mem-tool";
 import * as BWAMemJob from "../../tests/apps/bwa-mem-job";
 
-import * as TestTool from "../../tests/apps/test-tool";
+import * as BamtoolsIndex from "../../tests/apps/bamtools-index-sbg";
+import * as BamtoolsSplit from "../../tests/apps/bamtools-split-sbg";
 import * as BindingTestTool from "../../tests/apps/binding-test-tool";
 
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
@@ -56,10 +57,16 @@ describe("CommandLineToolModel d2sb", () => {
             expect(tool.getCommandLine()).to.equal(`python bwa mem chr20.fa -XXX -YYY example_human_Illumina.pe_1.fastq -YYY example_human_Illumina.pe_2.fastq`);
         });
 
-        it("Should evaluate arbitrary tool", () => {
-            let tool = new CommandLineToolModel(TestTool.default);
+        it("Should evaluate BamTools Index from sbg", () => {
+            let tool = new CommandLineToolModel(BamtoolsIndex.default);
 
             expect(tool.getCommandLine()).to.equal('/opt/bamtools/bin/bamtools index -in input_bam.bam');
+        });
+
+        it("Should evaluate BamTools Split from sbg", () => {
+            let tool = new CommandLineToolModel(BamtoolsSplit.default);
+
+            expect(tool.getCommandLine()).to.equal('/opt/bamtools/bin/bamtools split -in input/input_bam.ext -refPrefix refp -tagPrefix tagp -stub input_bam.splitted -mapped -paired -reference -tag tag');
         });
     });
 });
