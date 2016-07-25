@@ -20,7 +20,7 @@
     },
     "homepage": "https://github.com/rabix/cwl-ts#readme",
     "devDependencies": {
-        "cwl-ts-parser": "^1.1.1",
+        "cwl-ts-parser": "^2.1.0",
         "jsonschema": "^1.1.0",
         "typescript-json-schema": "^0.1.1"
     }
