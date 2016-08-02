@@ -2,29 +2,34 @@ import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {CommandLineInjectable} from "../../models/interfaces/CommandLineInjectable";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {Datatype} from "../../mappings/d2sb/Datatype";
-import {CommandInputSchema} from "../../mappings/d2sb/CommandInputSchema";
+import {MapType, EnumType, ArrayType, RecordType} from "../../mappings/d2sb/CommandInputSchema";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {TypeResolver, TypeResolution} from "../helpers/TypeResolver";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
+import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
+import {Validatable} from "./Validatable";
 
-export class CommandInputParameterModel implements CommandInputParameter, CommandLineInjectable {
+export class CommandInputParameterModel implements CommandLineInjectable, Validatable {
     id: string;
-
-    isRequired: boolean = true;
-    items: string;
-    itemsBinding: CommandLineBinding;
-    fields: Array<CommandInputParameterModel>;
-    symbols: Array<string>;
-    resolvedType: string;
-
-    type: Datatype | CommandInputSchema | string | Array<Datatype | CommandInputSchema | string>;
-    inputBinding: CommandLineBinding;
     label: string;
     description: string;
 
-    constructor(input: CommandInputParameter) {
-        this.id          = input.id || (<any> input).name; // for record fields
-        this.type        = input.type;
+    isRequired: boolean = true;
+    isField: boolean    = false;
+
+    items: string = null;
+
+    type: string = null;
+    itemsBinding: CommandLineBinding  = null;
+    fields: Array<CommandInputParameterModel>  = null;
+    symbols: Array<string>  = null;
+
+    inputBinding: CommandLineBinding  = null;
+
+    private map(input: CommandInputParameter | CommandInputRecordField) {
+        this.isField     = !!(<CommandInputRecordField> input).name; // record fields don't have ids
+        this.id          = (<CommandInputParameter> input).id
+            || (<CommandInputRecordField> input).name; // for record fields
         this.label       = input.label;
         this.description = input.description;
 
@@ -32,15 +37,22 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
 
         const resolved: TypeResolution = TypeResolver.resolveType(input.type);
 
-        this.resolvedType = resolved.type;
-        this.fields       = resolved.fields ? resolved.fields.map(field => {
+        this.type   = resolved.type;
+        this.fields = resolved.fields ? resolved.fields.map(field => {
             return new CommandInputParameterModel(field);
         }) : resolved.fields;
-        this.items        = resolved.items;
-        this.symbols      = resolved.symbols;
-        this.isRequired   = resolved.isRequired;
+
+        this.items      = resolved.items;
+        this.symbols    = resolved.symbols;
+        this.isRequired = resolved.isRequired;
 
         this.itemsBinding = resolved.itemsBinding;
+    }
+
+    constructor(input?: CommandInputParameter | CommandInputRecordField) {
+        if (input) {
+            this.map(input);
+        }
     }
 
     getCommandPart(job?: any, value?: any, self?: any): CommandLinePart {
@@ -51,10 +63,10 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         }
 
         // If type declared does not match type of value, throw error
-        if (!TypeResolver.doesTypeMatch(this.resolvedType, value)) {
+        if (!TypeResolver.doesTypeMatch(this.type, value)) {
             // If there are items, only throw exception if items don't match either
             if (!this.items || !TypeResolver.doesTypeMatch(this.items, value)) {
-                throw(`Mismatched value and type definition expected for ${this.id}. ${this.resolvedType} 
+                throw(`Mismatched value and type definition expected for ${this.id}. ${this.type} 
                 or ${this.items}, but instead got ${typeof value}`);
             }
         }
@@ -88,7 +100,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
             } else if (itemSeparator === null) {
                 calcVal = parts.map((val) => {
                     return prefix + separator + val.value;
-                }).join(+" ");
+                }).join(" ");
 
                 // no separator, resolve as
                 // --prefix [separate] (itemPrefix) value1
@@ -116,7 +128,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
             // make sure object isn't a file, resolve handles files
             if (!value.path) {
                 // evaluate record by calling generate part for each field
-                let parts = this.fields.map((field) => field.getCommandPart(job, value[field.id]));
+                const parts = this.fields.map((field) => field.getCommandPart(job, value[field.id]));
 
                 let calcVal: string = '';
 
@@ -131,7 +143,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         // boolean should only include prefix and valueFrom (booleans === flags)
         if (typeof value === "boolean") {
             if (value) {
-                prefix = this.items === "boolean" ? itemsPrefix : prefix;
+                prefix        = this.items === "boolean" ? itemsPrefix : prefix;
                 const calcVal = prefix + separator + this.resolve(job, '', this.inputBinding);
                 return new CommandLinePart(calcVal, [position, this.id]);
             } else {
@@ -156,5 +168,99 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         }
 
         return value;
+    }
+
+    public setType(type: Datatype | EnumType | MapType | ArrayType | RecordType): void {
+        this.type = type;
+    }
+
+    public getType(): string {
+        return this.type;
+    }
+
+    public setItems(type: Datatype | EnumType | MapType | ArrayType | RecordType): void {
+        if (this.type !== "array") {
+            throw("Items can only be set to inputs type Array");
+        } else {
+            this.items = type;
+        }
+    }
+
+    public getItems(): string {
+        return this.items;
+    }
+
+    public addField(field: CommandInputParameterModel | CommandInputParameter | CommandInputRecordField): void {
+        if (this.type !== "record" && this.items !== "record") {
+            throw(`Fields can only be added to type or items record: type is ${this.type}, items is ${this.items}.`);
+        } else {
+            const duplicate = this.fields.filter(val => {
+                return val.id === (<CommandInputRecordField> field).name
+                    || val.id === (<CommandInputParameter> field).id;
+            });
+            if (duplicate.length > 0) {
+                throw(`Field with name "${duplicate[0].id}" already exists`);
+            }
+
+            if (field instanceof CommandInputParameterModel) {
+                this.fields.push(field);
+            } else {
+                this.fields.push(new CommandInputParameterModel(field));
+            }
+        }
+    }
+
+    public removeField(field: CommandInputParameterModel | string) {
+        let found;
+
+        if (typeof field === "string") {
+            found = this.fields.filter(val => val.id === field)[0];
+        } else {
+            found = field;
+        }
+
+        const index = this.fields.indexOf(found);
+        if (index < 0) {
+            throw(`Field ${field} does not exist on input`);
+        }
+
+        this.fields.splice(index, 1);
+    }
+
+    public addSymbol(symbol: string) {
+        if (this.type !== "enum" && this.items !== "enum") {
+            throw(`Items can only be set to inputs type array`);
+
+        }
+    }
+
+    public getLabel(): string {
+        return this.label;
+    }
+
+    public setLabel(label: string) {
+        this.label = label;
+    }
+
+    public getDescription(): string {
+        return this.description;
+    }
+
+    public setDescription(description: string) {
+        this.description = description;
+    }
+
+    //@todo(maya) implement serialization
+    public toString(format: string = 'json') {
+        if (format === 'json') {
+
+        } else if (format === 'yaml') {
+
+        }
+    }
+
+    //@todo(maya) implement validation
+    validate(): boolean {
+        return undefined;
     }
 }

@@ -6,7 +6,8 @@
     "typings": "lib/index",
     "scripts": {
         "test": "tsc -p tsconfig.json && mocha ./**/*.spec.js",
-        "regenerate": "node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
+        "coverage": "tsc -p tsconfig.json && ./node_modules/istanbul/lib/cli.js cover _mocha ./**/*.spec.js",
+        "regenerate": "./node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
         "schemas": "scripts/schemas.sh",
         "d2sb-test": "mocha src/tests/*.d2sb.spec.js"
     },
@@ -23,6 +24,7 @@
     "devDependencies": {
         "chai": "^3.5.0",
         "cwl-ts-parser": "^1.1.1",
+        "istanbul": "^0.4.4",
         "jsonschema": "^1.1.0",
         "mocha": "^2.5.3",
         "typescript-json-schema": "git+ssh://git@github.com:YousefED/typescript-json-schema.git"

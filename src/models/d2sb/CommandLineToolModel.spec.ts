@@ -58,7 +58,7 @@ describe("CommandLineToolModel d2sb", () => {
         });
 
         it("Should evaluate BamTools Index from sbg", () => {
-            let tool = new CommandLineToolModel(BamtoolsIndex.default);
+            let tool = new CommandLineToolModel(<CommandLineTool> BamtoolsIndex.default);
 
             expect(tool.getCommandLine()).to.equal('/opt/bamtools/bin/bamtools index -in input_bam.bam');
         });

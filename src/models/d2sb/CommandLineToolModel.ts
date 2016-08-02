@@ -9,14 +9,14 @@ import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {MSDSort} from "../helpers/MSDSort";
 
-export class CommandLineToolModel implements CommandLineTool, CommandLineRunnable {
+export class CommandLineToolModel implements CommandLineRunnable {
     job: any;
     jobInputs: any;
 
     inputs: Array<CommandInputParameterModel>;
     outputs: Array<CommandOutputParameterModel>;
-    class;
-    baseCommand: string|Expression|Array<string|Expression>;
+    readonly class: string;
+    baseCommand: Array<string | Expression>;
 
     arguments: Array<CommandArgumentModel>;
 
@@ -27,36 +27,73 @@ export class CommandLineToolModel implements CommandLineTool, CommandLineRunnabl
     temporaryFailCodes: number[];
     permanentFailCodes: number[];
 
-    constructor(attr: CommandLineTool | any) {
-        this.class     = "CommandLineTool";
+    constructor(attr: CommandLineTool) {
+        this.class = "CommandLineTool";
 
-        this.inputs    = attr.inputs.map(input => new CommandInputParameterModel(input));
-        this.outputs   = attr.outputs.map(output => new CommandOutputParameterModel(output));
+        this.inputs  = attr.inputs.map(input => new CommandInputParameterModel(input));
+        this.outputs = attr.outputs.map(output => new CommandOutputParameterModel(output));
 
         this.arguments = attr.arguments
-                        ? attr.arguments.map(arg => new CommandArgumentModel(arg))
-                        : [];
+            ? attr.arguments.map(arg => new CommandArgumentModel(arg))
+            : [];
 
-        this.baseCommand = attr.baseCommand;
-        this.stdin       = attr.stdin || '';
-        this.stdout      = attr.stdout || '';
+        this.stdin  = attr.stdin || '';
+        this.stdout = attr.stdout || '';
 
         this.successCodes       = attr.successCodes || [];
         this.temporaryFailCodes = attr.temporaryFailCodes || [];
         this.permanentFailCodes = attr.permanentFailCodes || [];
 
-        if (!Array.isArray(this.baseCommand)) {
-            this.baseCommand = [<string | Expression> this.baseCommand]
-        }
+        this.baseCommand = !Array.isArray(attr.baseCommand)
+            ? [<string | Expression> attr.baseCommand]
+            : <Array<string | Expression>> attr.baseCommand;
 
         this.job = attr['sbg:job']
-                    ? attr['sbg:job']
-                    : JobHelper.getJob(this);
+            ? attr['sbg:job']
+            : JobHelper.getJob(this);
 
         this.jobInputs = this.job.inputs || this.job;
     }
 
+    public addArgument(arg: CommandArgumentModel) {
+        this.arguments.push(arg);
+    }
+
+    public removeArgument(arg: CommandArgumentModel | number) {
+        if (typeof arg === "number") {
+            this.arguments.splice(arg, 1);
+        } else {
+            this.arguments.splice(this.arguments.indexOf(arg), 1);
+        }
+    }
+
+    public addInput(input: CommandInputParameterModel) {
+        //@todo(maya) check id of input
+        this.inputs.push(input);
+    }
+
+    public removeInput(input: CommandInputParameterModel | number) {
+        if (typeof input === "number") {
+            this.inputs.splice(input, 1);
+        } else {
+            this.inputs.splice(this.inputs.indexOf(input), 1);
+        }
+    }
+
+    public addOutput(output: CommandOutputParameterModel) {
+        this.outputs.push(output);
+    }
+
+    public removeOutput(output: CommandOutputParameterModel | number) {
+        if (typeof output === "number") {
+            this.outputs.splice(output, 1);
+        } else {
+            this.outputs.splice(this.outputs.indexOf(output), 1);
+        }
+    }
+
     public getCommandLine(): string {
+        //@todo(maya): implement with Observables so command line isn't generated anew every time
         const parts = this.getCommandLineParts()
             .filter(part => part !== null)
             .map(part => part.value)
@@ -80,7 +117,7 @@ export class CommandLineToolModel implements CommandLineTool, CommandLineRunnabl
             const normalizedId = input.id.charAt(0) === '#'
                 ? input.id.substring(1)
                 : input.id;
-            const jobInput = this.jobInputs[normalizedId];
+            const jobInput     = this.jobInputs[normalizedId];
             return input.getCommandPart(this.job, jobInput);
         });
         const argParts   = this.arguments.map(arg => arg.getCommandPart(this.job));
@@ -92,7 +129,11 @@ export class CommandLineToolModel implements CommandLineTool, CommandLineRunnabl
     }
 
     public setJob(job: any) {
-        this.job = job;
+        this.job       = job;
         this.jobInputs = this.job.inputs || this.job;
+    }
+
+    public setJobProperty(key: string, value: any) {
+        console.warn("Not implemented yet");
     }
 }
