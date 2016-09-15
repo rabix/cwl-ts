@@ -21,9 +21,9 @@
     "homepage": "https://github.com/rabix/cwl-ts#readme",
     "devDependencies": {
         "chai": "^3.5.0",
-        "cwl-ts-parser": "^1.1.1",
-        "jsonschema": "^1.1.0",
         "mocha": "^2.5.3",
+        "cwl-ts-parser": "^2.1.0",
+        "jsonschema": "^1.1.0",
         "typescript-json-schema": "^0.1.1"
     },
     "dependencies": {
