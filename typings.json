@@ -1,4 +1,9 @@
 {
+  "name": "cwlts",
+  "dependencies": {},
+  "globalDependencies": {
+    "mocha": "registry:dt/mocha#2.2.5+20160619032855"
+  },
   "ambientDependencies": {
     "require": "registry:dt/require#2.1.20+20160316155526"
   }

@@ -1,0 +1,493 @@
+{
+    "sbg:toolkitVersion": "1.3",
+    "requirements": [
+        {
+            "class": "ExpressionEngineRequirement",
+            "requirements": [
+                {
+                    "class": "DockerRequirement",
+                    "dockerPull": "rabix/js-engine"
+                }
+            ],
+            "id": "#cwl-js-engine"
+        }
+    ],
+    "sbg:image_url": null,
+    "sbg:project": "admin/sbg-public-data",
+    "sbg:categories": [
+        "VCF-Processing"
+    ],
+    "sbg:createdOn": 1457546454,
+    "sbg:cmdPreview": "bcftools annotate -o input_file_annotate.ext  /path/to/input_file.ext",
+    "sbg:createdBy": "admin",
+    "sbg:sbgMaintained": false,
+    "sbg:latestRevision": 8,
+    "hints": [
+        {
+            "value": 1,
+            "class": "sbg:CPURequirement"
+        },
+        {
+            "value": 1024,
+            "class": "sbg:MemRequirement"
+        },
+        {
+            "class": "DockerRequirement",
+            "dockerPull": "images.sbgenomics.com/vladimirk/bcftools:1.3",
+            "dockerImageId": "21caaa02f72e"
+        }
+    ],
+    "stdout": "",
+    "sbg:links": [
+        {
+            "id": "http://samtools.github.io/bcftools/",
+            "label": "Homepage"
+        },
+        {
+            "id": "https://github.com/samtools/bcftools",
+            "label": "Source code"
+        },
+        {
+            "id": "https://github.com/samtools/bcftools/wiki",
+            "label": "Wiki"
+        },
+        {
+            "id": "https://github.com/samtools/bcftools/archive/develop.zip",
+            "label": "Download"
+        }
+    ],
+    "sbg:revision": 8,
+    "sbg:job": {
+        "allocatedResources": {
+            "cpu": 1,
+            "mem": 1024
+        },
+        "inputs": {
+            "samples_file": {
+                "class": "File",
+                "secondaryFiles": [],
+                "path": null,
+                "size": 0
+            },
+            "exclude_expression": "",
+            "columns": "",
+            "set_id": "",
+            "include_expression": "'REF=\"C\"'",
+            "regions": "",
+            "input_file": {
+                "class": "File",
+                "secondaryFiles": [],
+                "path": "/path/to/input_file.ext",
+                "size": 0
+            },
+            "annotations": {
+                "class": "File",
+                "secondaryFiles": [],
+                "path": "/path/to/annotations.ext",
+                "size": 0
+            },
+            "header_lines": "",
+            "mark_sites": "",
+            "regions_from_file": {
+                "class": "File",
+                "secondaryFiles": [],
+                "path": null,
+                "size": 0
+            },
+            "samples": "",
+            "rename_chrs": {
+                "class": "File",
+                "secondaryFiles": [],
+                "path": null,
+                "size": 0
+            },
+            "threads": 10,
+            "output_type": "CompressedBCF",
+            "remove_annotations": "",
+            "output_name": ""
+        }
+    },
+    "inputs": [
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 40,
+                "separate": true
+            },
+            "sbg:fileTypes": "VCF,BCF",
+            "label": "input file name",
+            "description": "Name of the input file.",
+            "type": [
+                "File"
+            ],
+            "id": "#input_file"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 13,
+                "separate": true,
+                "prefix": "-i"
+            },
+            "sbg:category": "Configuration",
+            "label": "include expression",
+            "description": "Include only sites for which the expression is true.",
+            "type": [
+                "null",
+                "string"
+            ],
+            "id": "#include_expression"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 10,
+                "separate": true,
+                "prefix": "-e"
+            },
+            "sbg:category": "Configuration",
+            "label": "Exclude expression",
+            "description": "Exclude sites for which the expression is true.",
+            "type": [
+                "null",
+                "string"
+            ],
+            "id": "#exclude_expression"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 14,
+                "separate": true,
+                "prefix": "-m"
+            },
+            "sbg:category": "Configuration",
+            "label": "Filter mode",
+            "description": "Annotate sites which are present (\"+\") or absent (\"-\") in the -a file with a new INFO/TAG flag.",
+            "type": [
+                "null",
+                "string"
+            ],
+            "id": "#mark_sites"
+        },
+        {
+            "description": "Name of the output file.",
+            "sbg:category": "Configuration",
+            "type": [
+                "null",
+                "string"
+            ],
+            "id": "#output_name",
+            "label": "Output file name"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 16,
+                "valueFrom": {
+                    "class": "Expression",
+                    "engine": "#cwl-js-engine",
+                    "script": "{\n  if($job.inputs.output_type === 'CompressedBCF') return 'b'\n  if($job.inputs.output_type === 'UncompressedBCF') return 'u'\n  if($job.inputs.output_type === 'CompressedVCF') return 'z'\n  if($job.inputs.output_type === 'UncompressedVCF') return 'v'\n}"
+                },
+                "separate": false,
+                "prefix": "-O"
+            },
+            "sbg:category": "Configuration",
+            "label": "Output type",
+            "description": "b: compressed BCF, u: uncompressed BCF, z: compressed VCF, v: uncompressed VCF [v].",
+            "type": [
+                "null",
+                {
+                    "type": "enum",
+                    "symbols": [
+                        "CompressedBCF",
+                        "UncompressedBCF",
+                        "CompressedVCF",
+                        "UncompressedVCF"
+                    ],
+                    "name": "output_type"
+                }
+            ],
+            "id": "#output_type"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 17,
+                "separate": true,
+                "prefix": "-r"
+            },
+            "sbg:category": "Configuration",
+            "label": "Regions for processing",
+            "description": "Restrict to comma-separated list of regions.",
+            "type": [
+                "null",
+                "string"
+            ],
+            "id": "#regions"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 18,
+                "loadContents": false,
+                "separate": true,
+                "prefix": "-R"
+            },
+            "sbg:category": "Configuration",
+            "label": "Processing regions from file",
+            "description": "Restrict to regions listed in a file.",
+            "type": [
+                "null",
+                "File"
+            ],
+            "id": "#regions_from_file"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 20,
+                "separate": true,
+                "prefix": "-s"
+            },
+            "sbg:category": "Configuration",
+            "label": "Samples list",
+            "description": "Subset of samples to annotate.",
+            "type": [
+                "null",
+                "string"
+            ],
+            "id": "#samples"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 22,
+                "separate": true,
+                "prefix": "-S"
+            },
+            "sbg:category": "Configuration",
+            "label": "Samples file",
+            "description": "Subset of samples to annotate. If the samples are named differently in the target VCF and the -a, --annotations VCF, the name mapping can be given as \"src_name dst_name\\n\", separated by whitespaces, each pair on a separate line.",
+            "type": [
+                "null",
+                "File"
+            ],
+            "id": "#samples_file"
+        },
+        {
+            "description": "Number of threads.",
+            "type": [
+                "null",
+                "int"
+            ],
+            "id": "#threads",
+            "label": "Threads"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 4,
+                "separate": true,
+                "prefix": "-a"
+            },
+            "sbg:category": "Configurations",
+            "label": "Annotation file",
+            "description": "Bgzip-compressed and tabix-indexed file with annotations. The file can be VCF, BED, or a tab-delimited file with mandatory columns CHROM, POS (or, alternatively, FROM and TO), optional columns REF and ALT, and arbitrary number of annotation columns. BED files are expected to have the \".bed\" or \".bed.gz\" suffix (case-insensitive), otherwise a tab-delimited file is assumed. Note that in case of tab-delimited file, the coordinates POS, FROM and TO are one-based and inclusive. When REF and ALT are present, only matching VCF records will be annotated. When multiple ALT alleles are present in the annotation file (given as comma-separated list of alleles), at least one must match one of the alleles in the corresponding VCF record. Similarly, at least one alternate allele from a multi-allelic VCF record must be present in the annotation file. Note that flag types, such as \"INFO/FLAG\", can be annotated by including a field with the value \"1\" to set the flag, \"0\" to remove it, or \".\" to keep existing flags.",
+            "type": [
+                "null",
+                "File"
+            ],
+            "id": "#annotations"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 5,
+                "separate": true,
+                "prefix": "-c"
+            },
+            "sbg:category": "Configuration",
+            "label": "Columns list",
+            "description": "Comma-separated list of columns or tags to carry over from the annotation file (see also -a, --annotations). If the annotation file is not a VCF/BCF, list describes the columns of the annotation file and must include CHROM, POS (or, alternatively, FROM and TO), and optionally REF and ALT. Unused columns which should be ignored can be indicated by \"-\". If the annotation file is a VCF/BCF, only the edited columns/tags must be present and their order does not matter. The columns ID, QUAL, FILTER, INFO and FORMAT can be edited, where INFO tags can be written both as \"INFO/TAG\" or simply \"TAG\", and FORMAT tags can be written as \"FORMAT/TAG\" or \"FMT/TAG\". To carry over all INFO annotations, use \"INFO\". To add all INFO annotations except \"TAG\", use \"^INFO/TAG\". By default, existing values are replaced. To add annotations without overwriting existing values (that is, to add missing tags or add values to existing tags with missing values), use \"+TAG\" instead of \"TAG\". To append to existing values (rather than replacing or leaving untouched), use \"=TAG\" (instead of \"TAG\" or \"+TAG\"). To replace only existing values without modifying missing annotations, use \"-TAG\". If the annotation file is not a VCF/BCF, all new annotations must be defined via -h, --header-lines.",
+            "type": [
+                "null",
+                "string"
+            ],
+            "id": "#columns"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 11,
+                "separate": true,
+                "prefix": "-h"
+            },
+            "sbg:category": "Configuration",
+            "label": "Header lines",
+            "description": "Lines to append to the VCF header.",
+            "type": [
+                "null",
+                "string"
+            ],
+            "id": "#header_lines"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 12,
+                "separate": true,
+                "prefix": "-I"
+            },
+            "sbg:category": "Configuration",
+            "label": "Assign set ID (format)",
+            "description": "Assign ID on the fly. The format is the same as in the query command (see below). By default all existing IDs are replaced. If the format string is preceded by \"+\", only missing IDs will be set.",
+            "type": [
+                "null",
+                "string"
+            ],
+            "id": "#set_id"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 19,
+                "separate": true,
+                "prefix": "--rename-chrs"
+            },
+            "sbg:category": "Configuration",
+            "label": "Rename chromosomes",
+            "description": "Rename chromosomes according to the map in file, with \"old_name new_name\\n\" pairs separated by whitespaces, each on a separate line.",
+            "type": [
+                "null",
+                "File"
+            ],
+            "id": "#rename_chrs"
+        },
+        {
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "position": 23,
+                "separate": true,
+                "prefix": "-x"
+            },
+            "sbg:category": "Configuration",
+            "label": "Remove annotations",
+            "description": "List of annotations to remove. Use \"FILTER\" to remove all filters or \"FILTER/SomeFilter\" to remove a specific filter. Similarly, \"INFO\" can be used to remove all INFO tags and \"FORMAT\" to remove all FORMAT tags except GT. To remove all INFO tags except \"FOO\" and \"BAR\", use \"^INFO/FOO,INFO/BAR\" (and similarly for FORMAT and FILTER). \"INFO\" can be abbreviated to \"INF\" and \"FORMAT\" to \"FMT\".",
+            "type": [
+                "null",
+                "string"
+            ],
+            "id": "#remove_annotations"
+        }
+    ],
+    "sbg:license": "MIT License",
+    "sbg:modifiedBy": "admin",
+    "sbg:validationErrors": [],
+    "sbg:contributors": [
+        "admin"
+    ],
+    "sbg:id": "admin/sbg-public-data/bcftools-1-3-annotate/8",
+    "sbg:toolAuthor": "Petr Danecek, Shane McCarthy, John Marshall",
+    "label": "Bcftools Annotate",
+    "outputs": [
+        {
+            "outputBinding": {
+                "sbg:inheritMetadataFrom": "#input_file",
+                "glob": "{*.bcf,*.vcf}"
+            },
+            "type": [
+                "null",
+                "File"
+            ],
+            "id": "#output_file",
+            "label": "Output log file"
+        }
+    ],
+    "baseCommand": [
+        "bcftools",
+        "annotate",
+        "",
+        ""
+    ],
+    "sbg:modifiedOn": 1462903466,
+    "successCodes": [
+        0
+    ],
+    "id": "https://staging-api.sbgenomics.com/v2/apps/admin/sbg-public-data/bcftools-1-3-annotate/8/raw/",
+    "class": "CommandLineTool",
+    "stdin": "",
+    "sbg:revisionsInfo": [
+        {
+            "sbg:modifiedBy": "admin",
+            "sbg:revisionNotes": null,
+            "sbg:revision": 0,
+            "sbg:modifiedOn": 1457546454
+        },
+        {
+            "sbg:modifiedBy": "admin",
+            "sbg:revisionNotes": null,
+            "sbg:revision": 1,
+            "sbg:modifiedOn": 1457546454
+        },
+        {
+            "sbg:modifiedBy": "admin",
+            "sbg:revisionNotes": null,
+            "sbg:revision": 2,
+            "sbg:modifiedOn": 1459162475
+        },
+        {
+            "sbg:modifiedBy": "admin",
+            "sbg:revisionNotes": null,
+            "sbg:revision": 3,
+            "sbg:modifiedOn": 1459162475
+        },
+        {
+            "sbg:modifiedBy": "admin",
+            "sbg:revisionNotes": null,
+            "sbg:revision": 4,
+            "sbg:modifiedOn": 1459162475
+        },
+        {
+            "sbg:modifiedBy": "admin",
+            "sbg:revisionNotes": null,
+            "sbg:revision": 5,
+            "sbg:modifiedOn": 1459162475
+        },
+        {
+            "sbg:modifiedBy": "admin",
+            "sbg:revisionNotes": null,
+            "sbg:revision": 6,
+            "sbg:modifiedOn": 1459162475
+        },
+        {
+            "sbg:modifiedBy": "admin",
+            "sbg:revisionNotes": null,
+            "sbg:revision": 7,
+            "sbg:modifiedOn": 1462442921
+        },
+        {
+            "sbg:modifiedBy": "admin",
+            "sbg:revisionNotes": null,
+            "sbg:revision": 8,
+            "sbg:modifiedOn": 1462903466
+        }
+    ],
+    "arguments": [
+        {
+            "position": 3,
+            "valueFrom": {
+                "class": "Expression",
+                "engine": "#cwl-js-engine",
+                "script": "{\n  if($job.inputs.output_name){\n    return $job.inputs.output_name\n  }\n  else{\n    full_name = $job.inputs.input_file.path.split('/')[$job.inputs.input_file.path.split('/').length-1]\n    extension = $job.inputs.input_file.path.split('.').pop();\n    fname = full_name.replace(/\\.[^/.]+$/, \"\")\n    return fname + '_annotate.' + extension\n  }\n    \n}"
+            },
+            "separate": true,
+            "prefix": "-o"
+        }
+    ],
+    "description": "Add or remove annotations.\n\nBCFtools is a set of utilities that manipulate variant calls in the Variant Call Format (VCF) and its binary counterpart BCF. All commands work transparently with both VCFs and BCFs, both uncompressed and BGZF-compressed.\n\nMost commands accept VCF, bgzipped VCF and BCF with filetype detected automatically even when streaming from a pipe. Indexed VCF and BCF will work in all situations. Un-indexed VCF and BCF and streams will work in most, but not all situations. In general, whenever multiple VCFs are read simultaneously, they must be indexed and therefore also compressed.\n\nBCFtools is designed to work on a stream. It regards an input file \"-\" as the standard input (stdin) and outputs to the standard output (stdout). Several commands can thus be combined with Unix pipes.",
+    "sbg:toolkit": "bcftools",
+    "temporaryFailCodes": [
+        1
+    ]
+}
