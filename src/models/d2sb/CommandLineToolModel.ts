@@ -8,8 +8,10 @@ import {JobHelper} from "../helpers/JobHelper";
 import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {MSDSort} from "../helpers/MSDSort";
+import {Validatable} from "./Validatable";
+import {ValidationError} from "../interfaces/ValidationError";
 
-export class CommandLineToolModel implements CommandLineRunnable {
+export class CommandLineToolModel implements CommandLineRunnable, Validatable {
     job: any;
     jobInputs: any;
 
@@ -27,32 +29,34 @@ export class CommandLineToolModel implements CommandLineRunnable {
     temporaryFailCodes: number[];
     permanentFailCodes: number[];
 
-    constructor(attr: CommandLineTool) {
+    constructor(attr?: CommandLineTool) {
         this.class = "CommandLineTool";
 
-        this.inputs  = attr.inputs.map(input => new CommandInputParameterModel(input));
-        this.outputs = attr.outputs.map(output => new CommandOutputParameterModel(output));
+        if (attr) {
+            this.inputs  = attr.inputs.map(input => new CommandInputParameterModel(input));
+            this.outputs = attr.outputs.map(output => new CommandOutputParameterModel(output));
 
-        this.arguments = attr.arguments
-            ? attr.arguments.map(arg => new CommandArgumentModel(arg))
-            : [];
+            this.arguments = attr.arguments
+                ? attr.arguments.map(arg => new CommandArgumentModel(arg))
+                : [];
 
-        this.stdin  = attr.stdin || '';
-        this.stdout = attr.stdout || '';
+            this.stdin  = attr.stdin || '';
+            this.stdout = attr.stdout || '';
 
-        this.successCodes       = attr.successCodes || [];
-        this.temporaryFailCodes = attr.temporaryFailCodes || [];
-        this.permanentFailCodes = attr.permanentFailCodes || [];
+            this.successCodes       = attr.successCodes || [];
+            this.temporaryFailCodes = attr.temporaryFailCodes || [];
+            this.permanentFailCodes = attr.permanentFailCodes || [];
 
-        this.baseCommand = !Array.isArray(attr.baseCommand)
-            ? [<string | Expression> attr.baseCommand]
-            : <Array<string | Expression>> attr.baseCommand;
+            this.baseCommand = !Array.isArray(attr.baseCommand)
+                ? [<string | Expression> attr.baseCommand]
+                : <Array<string | Expression>> attr.baseCommand;
 
-        this.job = attr['sbg:job']
-            ? attr['sbg:job']
-            : JobHelper.getJob(this);
+            this.job = attr['sbg:job']
+                ? attr['sbg:job']
+                : JobHelper.getJob(this);
 
-        this.jobInputs = this.job.inputs || this.job;
+            this.jobInputs = this.job.inputs || this.job;
+        }
     }
 
     public addArgument(arg: CommandArgumentModel) {
@@ -67,9 +71,11 @@ export class CommandLineToolModel implements CommandLineRunnable {
         }
     }
 
-    public addInput(input: CommandInputParameterModel) {
-        //@todo(maya) check id of input
+    public addInput(input?: CommandInputParameterModel) {
+        input = input || new CommandInputParameterModel();
         this.inputs.push(input);
+
+        return input;
     }
 
     public removeInput(input: CommandInputParameterModel | number) {
@@ -135,5 +141,33 @@ export class CommandLineToolModel implements CommandLineRunnable {
 
     public setJobProperty(key: string, value: any) {
         console.warn("Not implemented yet");
+    }
+
+    validate(): ValidationError[] {
+        let errors: ValidationError[] = [];
+
+        // check base command
+        if (this.baseCommand === [] || this.baseCommand === ['']) {
+            errors.push({
+                type: "Error",
+                location: "baseCommand",
+                message: "Missing required property baseCommand"
+            });
+        }
+
+        // check if all inputs are valid
+        errors.concat(this.inputs
+            .map(input => input.validate())
+            .reduce((prev, curr, index) => {
+                curr.forEach(err => err.location.replace(/<inputIndex>/, index.toString()));
+                return prev.concat(curr);
+            }));
+
+
+        // check if ID exists and is valid
+
+        // check if inputs have unique id
+
+        return errors;
     }
 }

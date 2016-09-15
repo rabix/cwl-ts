@@ -7,11 +7,12 @@
         "pretty": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "outDir": "./out",
+        "declaration": true,
+        "outDir": "./lib",
         "target": "es5"
     },
     "exclude": [
         "node_modules",
-        "wwwroot"
+        "tests"
     ]
 }

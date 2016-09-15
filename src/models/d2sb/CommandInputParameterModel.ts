@@ -8,23 +8,41 @@ import {TypeResolver, TypeResolution} from "../helpers/TypeResolver";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {Validatable} from "./Validatable";
+import {ValidationError} from "../interfaces/ValidationError";
+import {Expression} from "../../../lib/mappings/d2sb/Expression";
 
 export class CommandInputParameterModel implements CommandLineInjectable, Validatable {
-    id: string;
-    label: string;
-    description: string;
+    /**
+     * Metadata properties about the input
+     */
+    public id: string;
+    public label: string;
+    public description: string;
 
-    isRequired: boolean = true;
-    isField: boolean    = false;
+    /**
+     * Derived type properties
+     */
+    public isRequired: boolean = true;
+    public isField: boolean    = false;
 
-    items: string = null;
+    /**
+     * Primitive type of input
+     * Complex types such as {type: "array", items: "string"}
+     * are flattened to this.type == "array"
+     * and this.items == "string"
+     */
+    private type: string = null;
+    /* Primitive type of items, if input is an array */
+    public items: string = null;
+    /* InputBinding defined for items inside of {type: "array"} object */
+    private itemsBinding: CommandLineBinding = null;
+    /* Fields mapped to InputParameterModel for easier command line generation */
+    public fields: Array<CommandInputParameterModel> = null;
+    public symbols: Array<string>                    = null;
 
-    type: string = null;
-    itemsBinding: CommandLineBinding  = null;
-    fields: Array<CommandInputParameterModel>  = null;
-    symbols: Array<string>  = null;
+    private inputBinding: CommandLineBinding = null;
 
-    inputBinding: CommandLineBinding  = null;
+    private typeName: string = null;
 
     private map(input: CommandInputParameter | CommandInputRecordField) {
         this.isField     = !!(<CommandInputRecordField> input).name; // record fields don't have ids
@@ -47,11 +65,14 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
         this.isRequired = resolved.isRequired;
 
         this.itemsBinding = resolved.itemsBinding;
+        this.typeName = resolved.typeName;
     }
 
     constructor(input?: CommandInputParameter | CommandInputRecordField) {
         if (input) {
             this.map(input);
+        } else {
+
         }
     }
 
@@ -172,6 +193,21 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
 
     public setType(type: Datatype | EnumType | MapType | ArrayType | RecordType): void {
         this.type = type;
+
+        switch (type) {
+            case "array":
+                this.symbols = null;
+                this.fields  = null;
+                break;
+            case "enum":
+                this.items  = null;
+                this.fields = null;
+                break;
+            case "record":
+                this.items   = null;
+                this.symbols = null;
+                break;
+        }
     }
 
     public getType(): string {
@@ -180,6 +216,7 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
 
     public setItems(type: Datatype | EnumType | MapType | ArrayType | RecordType): void {
         if (this.type !== "array") {
+
             throw("Items can only be set to inputs type Array");
         } else {
             this.items = type;
@@ -230,7 +267,6 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
     public addSymbol(symbol: string) {
         if (this.type !== "enum" && this.items !== "enum") {
             throw(`Items can only be set to inputs type array`);
-
         }
     }
 
@@ -259,8 +295,143 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
         }
     }
 
-    //@todo(maya) implement validation
-    validate(): boolean {
+    public toObject(): Object {
         return undefined;
+    }
+
+    public setValueFrom(value: string | Expression): void {
+        if (!this.inputBinding) {
+            this.inputBinding = {};
+        }
+        this.inputBinding.valueFrom = value;
+    }
+
+    public getValueFrom(): string | Expression {
+        return this.inputBinding ? this.inputBinding.valueFrom : '';
+    }
+
+    //@todo(maya) implement validation
+    validate(): ValidationError[] {
+        let errors: ValidationError[] = [];
+        const location = this.isField ? "fields[<fieldIndex>]" : "inputs[<inputIndex>]";
+
+        // check id validity
+        // doesn't exist
+        if (this.id === '' || this.id === undefined) {
+            errors.push({
+                type: "Error",
+                message: "ID must be set",
+                location: location
+            });
+            // contains illegal characters
+        } else if (!/^[a-zA-Z0-9_]*/.test(this.id)) {
+            errors.push({
+                type: "Error",
+                message: "ID can only contain alphanumeric and underscore characters",
+                location: location
+            });
+        }
+
+        // check type
+        // if array, has items. Does not have symbols or items
+        if (this.type === "array") {
+            if (this.items === null) {
+                errors.push({
+                    type: "Error",
+                    message: "Type array must have items",
+                    location: location
+                });
+            }
+            if (this.symbols !== null) {
+                errors.push({
+                    type: "Error",
+                    message: "Type array must not have symbols",
+                    location: location
+                });
+            }
+            if (this.fields !== null) {
+                errors.push({
+                    type: "Error",
+                    message: "Type array must not have fields",
+                    location: location
+                });
+            }
+        }
+        // if enum, has symbols. Does not have items or fields. Has name.
+        if (this.type === "enum") {
+            if (this.items !== null) {
+                errors.push({
+                    type: "Error",
+                    message: "Type enum must not have items",
+                    location: location
+                });
+            }
+            if (this.symbols === null) {
+                errors.push({
+                    type: "Error",
+                    message: "Type enum must have symbols",
+                    location: location
+                });
+            }
+            if (this.fields !== null) {
+                errors.push({
+                    type: "Error",
+                    message: "Type enum must not have fields",
+                    location: location
+                });
+            }
+
+            if (!this.typeName) {
+                errors.push({
+                    type: "Error",
+                    message: "Type enum must have a name",
+                    location: location
+                });
+            }
+        }
+        // if record, has fields. Does not have items or symbols. Has name.
+        if (this.type === "enum") {
+            if (this.items !== null) {
+                errors.push({
+                    type: "Error",
+                    message: "Type record must not have items",
+                    location: location
+                });
+            }
+            if (this.symbols === null) {
+                errors.push({
+                    type: "Error",
+                    message: "Type record must have symbols",
+                    location: location
+                });
+            }
+            if (this.fields === null) {
+                errors.push({
+                    type: "Error",
+                    message: "Type record must have fields",
+                    location: location
+                });
+            } else {
+                // check validity for each field.
+                errors.concat(this.fields.map(field => {
+                    return field.validate().map((err, index) => {
+                        err.location.replace(/<fieldIndex>/, index.toString());
+                        err.location = "inputs[<inputIndex>]" + err.location;
+                        return err;
+                    });
+                }).reduce((acc, curr) => acc.concat(curr)));
+
+                // @todo check uniqueness of each field name
+            }
+
+            if (!this.typeName) {
+                errors.push({
+                    type: "Error",
+                    message: "Type record must have a name",
+                    location: location
+                });
+            }
+        }
+        return errors;
     }
 }

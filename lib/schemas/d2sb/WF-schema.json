@@ -1818,6 +1818,18 @@
                             "$ref": "#/definitions/CommandInputSchema"
                         },
                         {
+                            "$ref": "#/definitions/CommandInputArraySchema"
+                        },
+                        {
+                            "$ref": "#/definitions/CommandInputMapSchema"
+                        },
+                        {
+                            "$ref": "#/definitions/CommandInputEnumSchema"
+                        },
+                        {
+                            "$ref": "#/definitions/CommandInputRecordSchema"
+                        },
+                        {
                             "type": "string"
                         },
                         {
@@ -1880,6 +1892,18 @@
                                     },
                                     {
                                         "$ref": "#/definitions/CommandInputSchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/CommandInputArraySchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/CommandInputMapSchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/CommandInputEnumSchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/CommandInputRecordSchema"
                                     },
                                     {
                                         "type": "string"

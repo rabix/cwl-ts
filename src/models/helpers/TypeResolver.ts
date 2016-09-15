@@ -7,19 +7,21 @@ export interface TypeResolution {
     fields: any[];
     symbols: string[];
     isRequired: boolean;
-    itemsBinding: CommandLineBinding
+    itemsBinding: CommandLineBinding,
+    typeName: string;
 }
 
 export class TypeResolver {
 
-    static resolveType(type: any, result?: TypeResolution): TypeResolution {
+    public static resolveType(type: any, result?: TypeResolution): TypeResolution {
         result = result || {
                 type: null,
                 items: null,
                 fields: null,
                 symbols: null,
                 isRequired: true,
-                itemsBinding: null
+                itemsBinding: null,
+                typeName: null
             };
 
         if (type === null) {
@@ -90,9 +92,11 @@ export class TypeResolver {
                         }
                     case "record":
                         result.fields = type.fields;
+                        result.typeName = type.name || null;
                         return result;
                     case "enum":
                         result.symbols = type.symbols;
+                        result.typeName = type.name || null;
                         return result;
                     case "string":
                     case "File":
@@ -115,7 +119,7 @@ export class TypeResolver {
         }
     }
 
-    static doesTypeMatch(type: string, value: any) {
+    public static doesTypeMatch(type: string, value: any) {
 
         if (type) {
             switch (type) {

@@ -2,13 +2,13 @@
     "name": "cwlts",
     "version": "1.2.0",
     "description": "TypeScript data model for Common Workflow Language",
-    "main": "lib/index.js",
-    "typings": "lib/index",
+    "main": "lib/index.ts",
+    "typings": "lib/index.d.ts",
     "scripts": {
         "test": "tsc -p tsconfig.json && mocha ./**/*.spec.js",
-        "coverage": "tsc -p tsconfig.json && ./node_modules/istanbul/lib/cli.js cover _mocha ./**/*.spec.js",
+        "coverage": "npm install istanbul && tsc -p tsconfig.json && ./node_modules/istanbul/lib/cli.js cover _mocha ./**/*.spec.js",
         "regenerate": "./node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
-        "schemas": "scripts/schemas.sh",
+        "schemas": "npm install cwl-ts-parser && scripts/schemas.sh",
         "d2sb-test": "mocha src/tests/*.d2sb.spec.js"
     },
     "repository": {
@@ -23,8 +23,6 @@
     "homepage": "https://github.com/rabix/cwl-ts#readme",
     "devDependencies": {
         "chai": "^3.5.0",
-        "cwl-ts-parser": "^1.1.1",
-        "istanbul": "^0.4.4",
         "jsonschema": "^1.1.0",
         "mocha": "^2.5.3",
         "typescript-json-schema": "git+ssh://git@github.com:YousefED/typescript-json-schema.git"
