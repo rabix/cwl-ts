@@ -1,0 +1,3227 @@
+{
+    "description": "Fusion Transcript Detection - ChimeraScan detects and identifies fusion transcripts from paired-end RNA-Seq data using ChimeraScan.\n\nFusion genes or chimeras are gene alterations resulting from chromosomal rearrangements combining exons from genes located on the same or different chromosomes. Fusion gene products may have a new or different function than the two fusion partners. Fusion transcripts are frequently found in diverse types of carcinomas including breast, lung, and prostate cancers, as well as melanomas and lymphomas. Detection of known (and identification of novel) gene fusions can lead to a better understanding of the triggering mechanism and progression of carcinogenesis. Moreover, recent studies suggest that fusion gene products may represent a novel therapeutic target for the treatment of human cancers.\n\nMethod:\nThis pipeline uses ChimeraScan software package that to detect fusion genes (1). Besides the primary program that detects fusion genes, the toolkit consists of an accessory tool that prepares references for proper indexing in upstream analysis and a tool for preparing output files in HTML table format. ChimeraScan is found to exhibit strong performance with low rate of false positive fusion detections, but only accepts paired-end RNA-Seq data. Addition of Chimera (2) and Oncofuse (3) to this pipeline serves to provide additional control of detected fusion genes. Finally, graphical representation of identified fusion genes is provided by the genomic coordinate visualization tool Circos (4).\n\nInputs:\nReads (paired-end): This pipeline accepts one pair of paired-end RNA-Seq data in FASTQ format (plain text or compressed files). If reads for samples are present in multiple files, the Merge FASTQ Files Public Pipeline can be used to consolidate them before alignment. If both reads are given as a gzipped archive, one can use SBG Unpack FASTQs to unpack and set the paired-end metadata fields to 1 and 2 respectively, which is obligatory.\n\nGenome reference: FASTA file containing reference genome. For human samples we recommend ucsc.hg19.fasta.\nTranscriptome reference: Transcriptome reference file containing all known transcripts in GTF format. For human samples we recommend human_hg19_genes_2015.gtf. NOTE: ChimeraScan Index does not handle well the GENCODE GTF releases.\n\nFalse Positive Chimeras (optional): List of known false positive chimeras. For human samples we recommend hg19_bodymap_false_positive_chimeras.txt.\n\nTools and suggested parameter settings:\n* ChimeraScan v0.4.5 - Software package for detection of gene fusions in paired-end RNA-Seq datasets (1). ChimeraScan uses Bowtie to align paired-end reads to a combined genome/transcriptome reference, aiming to discover discordant reads, predict an optimal fusion breakpoint location, and detect chimeras. Software package includes an indexing program, ChimeraScan Index, which creates the combined index from genomic reference sequences (FASTA format) and custom transcriptome reference format (UCSC GenePred format). ChimeraScan GTF to genePred has been added to this pipeline to convert GTF file in a format acceptable by ChimeraScan Index. ChimeraScan HTML Table creates an HTML page with links to detailed descriptions of the chimeric genes. Additionally, SBG ChimeraScan4Circos generates output files needed visualization tool Circos. \nParameters are set to default values based on the best practice suggested by the ChimeraScan authors.\n\nTips for reducing false positives: \nOnly consider annotated genes (unless, of course, you are looking for fusion between unannotated transcripts).\nProvide a file of known likely false positives during task execution. We recommend, for human samples, hg19_bodymap_false_positive_chimeras.txt.\n* Chimera v1.12.0 - Software package for downstream processing that accepts ChimeraScan BEDPE output and enables further filtering of detected fusion transcripts (2). This tool generates a detected and a filtered fusion genes file, and produces the R workspace file obtained from pipeline execution. \n\nParameters that can be adjusted while filtering fusion candidates: \nmin.support (default: 10), minimal number of reads spanning a specific fusion.\nfilterList type: (default: annotated genes) Additional filtering allows predicted chimeras to be discarded based on the following criteria: \nspanning reads - if it has less spanning reads than a set value\nfusion names - if particular fusion (or gene) name is in the given list (e.g. ABL1:BCR)\nintronic - if the intronic regions are included in the fusion\nannotated genes - if the partner genes are not annotated (currently set as default)\nread through - if gene partners are the same\n* Oncofuse v1.1.0 serves for prioritization of fusions based on their oncogenic potential, i.e. the probability of being 'driver' event (3). Further, a node that converts output from Oncofuse into an html table sorted by driver probability is added.\n* Circos v0.68 - Tool for visual representation of identified fusion genes (4). Graphical visualization relies on circular layout of the genome using fixed configuration file. \n\nOutputs:\nThe chimeras.bedpe file contains information about the chromosomal regions, transcript IDs, genes, and statistics for each identified chimera. \nSortable table of detected chimeras in a user-friendly HTML page, for web browser viewing, with links to detailed descriptions of the chimeric genes. \nIndex file as a gzipped archive. NOTE: In case of subsequent runs of the pipeline with the same genome/transcriptome reference, one should reuse this file (in order to save approximately 4h needed for creating an index) and modify the pipeline accordingly (to start with Chimerascan Run). \nDetected and filtered fusion genes files generated by Chimera tool, provided as an additional control for true fusion detection; R workspace contains all saved R objects during execution of Chimera - it is useful for further analysis and for additional details on detected fusions.\nOncofuse output with functional prediction scores (oncogenic potential) of detected fusions. \nCircos plots for visual representation of fusion genes.\n\nAdditional suggestions:\nThe execution time of this pipeline can be measured in hours, even dozens of hours for big FASTQs (say, bigger than 10 GB). Remember that only creating an index takes around 4 hours. \nFeel free to customize this pipeline by removing or adding new nodes based on goal of your study.\n\n\nReferences:\n(1) Iyer, M. K. et al. ChimeraScan: a tool for identifying chimeric transcription in sequencing data. Bioinformatics 27, 2903\u20132904 (2011)\n(2) Beccuti M, Carrara M, Cordero F, Lazzarato F, Donatelli S, Nadalin F, Policriti A and Calogero RA \"Chimera: a Bioconductor package for secondary analysis of fusion products.\" Bioinformatics, 0, pp. 3 (2014)\n(3) Mikhail Shugay, Inigo Ortiz de Mend\u00edbil, Jose L. Vizmanos and Francisco J. Novo. Oncofuse: a computational framework for the prediction of the oncogenic potential of gene fusions. Bioinformatics, 29 (20): 2539-2546 (2013)\n(4) Krzywinski, M. et al. Circos: an information aesthetic for comparative genomics. Genome Res. 19, 1639\u20131645 (2009)",
+    "outputs": [
+        {
+            "sbg:includeInPorts": true,
+            "required": false,
+            "sbg:y": 183.5294379528012,
+            "label": "filtered_fusions",
+            "sbg:x": 1371.76501000877,
+            "id": "#filtered_fusions",
+            "type": [
+                "null",
+                "File"
+            ],
+            "source": [
+                "#Chimera.filtered_fusions"
+            ]
+        },
+        {
+            "sbg:includeInPorts": true,
+            "required": false,
+            "sbg:y": 282.3529593853806,
+            "label": "chimeras_html",
+            "sbg:x": 1530.5882437748885,
+            "id": "#chimeras_html",
+            "type": [
+                "null",
+                "File"
+            ],
+            "source": [
+                "#ChimeraScan_Make_Html.chimeras_html"
+            ]
+        },
+        {
+            "sbg:includeInPorts": true,
+            "required": false,
+            "sbg:y": 308.2353659237133,
+            "label": "detected_fusions",
+            "sbg:x": 1296.4707318474266,
+            "id": "#detected_fusions",
+            "type": [
+                "null",
+                "File"
+            ],
+            "source": [
+                "#Chimera.detected_fusions"
+            ]
+        },
+        {
+            "sbg:includeInPorts": true,
+            "required": false,
+            "sbg:y": 429.4118365119486,
+            "label": "R_workspace",
+            "sbg:x": 1236.4710190716912,
+            "id": "#R_workspace",
+            "type": [
+                "null",
+                "File"
+            ],
+            "source": [
+                "#Chimera.R_workspace"
+            ]
+        },
+        {
+            "sbg:includeInPorts": true,
+            "required": false,
+            "sbg:y": 795.2941663999468,
+            "label": "circos_svg",
+            "sbg:x": 1325.8824050863727,
+            "id": "#circos_svg",
+            "type": [
+                "null",
+                "File"
+            ],
+            "source": [
+                "#Circos_1.circos_svg"
+            ]
+        },
+        {
+            "sbg:includeInPorts": true,
+            "required": false,
+            "sbg:y": 404.70591988613126,
+            "label": "circos_pdf",
+            "sbg:x": 1465.882417414841,
+            "id": "#circos_pdf",
+            "type": [
+                "null",
+                "File"
+            ],
+            "source": [
+                "#Circos.circos_pdf"
+            ]
+        },
+        {
+            "sbg:includeInPorts": true,
+            "required": false,
+            "sbg:y": 538.82354035427,
+            "label": "html_file",
+            "sbg:x": 1422.3529250135043,
+            "id": "#html_file",
+            "type": [
+                "null",
+                "File"
+            ],
+            "source": [
+                "#SBG_Text2Html.html_file"
+            ]
+        },
+        {
+            "sbg:includeInPorts": true,
+            "required": false,
+            "sbg:y": 663.529435312872,
+            "label": "oncofuse_out",
+            "sbg:x": 1375.294186034418,
+            "id": "#oncofuse_out",
+            "type": [
+                "null",
+                "File"
+            ],
+            "source": [
+                "#Oncofuse.oncofuse_out"
+            ]
+        },
+        {
+            "sbg:includeInPorts": true,
+            "required": false,
+            "sbg:y": 550.5882711971508,
+            "label": "index",
+            "sbg:x": 1192.9411764705885,
+            "id": "#index",
+            "type": [
+                "null",
+                "File"
+            ],
+            "source": [
+                "#ChimeraScan_Index.index"
+            ]
+        },
+        {
+            "sbg:includeInPorts": true,
+            "required": false,
+            "sbg:y": 187.05888219523334,
+            "label": "chimeras_bedpe",
+            "sbg:x": 1565.882429743309,
+            "id": "#chimeras_bedpe",
+            "type": [
+                "null",
+                "File"
+            ],
+            "source": [
+                "#ChimeraScan_Run.chimeras_bedpe"
+            ]
+        }
+    ],
+    "sbg:revisionsInfo": [
+        {
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1453799625,
+            "sbg:modifiedBy": "sevenbridges",
+            "sbg:revision": 0
+        },
+        {
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1453799626,
+            "sbg:modifiedBy": "sevenbridges",
+            "sbg:revision": 1
+        },
+        {
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1453799628,
+            "sbg:modifiedBy": "sevenbridges",
+            "sbg:revision": 2
+        },
+        {
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1453799629,
+            "sbg:modifiedBy": "sevenbridges",
+            "sbg:revision": 3
+        },
+        {
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1453799630,
+            "sbg:modifiedBy": "sevenbridges",
+            "sbg:revision": 4
+        },
+        {
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1457546447,
+            "sbg:modifiedBy": "sevenbridges",
+            "sbg:revision": 5
+        },
+        {
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1458574298,
+            "sbg:modifiedBy": "sevenbridges",
+            "sbg:revision": 6
+        },
+        {
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1463797004,
+            "sbg:modifiedBy": "sevenbridges",
+            "sbg:revision": 7
+        },
+        {
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1466173968,
+            "sbg:modifiedBy": "sevenbridges",
+            "sbg:revision": 8
+        },
+        {
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1466173968,
+            "sbg:modifiedBy": "sevenbridges",
+            "sbg:revision": 9
+        }
+    ],
+    "label": "Fusion Transcript Detection - ChimeraScan",
+    "requirements": [],
+    "sbg:categories": [
+        "RNA",
+        "Variant-Calling"
+    ],
+    "sbg:createdBy": "sevenbridges",
+    "sbg:revision": 9,
+    "steps": [
+        {
+            "outputs": [
+                {
+                    "id": "#ChimeraScan_Index.index"
+                }
+            ],
+            "inputs": [
+                {
+                    "id": "#ChimeraScan_Index.reference",
+                    "source": [
+                        "#reference"
+                    ]
+                },
+                {
+                    "id": "#ChimeraScan_Index.genes",
+                    "source": [
+                        "#ChimeraScan_Gtf2Genepred.genepred"
+                    ]
+                },
+                {
+                    "id": "#ChimeraScan_Index.bowtie",
+                    "default": "bowtie"
+                }
+            ],
+            "sbg:y": 357,
+            "id": "#ChimeraScan_Index",
+            "sbg:x": 478,
+            "run": {
+                "y": 357,
+                "stdin": "",
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedOn": 1450911585,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 0
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911585,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 1
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911586,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 2
+                    }
+                ],
+                "sbg:license": "GNU General Public License v3.0 only",
+                "successCodes": [],
+                "sbg:toolkit": "ChimeraScan",
+                "label": "ChimeraScan Index",
+                "x": 478,
+                "sbg:categories": [
+                    "Indexing"
+                ],
+                "stdout": "",
+                "sbg:links": [
+                    {
+                        "id": "https://code.google.com/p/chimerascan/",
+                        "label": "Homepage"
+                    },
+                    {
+                        "id": "http://bioinformatics.oxfordjournals.org/content/27/20/2903.long",
+                        "label": "Publication"
+                    }
+                ],
+                "sbg:createdBy": "bix-demo",
+                "sbg:revision": 2,
+                "description": "The ChimeraScan Index builds a combined index from genome and transcriptome references for a fusion finder application. The required format for the transcriptome reference (a custom format similar to the BED format in UCSC) can be made from the GTF transcriptome reference file using the ChimeraScan GTF to genePred tool.",
+                "class": "CommandLineTool",
+                "outputs": [
+                    {
+                        "sbg:fileTypes": "ARCHIVE",
+                        "description": "Compressed index file.",
+                        "label": "Compressed index file",
+                        "id": "#index",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:metadata": {
+                                "file_type": "archive"
+                            },
+                            "glob": {
+                                "engine": "#cwl-js-engine",
+                                "script": "{\nreturn \"*.tar.gz\"\n}",
+                                "class": "Expression"
+                            }
+                        }
+                    }
+                ],
+                "sbg:latestRevision": 2,
+                "sbg:id": "sevenbridges/public-apps/chimerascan-index-0-4-5/2",
+                "baseCommand": [
+                    "python",
+                    "/opt/chimerascan-0.4.5/chimerascan/chimerascan_index.py"
+                ],
+                "sbg:modifiedOn": 1450911586,
+                "sbg:project": "bix-demo/chimerascan-0-4-5-demo",
+                "sbg:sbgMaintained": false,
+                "sbg:job": {
+                    "allocatedResources": {
+                        "mem": 7000,
+                        "cpu": 4
+                    },
+                    "inputs": {
+                        "bowtie": "bowtie",
+                        "genes": {
+                            "path": "/blah/genes.gtf"
+                        },
+                        "reference": {
+                            "path": "ref.fasta"
+                        }
+                    }
+                },
+                "requirements": [
+                    {
+                        "id": "#cwl-js-engine",
+                        "class": "ExpressionEngineRequirement",
+                        "requirements": [
+                            {
+                                "class": "DockerRequirement",
+                                "dockerPull": "rabix/js-engine"
+                            }
+                        ]
+                    }
+                ],
+                "hints": [
+                    {
+                        "dockerImageId": "9b61bf0cbee5",
+                        "class": "DockerRequirement",
+                        "dockerPull": "images.sbgenomics.com/arsenijae/chimerascan:0.4.5"
+                    },
+                    {
+                        "value": 4,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 7000,
+                        "class": "sbg:MemRequirement"
+                    }
+                ],
+                "sbg:validationErrors": [],
+                "id": "bix-demo/chimerascan-0-4-5-demo/chimerascan-index-0-4-5/2",
+                "sbg:modifiedBy": "bix-demo",
+                "sbg:toolkitVersion": "0.4.5",
+                "temporaryFailCodes": [],
+                "arguments": [
+                    {
+                        "prefix": "",
+                        "separate": true,
+                        "position": 3,
+                        "order": 2,
+                        "valueFrom": "index.out"
+                    },
+                    {
+                        "prefix": "--bowtie-dir",
+                        "separate": true,
+                        "position": 0,
+                        "valueFrom": {
+                            "engine": "#cwl-js-engine",
+                            "script": "{\n  filename = $job.inputs.bowtie\n\tif (filename == \"bowtie2\"){ return \"/opt/bowtie2-2.2.6\"} \n\t\telse return \"/opt/bowtie-1.1.2\"\n} ",
+                            "class": "Expression"
+                        }
+                    },
+                    {
+                        "separate": true,
+                        "position": 3,
+                        "valueFrom": {
+                            "engine": "#cwl-js-engine",
+                            "script": "{\nfilepath = $job.inputs.reference.path\nfilepath2 = $job.inputs.genes.path\nbasename = filepath.split('.').slice(0, filepath.split('.').length-1).join('.').replace(/^.*[\\\\\\/]/, '')\nbasename2 = filepath2.split('.').slice(0, filepath.split('.').length-1).join('.').replace(/^.*[\\\\\\/]/, '')\n\nreturn \"&& cd index.out && tar -cvzf ../\"+basename+'_'+basename2+\"_index.tar.gz *\"\n}",
+                            "class": "Expression"
+                        }
+                    }
+                ],
+                "sbg:contributors": [
+                    "bix-demo"
+                ],
+                "sbg:createdOn": 1450911585,
+                "inputs": [
+                    {
+                        "sbg:fileTypes": "FASTA",
+                        "description": "Reference fasta.",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 1
+                        },
+                        "label": "Reference fasta",
+                        "sbg:category": "",
+                        "id": "#reference",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "The transcriptome annotation reference.",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 2
+                        },
+                        "label": "Transcriptome reference",
+                        "sbg:category": "",
+                        "id": "#genes",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "description": "Bowtie version.",
+                        "id": "#bowtie",
+                        "sbg:category": "",
+                        "label": "Bowtie version",
+                        "type": [
+                            "null",
+                            {
+                                "symbols": [
+                                    "bowtie",
+                                    "bowtie2"
+                                ],
+                                "type": "enum",
+                                "name": "bowtie"
+                            }
+                        ]
+                    }
+                ],
+                "sbg:cmdPreview": "python /opt/chimerascan-0.4.5/chimerascan/chimerascan_index.py --bowtie-dir /opt/bowtie-1.1.2  ref.fasta  /blah/genes.gtf  index.out  && cd index.out && tar -cvzf ../ref_genes_index.tar.gz * ref.fasta /blah/genes.gtf",
+                "sbg:toolAuthor": "Matthew K. Iyer"
+            }
+        },
+        {
+            "outputs": [
+                {
+                    "id": "#Circos.circos_svg"
+                },
+                {
+                    "id": "#Circos.circos_pdf"
+                }
+            ],
+            "inputs": [
+                {
+                    "id": "#Circos.chimeras_names",
+                    "source": [
+                        "#Chimera.circos_names"
+                    ]
+                },
+                {
+                    "id": "#Circos.chimeras_links",
+                    "source": [
+                        "#Chimera.circos_links"
+                    ]
+                }
+            ],
+            "sbg:y": 478.64714062997825,
+            "id": "#Circos",
+            "sbg:x": 968.0003284071641,
+            "run": {
+                "y": 478.64714062997825,
+                "stdin": "",
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedOn": 1450911134,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 0
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911143,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 1
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911143,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 2
+                    }
+                ],
+                "sbg:license": "GNU General Public License v3.0 only",
+                "successCodes": [],
+                "sbg:toolkit": "Circos",
+                "label": "Circos",
+                "x": 968.0003284071641,
+                "sbg:categories": [
+                    "Plotting-and-Rendering"
+                ],
+                "stdout": "",
+                "sbg:links": [
+                    {
+                        "id": "http://circos.ca",
+                        "label": "Homepage"
+                    },
+                    {
+                        "id": "http://genome.cshlp.org/content/early/2009/06/15/gr.092759.109.full.pdf",
+                        "label": "Paper"
+                    }
+                ],
+                "sbg:createdBy": "bix-demo",
+                "sbg:revision": 2,
+                "description": "Circos is a software package for visualizing data and information. It visualizes genomic coordinate data in a circular layout -- this makes Circos ideal for exploring relationships between objects or positions. The version hosted here is adapted only for plotting fusion genes. To form a proper display, Circos requires both files with gene names and fusion links.\n\nPaper:\nKrzywinski, M. et al. Circos: an Information Aesthetic for Comparative Genomics. Genome Res (2009) 19:1639-1645",
+                "class": "CommandLineTool",
+                "outputs": [
+                    {
+                        "sbg:fileTypes": "SVG",
+                        "description": "Plot in svg format.",
+                        "label": "Circos svg",
+                        "id": "#circos_svg",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:metadata": {},
+                            "glob": "circos.svg"
+                        }
+                    },
+                    {
+                        "sbg:fileTypes": "PDF",
+                        "description": "Plot in pdf format.",
+                        "label": "Circos pdf",
+                        "id": "#circos_pdf",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:metadata": {},
+                            "glob": "circos.pdf"
+                        }
+                    }
+                ],
+                "sbg:latestRevision": 2,
+                "sbg:id": "sevenbridges/public-apps/circos-0-68/2",
+                "baseCommand": [
+                    "sh",
+                    "/opt/doit.sh"
+                ],
+                "sbg:modifiedOn": 1450911143,
+                "sbg:project": "bix-demo/circos-0-68-1-demo",
+                "sbg:sbgMaintained": false,
+                "sbg:job": {
+                    "allocatedResources": {
+                        "mem": 1000,
+                        "cpu": 1
+                    },
+                    "inputs": {
+                        "chimeras_names": {
+                            "path": "circos.names.txt"
+                        },
+                        "chimeras_links": {
+                            "path": "circos.links.txt"
+                        }
+                    }
+                },
+                "requirements": [
+                    {
+                        "value": 1000,
+                        "class": "MemoryRequirement"
+                    }
+                ],
+                "hints": [
+                    {
+                        "dockerImageId": "a8bf0215da4d",
+                        "class": "DockerRequirement",
+                        "dockerPull": "images.sbgenomics.com/arsenijae/circos:0.68--1"
+                    },
+                    {
+                        "value": 1,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 1000,
+                        "class": "sbg:MemRequirement"
+                    }
+                ],
+                "sbg:validationErrors": [],
+                "id": "bix-demo/circos-0-68-1-demo/circos-0-68/2",
+                "sbg:modifiedBy": "bix-demo",
+                "sbg:toolkitVersion": "0.68--1",
+                "temporaryFailCodes": [],
+                "sbg:homepage": "http://circos.ca/",
+                "arguments": [],
+                "sbg:contributors": [
+                    "bix-demo"
+                ],
+                "sbg:createdOn": 1450911134,
+                "inputs": [
+                    {
+                        "description": "Fusion names.",
+                        "inputBinding": {
+                            "sbg:cmdInclude": true,
+                            "position": 1
+                        },
+                        "label": "Fusion names",
+                        "sbg:category": "",
+                        "id": "#chimeras_names",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "description": "Fusion links.",
+                        "inputBinding": {
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Fusion links",
+                        "sbg:category": "",
+                        "id": "#chimeras_links",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    }
+                ],
+                "sbg:cmdPreview": "sh /opt/doit.sh circos.links.txt circos.names.txt circos.links.txt circos.names.txt",
+                "sbg:toolAuthor": "Martin Krzywinski / Canada's Michael Smith Genome Sciences Centre"
+            }
+        },
+        {
+            "outputs": [
+                {
+                    "id": "#Circos_1.circos_svg"
+                },
+                {
+                    "id": "#Circos_1.circos_pdf"
+                }
+            ],
+            "inputs": [
+                {
+                    "id": "#Circos_1.chimeras_names",
+                    "source": [
+                        "#SBG_Oncofuse4Circos.circos_names"
+                    ]
+                },
+                {
+                    "id": "#Circos_1.chimeras_links",
+                    "source": [
+                        "#SBG_Oncofuse4Circos.circos_links"
+                    ]
+                }
+            ],
+            "sbg:y": 784.5295266544118,
+            "id": "#Circos_1",
+            "sbg:x": 1155.4708323759194,
+            "run": {
+                "y": 784.5295266544118,
+                "stdin": "",
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedOn": 1450911134,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 0
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911143,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 1
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911143,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 2
+                    }
+                ],
+                "sbg:license": "GNU General Public License v3.0 only",
+                "successCodes": [],
+                "sbg:toolkit": "Circos",
+                "label": "Circos",
+                "x": 1155.4708323759194,
+                "sbg:categories": [
+                    "Plotting-and-Rendering"
+                ],
+                "stdout": "",
+                "sbg:links": [
+                    {
+                        "id": "http://circos.ca",
+                        "label": "Homepage"
+                    },
+                    {
+                        "id": "http://genome.cshlp.org/content/early/2009/06/15/gr.092759.109.full.pdf",
+                        "label": "Paper"
+                    }
+                ],
+                "sbg:createdBy": "bix-demo",
+                "sbg:revision": 2,
+                "description": "Circos is a software package for visualizing data and information. It visualizes genomic coordinate data in a circular layout -- this makes Circos ideal for exploring relationships between objects or positions. The version hosted here is adapted only for plotting fusion genes. To form a proper display, Circos requires both files with gene names and fusion links.\n\nPaper:\nKrzywinski, M. et al. Circos: an Information Aesthetic for Comparative Genomics. Genome Res (2009) 19:1639-1645",
+                "class": "CommandLineTool",
+                "outputs": [
+                    {
+                        "sbg:fileTypes": "SVG",
+                        "description": "Plot in svg format.",
+                        "label": "Circos svg",
+                        "id": "#circos_svg",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:metadata": {},
+                            "glob": "circos.svg"
+                        }
+                    },
+                    {
+                        "sbg:fileTypes": "PDF",
+                        "description": "Plot in pdf format.",
+                        "label": "Circos pdf",
+                        "id": "#circos_pdf",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:metadata": {},
+                            "glob": "circos.pdf"
+                        }
+                    }
+                ],
+                "sbg:latestRevision": 2,
+                "sbg:id": "sevenbridges/public-apps/circos-0-68/2",
+                "baseCommand": [
+                    "sh",
+                    "/opt/doit.sh"
+                ],
+                "sbg:modifiedOn": 1450911143,
+                "sbg:project": "bix-demo/circos-0-68-1-demo",
+                "sbg:sbgMaintained": false,
+                "sbg:job": {
+                    "allocatedResources": {
+                        "mem": 1000,
+                        "cpu": 1
+                    },
+                    "inputs": {
+                        "chimeras_names": {
+                            "path": "circos.names.txt"
+                        },
+                        "chimeras_links": {
+                            "path": "circos.links.txt"
+                        }
+                    }
+                },
+                "requirements": [
+                    {
+                        "value": 1000,
+                        "class": "MemoryRequirement"
+                    }
+                ],
+                "hints": [
+                    {
+                        "dockerImageId": "a8bf0215da4d",
+                        "class": "DockerRequirement",
+                        "dockerPull": "images.sbgenomics.com/arsenijae/circos:0.68--1"
+                    },
+                    {
+                        "value": 1,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 1000,
+                        "class": "sbg:MemRequirement"
+                    }
+                ],
+                "sbg:validationErrors": [],
+                "id": "bix-demo/circos-0-68-1-demo/circos-0-68/2",
+                "sbg:modifiedBy": "bix-demo",
+                "sbg:toolkitVersion": "0.68--1",
+                "temporaryFailCodes": [],
+                "sbg:homepage": "http://circos.ca/",
+                "arguments": [],
+                "sbg:contributors": [
+                    "bix-demo"
+                ],
+                "sbg:createdOn": 1450911134,
+                "inputs": [
+                    {
+                        "description": "Fusion names.",
+                        "inputBinding": {
+                            "sbg:cmdInclude": true,
+                            "position": 1
+                        },
+                        "label": "Fusion names",
+                        "sbg:category": "",
+                        "id": "#chimeras_names",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "description": "Fusion links.",
+                        "inputBinding": {
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Fusion links",
+                        "sbg:category": "",
+                        "id": "#chimeras_links",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    }
+                ],
+                "sbg:cmdPreview": "sh /opt/doit.sh circos.links.txt circos.names.txt circos.links.txt circos.names.txt",
+                "sbg:toolAuthor": "Martin Krzywinski / Canada's Michael Smith Genome Sciences Centre"
+            }
+        },
+        {
+            "outputs": [
+                {
+                    "id": "#SBG_Bedpe4Oncofuse.bedpe4oncofuse"
+                }
+            ],
+            "inputs": [
+                {
+                    "id": "#SBG_Bedpe4Oncofuse.bedpe_file",
+                    "source": [
+                        "#ChimeraScan_Run.chimeras_bedpe"
+                    ]
+                }
+            ],
+            "sbg:y": 784.4119083180148,
+            "id": "#SBG_Bedpe4Oncofuse",
+            "sbg:x": 737.7060116038604,
+            "run": {
+                "y": 784.4119083180148,
+                "stdin": "",
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedOn": 1450911295,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 0
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911295,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 1
+                    }
+                ],
+                "sbg:license": "Apache License 2.0",
+                "successCodes": [],
+                "label": "SBG Bedpe4Oncofuse",
+                "x": 737.7060116038604,
+                "sbg:categories": [
+                    "Converters",
+                    "Text-Processing"
+                ],
+                "stdout": "",
+                "sbg:createdBy": "bix-demo",
+                "sbg:revision": 1,
+                "description": "A simple one-liner that prepares ChimeraScan BEDPE output for further Oncofuse analysis. \nPlease set the Oncofuse parameters \"--input_type\" and \"--tissue_type\" as \"coord\" and \"-\" respectively before running Oncofuse.",
+                "class": "CommandLineTool",
+                "outputs": [
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "id": "#bedpe4oncofuse",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:metadata": {},
+                            "glob": "bedpe4oncofuse.txt"
+                        }
+                    }
+                ],
+                "sbg:latestRevision": 1,
+                "sbg:id": "sevenbridges/public-apps/sbg-bedpe4oncofuse/1",
+                "sbg:toolkit": "SBGTools",
+                "sbg:modifiedOn": 1450911295,
+                "sbg:project": "bix-demo/sbgtools-demo",
+                "sbg:sbgMaintained": false,
+                "sbg:job": {
+                    "allocatedResources": {
+                        "mem": 1000,
+                        "cpu": 1
+                    },
+                    "inputs": {
+                        "bedpe_file": {
+                            "path": "bedpe_file.ext",
+                            "size": 0,
+                            "class": "File",
+                            "secondaryFiles": []
+                        }
+                    }
+                },
+                "requirements": [],
+                "hints": [
+                    {
+                        "dockerImageId": "56e639646d9f",
+                        "class": "DockerRequirement",
+                        "dockerPull": "images.sbgenomics.com/arsenijae/sbg-bedpe4oncofuse:1.0"
+                    },
+                    {
+                        "value": 1,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 1000,
+                        "class": "sbg:MemRequirement"
+                    }
+                ],
+                "sbg:validationErrors": [],
+                "id": "bix-demo/sbgtools-demo/sbg-bedpe4oncofuse/1",
+                "baseCommand": [
+                    "sh",
+                    "/opt/sbg_bedpe4oncofuse.sh"
+                ],
+                "sbg:toolkitVersion": "1.0",
+                "temporaryFailCodes": [],
+                "arguments": [],
+                "sbg:contributors": [
+                    "bix-demo"
+                ],
+                "sbg:modifiedBy": "bix-demo",
+                "sbg:createdOn": 1450911295,
+                "inputs": [
+                    {
+                        "description": "Bedpe file with fusions from ChimeraScan.",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 0
+                        },
+                        "label": "Bedpe file",
+                        "sbg:category": "",
+                        "id": "#bedpe_file",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    }
+                ],
+                "sbg:cmdPreview": "sh /opt/sbg_bedpe4oncofuse.sh  bedpe_file.ext bedpe_file.ext",
+                "sbg:toolAuthor": "Vladan Arsenijevic, Seven Bridges Genomics, <vladan.arsenijevic@sbgenomics.com>"
+            }
+        },
+        {
+            "outputs": [
+                {
+                    "id": "#SBG_Text2Html.html_file"
+                }
+            ],
+            "inputs": [
+                {
+                    "id": "#SBG_Text2Html.text_file",
+                    "source": [
+                        "#Oncofuse.oncofuse_out"
+                    ]
+                },
+                {
+                    "id": "#SBG_Text2Html.sortcolumn",
+                    "default": "DRIVER_PROB"
+                },
+                {
+                    "id": "#SBG_Text2Html.header",
+                    "default": "yes"
+                }
+            ],
+            "sbg:y": 644.0589815027574,
+            "id": "#SBG_Text2Html",
+            "sbg:x": 1015.5299287683824,
+            "run": {
+                "y": 644.0589815027574,
+                "stdin": "",
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedOn": 1450911300,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 0
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911301,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 1
+                    }
+                ],
+                "sbg:license": "Apache License 2.0",
+                "successCodes": [],
+                "label": "SBG Text2Html",
+                "x": 1015.5299287683824,
+                "sbg:categories": [
+                    "Converters"
+                ],
+                "stdout": "",
+                "sbg:createdBy": "bix-demo",
+                "sbg:revision": 1,
+                "description": "This is a simple R script that takes a TEXT file and converts it into an HTML file. It uses just one function from 'sjPlot' library; it allows sorting of rows based on a chosen column given its name (header) or index number.",
+                "class": "CommandLineTool",
+                "outputs": [
+                    {
+                        "sbg:fileTypes": "HTML",
+                        "description": "HTML file.",
+                        "label": "HTML file.",
+                        "id": "#html_file",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:metadata": {},
+                            "glob": {
+                                "engine": "#cwl-js-engine",
+                                "script": "{\nfilename = $job.inputs.text_file.path\n\treturn filename.split('/').join(\"/\").replace(/^.*[\\\\\\/]/, '').concat(\".html\")\n}",
+                                "class": "Expression"
+                            }
+                        }
+                    }
+                ],
+                "sbg:latestRevision": 1,
+                "sbg:id": "sevenbridges/public-apps/sbg-text2html/1",
+                "sbg:toolkit": "SBGTools",
+                "sbg:modifiedOn": 1450911301,
+                "sbg:project": "bix-demo/sbgtools-demo",
+                "sbg:sbgMaintained": false,
+                "sbg:job": {
+                    "allocatedResources": {
+                        "mem": 1000,
+                        "cpu": 1
+                    },
+                    "inputs": {
+                        "text_file": {
+                            "path": "text_file.ext",
+                            "size": 0,
+                            "class": "File",
+                            "secondaryFiles": []
+                        },
+                        "sortcolumn": "sortcolumn",
+                        "header": "yes"
+                    }
+                },
+                "requirements": [
+                    {
+                        "id": "#cwl-js-engine",
+                        "class": "ExpressionEngineRequirement",
+                        "requirements": [
+                            {
+                                "class": "DockerRequirement",
+                                "dockerPull": "rabix/js-engine"
+                            }
+                        ]
+                    }
+                ],
+                "hints": [
+                    {
+                        "dockerImageId": "015f38b2132b",
+                        "class": "DockerRequirement",
+                        "dockerPull": "images.sbgenomics.com/arsenijae/sbg-text2html:1.0"
+                    },
+                    {
+                        "value": 1,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 1000,
+                        "class": "sbg:MemRequirement"
+                    }
+                ],
+                "sbg:validationErrors": [],
+                "id": "bix-demo/sbgtools-demo/sbg-text2html/1",
+                "baseCommand": [
+                    "Rscript",
+                    "--vanilla",
+                    "/opt/sbg_text2html.R"
+                ],
+                "sbg:toolkitVersion": "1.0",
+                "temporaryFailCodes": [],
+                "arguments": [],
+                "sbg:contributors": [
+                    "bix-demo"
+                ],
+                "sbg:modifiedBy": "bix-demo",
+                "sbg:createdOn": 1450911300,
+                "inputs": [
+                    {
+                        "description": "TEXT file.",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 1
+                        },
+                        "label": "TEXT file",
+                        "id": "#text_file",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "description": "Sort based on the column.",
+                        "id": "#sortcolumn",
+                        "label": "Sort based on the column",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 2,
+                            "valueFrom": {
+                                "engine": "#cwl-js-engine",
+                                "script": "{\nfilename = $job.inputs.sortcolumn\nif (filename ==''){ return 'NULL'} \n\telse return filename\n}",
+                                "class": "Expression"
+                            }
+                        },
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    {
+                        "description": "Header is present?",
+                        "id": "#header",
+                        "label": "Header",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 0
+                        },
+                        "type": [
+                            {
+                                "symbols": [
+                                    "yes",
+                                    "no"
+                                ],
+                                "type": "enum",
+                                "name": "header"
+                            }
+                        ]
+                    }
+                ],
+                "sbg:cmdPreview": "Rscript --vanilla /opt/sbg_text2html.R  yes  text_file.ext  sortcolumn text_file.ext",
+                "sbg:toolAuthor": "Vladan Arsenijevic, Seven Bridges Genomics, <vladan.arsenijevic@sbgenomics.com>"
+            }
+        },
+        {
+            "outputs": [
+                {
+                    "id": "#ChimeraScan_Make_Html.chimeras_html"
+                }
+            ],
+            "inputs": [
+                {
+                    "id": "#ChimeraScan_Make_Html.read_throughs"
+                },
+                {
+                    "id": "#ChimeraScan_Make_Html.chimeras",
+                    "source": [
+                        "#ChimeraScan_Run.chimeras_bedpe"
+                    ]
+                }
+            ],
+            "sbg:y": 334.6470731847427,
+            "id": "#ChimeraScan_Make_Html",
+            "sbg:x": 958.411793428309,
+            "run": {
+                "y": 334.6470731847427,
+                "stdin": "",
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedOn": 1450911584,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 2
+                    },
+                    {
+                        "sbg:modifiedOn": 1453221591,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 3
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911583,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 0
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911584,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 1
+                    }
+                ],
+                "sbg:license": "GNU General Public License v3.0 only",
+                "successCodes": [],
+                "sbg:toolkit": "ChimeraScan",
+                "label": "ChimeraScan Make Html",
+                "x": 958.411793428309,
+                "sbg:categories": [
+                    "Converters"
+                ],
+                "stdout": "",
+                "sbg:links": [
+                    {
+                        "id": "https://code.google.com/p/chimerascan/",
+                        "label": "Homepage"
+                    },
+                    {
+                        "id": "http://bioinformatics.oxfordjournals.org/content/27/20/2903.long",
+                        "label": "Publication"
+                    }
+                ],
+                "sbg:createdBy": "bix-demo",
+                "sbg:revision": 3,
+                "description": "The ChimeraScan Make HTML creates a table in the user-friendly HTML format for web browser viewing. It accepts a tab-delimited text file containing detected chimera information.",
+                "class": "CommandLineTool",
+                "outputs": [
+                    {
+                        "sbg:fileTypes": "HTML",
+                        "description": "HTML table with fusions.",
+                        "label": "HTML table with fusions",
+                        "id": "#chimeras_html",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:inheritMetadataFrom": "#chimeras",
+                            "glob": {
+                                "engine": "#cwl-js-engine",
+                                "script": "{ filename = $job.inputs.chimeras.path     \n  return filename.split('.').slice(0, filename.split('.').length-1).concat(\"html\").join(\".\").replace(/^.*[\\\\\\\\\\\\/]/, '')\n}",
+                                "class": "Expression"
+                            }
+                        }
+                    }
+                ],
+                "sbg:latestRevision": 3,
+                "sbg:id": "sevenbridges/public-apps/chimerascan-make-html-0-4-5/3",
+                "baseCommand": [
+                    "python",
+                    "/opt/chimerascan-0.4.5/chimerascan/tools/chimerascan_html_table.py"
+                ],
+                "sbg:modifiedOn": 1453221591,
+                "sbg:project": "bix-demo/chimerascan-0-4-5-demo",
+                "sbg:sbgMaintained": false,
+                "sbg:job": {
+                    "allocatedResources": {
+                        "mem": 1000,
+                        "cpu": 1
+                    },
+                    "inputs": {
+                        "chimeras": {
+                            "path": "chimeras.bedpe"
+                        }
+                    }
+                },
+                "requirements": [
+                    {
+                        "engineCommand": "cwl-engine.js",
+                        "class": "ExpressionEngineRequirement",
+                        "id": "#cwl-js-engine",
+                        "requirements": [
+                            {
+                                "class": "DockerRequirement",
+                                "dockerPull": "rabix/js-engine"
+                            }
+                        ]
+                    }
+                ],
+                "hints": [
+                    {
+                        "dockerImageId": "9b61bf0cbee5",
+                        "class": "DockerRequirement",
+                        "dockerPull": "images.sbgenomics.com/arsenijae/chimerascan:0.4.5"
+                    },
+                    {
+                        "value": 1,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 1000,
+                        "class": "sbg:MemRequirement"
+                    }
+                ],
+                "sbg:validationErrors": [],
+                "id": "bix-demo/chimerascan-0-4-5-demo/chimerascan-make-html-0-4-5/3",
+                "sbg:modifiedBy": "bix-demo",
+                "sbg:toolkitVersion": "0.4.5",
+                "temporaryFailCodes": [],
+                "arguments": [
+                    {
+                        "prefix": "-o",
+                        "separate": true,
+                        "valueFrom": {
+                            "engine": "#cwl-js-engine",
+                            "script": "{ filename = $job.inputs.chimeras.path     \n  return filename.split('.').slice(0, filename.split('.').length-1).concat(\"html\").join(\".\").replace(/^.*[\\\\\\\\\\\\/]/, '')\n}",
+                            "class": "Expression"
+                        }
+                    }
+                ],
+                "sbg:contributors": [
+                    "bix-demo"
+                ],
+                "sbg:createdOn": 1450911583,
+                "inputs": [
+                    {
+                        "description": "Include Read-Throughs.",
+                        "inputBinding": {
+                            "prefix": "--read-throughs",
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 1
+                        },
+                        "label": "Include Read-Throughs",
+                        "sbg:category": "",
+                        "id": "#read_throughs",
+                        "type": [
+                            "null",
+                            {
+                                "symbols": [
+                                    "yes",
+                                    "no"
+                                ],
+                                "type": "enum",
+                                "name": "read_throughs"
+                            }
+                        ]
+                    },
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "BEDPE file with chimeric transcripts.",
+                        "inputBinding": {
+                            "sbg:cmdInclude": true,
+                            "valueFrom": {
+                                "engine": "#cwl-js-engine",
+                                "script": "$job.inputs.chimeras.path     \n",
+                                "class": "Expression"
+                            }
+                        },
+                        "label": "BEDPE file",
+                        "sbg:category": "",
+                        "id": "#chimeras",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    }
+                ],
+                "sbg:cmdPreview": "python /opt/chimerascan-0.4.5/chimerascan/tools/chimerascan_html_table.py chimeras.bedpe -o chimeras.html",
+                "sbg:toolAuthor": "Matthew K. Iyer"
+            }
+        },
+        {
+            "outputs": [
+                {
+                    "id": "#ChimeraScan_Gtf2Genepred.genepred"
+                }
+            ],
+            "inputs": [
+                {
+                    "id": "#ChimeraScan_Gtf2Genepred.genes",
+                    "source": [
+                        "#genes"
+                    ]
+                }
+            ],
+            "sbg:y": 489.0000287224265,
+            "id": "#ChimeraScan_Gtf2Genepred",
+            "sbg:x": 358.3529483570773,
+            "run": {
+                "y": 489.0000287224265,
+                "stdin": "",
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedOn": 1450911582,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 1
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911581,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 0
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911583,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 2
+                    },
+                    {
+                        "sbg:modifiedOn": 1453221629,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 3
+                    }
+                ],
+                "sbg:license": "GNU General Public License v3.0 only",
+                "successCodes": [],
+                "sbg:toolkit": "ChimeraScan",
+                "label": "ChimeraScan Gtf2Genepred",
+                "x": 358.3529483570773,
+                "sbg:categories": [
+                    "Converters"
+                ],
+                "stdout": "",
+                "sbg:links": [
+                    {
+                        "id": "https://code.google.com/p/chimerascan/",
+                        "label": "Homepage"
+                    },
+                    {
+                        "id": "http://bioinformatics.oxfordjournals.org/content/27/20/2903.long",
+                        "label": "Publication"
+                    }
+                ],
+                "sbg:createdBy": "bix-demo",
+                "sbg:revision": 3,
+                "description": "ChimeraScan GTF to genePred creates a transcriptome annotation reference file. This tool can be used for the proper formatting of a GTF transcriptome annotation reference file so that it is acceptable by the ChimeraScan Index. The gene_name must be present in the attribute field of the GTF file.",
+                "class": "CommandLineTool",
+                "outputs": [
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "UCSC GenePred file.",
+                        "label": "UCSC GenePred file",
+                        "id": "#genepred",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:inheritMetadataFrom": "#genes",
+                            "glob": {
+                                "engine": "#cwl-js-engine",
+                                "script": "{ filename = $job.inputs.genes.path     \n  return filename.split('.').slice(0, filename.split('.').length-1).concat(\"genePred.txt\").join(\".\").replace(/^.*[\\\\\\\\\\\\/]/, '')}\n\n",
+                                "class": "Expression"
+                            }
+                        }
+                    }
+                ],
+                "sbg:latestRevision": 3,
+                "sbg:id": "sevenbridges/public-apps/chimerascan-gtf2genepred-0-4-5/3",
+                "baseCommand": [
+                    "python",
+                    "/opt/chimerascan-0.4.5/chimerascan/tools/gtf_to_genepred.py"
+                ],
+                "sbg:modifiedOn": 1453221629,
+                "sbg:project": "bix-demo/chimerascan-0-4-5-demo",
+                "sbg:sbgMaintained": false,
+                "sbg:job": {
+                    "allocatedResources": {
+                        "mem": 1000,
+                        "cpu": 1
+                    },
+                    "inputs": {
+                        "genes": {
+                            "path": "humangenes.gtf"
+                        }
+                    }
+                },
+                "requirements": [
+                    {
+                        "engineCommand": "cwl-engine.js",
+                        "class": "ExpressionEngineRequirement",
+                        "id": "#cwl-js-engine",
+                        "requirements": [
+                            {
+                                "class": "DockerRequirement",
+                                "dockerPull": "rabix/js-engine"
+                            }
+                        ]
+                    }
+                ],
+                "hints": [
+                    {
+                        "dockerImageId": "9b61bf0cbee5",
+                        "class": "DockerRequirement",
+                        "dockerPull": "images.sbgenomics.com/arsenijae/chimerascan:0.4.5"
+                    },
+                    {
+                        "value": 1,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 1000,
+                        "class": "sbg:MemRequirement"
+                    }
+                ],
+                "sbg:validationErrors": [],
+                "id": "bix-demo/chimerascan-0-4-5-demo/chimerascan-gtf2genepred-0-4-5/3",
+                "sbg:modifiedBy": "bix-demo",
+                "sbg:toolkitVersion": "0.4.5",
+                "temporaryFailCodes": [],
+                "arguments": [
+                    {
+                        "prefix": "",
+                        "separate": true,
+                        "position": 1,
+                        "valueFrom": {
+                            "engine": "#cwl-js-engine",
+                            "script": "{ filename = $job.inputs.genes.path     \n  return filename.split('.').slice(0, filename.split('.').length-1).concat(\"genePred.txt\").join(\".\").replace(/^.*[\\\\\\\\\\\\/]/, '')}",
+                            "class": "Expression"
+                        }
+                    }
+                ],
+                "sbg:contributors": [
+                    "bix-demo"
+                ],
+                "sbg:createdOn": 1450911581,
+                "inputs": [
+                    {
+                        "description": "Gene feature file to be converted to UCSC GenePred file.",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 0
+                        },
+                        "label": "Transcriptome reference",
+                        "sbg:category": "",
+                        "id": "#genes",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    }
+                ],
+                "sbg:cmdPreview": "python /opt/chimerascan-0.4.5/chimerascan/tools/gtf_to_genepred.py  humangenes.gtf  humangenes.genePred.txt",
+                "sbg:toolAuthor": "Matthew K. Iyer"
+            }
+        },
+        {
+            "outputs": [
+                {
+                    "id": "#SBG_Oncofuse4Circos.circos_names"
+                },
+                {
+                    "id": "#SBG_Oncofuse4Circos.circos_links"
+                }
+            ],
+            "inputs": [
+                {
+                    "id": "#SBG_Oncofuse4Circos.oncofuse_out",
+                    "source": [
+                        "#Oncofuse.oncofuse_out"
+                    ]
+                }
+            ],
+            "sbg:y": 782.705867991728,
+            "id": "#SBG_Oncofuse4Circos",
+            "sbg:x": 971.5296846277575,
+            "run": {
+                "y": 782.705867991728,
+                "stdin": "",
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedOn": 1450911296,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 0
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911296,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 1
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911297,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 2
+                    },
+                    {
+                        "sbg:modifiedOn": 1452769766,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 3
+                    },
+                    {
+                        "sbg:modifiedOn": 1457539238,
+                        "sbg:modifiedBy": "arsenijae",
+                        "sbg:revision": 6
+                    },
+                    {
+                        "sbg:modifiedOn": 1457526817,
+                        "sbg:modifiedBy": "arsenijae",
+                        "sbg:revision": 4
+                    },
+                    {
+                        "sbg:modifiedOn": 1457528216,
+                        "sbg:modifiedBy": "arsenijae",
+                        "sbg:revision": 5
+                    }
+                ],
+                "sbg:license": "Apache License 2.0",
+                "successCodes": [],
+                "label": "SBG Oncofuse4Circos",
+                "x": 971.5296846277575,
+                "sbg:categories": [
+                    "Converters"
+                ],
+                "stdout": "",
+                "sbg:createdBy": "bix-demo",
+                "sbg:revision": 6,
+                "description": "An R script that extracts fusion links and names needed for Circos from the Oncofuse output.",
+                "class": "CommandLineTool",
+                "outputs": [
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "Circos names.",
+                        "label": "Circos names",
+                        "id": "#circos_names",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:inheritMetadataFrom": "#oncofuse_out",
+                            "glob": "oncofuse.circos.names.txt",
+                            "sbg:metadata": {}
+                        }
+                    },
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "Circos links.",
+                        "label": "Circos links",
+                        "id": "#circos_links",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:inheritMetadataFrom": "#oncofuse_out",
+                            "glob": "oncofuse.circos.links.txt",
+                            "sbg:metadata": {}
+                        }
+                    }
+                ],
+                "sbg:latestRevision": 6,
+                "sbg:id": "sevenbridges/public-apps/sbg-oncofuse4circos/6",
+                "sbg:toolkit": "SBGTools",
+                "sbg:modifiedOn": 1457539238,
+                "sbg:project": "bix-demo/sbgtools-demo",
+                "sbg:sbgMaintained": false,
+                "sbg:job": {
+                    "allocatedResources": {
+                        "mem": 1000,
+                        "cpu": 1
+                    },
+                    "inputs": {
+                        "oncofuse_out": {
+                            "path": "oncofuse_out",
+                            "size": 0,
+                            "class": "File",
+                            "secondaryFiles": []
+                        }
+                    }
+                },
+                "requirements": [],
+                "hints": [
+                    {
+                        "class": "DockerRequirement",
+                        "dockerPull": "images.sbgenomics.com/arsenijae/sbg-oncofuse4circos:1.0a"
+                    },
+                    {
+                        "value": 1,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 1000,
+                        "class": "sbg:MemRequirement"
+                    }
+                ],
+                "sbg:validationErrors": [],
+                "id": "bix-demo/sbgtools-demo/sbg-oncofuse4circos/6",
+                "baseCommand": [
+                    "Rscript",
+                    "--vanilla",
+                    "/opt/sbg_oncofuse4circos.R"
+                ],
+                "sbg:toolkitVersion": "1.0",
+                "temporaryFailCodes": [],
+                "arguments": [],
+                "sbg:contributors": [
+                    "arsenijae",
+                    "bix-demo"
+                ],
+                "sbg:modifiedBy": "arsenijae",
+                "sbg:createdOn": 1450911296,
+                "inputs": [
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "Oncofuse output file.",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 0
+                        },
+                        "label": "Oncofuse output",
+                        "sbg:category": "",
+                        "id": "#oncofuse_out",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    }
+                ],
+                "sbg:cmdPreview": "Rscript --vanilla /opt/sbg_oncofuse4circos.R  oncofuse_out",
+                "sbg:toolAuthor": "Vladan Arsenijevic, Seven Bridges Genomics, <vladan.arsenijevic@sbgenomics.com>"
+            }
+        },
+        {
+            "outputs": [
+                {
+                    "id": "#ChimeraScan_Run.chimeras_bedpe"
+                }
+            ],
+            "inputs": [
+                {
+                    "id": "#ChimeraScan_Run.trim5"
+                },
+                {
+                    "id": "#ChimeraScan_Run.trim3"
+                },
+                {
+                    "id": "#ChimeraScan_Run.segment_length"
+                },
+                {
+                    "id": "#ChimeraScan_Run.reads",
+                    "source": [
+                        "#reads"
+                    ]
+                },
+                {
+                    "id": "#ChimeraScan_Run.quals"
+                },
+                {
+                    "id": "#ChimeraScan_Run.num_processors",
+                    "source": [
+                        "#num_processors"
+                    ],
+                    "default": 8
+                },
+                {
+                    "id": "#ChimeraScan_Run.multihits"
+                },
+                {
+                    "id": "#ChimeraScan_Run.min_fragment_length"
+                },
+                {
+                    "id": "#ChimeraScan_Run.max_fragment_length"
+                },
+                {
+                    "id": "#ChimeraScan_Run.librarytype"
+                },
+                {
+                    "id": "#ChimeraScan_Run.isize_stdev"
+                },
+                {
+                    "id": "#ChimeraScan_Run.isize_mean"
+                },
+                {
+                    "id": "#ChimeraScan_Run.initial_mismatches"
+                },
+                {
+                    "id": "#ChimeraScan_Run.initial_bowtie_args"
+                },
+                {
+                    "id": "#ChimeraScan_Run.index",
+                    "source": [
+                        "#ChimeraScan_Index.index"
+                    ]
+                },
+                {
+                    "id": "#ChimeraScan_Run.homology_mismatches"
+                },
+                {
+                    "id": "#ChimeraScan_Run.filter_unique_frags"
+                },
+                {
+                    "id": "#ChimeraScan_Run.filter_isoform_fraction"
+                },
+                {
+                    "id": "#ChimeraScan_Run.filter_isize_prob"
+                },
+                {
+                    "id": "#ChimeraScan_Run.false_positives",
+                    "source": [
+                        "#false_positives"
+                    ]
+                },
+                {
+                    "id": "#ChimeraScan_Run.discord_mismatches"
+                },
+                {
+                    "id": "#ChimeraScan_Run.discord_bowtie_args"
+                },
+                {
+                    "id": "#ChimeraScan_Run.bowtie"
+                },
+                {
+                    "id": "#ChimeraScan_Run.anchor_mismatches"
+                },
+                {
+                    "id": "#ChimeraScan_Run.anchor_min"
+                },
+                {
+                    "id": "#ChimeraScan_Run.anchor_length"
+                }
+            ],
+            "sbg:y": 201.17647675906915,
+            "id": "#ChimeraScan_Run",
+            "sbg:x": 586.1764869970434,
+            "run": {
+                "y": 201.17647675906915,
+                "stdin": "",
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedOn": 1450911587,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 0
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911588,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 1
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911588,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 2
+                    },
+                    {
+                        "sbg:modifiedOn": 1453221547,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 3
+                    },
+                    {
+                        "sbg:modifiedOn": 1463751734,
+                        "sbg:modifiedBy": "arsenijae",
+                        "sbg:revision": 4
+                    }
+                ],
+                "sbg:license": "GNU General Public License v3.0 only",
+                "successCodes": [],
+                "sbg:toolkit": "ChimeraScan",
+                "label": "ChimeraScan Run",
+                "x": 586.1764869970434,
+                "sbg:categories": [
+                    "Variant-Calling"
+                ],
+                "stdout": "",
+                "sbg:links": [
+                    {
+                        "id": "https://code.google.com/p/chimerascan/",
+                        "label": "Homepage"
+                    },
+                    {
+                        "id": "http://bioinformatics.oxfordjournals.org/content/27/20/2903.long",
+                        "label": "Publication"
+                    }
+                ],
+                "sbg:createdBy": "bix-demo",
+                "sbg:revision": 4,
+                "description": "ChimeraScan detects fusion genes (chimeras) in paired-end RNA-seq datasets. This tool uses the Bowtie aligner to align paired-end reads to a combined genome-transcriptome reference. It aims to discover discordant reads, predict an optimal fusion breakpoint location, and detect chimeras.This application outputs a tabular file (chimeras.bedpe) that contains information about the chromosomal regions, transcript IDs, genes, and statistics for each chimera.\n\nReferences:\n1. Maher, C.A., et al. Transcriptome sequencing to detect gene fusions in cancer. Nature 458, 97-101 (2009).\n2. Maher, C.A., et al. Chimeric transcript discovery by paired-end transcriptome sequencing. Proceedings of the National Academy of Sciences of the United States of America 106, 12353-12358 (2009).",
+                "class": "CommandLineTool",
+                "outputs": [
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "Detected fusion genes.",
+                        "label": "Detected fusion genes",
+                        "id": "#chimeras_bedpe",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:inheritMetadataFrom": "#reads",
+                            "glob": {
+                                "engine": "#cwl-js-engine",
+                                "script": "{\nvar str1 = \"chimeras_out/\";\nvar str2 = \"chimeras.bedpe\";\nreturn str1.concat(str2);\n}",
+                                "class": "Expression"
+                            }
+                        }
+                    }
+                ],
+                "sbg:latestRevision": 4,
+                "sbg:id": "sevenbridges/public-apps/chimerascan-run-0-4-5/4",
+                "baseCommand": [
+                    "tar",
+                    "xvzf",
+                    {
+                        "engine": "#cwl-js-engine",
+                        "script": "$job.inputs.index.path",
+                        "class": "Expression"
+                    },
+                    "",
+                    "",
+                    "&&",
+                    "python",
+                    "/opt/chimerascan-0.4.5/chimerascan/chimerascan_run.py"
+                ],
+                "sbg:modifiedOn": 1463751734,
+                "sbg:project": "bix-demo/chimerascan-0-4-5-demo",
+                "sbg:sbgMaintained": false,
+                "sbg:job": {
+                    "allocatedResources": {
+                        "mem": 7000,
+                        "cpu": 1
+                    },
+                    "inputs": {
+                        "index": {
+                            "path": "/blah/blah/index.tar.gz"
+                        },
+                        "num_processors": 6,
+                        "bowtie": "bowtie",
+                        "reads": [
+                            {
+                                "path": "reads1.fastq"
+                            },
+                            {
+                                "path": "reads2.fastq"
+                            }
+                        ],
+                        "multihits": null
+                    }
+                },
+                "requirements": [
+                    {
+                        "engineCommand": "cwl-engine.js",
+                        "class": "ExpressionEngineRequirement",
+                        "id": "#cwl-js-engine",
+                        "requirements": [
+                            {
+                                "class": "DockerRequirement",
+                                "dockerPull": "rabix/js-engine"
+                            }
+                        ]
+                    }
+                ],
+                "hints": [
+                    {
+                        "dockerImageId": "9b61bf0cbee5",
+                        "class": "DockerRequirement",
+                        "dockerPull": "images.sbgenomics.com/arsenijae/chimerascan:0.4.5"
+                    },
+                    {
+                        "value": 1,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 7000,
+                        "class": "sbg:MemRequirement"
+                    }
+                ],
+                "sbg:validationErrors": [],
+                "id": "bix-demo/chimerascan-0-4-5-demo/chimerascan-run-0-4-5/4",
+                "sbg:modifiedBy": "arsenijae",
+                "sbg:toolkitVersion": "0.4.5",
+                "temporaryFailCodes": [],
+                "sbg:image_url": null,
+                "arguments": [
+                    {
+                        "prefix": "",
+                        "separate": true,
+                        "position": 3,
+                        "order": 2,
+                        "valueFrom": "chimeras_out"
+                    }
+                ],
+                "sbg:contributors": [
+                    "bix-demo",
+                    "arsenijae"
+                ],
+                "sbg:createdOn": 1450911587,
+                "inputs": [
+                    {
+                        "description": "Specify the number of bases to trim form the 5' end of read. [Default: 0]",
+                        "inputBinding": {
+                            "prefix": "--trim5",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Trim 5' Bases",
+                        "sbg:category": "",
+                        "id": "#trim5",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Specify the number of bases to trim form the 3' end of read. [Default: 0]",
+                        "inputBinding": {
+                            "prefix": "--trim3",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Trim 3' Bases",
+                        "sbg:category": "",
+                        "id": "#trim3",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Size of read segments during discordant alignment phase. [Default: 25]",
+                        "inputBinding": {
+                            "prefix": "--segment-length",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Segment Length",
+                        "sbg:category": "",
+                        "id": "#segment_length",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Paired-end reads",
+                        "inputBinding": {
+                            "itemSeparator": " ",
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 1
+                        },
+                        "label": "Reads",
+                        "sbg:category": "",
+                        "id": "#reads",
+                        "type": [
+                            {
+                                "items": "File",
+                                "type": "array"
+                            }
+                        ],
+                        "required": true
+                    },
+                    {
+                        "description": "FASTQ quality score format. [Default: \"sanger\"]",
+                        "inputBinding": {
+                            "prefix": "--quals",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Quality Scale",
+                        "sbg:category": "",
+                        "id": "#quals",
+                        "type": [
+                            "null",
+                            {
+                                "symbols": [
+                                    "sanger",
+                                    "solexa",
+                                    "illumina"
+                                ],
+                                "type": "enum",
+                                "name": "quals"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Number of processor cores to allocate to ChimeraScan.",
+                        "inputBinding": {
+                            "prefix": "--processors",
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 20
+                        },
+                        "label": "Num Processors",
+                        "sbg:altPrefix": "-p",
+                        "id": "#num_processors",
+                        "type": [
+                            "null",
+                            "int"
+                        ],
+                        "sbg:toolDefaultValue": "2"
+                    },
+                    {
+                        "description": "Ignore reads that map to more than the given number of locations. [Default: 100]",
+                        "inputBinding": {
+                            "prefix": "--multihits",
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 0
+                        },
+                        "label": "Ignore Multi-hits",
+                        "sbg:category": "",
+                        "id": "#multihits",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Smallest expected fragment length. [Default: 0]",
+                        "inputBinding": {
+                            "prefix": "--min-fragment-length",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Minimum Fragment Length",
+                        "sbg:category": "",
+                        "id": "#min_fragment_length",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Largest expected fragment length. Reads less than this fragment length are assumed to be unspliced and contiguous. [Default: 1000]",
+                        "inputBinding": {
+                            "prefix": "--max-fragment-length",
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 0
+                        },
+                        "label": "Maximum Fragment Length",
+                        "sbg:category": "",
+                        "id": "#max_fragment_length",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Library type. [Default: \"fr-unstranded\"]",
+                        "inputBinding": {
+                            "prefix": "--library-type",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Library type",
+                        "sbg:category": "",
+                        "id": "#librarytype",
+                        "type": [
+                            "null",
+                            {
+                                "symbols": [
+                                    "fr-unstranded",
+                                    "fr-firststrand",
+                                    "fr-secondstrand"
+                                ],
+                                "type": "enum",
+                                "name": "librarytype"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Insert size standard deviation to sample from when insert size distribution cannot be determined empirically. [Default: 40]",
+                        "inputBinding": {
+                            "prefix": "--isize-stdev",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Insert Size Standard Deviation",
+                        "sbg:category": "",
+                        "id": "#isize_stdev",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Mean insert size to sample from when insert size distribution cannot be determined empirically. [Default: 200]",
+                        "inputBinding": {
+                            "prefix": "--isize-mean",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Mean Insert Size",
+                        "sbg:category": "",
+                        "id": "#isize_mean",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Aligned reads must not have more than the specified number of mismatches. [Default: 2]",
+                        "inputBinding": {
+                            "prefix": "--initial-mismatches",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Mismatch Limit",
+                        "sbg:category": "",
+                        "id": "#initial_mismatches",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Additional arguments to pass to Bowtie aligner. See Bowtie manual for options.",
+                        "id": "#initial_bowtie_args",
+                        "sbg:category": "",
+                        "label": "Additional Bowtie Arguments",
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    {
+                        "description": "Index files for Chimerascan",
+                        "inputBinding": {
+                            "position": 0,
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "secondaryFiles": [
+                                ""
+                            ],
+                            "valueFrom": {
+                                "engine": "#cwl-js-engine",
+                                "script": "\"./\"",
+                                "class": "Expression"
+                            }
+                        },
+                        "label": "Index",
+                        "sbg:category": "",
+                        "id": "#index",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "description": "Number of mismatches to tolerate at breakpoints when computing homology. [Default: 2]",
+                        "inputBinding": {
+                            "prefix": "--homology-mismatches",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Homology Mismatches",
+                        "sbg:category": "",
+                        "id": "#homology_mismatches",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Filter chimeras with less than the specified number of unique aligned fragments. [Default: 0.01]",
+                        "inputBinding": {
+                            "prefix": "--filter-unique-frags",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Filter Unique Fragments",
+                        "sbg:category": "",
+                        "id": "#filter_unique_frags",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Filter chimeras with expression ratio less than the specified relative to the wild-type transcript levels. [Default: 0.01]",
+                        "inputBinding": {
+                            "prefix": "--filter-isoform-fraction",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Filter Isoform Fraction",
+                        "sbg:category": "",
+                        "id": "#filter_isoform_fraction",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Filter chimeras when probability of observing the putative insert size is less than specified. [Default: 0.01]",
+                        "inputBinding": {
+                            "prefix": "--filter-isize-prob",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Filter Insert Size Probability",
+                        "sbg:category": "",
+                        "id": "#filter_isize_prob",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "File that contains known false positive chimeric transcript pairs to filter out.",
+                        "inputBinding": {
+                            "prefix": "--filter-false-pos",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "False positives",
+                        "sbg:category": "",
+                        "id": "#false_positives",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "required": false
+                    },
+                    {
+                        "description": "Discordant aligned reads must not have less than the specified number of mismatches. [Default: 3]",
+                        "inputBinding": {
+                            "prefix": "--discord-mismatches",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Discordant Mismatches",
+                        "sbg:category": "",
+                        "id": "#discord_mismatches",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Additional arguments to pass to Bowtie aligner for discordant alignment phase. See Bowtie manual for options\"--best\".",
+                        "inputBinding": {
+                            "prefix": "--discord-bowtie-args",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Additional Bowtie Arguments for Discordant Phase",
+                        "sbg:category": "",
+                        "id": "#discord_bowtie_args",
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    {
+                        "description": "Choose the Bowtie version that will be used.",
+                        "inputBinding": {
+                            "prefix": "--bowtie-path",
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "valueFrom": {
+                                "engine": "#cwl-js-engine",
+                                "script": "{\n  filename = $job.inputs.bowtie\n\tif (filename == \"bowtie2\"){ return \"/opt/bowtie2-2.2.6\"} \n\t\telse return \"/opt/bowtie-1.1.2\"\n} \n",
+                                "class": "Expression"
+                            }
+                        },
+                        "label": "Bowtie Version",
+                        "sbg:category": "",
+                        "id": "#bowtie",
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    {
+                        "description": "Number of mismatches allowed within anchor region. [Default: 2]",
+                        "inputBinding": {
+                            "prefix": "--anchor-mismatches",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Anchor Mismatches",
+                        "sbg:category": "",
+                        "id": "#anchor_mismatches",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Minimum breakpoint overlap (bp) required to call spanning reads. [Default: 4]",
+                        "inputBinding": {
+                            "prefix": "--anchor-min",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Anchor Minimum",
+                        "sbg:category": "",
+                        "id": "#anchor_min",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Size (bp) of anchor region where mismatch checks are enforced. [Default: 8]",
+                        "inputBinding": {
+                            "prefix": "--anchor-length",
+                            "separate": true,
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Anchor Length",
+                        "sbg:category": "",
+                        "id": "#anchor_length",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    }
+                ],
+                "sbg:cmdPreview": "tar xvzf /blah/blah/index.tar.gz   && python /opt/chimerascan-0.4.5/chimerascan/chimerascan_run.py  ./  reads1.fastq reads2.fastq  chimeras_out",
+                "sbg:toolAuthor": "Matthew K. Iyer"
+            }
+        },
+        {
+            "outputs": [
+                {
+                    "id": "#Oncofuse.oncofuse_out"
+                }
+            ],
+            "inputs": [
+                {
+                    "id": "#Oncofuse.tissue_type",
+                    "default": "-"
+                },
+                {
+                    "id": "#Oncofuse.input_type",
+                    "default": "coord"
+                },
+                {
+                    "id": "#Oncofuse.input_file",
+                    "source": [
+                        "#SBG_Bedpe4Oncofuse.bedpe4oncofuse"
+                    ]
+                },
+                {
+                    "id": "#Oncofuse.genome_assembly",
+                    "default": "hg19"
+                }
+            ],
+            "sbg:y": 635.2353084788605,
+            "id": "#Oncofuse",
+            "sbg:x": 846.0001148897062,
+            "run": {
+                "y": 635.2353084788605,
+                "stdin": "",
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedOn": 1450911567,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 0
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911567,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 1
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911568,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 2
+                    },
+                    {
+                        "sbg:modifiedOn": 1452769254,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 3
+                    },
+                    {
+                        "sbg:modifiedOn": 1457962320,
+                        "sbg:modifiedBy": "arsenijae",
+                        "sbg:revision": 4
+                    },
+                    {
+                        "sbg:modifiedOn": 1459846505,
+                        "sbg:modifiedBy": "arsenijae",
+                        "sbg:revision": 5
+                    }
+                ],
+                "sbg:license": "Apache License 2.0",
+                "successCodes": [],
+                "sbg:toolkit": "Oncofuse",
+                "label": "Oncofuse",
+                "x": 846.0001148897062,
+                "sbg:categories": [
+                    "Prioritization"
+                ],
+                "stdout": "",
+                "sbg:links": [
+                    {
+                        "id": "http://www.unav.es/genetica/oncofuse.html",
+                        "label": "Homepage"
+                    },
+                    {
+                        "id": "https://github.com/mikessh/oncofuse",
+                        "label": "Source Code"
+                    },
+                    {
+                        "id": "http://bioinformatics.oxfordjournals.org/content/29/20/2539.long",
+                        "label": "Publication"
+                    }
+                ],
+                "sbg:createdBy": "bix-demo",
+                "sbg:revision": 5,
+                "description": "This tool predicts the oncogenic potential of fusion genes found by NGS in cancer cells. It is a post-processing step that tries to validate in-silico the predictions made by fusion detection software. Oncofuse is NOT a fusion detection software: its goal is NOT to identify fusion sequences but to assign a functional prediction score (oncogenic potential, for instance, the probability of being 'driver' event) to fusion sequences identified by other software such as Tophat-fusion, fusioncatcher, or STAR.\n\nOncofuse is a naive bayesian classifier built using information from Shugay et al. 2012 and is described in Shugay et al. 2013.\n\nPaper:\nMikhail Shugay, Inigo Ortiz de Mend\u00edbil, Jose L. Vizmanos and Francisco J. Novo. Oncofuse: a computational framework for the prediction of the oncogenic potential of gene fusions. Bioinformatics. 16 Aug 2013. doi:10.1093/bioinformatics/btt445.",
+                "class": "CommandLineTool",
+                "outputs": [
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "File with functional prediction scores of fusion sequences.",
+                        "label": "Oncofuse output file",
+                        "id": "#oncofuse_out",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:inheritMetadataFrom": "#input_file",
+                            "glob": {
+                                "engine": "#cwl-js-engine",
+                                "script": "{\nfilename = $job.inputs.input_file.path\n\treturn filename.split('/').join(\"/\").replace(/^.*[\\\\\\/]/, '').concat(\"_oncofuse\")\n}",
+                                "class": "Expression"
+                            },
+                            "meta": {
+                                "__inherit__": "input_file"
+                            },
+                            "sbg:metadata": {}
+                        }
+                    }
+                ],
+                "sbg:latestRevision": 5,
+                "sbg:id": "sevenbridges/public-apps/oncofuse-1-1-0/5",
+                "baseCommand": [
+                    "java",
+                    "-Xmx2G",
+                    "-jar",
+                    "/opt/oncofuse-1.1.1/Oncofuse.jar"
+                ],
+                "sbg:modifiedOn": 1459846505,
+                "sbg:project": "bix-demo/oncofuse-1-1-0-demo",
+                "sbg:sbgMaintained": false,
+                "sbg:job": {
+                    "allocatedResources": {
+                        "mem": 2000,
+                        "cpu": 1
+                    },
+                    "inputs": {
+                        "input_type": "rnastar",
+                        "input_file": {
+                            "path": "/path/bedpe4oncofuse.txt"
+                        },
+                        "tissue_type": "AVG",
+                        "genome_assembly": "hg19"
+                    }
+                },
+                "requirements": [
+                    {
+                        "id": "#cwl-js-engine",
+                        "class": "ExpressionEngineRequirement",
+                        "requirements": [
+                            {
+                                "class": "DockerRequirement",
+                                "dockerPull": "rabix/js-engine"
+                            }
+                        ]
+                    }
+                ],
+                "hints": [
+                    {
+                        "dockerImageId": "8e4008089cb4",
+                        "class": "DockerRequirement",
+                        "dockerPull": "images.sbgenomics.com/arsenijae/oncofuse:1.1.1"
+                    },
+                    {
+                        "value": 1,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 2000,
+                        "class": "sbg:MemRequirement"
+                    }
+                ],
+                "sbg:validationErrors": [],
+                "id": "bix-demo/oncofuse-1-1-0-demo/oncofuse-1-1-0/5",
+                "sbg:modifiedBy": "arsenijae",
+                "sbg:toolkitVersion": "1.1.0",
+                "temporaryFailCodes": [],
+                "sbg:image_url": null,
+                "arguments": [
+                    {
+                        "prefix": "",
+                        "separate": true,
+                        "position": 4,
+                        "valueFrom": {
+                            "engine": "#cwl-js-engine",
+                            "script": "{\nfilename = $job.inputs.input_file.path\n\treturn filename.split('/').join(\"/\").replace(/^.*[\\\\\\/]/, '').concat(\"_oncofuse\")\n}\n\n",
+                            "class": "Expression"
+                        }
+                    }
+                ],
+                "sbg:contributors": [
+                    "bix-demo",
+                    "arsenijae"
+                ],
+                "sbg:createdOn": 1450911567,
+                "inputs": [
+                    {
+                        "description": "Tissue type. There are four pre-built libraries, corresponding to the four supported tissue types: EPI (epithelial origin), HEM (hematological origin), MES (mesenchymal origin) and AVG (average expression, if tissue source is unknown).",
+                        "id": "#tissue_type",
+                        "label": "Tissue type",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 3
+                        },
+                        "type": [
+                            {
+                                "symbols": [
+                                    "EPI",
+                                    "HEM",
+                                    "MES",
+                                    "AVG",
+                                    "-"
+                                ],
+                                "type": "enum",
+                                "name": "tissue_type"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Supported input types: coord, fcatcher, fcatcher-N-M, tophat, tophat-N-M, tophat-post, rnastar, rnastar-N-M, starfusion, starfusion-N-M. Running with input type args: replace N by number of spanning reads and M by number of total supporting read pairs.",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 2
+                        },
+                        "label": "Input type",
+                        "sbg:category": "",
+                        "id": "#input_type",
+                        "type": [
+                            {
+                                "symbols": [
+                                    "rnastar",
+                                    "rnastar-N-M",
+                                    "tophat",
+                                    "tophat-N-M",
+                                    "tophat-post",
+                                    "fcatcher",
+                                    "fcatcher-N-M",
+                                    "coord",
+                                    "starfusion",
+                                    "starfusion-N-M"
+                                ],
+                                "type": "enum",
+                                "name": "input_type"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Output from fusion detection tool.",
+                        "inputBinding": {
+                            "position": 1,
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "secondaryFiles": [
+                                "",
+                                ""
+                            ]
+                        },
+                        "label": "Chimeric file",
+                        "sbg:category": "",
+                        "id": "#input_file",
+                        "type": [
+                            "File"
+                        ],
+                        "required": true
+                    },
+                    {
+                        "description": "Genome assembly version, default is hg19.",
+                        "inputBinding": {
+                            "prefix": "-a",
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 0
+                        },
+                        "label": "Genome assembly version",
+                        "id": "#genome_assembly",
+                        "type": [
+                            "null",
+                            {
+                                "symbols": [
+                                    "hg18",
+                                    "hg19",
+                                    "hg38"
+                                ],
+                                "type": "enum",
+                                "name": "genome_assembly"
+                            }
+                        ],
+                        "sbg:toolDefaultValue": "hg19"
+                    }
+                ],
+                "sbg:cmdPreview": "java -Xmx2G -jar /opt/oncofuse-1.1.1/Oncofuse.jar  /path/bedpe4oncofuse.txt  rnastar  AVG  bedpe4oncofuse.txt_oncofuse",
+                "sbg:toolAuthor": "Mikhail Shugay (mikhail.shugay@gmail.com)"
+            }
+        },
+        {
+            "outputs": [
+                {
+                    "id": "#Chimera.detected_fusions"
+                },
+                {
+                    "id": "#Chimera.filtered_fusions"
+                },
+                {
+                    "id": "#Chimera.circos_links"
+                },
+                {
+                    "id": "#Chimera.circos_names"
+                },
+                {
+                    "id": "#Chimera.R_workspace"
+                }
+            ],
+            "inputs": [
+                {
+                    "id": "#Chimera.fusion_data",
+                    "source": [
+                        "#ChimeraScan_Run.chimeras_bedpe"
+                    ]
+                },
+                {
+                    "id": "#Chimera.fusionfinder",
+                    "default": "chimerascan"
+                },
+                {
+                    "id": "#Chimera.minsupport",
+                    "source": [
+                        "#minsupport"
+                    ]
+                },
+                {
+                    "id": "#Chimera.filterlist",
+                    "source": [
+                        "#filterlist"
+                    ]
+                },
+                {
+                    "id": "#Chimera.filterminsupport",
+                    "default": 10
+                },
+                {
+                    "id": "#Chimera.filterfusionnames",
+                    "default": "ABL"
+                },
+                {
+                    "id": "#Chimera.organism",
+                    "default": "hg19"
+                }
+            ],
+            "sbg:y": 204.0000169219446,
+            "id": "#Chimera",
+            "sbg:x": 774.5295017054357,
+            "run": {
+                "description": "Chimera is a software package for the secondary analysis of fusion products. This package facilitates the characterization of fusion products events. It allows fusion data results to be imported from the following fusion finders: ChimeraScan, bellerophontes, deFuse, FusionFinder, FusionHunter, mapSplice, tophat-fusion, FusionMap, STAR, Rsubread, and fusionCatcher.\n\nChimera generates a list of detected and filtered fusion gene files. Additionally, it can generate files required for graphical representation of fusions with Circos.\n\nPaper:\nBeccuti M, Carrara M, Cordero F, Lazzarato F, Donatelli S, Nadalin F, Policriti A and Calogero RA (2014). \u201cChimera: a Bioconductor package for secondary analysis of fusion products.\u201d Bioinformatics, 0, pp. 3. http://doi.org/10.1093/bioinformatics/btu662.",
+                "stdin": "",
+                "requirements": [
+                    {
+                        "value": 1000,
+                        "class": "MemoryRequirement"
+                    },
+                    {
+                        "id": "#cwl-js-engine",
+                        "class": "ExpressionEngineRequirement",
+                        "requirements": [
+                            {
+                                "class": "DockerRequirement",
+                                "dockerPull": "rabix/js-engine"
+                            }
+                        ]
+                    }
+                ],
+                "sbg:license": "Artistic License 2.0",
+                "successCodes": [],
+                "sbg:toolkit": "Chimera",
+                "label": "Chimera",
+                "sbg:categories": [
+                    "Variant-Calling"
+                ],
+                "stdout": "",
+                "sbg:links": [
+                    {
+                        "id": "http://bioconductor.org/packages/release/bioc/html/chimera.html",
+                        "label": "Homepage"
+                    },
+                    {
+                        "id": "http://bioinformatics.oxfordjournals.org/content/30/24/3556.full.pdf",
+                        "label": "Publication"
+                    }
+                ],
+                "sbg:revision": 4,
+                "sbg:createdBy": "bix-demo",
+                "sbg:toolAuthor": "Raffaele Calogero <raffaele.calogero@unito.it> / Dept. of Molecular Biotechnology and Health Sciences, University of Torino",
+                "class": "CommandLineTool",
+                "outputs": [
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "A list of detected fusions.",
+                        "label": "Detected fusions",
+                        "id": "#detected_fusions",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:inheritMetadataFrom": "#fusion_data",
+                            "glob": "Chimera.fusions.txt",
+                            "sbg:metadata": {
+                                "__inherit__": "fusion_data"
+                            }
+                        }
+                    },
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "A list of filtered fusions.",
+                        "label": "Filtered fusions",
+                        "id": "#filtered_fusions",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:inheritMetadataFrom": "#fusion_data",
+                            "glob": "Chimera.filtered.fusions.txt",
+                            "sbg:metadata": {
+                                "__inherit__": "fusion_data"
+                            }
+                        }
+                    },
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "Circos links.",
+                        "label": "Circos links",
+                        "id": "#circos_links",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:inheritMetadataFrom": "#fusion_data",
+                            "glob": "circos.links.txt",
+                            "sbg:metadata": {}
+                        }
+                    },
+                    {
+                        "sbg:fileTypes": "TEXT",
+                        "description": "Circos names.",
+                        "label": "Circos names",
+                        "id": "#circos_names",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:inheritMetadataFrom": "#fusion_data",
+                            "glob": "circos.names.txt",
+                            "sbg:metadata": {}
+                        }
+                    },
+                    {
+                        "sbg:fileTypes": "BINARY",
+                        "description": "R workspace.",
+                        "label": "R workspace",
+                        "id": "#R_workspace",
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "outputBinding": {
+                            "sbg:metadata": {
+                                "File_format": "archive"
+                            },
+                            "glob": "chimeras.RData"
+                        }
+                    }
+                ],
+                "sbg:latestRevision": 4,
+                "sbg:id": "sevenbridges/public-apps/chimera-1-12-0/4",
+                "baseCommand": [
+                    "Rscript",
+                    "--vanilla",
+                    "/opt/chimera_script.R"
+                ],
+                "sbg:modifiedOn": 1466090154,
+                "sbg:project": "bix-demo/chimera-1-12-0-1-demo",
+                "sbg:sbgMaintained": false,
+                "sbg:job": {
+                    "allocatedResources": {
+                        "mem": 4000,
+                        "cpu": 1
+                    },
+                    "inputs": {
+                        "filterlist": "annotated.genes",
+                        "minsupport": 10,
+                        "fusionfinder": "star",
+                        "fusion_data": {
+                            "path": "Chimeric.out.junction"
+                        }
+                    }
+                },
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedOn": 1450911144,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 0
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911144,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 1
+                    },
+                    {
+                        "sbg:modifiedOn": 1450911145,
+                        "sbg:modifiedBy": "bix-demo",
+                        "sbg:revision": 2
+                    },
+                    {
+                        "sbg:modifiedOn": 1466073376,
+                        "sbg:modifiedBy": "arsenijae",
+                        "sbg:revision": 3
+                    },
+                    {
+                        "sbg:modifiedOn": 1466090154,
+                        "sbg:modifiedBy": "arsenijae",
+                        "sbg:revision": 4
+                    }
+                ],
+                "sbg:contributors": [
+                    "bix-demo",
+                    "arsenijae"
+                ],
+                "sbg:validationErrors": [],
+                "id": "https://api.sbgenomics.com/v2/apps/bix-demo/chimera-1-12-0-1-demo/chimera-1-12-0/4/raw/",
+                "sbg:modifiedBy": "arsenijae",
+                "sbg:toolkitVersion": "1.12.0",
+                "temporaryFailCodes": [],
+                "sbg:homepage": "http://www.bioconductor.org/packages/release/bioc/html/chimera.html",
+                "sbg:image_url": null,
+                "arguments": [],
+                "hints": [
+                    {
+                        "dockerImageId": "90de3aea2993",
+                        "class": "DockerRequirement",
+                        "dockerPull": "images.sbgenomics.com/arsenijae/chimera:1.12.0--1"
+                    },
+                    {
+                        "value": 1,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 4000,
+                        "class": "sbg:MemRequirement"
+                    }
+                ],
+                "inputs": [
+                    {
+                        "description": "The file generated by one of the fusion finders (e.g. STAR/ChimeraScan) that provides information about fusion junctions.",
+                        "inputBinding": {
+                            "sbg:cmdInclude": true
+                        },
+                        "label": "Fusion Data",
+                        "sbg:category": "",
+                        "id": "#fusion_data",
+                        "type": [
+                            "File"
+                        ]
+                    },
+                    {
+                        "description": "The fusion finder whose output is being analyzed.",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 1
+                        },
+                        "label": "The Fusion Finder Tool",
+                        "sbg:category": "",
+                        "id": "#fusionfinder",
+                        "type": [
+                            {
+                                "symbols": [
+                                    "star",
+                                    "chimerascan",
+                                    "defuse",
+                                    "bellerophontes",
+                                    "fusionfinder",
+                                    "fusionhunter",
+                                    "mapsplice",
+                                    "tophat-fusion",
+                                    "fusionmap",
+                                    "rsubread",
+                                    "fusioncatcher"
+                                ],
+                                "type": "enum",
+                                "name": "fusionfinder"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Parameter \"min.support\" allows to retrieve only a subset of fusions supported by a user defined minimal number of junction spanning reads. If one puts a less stringent number of supports, e.g. 2-3, more fusions supported by defined spanning reads will be detected, normally those with low overall quality. [Default: 10]",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 2
+                        },
+                        "label": "Min.support",
+                        "sbg:category": "",
+                        "id": "#minsupport",
+                        "type": [
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "A function that filters out the fusion list. A fusion is discarded: (i) if it has less spanning reads than a set value, (ii) if its name is not in the given list, (iii) if the intronic regions are included in the fusion, (iv) if the partner genes are not annotated or (v) if  gene partners are the same,  respectively.",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 3
+                        },
+                        "label": "FilterList type",
+                        "sbg:category": "",
+                        "id": "#filterlist",
+                        "type": [
+                            {
+                                "symbols": [
+                                    "spanning.reads",
+                                    "fusion.names",
+                                    "intronic",
+                                    "annotated.genes",
+                                    "read.through"
+                                ],
+                                "type": "enum",
+                                "name": "filterlist"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Number of supporting reads in case spanning.reads is selected in \"filterList type\".",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 4,
+                            "valueFrom": {
+                                "engine": "#cwl-js-engine",
+                                "script": "10",
+                                "class": "Expression"
+                            }
+                        },
+                        "label": "Filterlist_query.min.support",
+                        "sbg:category": "",
+                        "id": "#filterminsupport",
+                        "type": [
+                            "int"
+                        ]
+                    },
+                    {
+                        "description": "Search detected fusions if the case fusion.names is selected in \"filterList type\" by gene/fusion name or its part (e.g. ABL1:BCR).",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 5,
+                            "valueFrom": {
+                                "engine": "#cwl-js-engine",
+                                "script": "\"ABL1:BCR\"",
+                                "class": "Expression"
+                            }
+                        },
+                        "label": "filterlist_query.fusion.names",
+                        "sbg:category": "",
+                        "id": "#filterfusionnames",
+                        "type": [
+                            "string"
+                        ]
+                    },
+                    {
+                        "description": "The organism to be used for annotation, hg19 or hg38.",
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "position": 6,
+                            "valueFrom": {
+                                "engine": "#cwl-js-engine",
+                                "script": "\"hg19\"",
+                                "class": "Expression"
+                            }
+                        },
+                        "label": "",
+                        "sbg:category": "",
+                        "id": "#organism",
+                        "type": [
+                            {
+                                "symbols": [
+                                    "hg19",
+                                    "hg38"
+                                ],
+                                "type": "enum",
+                                "name": "organism"
+                            }
+                        ]
+                    }
+                ],
+                "sbg:cmdPreview": "Rscript --vanilla /opt/chimera_script.R Chimeric.out.junction  star  10  annotated.genes",
+                "sbg:createdOn": 1450911144
+            }
+        }
+    ],
+    "class": "Workflow",
+    "sbg:canvas_x": 0,
+    "sbg:id": "sevenbridges/public-apps/fusion-transcript-detection-chimerascan/9",
+    "sbg:toolkit": "Fusion Transcript Detection - ChimeraScan",
+    "sbg:modifiedOn": 1466173968,
+    "sbg:project": "sevenbridges/public-apps",
+    "sbg:sbgMaintained": false,
+    "sbg:modifiedBy": "sevenbridges",
+    "sbg:contributors": [
+        "sevenbridges"
+    ],
+    "sbg:validationErrors": [],
+    "id": "https://api.sbgenomics.com/v2/apps/sevenbridges/public-apps/fusion-transcript-detection-chimerascan/9/raw/",
+    "sbg:canvas_zoom": 0.8499999999999999,
+    "sbg:toolkitVersion": "1.0",
+    "sbg:image_url": "https://brood.sbgenomics.com/static/sevenbridges/public-apps/fusion-transcript-detection-chimerascan/9.png",
+    "sbg:latestRevision": 9,
+    "sbg:canvas_y": 0,
+    "hints": [
+        {
+            "value": "c3.2xlarge",
+            "class": "sbg:AWSInstanceType"
+        }
+    ],
+    "inputs": [
+        {
+            "sbg:y": 170.3529464497286,
+            "label": "reads",
+            "sbg:x": 121.47059118046482,
+            "type": [
+                {
+                    "items": "File",
+                    "type": "array"
+                }
+            ],
+            "id": "#reads"
+        },
+        {
+            "sbg:y": 327.47059751959415,
+            "label": "reference",
+            "sbg:x": 123.64706179674937,
+            "type": [
+                "File"
+            ],
+            "id": "#reference"
+        },
+        {
+            "sbg:y": 487.0000136599822,
+            "label": "genes",
+            "sbg:x": 125.9411796401529,
+            "type": [
+                "File"
+            ],
+            "id": "#genes"
+        },
+        {
+            "sbg:y": 638.4706062429093,
+            "label": "false_positives",
+            "sbg:x": 123.29412067637726,
+            "type": [
+                "null",
+                "File"
+            ],
+            "id": "#false_positives"
+        },
+        {
+            "description": "Number of processor cores to allocate to ChimeraScan.",
+            "sbg:suggestedValue": 8,
+            "label": "Num Processors",
+            "sbg:altPrefix": "-p",
+            "id": "#num_processors",
+            "type": [
+                "null",
+                "int"
+            ],
+            "sbg:toolDefaultValue": "2"
+        },
+        {
+            "description": "Parameter \"min.support\" allows to retrieve only a subset of fusions supported by a user defined minimal number of junction spanning reads. If one puts a less stringent number of supports, e.g. 2-3, more fusions supported by defined spanning reads will be detected, normally those with low overall quality. [Default: 10]",
+            "inputBinding": {
+                "separate": true,
+                "sbg:cmdInclude": true,
+                "position": 2
+            },
+            "label": "Min.support",
+            "sbg:category": "",
+            "id": "#minsupport",
+            "type": [
+                "int"
+            ]
+        },
+        {
+            "description": "A function that filters out the fusion list. A fusion is discarded: (i) if it has less spanning reads than a set value, (ii) if its name is not in the given list, (iii) if the intronic regions are included in the fusion, (iv) if the partner genes are not annotated or (v) if  gene partners are the same,  respectively.",
+            "inputBinding": {
+                "separate": true,
+                "sbg:cmdInclude": true,
+                "position": 3
+            },
+            "label": "FilterList type",
+            "sbg:category": "",
+            "id": "#filterlist",
+            "type": [
+                {
+                    "symbols": [
+                        "spanning.reads",
+                        "fusion.names",
+                        "intronic",
+                        "annotated.genes",
+                        "read.through"
+                    ],
+                    "type": "enum",
+                    "name": "filterlist"
+                }
+            ]
+        }
+    ],
+    "sbg:createdOn": 1453799625
+}

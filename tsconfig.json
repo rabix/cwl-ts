@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "noEmitHelpers": true,
         "module": "commonjs",
         "preserveConstEnums": true,
         "sourceMap": true,
@@ -7,17 +8,11 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "declaration": true,
-        "outDir": "lib/"
+        "outDir": "./lib",
+        "target": "es5"
     },
-    "filesGlob": [
-        "./**/*.ts"
-    ],
-    "files": [
-        "./src/index.ts",
-        "./typings/main.d.ts"
-    ],
     "exclude": [
         "node_modules",
-        "wwwroot"
+        "tests"
     ]
 }

@@ -1,0 +1,1 @@
+export type ScatterMethod = "dotproduct" | "nested_crossproduct" | "flat_crossproduct";
