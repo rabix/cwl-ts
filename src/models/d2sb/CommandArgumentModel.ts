@@ -15,7 +15,7 @@ export class CommandArgumentModel implements CommandLineInjectable {
         if (typeof this.arg === "object") {
             return this.evaluateArg(this.arg, job);
         } else if (typeof this.arg === 'string') {
-            return new CommandLinePart(<string> this.arg, 0);
+            return new CommandLinePart(<string> this.arg, 0, "argument");
         }
     }
 
@@ -39,7 +39,7 @@ export class CommandArgumentModel implements CommandLineInjectable {
             calculatedValue = prefix + separate + valueFrom;
         }
 
-        return new CommandLinePart(calculatedValue, position);
+        return new CommandLinePart(calculatedValue, position, "argument");
     }
 
 }

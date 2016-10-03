@@ -141,7 +141,7 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
 
             }
 
-            return new CommandLinePart(calcVal, [position, this.id]);
+            return new CommandLinePart(calcVal, [position, this.id], "input");
         }
 
         // record
@@ -157,7 +157,7 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
                     calcVal += " " + part.value;
                 });
 
-                return new CommandLinePart(calcVal, [position, this.id]);
+                return new CommandLinePart(calcVal, [position, this.id], "input");
             }
         }
 
@@ -166,9 +166,9 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
             if (value) {
                 prefix        = this.items === "boolean" ? itemsPrefix : prefix;
                 const calcVal = prefix + separator + this.resolve(job, '', this.inputBinding);
-                return new CommandLinePart(calcVal, [position, this.id]);
+                return new CommandLinePart(calcVal, [position, this.id], "input");
             } else {
-                return new CommandLinePart('', [position, this.id]);
+                return new CommandLinePart('', [position, this.id], "input");
             }
         }
 
@@ -176,7 +176,7 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
         // if the input has items, this is a recursive call and prefix should not be added again
         prefix        = this.items ? '' : prefix;
         const calcVal = prefix + separator + this.resolve(job, value, this.inputBinding);
-        return new CommandLinePart(calcVal, [position, this.id]);
+        return new CommandLinePart(calcVal, [position, this.id], "input");
     }
 
     private resolve(jobInputs: any, value: any, inputBinding: CommandLineBinding) {
