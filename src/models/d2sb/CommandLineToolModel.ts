@@ -46,6 +46,7 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable {
             this.successCodes       = attr.successCodes || [];
             this.temporaryFailCodes = attr.temporaryFailCodes || [];
             this.permanentFailCodes = attr.permanentFailCodes || [];
+            attr.baseCommand = attr.baseCommand || [''];
 
             this.baseCommand = !Array.isArray(attr.baseCommand)
                 ? [<string | Expression> attr.baseCommand]
@@ -115,10 +116,10 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable {
             });
 
 
-        return baseCmdParts.concat(parts).join(' ').trim();
+        return parts.trim();
     }
 
-    private getCommandLineParts(): CommandLinePart[] {
+    public getCommandLineParts(): CommandLinePart[] {
         const inputParts = this.inputs.map(input => {
             const normalizedId = input.id.charAt(0) === '#'
                 ? input.id.substring(1)
@@ -131,7 +132,17 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable {
 
         MSDSort.sort(concat);
 
-        return concat;
+        const baseCmdParts = (<Array<string | Expression>> this.baseCommand)
+            .map((baseCmd) => {
+                if (typeof baseCmd === 'string') {
+                    return new CommandLinePart(baseCmd, 0, "baseCommand");
+                } else {
+                    const val = ExpressionEvaluator.evaluateD2(baseCmd, this.job);
+                    return new CommandLinePart(val, 0, "baseCommand");
+                }
+            });
+
+        return baseCmdParts.concat(concat);
     }
 
     public setJob(job: any) {

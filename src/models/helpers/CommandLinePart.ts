@@ -1,11 +1,15 @@
 import {MSDSortable} from "./MSDSort";
+export type CommandType = "baseCommand" | "input" | "argument" | "stdin" | "stdout"
 
 export class CommandLinePart implements MSDSortable {
     public value: string;
     public sortingKey: Array<number | string>; // [position, index/name]
 
-    constructor(value: string, sortingKey: Array<number | string> | number | string) {
+    public type: CommandType;
+
+    constructor(value: string, sortingKey: Array<number | string> | number | string, type: CommandType) {
         this.value = value.trim();
+        this.type = type;
 
         if (Array.isArray(sortingKey)) {
             this.sortingKey = sortingKey;
