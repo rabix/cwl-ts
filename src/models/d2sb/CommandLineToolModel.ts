@@ -17,7 +17,7 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable {
 
     inputs: Array<CommandInputParameterModel>;
     outputs: Array<CommandOutputParameterModel>;
-    readonly class: string;
+    readonly 'class': string;
     baseCommand: Array<string | Expression>;
 
     arguments: Array<CommandArgumentModel>;
@@ -105,16 +105,6 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable {
             .filter(part => part !== null)
             .map(part => part.value)
             .join(' ');
-
-        const baseCmdParts = (<Array<string | Expression>> this.baseCommand)
-            .map((baseCmd) => {
-                if (typeof baseCmd === 'string') {
-                    return baseCmd;
-                } else {
-                    return ExpressionEvaluator.evaluateD2(baseCmd, this.job);
-                }
-            });
-
 
         return parts.trim();
     }
