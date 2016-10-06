@@ -1,5 +1,5 @@
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
-import {expect} from "chai/index";
+import {expect} from "chai";
 
 describe("CommandInputParameterModel d2sb", () => {
 

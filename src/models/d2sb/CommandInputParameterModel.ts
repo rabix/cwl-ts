@@ -1,5 +1,5 @@
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
-import {CommandLineInjectable} from "../../models/interfaces/CommandLineInjectable";
+import {CommandLineInjectable} from "../interfaces/CommandLineInjectable";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {Datatype} from "../../mappings/d2sb/Datatype";
 import {MapType, EnumType, ArrayType, RecordType} from "../../mappings/d2sb/CommandInputSchema";
@@ -9,7 +9,7 @@ import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {Validatable} from "./Validatable";
 import {ValidationError} from "../interfaces/ValidationError";
-import {Expression} from "../../../lib/mappings/d2sb/Expression";
+import {Expression} from "../../mappings/d2sb/Expression";
 
 export class CommandInputParameterModel implements CommandLineInjectable, Validatable {
     /**

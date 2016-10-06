@@ -3,7 +3,7 @@ import {WorkflowStep} from "./WorkflowStep";
 import {SBGWorkflowInputParameter} from "./SBGWorkflowInputParameter";
 import {WorkflowOutputParameter} from "./WorkflowOutputParameter";
 
-type WorkflowClass = "Workflow";
+export type WorkflowClass = "Workflow";
 
 export interface Workflow extends Process {
     inputs: SBGWorkflowInputParameter[];

@@ -108,7 +108,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
                 }).join(" ");
             }
 
-            return new CommandLinePart(calculatedValue, position);
+            return new CommandLinePart(calculatedValue, position, "input");
         }
 
         // record
@@ -125,7 +125,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
                     calculatedValue += " " + part.value;
                 });
 
-                return new CommandLinePart(calculatedValue, position);
+                return new CommandLinePart(calculatedValue, position, "input");
             }
         }
 
@@ -133,7 +133,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         // if the input has items, this is a recursive call and prefix should not be added again
         prefix              = this.items ? '' : prefix;
         let calculatedValue = prefix + separator + this.resolveValue(job, value, this.inputBinding);
-        return new CommandLinePart(calculatedValue, position);
+        return new CommandLinePart(calculatedValue, position, "input");
     }
 
     private resolveValue(jobInputs: any, value: any, inputBinding: CommandLineBinding) {
