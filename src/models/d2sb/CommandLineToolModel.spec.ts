@@ -1,4 +1,4 @@
-import {expect} from "chai/index";
+import {expect} from "chai";
 import {CommandLineToolModel} from "../d2sb/CommandLineToolModel";
 import {CommandInputParameterModel} from "../d2sb/CommandInputParameterModel";
 
