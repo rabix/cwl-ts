@@ -1241,7 +1241,14 @@
                 "sbg:metadata": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "$ref": "#/definitions/Expression"
+                            }
+                        ]
                     }
                 },
                 "loadContents": {
