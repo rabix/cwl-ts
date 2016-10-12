@@ -1,5 +1,5 @@
 import {TypeResolver} from "./TypeResolver";
-import {expect} from "chai/index";
+import {expect} from "chai";
 
 describe("TypeResolver", () => {
     describe("resolveType", () => {
