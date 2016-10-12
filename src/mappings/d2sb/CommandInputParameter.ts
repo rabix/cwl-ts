@@ -15,4 +15,5 @@ export interface CommandInputParameter extends InputParameter {
         | CommandInputSchema | CommandInputArraySchema | CommandInputMapSchema
         | CommandInputEnumSchema | CommandInputRecordSchema | string>;
     inputBinding?: CommandLineBinding;
+    "sbg:category"?: string;
 }

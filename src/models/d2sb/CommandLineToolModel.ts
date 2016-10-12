@@ -115,7 +115,13 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable {
                 ? input.id.substring(1)
                 : input.id;
             const jobInput     = this.jobInputs[normalizedId];
-            return input.getCommandPart(this.job, jobInput);
+            try {
+                return input.getCommandPart(this.job, jobInput);
+            } catch (ex) {
+                // potential mismatch input and value type
+                // @todo(maya) add to validation stack
+                return null;
+            }
         });
         const argParts   = this.arguments.map(arg => arg.getCommandPart(this.job));
         const concat     = inputParts.concat(argParts).filter(item => item !== null);
