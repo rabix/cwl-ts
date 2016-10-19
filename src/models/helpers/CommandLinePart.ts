@@ -8,6 +8,8 @@ export class CommandLinePart implements MSDSortable {
     public type: CommandType;
 
     constructor(value: string, sortingKey: Array<number | string> | number | string, type: CommandType) {
+        value = value === undefined ? '' : value; // in case expression returned undefined
+        value = value.toString(); // in case expression returned something other than a string
         this.value = value.trim();
         this.type = type;
 

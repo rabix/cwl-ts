@@ -43,6 +43,37 @@ describe("CommandLineToolModel d2sb", () => {
 
     describe("getCommandLine", () => {
 
+        it("Should evaluate baseCommand with expression", () => {
+            let tool = new CommandLineToolModel({
+                class: "CommandLineTool",
+                inputs: [],
+                outputs: [],
+                baseCommand: [{
+                    script: "'aba'",
+                    class: "Expression",
+                    engine: "cwl-js-engine"
+                }]
+            });
+
+            expect(tool.getCommandLine()).to.equal('aba');
+        });
+
+
+        it("Should evaluate baseCommand with expression that returns a number", () => {
+            let tool = new CommandLineToolModel({
+                class: "CommandLineTool",
+                inputs: [],
+                outputs: [],
+                baseCommand: [{
+                    script: "3 + 3",
+                    class: "Expression",
+                    engine: "cwl-js-engine"
+                }]
+            });
+
+            expect(tool.getCommandLine()).to.equal('6');
+        });
+
         it("Should evaluate BWA mem tool: General test of command line generation", () => {
             let tool = new CommandLineToolModel(BWAMemTool.default);
             tool.setJob(BWAMemJob.default);

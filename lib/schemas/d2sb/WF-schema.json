@@ -26,7 +26,7 @@
             }
         },
         "sbg:image_url": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "sbg:canvas_y": {
             "type": "number"
@@ -2766,7 +2766,14 @@
                 "sbg:metadata": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "$ref": "#/definitions/Expression"
+                            }
+                        ]
                     }
                 },
                 "loadContents": {
@@ -3940,7 +3947,7 @@
                     }
                 },
                 "sbg:image_url": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "sbg:canvas_y": {
                     "type": "number"

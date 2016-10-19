@@ -142,5 +142,23 @@ describe("ExpressionEvaluator", () => {
                 {prop: "baz"}
                 )).to.equal("baz");
         });
+    });
+
+    describe("evaluateD2", () => {
+        it("should evaluate function body", () => {
+            expect(ExpressionEvaluator.evaluateD2({
+                class: "Expression",
+                engine: "cwl-js-engine",
+                script: "{ return 5 + 3; }"
+            })).to.equal(8);
+        });
+
+        it("should evaluate an inline expression", () => {
+            expect(ExpressionEvaluator.evaluateD2({
+                class: "Expression",
+                engine: "cwl-js-engine",
+                script: " 5 + 3"
+            })).to.equal(8);
+        });
     })
 });

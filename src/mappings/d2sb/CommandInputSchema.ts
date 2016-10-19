@@ -52,6 +52,7 @@ export interface CommandInputEnumSchema {
     inputBinding?: CommandLineBinding;
     type: EnumType;
     symbols: string[];
+    name: string;
 }
 
 export type MapType = "map";
