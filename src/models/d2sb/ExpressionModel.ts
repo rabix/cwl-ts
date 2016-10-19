@@ -1,26 +1,47 @@
-import {ExpressionClass, Expression} from "../../mappings/d2sb/Expression";
+import {Expression} from "../../mappings/d2sb/Expression";
 
 export class ExpressionModel {
 
-    private class: ExpressionClass;
-    private engine: string = "cwl-js-engine";
-
-    public script: string;
-    public expressionValue?: string;
+    private value: string | Expression;
+    private evaluatedValue: string;
 
     constructor(attrs: {
-        script: string;
-        expressionValue: string;
+        value?: string | Expression;
+        evaluatedValue?: string;
     }) {
-        this.script = attrs.script;
-        this.expressionValue = attrs.expressionValue;
+        this.value = attrs.value;
+        this.evaluatedValue = attrs.evaluatedValue;
     }
 
-    public getCwlModel(): Expression {
-        return {
-            class: this.class,
-            script: this.script,
-            engine: this.engine
+    public serialize(): Expression | string {
+        return this.value;
+    }
+
+    public setEvaluatedValue(value: string): void {
+        this.evaluatedValue = value;
+    }
+
+    public getEvaluatedValue(): string {
+        return this.evaluatedValue;
+    }
+
+    public setValueToExpression(expressionScript: string) {
+        this.value = {
+            class: "Expression",
+            engine: "cwl-js-engine",
+            script: expressionScript
+        };
+    }
+
+    public setValueToString(value: string) {
+        this.value = value;
+    }
+
+    public getExpressionScript(): string {
+        if ((<Expression>this.value).script) {
+            return (<Expression>this.value).script;
+        } else if (typeof  this.value === "string") {
+            return this.value;
         }
     }
 }

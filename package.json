@@ -29,6 +29,6 @@
     "jsonschema": "^1.1.0",
     "mocha": "^2.5.3",
     "typescript": "^2.0.0-beta",
-    "typescript-json-schema": "git+ssh://git@github.com:YousefED/typescript-json-schema.git"
+    "typescript-json-schema": "0.1.1"
   }
 }
