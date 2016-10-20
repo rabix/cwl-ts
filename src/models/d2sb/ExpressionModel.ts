@@ -38,7 +38,7 @@ export class ExpressionModel {
     }
 
     public getExpressionScript(): string {
-        if ((<Expression>this.value).script) {
+        if ((<Expression>this.value).script !== undefined) {
             return (<Expression>this.value).script;
         } else if (typeof  this.value === "string") {
             return this.value;

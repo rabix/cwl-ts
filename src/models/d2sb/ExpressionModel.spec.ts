@@ -35,6 +35,32 @@ describe("ExpressionModel d2sb", () => {
         });
     });
 
+    describe("getExpressionScript", () => {
+
+        it("Should return the script value", () => {
+
+            const expressionModel1 = new ExpressionModel({
+                value: {
+                    class: "Expression",
+                    engine: "cwl-js-engine",
+                    script: ""
+                },
+                evaluatedValue: ""
+            });
+
+            expect(expressionModel1.getExpressionScript()).to.equal("");
+
+
+            const expressionModel2 = new ExpressionModel({
+                value: "",
+                evaluatedValue: ""
+            });
+
+            expect(expressionModel2.getExpressionScript()).to.equal("");
+
+        });
+    });
+
     describe("setEvaluatedValue", () => {
 
         it("Should update the evaluatedValue", () => {
