@@ -310,6 +310,10 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
         return this.inputBinding ? this.inputBinding.valueFrom : '';
     }
 
+    public hasInputBinding(): boolean {
+        return this.inputBinding !== undefined && this.inputBinding !== null;
+    }
+
     //@todo(maya) implement validation
     validate(): ValidationError[] {
         let errors: ValidationError[] = [];

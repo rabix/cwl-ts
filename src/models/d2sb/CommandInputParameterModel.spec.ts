@@ -297,4 +297,26 @@ describe("CommandInputParameterModel d2sb", () => {
 
         // all the types
     });
+
+    describe("hasInputBinding", () => {
+
+        it("Should return true if there is a an inputBinding", () => {
+            const input = new CommandInputParameterModel({
+                id: "a",
+                type: {type: "array", items: "int"}
+            });
+
+            input.setValueFrom("asd 123");
+            expect(input.hasInputBinding()).to.equal(true);
+        });
+
+        it("Should return false if there is no inputBinding", () => {
+            const input = new CommandInputParameterModel({
+                id: "a",
+                type: {type: "array", items: "int"}
+            });
+
+            expect(input.hasInputBinding()).to.equal(false);
+        });
+    });
 });
