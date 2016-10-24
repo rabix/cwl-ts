@@ -100,4 +100,78 @@ describe("CommandLineToolModel d2sb", () => {
             expect(tool.getCommandLine()).to.equal('/opt/bamtools/bin/bamtools split -in input/input_bam.ext -refPrefix refp -tagPrefix tagp -stub input_bam.splitted -mapped -paired -reference -tag tag');
         });
     });
+
+    describe("serialize", () => {
+        it("should return same object for template", () => {
+            const tool: CommandLineTool = {
+                'class': "CommandLineTool",
+                inputs: [],
+                outputs: [],
+                arguments: [],
+                baseCommand: []
+            };
+
+            const model = new CommandLineToolModel(tool);
+
+            expect(model.serialize()).to.deep.equal(tool);
+        });
+
+        it("should return same object for tool with baseCommand", () => {
+            const tool: CommandLineTool = {
+                "class": "CommandLineTool",
+                inputs: [],
+                outputs: [],
+                arguments: [],
+                baseCommand: [
+                    "string1",
+                    "string2",
+                    {
+                        "class": "Expression",
+                        engine: "cwl-js-engine",
+                        script: "{ return $job.inputs.file.path; }"
+                    }
+                ]
+            };
+
+            const model = new CommandLineToolModel(tool);
+
+            expect(model.serialize()).to.deep.equal(tool);
+        });
+
+        it("should serialize object with custom properties", () => {
+            const tool: CommandLineTool = {
+                "class": "CommandLineTool",
+                inputs: [],
+                outputs: [],
+                arguments: [],
+                baseCommand: [''],
+                customProperty: 35
+            };
+
+            const serialized = new CommandLineToolModel(tool).serialize();
+
+            expect(serialized).to.have.property("customProperty");
+            expect(serialized["customProperty"]).to.equal(35);
+            console.log(serialized["customProperty"]);
+        });
+
+        it("should serialize template deterministically", () => {
+            const tool: CommandLineTool = {
+                inputs: [],
+                outputs: [],
+                'class': "CommandLineTool",
+                arguments: [],
+                baseCommand: []
+            };
+
+            const model = new CommandLineToolModel(tool);
+
+            // class and ID should be at the beginning of the object
+            expect(JSON.stringify(model.serialize())).to.not.equal(JSON.stringify(tool));
+
+            const model2 = new CommandLineToolModel(tool);
+
+            expect(JSON.stringify(model.serialize())).to.equal(JSON.stringify(model2.serialize()));
+        })
+    })
 });
