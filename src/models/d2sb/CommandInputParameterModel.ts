@@ -303,7 +303,7 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
         if (!this.inputBinding) {
             this.inputBinding = {};
         }
-        this.inputBinding = value;
+        this.inputBinding.valueFrom = value;
     }
 
     public getValueFrom(): string | Expression {
