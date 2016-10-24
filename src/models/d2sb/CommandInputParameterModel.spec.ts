@@ -319,4 +319,22 @@ describe("CommandInputParameterModel d2sb", () => {
             expect(input.hasInputBinding()).to.equal(false);
         });
     });
+
+    describe("removeInputBinding", () => {
+
+        it("Should remove the inputBinding property", () => {
+            const input = new CommandInputParameterModel({
+                id: "a",
+                type: {type: "array", items: "int"}
+            });
+
+            input.setValueFrom("asd 123");
+            expect(input.hasInputBinding()).to.equal(true);
+
+            input.removeInputBinding();
+            expect(input.hasInputBinding()).to.equal(false);
+        });
+
+    });
+
 });

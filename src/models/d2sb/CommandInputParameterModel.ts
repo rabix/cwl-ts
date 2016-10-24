@@ -303,7 +303,7 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
         if (!this.inputBinding) {
             this.inputBinding = {};
         }
-        this.inputBinding.valueFrom = value;
+        this.inputBinding = value;
     }
 
     public getValueFrom(): string | Expression {
@@ -312,6 +312,10 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
 
     public hasInputBinding(): boolean {
         return this.inputBinding !== undefined && this.inputBinding !== null;
+    }
+
+    public removeInputBinding(): void {
+        this.inputBinding = null;
     }
 
     //@todo(maya) implement validation
