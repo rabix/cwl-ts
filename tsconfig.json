@@ -15,8 +15,6 @@
     "exclude": [
         "lib",
         "node_modules",
-        "**/*.spec.ts",
-        "**/*.json",
-        "src/tests/**/*.ts"
+        "**/*.json"
     ]
 }

@@ -297,4 +297,57 @@ describe("CommandInputParameterModel d2sb", () => {
 
         // all the types
     });
+
+    describe("setValueFrom", () => {
+        it("Should set the valueFrom property in the inputBinding", () => {
+            const input = new CommandInputParameterModel({
+                id: "a",
+                type: {type: "array", items: "int"}
+            });
+
+            input.setValueFrom("asd 123");
+
+            expect(input.getValueFrom()).to.equal("asd 123");
+        });
+    });
+
+    describe("hasInputBinding", () => {
+
+        it("Should return true if there is a an inputBinding", () => {
+            const input = new CommandInputParameterModel({
+                id: "a",
+                type: {type: "array", items: "int"}
+            });
+
+            input.setValueFrom("asd 123");
+            expect(input.hasInputBinding()).to.equal(true);
+        });
+
+        it("Should return false if there is no inputBinding", () => {
+            const input = new CommandInputParameterModel({
+                id: "a",
+                type: {type: "array", items: "int"}
+            });
+
+            expect(input.hasInputBinding()).to.equal(false);
+        });
+    });
+
+    describe("removeInputBinding", () => {
+
+        it("Should remove the inputBinding property", () => {
+            const input = new CommandInputParameterModel({
+                id: "a",
+                type: {type: "array", items: "int"}
+            });
+
+            input.setValueFrom("asd 123");
+            expect(input.hasInputBinding()).to.equal(true);
+
+            input.removeInputBinding();
+            expect(input.hasInputBinding()).to.equal(false);
+        });
+
+    });
+
 });
