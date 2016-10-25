@@ -1,4 +1,3 @@
-/*
 import {expect} from "chai";
 import {ExpressionModel} from "../d2sb/ExpressionModel";
 
@@ -70,4 +69,4 @@ describe("ExpressionModel d2sb", () => {
             expect(JSON.stringify(expressionModel.serialize())).to.equal(expectedExpression);
         });
     });
-});*/
+});
