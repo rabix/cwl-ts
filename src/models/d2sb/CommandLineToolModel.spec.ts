@@ -144,9 +144,10 @@ describe("CommandLineToolModel d2sb", () => {
                 inputs: [],
                 outputs: [],
                 arguments: [],
-                baseCommand: [''],
-                customProperty: 35
+                baseCommand: ['']
             };
+
+            tool["customProperty"] = 35;
 
             const serialized = new CommandLineToolModel(tool).serialize();
 
