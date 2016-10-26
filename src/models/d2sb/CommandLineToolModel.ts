@@ -8,12 +8,15 @@ import {JobHelper} from "../helpers/JobHelper";
 import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {MSDSort} from "../helpers/MSDSort";
-import {Validatable} from "./Validatable";
 import {ValidationError} from "../interfaces/ValidationError";
+import {Serializable} from "../interfaces/Serializable";
+import {Validatable} from "../interfaces/Validatable";
 
-export class CommandLineToolModel implements CommandLineRunnable, Validatable {
+export class CommandLineToolModel implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
     job: any;
     jobInputs: any;
+
+    id: string;
 
     inputs: Array<CommandInputParameterModel>;
     outputs: Array<CommandOutputParameterModel>;
@@ -29,10 +32,14 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable {
     temporaryFailCodes: number[];
     permanentFailCodes: number[];
 
+    customProps: any = {};
+
     constructor(attr?: CommandLineTool) {
         this.class = "CommandLineTool";
 
+        const serializedAttr = ["baseCommand", "class", "id"];
         if (attr) {
+            this.id      = attr.id;
             this.inputs  = attr.inputs.map(input => new CommandInputParameterModel(input));
             this.outputs = attr.outputs.map(output => new CommandOutputParameterModel(output));
 
@@ -46,7 +53,7 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable {
             this.successCodes       = attr.successCodes || [];
             this.temporaryFailCodes = attr.temporaryFailCodes || [];
             this.permanentFailCodes = attr.permanentFailCodes || [];
-            attr.baseCommand = attr.baseCommand || [''];
+            attr.baseCommand        = attr.baseCommand || [''];
 
             this.baseCommand = !Array.isArray(attr.baseCommand)
                 ? [<string | Expression> attr.baseCommand]
@@ -57,6 +64,13 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable {
                 : JobHelper.getJob(this);
 
             this.jobInputs = this.job.inputs || this.job;
+
+            // populates object with all custom attributes not covered in model
+            Object.keys(attr).forEach(key => {
+                if (serializedAttr.indexOf(key) === -1) {
+                    this.customProps[key] = attr[key];
+                }
+            });
         }
     }
 
@@ -176,5 +190,31 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable {
         // check if inputs have unique id
 
         return errors;
+    }
+
+    serialize(): CommandLineTool | any {
+        //@todo(maya) create generic serialize/deserialize algorithm
+        let base: CommandLineTool = <CommandLineTool>{};
+        if (this.id) {
+            base.id = this.id;
+        }
+
+        base.class       = "CommandLineTool";
+        base.baseCommand = this.baseCommand;
+
+        base = Object.assign({}, base, this.customProps);
+
+        return base;
+    }
+
+    deserialize(CommandLineTool): void {
+
+        const keys = [
+            "class",
+            "id",
+            "baseCommand",
+            "inputs",
+            "ouptuts"
+        ];
     }
 }

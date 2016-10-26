@@ -7,9 +7,9 @@ import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {TypeResolver, TypeResolution} from "../helpers/TypeResolver";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
-import {Validatable} from "./Validatable";
 import {ValidationError} from "../interfaces/ValidationError";
 import {Expression} from "../../mappings/d2sb/Expression";
+import {Validatable} from "../interfaces/Validatable";
 
 export class CommandInputParameterModel implements CommandLineInjectable, Validatable {
     /**
@@ -307,7 +307,7 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
     }
 
     public getValueFrom(): string | Expression {
-        return this.inputBinding ? this.inputBinding.valueFrom : '';
+        return this.inputBinding ? this.inputBinding.valueFrom : undefined;
     }
 
     public hasInputBinding(): boolean {
