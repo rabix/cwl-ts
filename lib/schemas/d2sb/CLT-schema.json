@@ -369,6 +369,9 @@
                 "inputBinding": {
                     "$ref": "#/definitions/CommandLineBinding"
                 },
+                "sbg:category": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -882,11 +885,15 @@
                     "items": {
                         "type": "string"
                     }
+                },
+                "name": {
+                    "type": "string"
                 }
             },
             "required": [
                 "type",
-                "symbols"
+                "symbols",
+                "name"
             ]
         },
         "CommandOutputParameter": {

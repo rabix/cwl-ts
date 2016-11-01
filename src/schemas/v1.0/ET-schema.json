@@ -1,5 +1,5 @@
 {
-    "description": "Execute an expression as a process step.",
+    "description": "Execute an expression as a Workflow step.",
     "type": "object",
     "properties": {
         "class": {
@@ -53,13 +53,13 @@
             "description": "A short, human-readable label of this process object.",
             "type": "string"
         },
-        "description": {
+        "doc": {
             "description": "A long, human-readable description of this process object.",
             "type": "string"
         },
         "cwlVersion": {
-            "$ref": "#/definitions/CWLVersions",
-            "description": "CWL document version"
+            "$ref": "#/definitions/CWLVersion",
+            "description": "CWL document version. Always required at the document root. Not\n\nrequired for a Process embedded inside another Process."
         }
     },
     "required": [
@@ -79,6 +79,12 @@
                             "type": "string",
                             "enum": [
                                 "File"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Directory"
                             ]
                         },
                         {
@@ -124,13 +130,13 @@
                             ]
                         },
                         {
-                            "$ref": "#/definitions/RecordSchema"
+                            "$ref": "#/definitions/OutputRecordSchema"
                         },
                         {
-                            "$ref": "#/definitions/EnumSchema"
+                            "$ref": "#/definitions/OutputEnumSchema"
                         },
                         {
-                            "$ref": "#/definitions/ArraySchema"
+                            "$ref": "#/definitions/OutputArraySchema"
                         },
                         {
                             "type": "string"
@@ -143,6 +149,12 @@
                                         "type": "string",
                                         "enum": [
                                             "File"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "Directory"
                                         ]
                                     },
                                     {
@@ -188,13 +200,13 @@
                                         ]
                                     },
                                     {
-                                        "$ref": "#/definitions/RecordSchema"
+                                        "$ref": "#/definitions/OutputRecordSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/EnumSchema"
+                                        "$ref": "#/definitions/OutputEnumSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/ArraySchema"
+                                        "$ref": "#/definitions/OutputArraySchema"
                                     },
                                     {
                                         "type": "string"
@@ -211,14 +223,6 @@
                 "outputBinding": {
                     "$ref": "#/definitions/OutputBinding",
                     "description": "Describes how to handle the outputs of a process."
-                },
-                "label": {
-                    "description": "A short, human-readable label of this parameter object.",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "A long, human-readable description of this parameter object.",
-                    "type": "string"
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
@@ -251,7 +255,7 @@
                     ]
                 },
                 "format": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
+                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more IRIs of concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
                     "anyOf": [
                         {
                             "type": "string"
@@ -273,15 +277,40 @@
                 "streamable": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
                     "type": "boolean"
+                },
+                "doc": {
+                    "description": "A documentation string for this type, or an array of strings which should be concatenated.",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
                 "id"
             ]
         },
-        "RecordSchema": {
+        "OutputRecordSchema": {
             "type": "object",
             "properties": {
+                "fields": {
+                    "description": "Defines the fields of the record.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/OutputRecordField"
+                    }
+                },
                 "type": {
                     "description": "Must be `record`",
                     "type": "string",
@@ -289,33 +318,36 @@
                         "record"
                     ]
                 },
-                "fields": {
-                    "description": "Defines the fields of the record.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/RecordField"
-                    }
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
                 "type"
             ]
         },
-        "RecordField": {
-            "description": "A field of a record.",
+        "OutputRecordField": {
             "type": "object",
             "properties": {
-                "name": {
-                    "description": "The name of the field",
-                    "type": "string"
-                },
-                "doc": {
-                    "description": "A documentation string for this field",
-                    "type": "string"
+                "outputBinding": {
+                    "$ref": "#/definitions/OutputBinding"
                 },
                 "type": {
                     "description": "The field type",
                     "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "File"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Directory"
+                            ]
+                        },
                         {
                             "type": "string",
                             "enum": [
@@ -359,13 +391,13 @@
                             ]
                         },
                         {
-                            "$ref": "#/definitions/RecordSchema"
+                            "$ref": "#/definitions/OutputRecordSchema"
                         },
                         {
-                            "$ref": "#/definitions/EnumSchema"
+                            "$ref": "#/definitions/OutputEnumSchema"
                         },
                         {
-                            "$ref": "#/definitions/ArraySchema"
+                            "$ref": "#/definitions/OutputArraySchema"
                         },
                         {
                             "type": "string"
@@ -374,6 +406,18 @@
                             "type": "array",
                             "items": {
                                 "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "File"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "Directory"
+                                        ]
+                                    },
                                     {
                                         "type": "string",
                                         "enum": [
@@ -417,13 +461,13 @@
                                         ]
                                     },
                                     {
-                                        "$ref": "#/definitions/RecordSchema"
+                                        "$ref": "#/definitions/OutputRecordSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/EnumSchema"
+                                        "$ref": "#/definitions/OutputEnumSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/ArraySchema"
+                                        "$ref": "#/definitions/OutputArraySchema"
                                     },
                                     {
                                         "type": "string"
@@ -432,17 +476,31 @@
                             }
                         }
                     ]
+                },
+                "name": {
+                    "description": "The name of the field",
+                    "type": "string"
+                },
+                "doc": {
+                    "description": "A documentation string for this field",
+                    "type": "string"
                 }
             },
             "required": [
-                "name",
-                "type"
+                "type",
+                "name"
             ]
         },
-        "EnumSchema": {
-            "description": "Define an enumerated type.",
+        "OutputBinding": {
+            "type": "object",
+            "properties": {}
+        },
+        "OutputEnumSchema": {
             "type": "object",
             "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/OutputBinding"
+                },
                 "type": {
                     "description": "Must be `enum`",
                     "type": "string",
@@ -456,6 +514,10 @@
                     "items": {
                         "type": "string"
                     }
+                },
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -463,19 +525,27 @@
                 "symbols"
             ]
         },
-        "ArraySchema": {
+        "OutputArraySchema": {
             "type": "object",
             "properties": {
-                "type": {
-                    "description": "Must be `array`",
-                    "type": "string",
-                    "enum": [
-                        "array"
-                    ]
+                "outputBinding": {
+                    "$ref": "#/definitions/OutputBinding"
                 },
                 "items": {
                     "description": "Defines the type of the array elements.",
                     "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "File"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Directory"
+                            ]
+                        },
                         {
                             "type": "string",
                             "enum": [
@@ -519,13 +589,13 @@
                             ]
                         },
                         {
-                            "$ref": "#/definitions/RecordSchema"
+                            "$ref": "#/definitions/OutputRecordSchema"
                         },
                         {
-                            "$ref": "#/definitions/EnumSchema"
+                            "$ref": "#/definitions/OutputEnumSchema"
                         },
                         {
-                            "$ref": "#/definitions/ArraySchema"
+                            "$ref": "#/definitions/OutputArraySchema"
                         },
                         {
                             "type": "string"
@@ -534,6 +604,18 @@
                             "type": "array",
                             "items": {
                                 "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "File"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "Directory"
+                                        ]
+                                    },
                                     {
                                         "type": "string",
                                         "enum": [
@@ -577,13 +659,13 @@
                                         ]
                                     },
                                     {
-                                        "$ref": "#/definitions/RecordSchema"
+                                        "$ref": "#/definitions/OutputRecordSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/EnumSchema"
+                                        "$ref": "#/definitions/OutputEnumSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/ArraySchema"
+                                        "$ref": "#/definitions/OutputArraySchema"
                                     },
                                     {
                                         "type": "string"
@@ -592,16 +674,23 @@
                             }
                         }
                     ]
+                },
+                "type": {
+                    "description": "Must be `array`",
+                    "type": "string",
+                    "enum": [
+                        "array"
+                    ]
+                },
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
-                "type",
-                "items"
+                "items",
+                "type"
             ]
-        },
-        "OutputBinding": {
-            "type": "object",
-            "properties": {}
         },
         "InputParameter": {
             "type": "object",
@@ -624,6 +713,12 @@
                             "type": "string",
                             "enum": [
                                 "File"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Directory"
                             ]
                         },
                         {
@@ -688,6 +783,12 @@
                                         "type": "string",
                                         "enum": [
                                             "File"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "Directory"
                                         ]
                                     },
                                     {
@@ -749,14 +850,6 @@
                         }
                     ]
                 },
-                "label": {
-                    "description": "A short, human-readable label of this parameter object.",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "A long, human-readable description of this parameter object.",
-                    "type": "string"
-                },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
                     "anyOf": [
@@ -788,7 +881,7 @@
                     ]
                 },
                 "format": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
+                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more IRIs of concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
                     "anyOf": [
                         {
                             "type": "string"
@@ -810,6 +903,24 @@
                 "streamable": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
                     "type": "boolean"
+                },
+                "doc": {
+                    "description": "A documentation string for this type, or an array of strings which should be concatenated.",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -842,59 +953,9 @@
                         "record"
                     ]
                 },
-                "secondaryFiles": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "ExpressionPlaceholder"
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "format": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        }
-                    ]
-                },
-                "streamable": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
-                    "type": "boolean"
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -907,9 +968,25 @@
                 "inputBinding": {
                     "$ref": "#/definitions/InputBinding"
                 },
+                "label": {
+                    "description": "A short, human-readable label of this process object.",
+                    "type": "string"
+                },
                 "type": {
                     "description": "The field type",
                     "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "File"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Directory"
+                            ]
+                        },
                         {
                             "type": "string",
                             "enum": [
@@ -968,6 +1045,18 @@
                             "type": "array",
                             "items": {
                                 "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "File"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "Directory"
+                                        ]
+                                    },
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1061,59 +1150,9 @@
                         "type": "string"
                     }
                 },
-                "secondaryFiles": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "ExpressionPlaceholder"
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "format": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        }
-                    ]
-                },
-                "streamable": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
-                    "type": "boolean"
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1130,6 +1169,18 @@
                 "items": {
                     "description": "Defines the type of the array elements.",
                     "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "File"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Directory"
+                            ]
+                        },
                         {
                             "type": "string",
                             "enum": [
@@ -1188,6 +1239,18 @@
                             "type": "array",
                             "items": {
                                 "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "File"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "Directory"
+                                        ]
+                                    },
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1254,59 +1317,9 @@
                         "array"
                     ]
                 },
-                "secondaryFiles": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "ExpressionPlaceholder"
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "format": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        }
-                    ]
-                },
-                "streamable": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
-                    "type": "boolean"
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1317,17 +1330,9 @@
         "ProcessRequirement": {
             "description": "A process requirement declares a prerequisite that may or must be fulfilled\n\nbefore executing a process.  See [`Process.hints`](#process) and\n\n[`Process.requirements`](#process).\n\n\n\nProcess requirements are the primary mechanism for specifying extensions to\n\nthe CWL core specification.",
             "type": "object",
-            "properties": {
-                "class": {
-                    "description": "The specific requirement type.",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "class"
-            ]
+            "properties": {}
         },
-        "CWLVersions": {
+        "CWLVersion": {
             "type": "string",
             "enum": [
                 "draft-2",
@@ -1339,6 +1344,8 @@
                 "draft-3",
                 "draft-4.dev1",
                 "draft-4.dev2",
+                "draft-4.dev3",
+                "v1.0.dev4",
                 "v1.0"
             ]
         }

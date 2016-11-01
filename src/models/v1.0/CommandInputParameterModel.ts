@@ -1,16 +1,15 @@
-import {CommandInputArraySchema} from "../../mappings/draft-4/CommandInputArraySchema";
-import {CommandInputEnumSchema} from "../../mappings/draft-4/CommandInputEnumSchema";
-import {CommandInputParameter} from "../../mappings/draft-4/CommandInputParameter";
-import {CommandInputRecordField} from "../../mappings/draft-4/CommandInputRecordField";
-import {CommandInputRecordSchema} from "../../mappings/draft-4/CommandInputRecordSchema";
-import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
-import {CommandLineInjectable} from "../interfaces/CommandLineInjectable";
-import {CommandLinePart} from "../helpers/CommandLinePart";
-import {CWLType} from "../../mappings/draft-4/CWLType";
-import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
-import {Expression} from "../../mappings/draft-4/Expression";
-import {Identifiable} from "../interfaces/Identifiable";
-import {TypeResolver} from "../helpers/TypeResolver";
+import {
+    CommandInputArraySchema,
+    CommandInputEnumSchema,
+    CommandInputParameter,
+    CommandInputRecordField,
+    CommandInputRecordSchema,
+    CommandLineBinding,
+    CWLType,
+    Expression
+} from "../../mappings/v1.0";
+import {CommandLineInjectable, Identifiable} from "../interfaces";
+import {CommandLinePart, ExpressionEvaluator, TypeResolver} from "../helpers";
 
 
 export class CommandInputParameterModel implements CommandInputParameter, CommandLineInjectable, Identifiable {
@@ -25,7 +24,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
     type: CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string | Array<CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string>;
     inputBinding: CommandLineBinding;
     label: string;
-    description: string;
+    doc: string | string[];
     secondaryFiles: string | Expression | Array<string | Expression>;
     format: string | Array<string> | Expression;
     streamable: boolean;
@@ -40,7 +39,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
             this.type           = attr.type;
             this.inputBinding   = attr.inputBinding;
             this.label          = (<CommandInputParameter> attr).label;
-            this.description    = (<CommandInputParameter> attr).description;
+            this.doc            = (<CommandInputParameter> attr).doc;
             this.secondaryFiles = (<CommandInputParameter> attr).secondaryFiles;
             this.format         = (<CommandInputParameter> attr).format;
             this.streamable     = (<CommandInputParameter> attr).streamable;
@@ -56,7 +55,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         }) : typeResolution.fields;
 
         this.symbols = typeResolution.symbols;
-        this.items = typeResolution.items;
+        this.items   = typeResolution.items;
 
         this.isRequired = typeResolution.isRequired;
     }

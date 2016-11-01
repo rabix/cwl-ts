@@ -1,12 +1,46 @@
 {
-    "description": "Execute an expression as a process step.",
+    "description": "This defines the schema of the CWL Command Line Tool Description document.",
     "type": "object",
     "properties": {
         "class": {
             "type": "string"
         },
-        "expression": {
-            "description": "The expression to execute.  The expression must return a JSON object which\n\nmatches the output parameters of the ExpressionTool.",
+        "baseCommand": {
+            "description": "Specifies the program to execute.  If an array, the first element of\n\nthe array is the command to execute, and subsequent elements are\n\nmandatory command line arguments.  The elements in `baseCommand` must\n\nappear before any command line bindings from `inputBinding` or\n\n`arguments`.\n\n\n\nIf `baseCommand` is not provided or is an empty array, the first\n\nelement of the command line produced after processing `inputBinding` or\n\n`arguments` must be used as the program to execute.\n\n\n\nIf the program includes a path separator character it must\n\nbe an absolute path, otherwise it is an error.  If the program does not\n\ninclude a path separator, search the `$PATH` variable in the runtime\n\nenvironment of the workflow runner find the absolute path of the\n\nexecutable.",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "arguments": {
+            "description": "Command line bindings which are not directly associated with input parameters.",
+            "type": "array",
+            "items": {
+                "anyOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "string",
+                        "enum": [
+                            "ExpressionPlaceholder"
+                        ]
+                    },
+                    {
+                        "$ref": "#/definitions/CommandLineBinding"
+                    }
+                ]
+            }
+        },
+        "stdin": {
+            "description": "A path to a file whose contents must be piped into the command's\n\nstandard input stream.",
             "anyOf": [
                 {
                     "type": "string"
@@ -19,23 +53,72 @@
                 }
             ]
         },
-        "outputs": {
-            "description": "Defines the parameters representing the output of the process.  May be\n\nused to generate and/or validate the output object.",
+        "stderr": {
+            "description": "Capture the command's standard error stream to a file written to\n\nthe designated output directory.\n\n\n\nIf `stderr` is a string, it specifies the file name to use.\n\n\n\nIf `stderr` is an expression, the expression is evaluated and must\n\nreturn a string with the file name to use to capture stderr.  If the\n\nreturn value is not a string, or the resulting path contains illegal\n\ncharacters (such as the path separator `/`) it is an error.",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "string",
+                    "enum": [
+                        "ExpressionPlaceholder"
+                    ]
+                }
+            ]
+        },
+        "stdout": {
+            "description": "Capture the command's standard output stream to a file written to\n\nthe designated output directory.\n\n\n\nIf `stdout` is a string, it specifies the file name to use.\n\n\n\nIf `stdout` is an expression, the expression is evaluated and must\n\nreturn a string with the file name to use to capture stdout.  If the\n\nreturn value is not a string, or the resulting path contains illegal\n\ncharacters (such as the path separator `/`) it is an error.",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "string",
+                    "enum": [
+                        "ExpressionPlaceholder"
+                    ]
+                }
+            ]
+        },
+        "successCodes": {
+            "description": "Exit codes that indicate the process completed successfully.",
             "type": "array",
             "items": {
-                "$ref": "#/definitions/ExpressionToolOutputParameter"
+                "type": "number"
             }
         },
-        "id": {
-            "description": "The unique identifier for this process object.",
-            "type": "string"
+        "temporaryFailCodes": {
+            "description": "Exit codes that indicate the process failed due to a possibly\n\ntemporary condition, where executing the process with the same\n\nruntime environment and inputs may produce different results.",
+            "type": "array",
+            "items": {
+                "type": "number"
+            }
+        },
+        "permanentFailCodes": {
+            "description": "Exit codes that indicate the process failed due to a permanent logic error, where executing the process with the same runtime environment and same inputs is expected to always fail.",
+            "type": "array",
+            "items": {
+                "type": "number"
+            }
         },
         "inputs": {
             "description": "Defines the input parameters of the process.  The process is ready to\n\nrun when all required input parameters are associated with concrete\n\nvalues.  Input parameters include a schema for each parameter which is\n\nused to validate the input object.  It may also be used to build a user\n\ninterface for constructing the input object.",
             "type": "array",
             "items": {
-                "$ref": "#/definitions/InputParameter"
+                "$ref": "#/definitions/CommandInputParameter"
             }
+        },
+        "outputs": {
+            "description": "Defines the parameters representing the output of the process.  May be\n\nused to generate and/or validate the output object.",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/CommandOutputParameter"
+            }
+        },
+        "id": {
+            "description": "The unique identifier for this process object.",
+            "type": "string"
         },
         "requirements": {
             "description": "Declares requirements that apply to either the runtime environment or the\n\nworkflow engine that must be met in order to execute this process.  If\n\nan implementation cannot satisfy all requirements, or a requirement is\n\nlisted which is not recognized by the implementation, it is a fatal\n\nerror and the implementation must not attempt to run the process,\n\nunless overridden at user option.",
@@ -53,23 +136,67 @@
             "description": "A short, human-readable label of this process object.",
             "type": "string"
         },
-        "description": {
+        "doc": {
             "description": "A long, human-readable description of this process object.",
             "type": "string"
         },
         "cwlVersion": {
-            "$ref": "#/definitions/CWLVersions",
-            "description": "CWL document version"
+            "$ref": "#/definitions/CWLVersion",
+            "description": "CWL document version. Always required at the document root. Not\n\nrequired for a Process embedded inside another Process."
         }
     },
     "required": [
         "class",
-        "expression",
-        "outputs",
-        "inputs"
+        "inputs",
+        "outputs"
     ],
     "definitions": {
-        "ExpressionToolOutputParameter": {
+        "CommandLineBinding": {
+            "description": "When listed under `inputBinding` in the input schema, the term\n\n\"value\" refers to the the corresponding value in the input object.  For\n\nbinding objects listed in `CommandLineTool.arguments`, the term \"value\"\n\nrefers to the effective value after evaluating `valueFrom`.\n\n\n\nThe binding behavior when building the command line depends on the data\n\ntype of the value.  If there is a mismatch between the type described by\n\nthe input schema and the effective value, such as resulting from an\n\nexpression evaluation, an implementation must use the data type of the\n\neffective value.\n\n\n\n- **string**: Add `prefix` and the string to the command line.\n\n\n\n- **number**: Add `prefix` and decimal representation to command line.\n\n\n\n- **boolean**: If true, add `prefix` to the command line.  If false, add\n\nnothing.\n\n\n\n- **File**: Add `prefix` and the value of\n\n[`File.path`](#File) to the command line.\n\n\n\n- **array**: If `itemSeparator` is specified, add `prefix` and the join\n\nthe array into a single string with `itemSeparator` separating the\n\nitems.  Otherwise first add `prefix`, then recursively process\n\nindividual elements.\n\n\n\n- **object**: Add `prefix` only, and recursively add object fields for\n\nwhich `inputBinding` is specified.\n\n\n\n- **null**: Add nothing.",
+            "type": "object",
+            "properties": {
+                "position": {
+                    "description": "The sorting key.  Default position is 0.",
+                    "type": "number"
+                },
+                "prefix": {
+                    "description": "Command line prefix to add before the value.",
+                    "type": "string"
+                },
+                "separate": {
+                    "description": "If true (default), then the prefix and value must be added as separate\n\ncommand line arguments; if false, prefix and value must be concatenated\n\ninto a single command line argument.",
+                    "type": "boolean"
+                },
+                "itemSeparator": {
+                    "description": "Join the array elements into a single string with the elements\n\nseparated by by `itemSeparator`.",
+                    "type": "string"
+                },
+                "valueFrom": {
+                    "description": "If `valueFrom` is a constant string value, use this as the value and\n\napply the binding rules above.\n\n\n\nIf `valueFrom` is an expression, evaluate the expression to yield the\n\nactual value to use to build the command line and apply the binding\n\nrules above.  If the inputBinding is associated with an input\n\nparameter, the value of `self` in the expression will be the value of the\n\ninput parameter.\n\n\n\nWhen a binding is part of the `CommandLineTool.arguments` field,\n\nthe `valueFrom` field is required.",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "ExpressionPlaceholder"
+                            ]
+                        }
+                    ]
+                },
+                "shellQuote": {
+                    "description": "If `ShellCommandRequirement` is in the requirements for the current command,\n\nthis controls whether the value is quoted on the command line (default is true).\n\nUse `shellQuote: false` to inject metacharacters for operations such as pipes.",
+                    "type": "boolean"
+                },
+                "loadContents": {
+                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nRead up to the first 64 KiB of text from the file and place it in the\n\n\"contents\" field of the file object for use by expressions.",
+                    "type": "boolean"
+                }
+            }
+        },
+        "CommandInputParameter": {
+            "description": "An input parameter for a CommandLineTool.",
             "type": "object",
             "properties": {
                 "type": {
@@ -79,6 +206,12 @@
                             "type": "string",
                             "enum": [
                                 "File"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Directory"
                             ]
                         },
                         {
@@ -124,13 +257,13 @@
                             ]
                         },
                         {
-                            "$ref": "#/definitions/RecordSchema"
+                            "$ref": "#/definitions/CommandInputRecordSchema"
                         },
                         {
-                            "$ref": "#/definitions/EnumSchema"
+                            "$ref": "#/definitions/CommandInputEnumSchema"
                         },
                         {
-                            "$ref": "#/definitions/ArraySchema"
+                            "$ref": "#/definitions/CommandInputArraySchema"
                         },
                         {
                             "type": "string"
@@ -143,6 +276,12 @@
                                         "type": "string",
                                         "enum": [
                                             "File"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "Directory"
                                         ]
                                     },
                                     {
@@ -188,13 +327,13 @@
                                         ]
                                     },
                                     {
-                                        "$ref": "#/definitions/RecordSchema"
+                                        "$ref": "#/definitions/CommandInputRecordSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/EnumSchema"
+                                        "$ref": "#/definitions/CommandInputEnumSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/ArraySchema"
+                                        "$ref": "#/definitions/CommandInputArraySchema"
                                     },
                                     {
                                         "type": "string"
@@ -204,21 +343,16 @@
                         }
                     ]
                 },
+                "inputBinding": {
+                    "$ref": "#/definitions/CommandLineBinding",
+                    "description": "Describes how to handle the inputs of a process and convert them\n\ninto a concrete form for execution, such as command line parameters."
+                },
                 "id": {
                     "description": "The unique identifier for this parameter object.",
                     "type": "string"
                 },
-                "outputBinding": {
-                    "$ref": "#/definitions/OutputBinding",
-                    "description": "Describes how to handle the outputs of a process."
-                },
-                "label": {
-                    "description": "A short, human-readable label of this parameter object.",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "A long, human-readable description of this parameter object.",
-                    "type": "string"
+                "default": {
+                    "description": "The default value for this parameter if not provided in the input\n\nobject."
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
@@ -251,7 +385,7 @@
                     ]
                 },
                 "format": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
+                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more IRIs of concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
                     "anyOf": [
                         {
                             "type": "string"
@@ -273,15 +407,40 @@
                 "streamable": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
                     "type": "boolean"
+                },
+                "doc": {
+                    "description": "A documentation string for this type, or an array of strings which should be concatenated.",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
                 "id"
             ]
         },
-        "RecordSchema": {
+        "CommandInputRecordSchema": {
             "type": "object",
             "properties": {
+                "fields": {
+                    "description": "Defines the fields of the record.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CommandInputRecordField"
+                    }
+                },
                 "type": {
                     "description": "Must be `record`",
                     "type": "string",
@@ -289,33 +448,36 @@
                         "record"
                     ]
                 },
-                "fields": {
-                    "description": "Defines the fields of the record.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/RecordField"
-                    }
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
                 "type"
             ]
         },
-        "RecordField": {
-            "description": "A field of a record.",
+        "CommandInputRecordField": {
             "type": "object",
             "properties": {
-                "name": {
-                    "description": "The name of the field",
-                    "type": "string"
-                },
-                "doc": {
-                    "description": "A documentation string for this field",
-                    "type": "string"
+                "inputBinding": {
+                    "$ref": "#/definitions/CommandLineBinding"
                 },
                 "type": {
                     "description": "The field type",
                     "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "File"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Directory"
+                            ]
+                        },
                         {
                             "type": "string",
                             "enum": [
@@ -359,13 +521,13 @@
                             ]
                         },
                         {
-                            "$ref": "#/definitions/RecordSchema"
+                            "$ref": "#/definitions/CommandInputRecordSchema"
                         },
                         {
-                            "$ref": "#/definitions/EnumSchema"
+                            "$ref": "#/definitions/CommandInputEnumSchema"
                         },
                         {
-                            "$ref": "#/definitions/ArraySchema"
+                            "$ref": "#/definitions/CommandInputArraySchema"
                         },
                         {
                             "type": "string"
@@ -374,6 +536,18 @@
                             "type": "array",
                             "items": {
                                 "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "File"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "Directory"
+                                        ]
+                                    },
                                     {
                                         "type": "string",
                                         "enum": [
@@ -417,13 +591,13 @@
                                         ]
                                     },
                                     {
-                                        "$ref": "#/definitions/RecordSchema"
+                                        "$ref": "#/definitions/CommandInputRecordSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/EnumSchema"
+                                        "$ref": "#/definitions/CommandInputEnumSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/ArraySchema"
+                                        "$ref": "#/definitions/CommandInputArraySchema"
                                     },
                                     {
                                         "type": "string"
@@ -432,17 +606,31 @@
                             }
                         }
                     ]
+                },
+                "label": {
+                    "description": "A short, human-readable label of this process object.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The name of the field",
+                    "type": "string"
+                },
+                "doc": {
+                    "description": "A documentation string for this field",
+                    "type": "string"
                 }
             },
             "required": [
-                "name",
-                "type"
+                "type",
+                "name"
             ]
         },
-        "EnumSchema": {
-            "description": "Define an enumerated type.",
+        "CommandInputEnumSchema": {
             "type": "object",
             "properties": {
+                "inputBinding": {
+                    "$ref": "#/definitions/CommandLineBinding"
+                },
                 "type": {
                     "description": "Must be `enum`",
                     "type": "string",
@@ -456,6 +644,10 @@
                     "items": {
                         "type": "string"
                     }
+                },
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -463,162 +655,14 @@
                 "symbols"
             ]
         },
-        "ArraySchema": {
+        "CommandInputArraySchema": {
             "type": "object",
             "properties": {
-                "type": {
-                    "description": "Must be `array`",
-                    "type": "string",
-                    "enum": [
-                        "array"
-                    ]
+                "inputBinding": {
+                    "$ref": "#/definitions/CommandLineBinding"
                 },
                 "items": {
                     "description": "Defines the type of the array elements.",
-                    "anyOf": [
-                        {
-                            "type": "string",
-                            "enum": [
-                                "null"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "boolean"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "int"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "long"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "float"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "double"
-                            ]
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "string"
-                            ]
-                        },
-                        {
-                            "$ref": "#/definitions/RecordSchema"
-                        },
-                        {
-                            "$ref": "#/definitions/EnumSchema"
-                        },
-                        {
-                            "$ref": "#/definitions/ArraySchema"
-                        },
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "null"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "boolean"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "int"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "long"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "float"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "double"
-                                        ]
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "string"
-                                        ]
-                                    },
-                                    {
-                                        "$ref": "#/definitions/RecordSchema"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/EnumSchema"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/ArraySchema"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            },
-            "required": [
-                "type",
-                "items"
-            ]
-        },
-        "OutputBinding": {
-            "type": "object",
-            "properties": {}
-        },
-        "InputParameter": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "The unique identifier for this parameter object.",
-                    "type": "string"
-                },
-                "inputBinding": {
-                    "$ref": "#/definitions/InputBinding",
-                    "description": "Describes how to handle the inputs of a process and convert them\n\ninto a concrete form for execution, such as command line parameters."
-                },
-                "default": {
-                    "description": "The default value for this parameter if not provided in the input\n\nobject."
-                },
-                "type": {
-                    "description": "Specify valid types of data that may be assigned to this parameter.",
                     "anyOf": [
                         {
                             "type": "string",
@@ -629,6 +673,12 @@
                         {
                             "type": "string",
                             "enum": [
+                                "Directory"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
                                 "null"
                             ]
                         },
@@ -669,13 +719,13 @@
                             ]
                         },
                         {
-                            "$ref": "#/definitions/InputRecordSchema"
+                            "$ref": "#/definitions/CommandInputRecordSchema"
                         },
                         {
-                            "$ref": "#/definitions/InputEnumSchema"
+                            "$ref": "#/definitions/CommandInputEnumSchema"
                         },
                         {
-                            "$ref": "#/definitions/InputArraySchema"
+                            "$ref": "#/definitions/CommandInputArraySchema"
                         },
                         {
                             "type": "string"
@@ -693,6 +743,12 @@
                                     {
                                         "type": "string",
                                         "enum": [
+                                            "Directory"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
                                             "null"
                                         ]
                                     },
@@ -733,13 +789,13 @@
                                         ]
                                     },
                                     {
-                                        "$ref": "#/definitions/InputRecordSchema"
+                                        "$ref": "#/definitions/CommandInputRecordSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/InputEnumSchema"
+                                        "$ref": "#/definitions/CommandInputEnumSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/InputArraySchema"
+                                        "$ref": "#/definitions/CommandInputArraySchema"
                                     },
                                     {
                                         "type": "string"
@@ -747,169 +803,44 @@
                                 ]
                             }
                         }
+                    ]
+                },
+                "type": {
+                    "description": "Must be `array`",
+                    "type": "string",
+                    "enum": [
+                        "array"
                     ]
                 },
                 "label": {
-                    "description": "A short, human-readable label of this parameter object.",
+                    "description": "A short, human-readable label of this object.",
                     "type": "string"
-                },
-                "description": {
-                    "description": "A long, human-readable description of this parameter object.",
-                    "type": "string"
-                },
-                "secondaryFiles": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "ExpressionPlaceholder"
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "format": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        }
-                    ]
-                },
-                "streamable": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
-                    "type": "boolean"
                 }
             },
             "required": [
-                "id"
-            ]
-        },
-        "InputBinding": {
-            "type": "object",
-            "properties": {
-                "loadContents": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nRead up to the first 64 KiB of text from the file and place it in the\n\n\"contents\" field of the file object for use by expressions.",
-                    "type": "boolean"
-                }
-            }
-        },
-        "InputRecordSchema": {
-            "type": "object",
-            "properties": {
-                "fields": {
-                    "description": "Defines the fields of the record.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/InputRecordField"
-                    }
-                },
-                "type": {
-                    "description": "Must be `record`",
-                    "type": "string",
-                    "enum": [
-                        "record"
-                    ]
-                },
-                "secondaryFiles": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "ExpressionPlaceholder"
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "format": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        }
-                    ]
-                },
-                "streamable": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
-                    "type": "boolean"
-                }
-            },
-            "required": [
+                "items",
                 "type"
             ]
         },
-        "InputRecordField": {
+        "CommandOutputParameter": {
+            "description": "An output parameter for a CommandLineTool.",
             "type": "object",
             "properties": {
-                "inputBinding": {
-                    "$ref": "#/definitions/InputBinding"
-                },
                 "type": {
-                    "description": "The field type",
+                    "description": "Specify valid types of data that may be assigned to this parameter.",
                     "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "File"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Directory"
+                            ]
+                        },
                         {
                             "type": "string",
                             "enum": [
@@ -953,13 +884,25 @@
                             ]
                         },
                         {
-                            "$ref": "#/definitions/InputRecordSchema"
+                            "type": "string",
+                            "enum": [
+                                "stdout"
+                            ]
                         },
                         {
-                            "$ref": "#/definitions/InputEnumSchema"
+                            "type": "string",
+                            "enum": [
+                                "stderr"
+                            ]
                         },
                         {
-                            "$ref": "#/definitions/InputArraySchema"
+                            "$ref": "#/definitions/CommandOutputRecordSchema"
+                        },
+                        {
+                            "$ref": "#/definitions/CommandOutputEnumSchema"
+                        },
+                        {
+                            "$ref": "#/definitions/CommandOutputArraySchema"
                         },
                         {
                             "type": "string"
@@ -968,6 +911,18 @@
                             "type": "array",
                             "items": {
                                 "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "File"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "Directory"
+                                        ]
+                                    },
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1011,13 +966,274 @@
                                         ]
                                     },
                                     {
-                                        "$ref": "#/definitions/InputRecordSchema"
+                                        "$ref": "#/definitions/CommandOutputRecordSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/InputEnumSchema"
+                                        "$ref": "#/definitions/CommandOutputEnumSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/InputArraySchema"
+                                        "$ref": "#/definitions/CommandOutputArraySchema"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "outputBinding": {
+                    "$ref": "#/definitions/CommandOutputBinding",
+                    "description": "Describes how to handle the outputs of a process."
+                },
+                "id": {
+                    "description": "The unique identifier for this parameter object.",
+                    "type": "string"
+                },
+                "secondaryFiles": {
+                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "ExpressionPlaceholder"
+                            ]
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "ExpressionPlaceholder"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "format": {
+                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more IRIs of concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "ExpressionPlaceholder"
+                            ]
+                        }
+                    ]
+                },
+                "streamable": {
+                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
+                    "type": "boolean"
+                },
+                "doc": {
+                    "description": "A documentation string for this type, or an array of strings which should be concatenated.",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id"
+            ]
+        },
+        "CommandOutputRecordSchema": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "description": "Defines the fields of the record.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CommandOutputRecordField"
+                    }
+                },
+                "type": {
+                    "description": "Must be `record`",
+                    "type": "string",
+                    "enum": [
+                        "record"
+                    ]
+                },
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "CommandOutputRecordField": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/CommandOutputBinding"
+                },
+                "type": {
+                    "description": "The field type",
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "File"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Directory"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "null"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "boolean"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "int"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "long"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "float"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "double"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "string"
+                            ]
+                        },
+                        {
+                            "$ref": "#/definitions/CommandOutputRecordSchema"
+                        },
+                        {
+                            "$ref": "#/definitions/CommandOutputEnumSchema"
+                        },
+                        {
+                            "$ref": "#/definitions/CommandOutputArraySchema"
+                        },
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "File"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "Directory"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "null"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "boolean"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "int"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "long"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "float"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "double"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "string"
+                                        ]
+                                    },
+                                    {
+                                        "$ref": "#/definitions/CommandOutputRecordSchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/CommandOutputEnumSchema"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/CommandOutputArraySchema"
                                     },
                                     {
                                         "type": "string"
@@ -1041,11 +1257,54 @@
                 "name"
             ]
         },
-        "InputEnumSchema": {
+        "CommandOutputBinding": {
             "type": "object",
             "properties": {
-                "inputBinding": {
-                    "$ref": "#/definitions/InputBinding"
+                "glob": {
+                    "description": "Find files relative to the output directory, using POSIX glob(3)\n\npathname matching.  If an array is provided, find files that match any\n\npattern in the array.  If an expression is provided, the expression must\n\nreturn a string or an array of strings, which will then be evaluated as\n\none or more glob patterns.  Must only match and return files which\n\nactually exist.",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "ExpressionPlaceholder"
+                            ]
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "loadContents": {
+                    "description": "For each file matched in `glob`, read up to\n\nthe first 64 KiB of text from the file and place it in the `contents`\n\nfield of the file object for manipulation by `outputEval`.",
+                    "type": "boolean"
+                },
+                "outputEval": {
+                    "description": "Evaluate an expression to generate the output value.  If `glob` was\n\nspecified, the value of `self` must be an array containing file objects\n\nthat were matched.  If no files were matched, `self` must be a zero\n\nlength array; if a single file was matched, the value of `self` is an\n\narray of a single element.  Additionally, if `loadContents` is `true`,\n\nthe File objects must include up to the first 64 KiB of file contents\n\nin the `contents` field.",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "ExpressionPlaceholder"
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "CommandOutputEnumSchema": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/CommandOutputBinding"
                 },
                 "type": {
                     "description": "Must be `enum`",
@@ -1061,59 +1320,9 @@
                         "type": "string"
                     }
                 },
-                "secondaryFiles": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "ExpressionPlaceholder"
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "format": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        }
-                    ]
-                },
-                "streamable": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
-                    "type": "boolean"
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1121,15 +1330,27 @@
                 "symbols"
             ]
         },
-        "InputArraySchema": {
+        "CommandOutputArraySchema": {
             "type": "object",
             "properties": {
-                "inputBinding": {
-                    "$ref": "#/definitions/InputBinding"
+                "outputBinding": {
+                    "$ref": "#/definitions/CommandOutputBinding"
                 },
                 "items": {
                     "description": "Defines the type of the array elements.",
                     "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "File"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Directory"
+                            ]
+                        },
                         {
                             "type": "string",
                             "enum": [
@@ -1173,13 +1394,13 @@
                             ]
                         },
                         {
-                            "$ref": "#/definitions/InputRecordSchema"
+                            "$ref": "#/definitions/CommandOutputRecordSchema"
                         },
                         {
-                            "$ref": "#/definitions/InputEnumSchema"
+                            "$ref": "#/definitions/CommandOutputEnumSchema"
                         },
                         {
-                            "$ref": "#/definitions/InputArraySchema"
+                            "$ref": "#/definitions/CommandOutputArraySchema"
                         },
                         {
                             "type": "string"
@@ -1188,6 +1409,18 @@
                             "type": "array",
                             "items": {
                                 "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "File"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "Directory"
+                                        ]
+                                    },
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1231,13 +1464,13 @@
                                         ]
                                     },
                                     {
-                                        "$ref": "#/definitions/InputRecordSchema"
+                                        "$ref": "#/definitions/CommandOutputRecordSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/InputEnumSchema"
+                                        "$ref": "#/definitions/CommandOutputEnumSchema"
                                     },
                                     {
-                                        "$ref": "#/definitions/InputArraySchema"
+                                        "$ref": "#/definitions/CommandOutputArraySchema"
                                     },
                                     {
                                         "type": "string"
@@ -1254,59 +1487,9 @@
                         "array"
                     ]
                 },
-                "secondaryFiles": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "ExpressionPlaceholder"
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "format": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        }
-                    ]
-                },
-                "streamable": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
-                    "type": "boolean"
+                "label": {
+                    "description": "A short, human-readable label of this object.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1317,17 +1500,9 @@
         "ProcessRequirement": {
             "description": "A process requirement declares a prerequisite that may or must be fulfilled\n\nbefore executing a process.  See [`Process.hints`](#process) and\n\n[`Process.requirements`](#process).\n\n\n\nProcess requirements are the primary mechanism for specifying extensions to\n\nthe CWL core specification.",
             "type": "object",
-            "properties": {
-                "class": {
-                    "description": "The specific requirement type.",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "class"
-            ]
+            "properties": {}
         },
-        "CWLVersions": {
+        "CWLVersion": {
             "type": "string",
             "enum": [
                 "draft-2",
@@ -1339,6 +1514,8 @@
                 "draft-3",
                 "draft-4.dev1",
                 "draft-4.dev2",
+                "draft-4.dev3",
+                "v1.0.dev4",
                 "v1.0"
             ]
         }

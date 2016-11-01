@@ -1,8 +1,6 @@
-import {CommandLineInjectable} from "../interfaces/CommandLineInjectable";
-import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
-import {CommandLinePart} from "../helpers/CommandLinePart";
-import {Expression} from "../../mappings/draft-4/Expression";
-import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
+import {CommandLineInjectable} from "../interfaces";
+import {CommandLineBinding, Expression} from "../../mappings/v1.0";
+import {CommandLinePart, ExpressionEvaluator} from "../helpers";
 
 export class CommandArgumentModel implements CommandLineBinding, CommandLineInjectable {
     private value: string;

@@ -1,11 +1,13 @@
-import {CommandOutputParameter} from "../../mappings/draft-4/CommandOutputParameter";
-import {Identifiable} from "../interfaces/Identifiable";
-import {CWLType} from "../../mappings/draft-4/CWLType";
-import {RecordSchema} from "../../mappings/draft-4/RecordSchema";
-import {EnumSchema} from "../../mappings/draft-4/EnumSchema";
-import {ArraySchema} from "../../mappings/draft-4/ArraySchema";
-import {CommandOutputBinding} from "../../mappings/draft-4/CommandOutputBinding";
-import {Expression} from "../../mappings/draft-4/Expression";
+import {
+    CommandOutputParameter,
+    CWLType,
+    RecordSchema,
+    EnumSchema,
+    ArraySchema,
+    CommandOutputBinding,
+    Expression
+} from "../../mappings/v1.0";
+import {Identifiable} from "../interfaces";
 
 export class CommandOutputParameterModel implements CommandOutputParameter, Identifiable {
     type: CWLType|RecordSchema|EnumSchema|ArraySchema|string|Array<CWLType|RecordSchema|EnumSchema|ArraySchema|string>;

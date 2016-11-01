@@ -1,6 +1,5 @@
-import {CommandInputParameterModel} from "../v1/CommandInputParameterModel";
-import {CommandLineToolModel} from "../v1/CommandLineToolModel";
-import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
+import {CommandInputParameterModel} from "../v1.0";
+import {CommandLineRunnable} from "../interfaces";
 
 export class JobHelper {
 

@@ -1,6 +1,6 @@
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {expect} from "chai";
-import {CommandLinePart} from "../helpers/CommandLinePart";
+import {CommandLinePart} from "../helpers";
 
 describe("CommandInputParameterModel v1", () => {
     describe("constructor", () => {
@@ -205,7 +205,7 @@ describe("CommandInputParameterModel v1", () => {
                 id: "test1",
                 inputBinding: {prefix: '-o'}
             });
-            let part  = input.getCommandPart({}, {path: "path/to/file", class: "File"});
+            let part  = input.getCommandPart({}, {path: "path/to/file", "class": "File"});
             expect(part).to.have.property("value");
             expect((<CommandLinePart> part).value).to.equal("-o path/to/file");
         });
