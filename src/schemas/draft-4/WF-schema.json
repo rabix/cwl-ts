@@ -9,16 +9,14 @@
             "description": "The individual steps that make up the workflow.  Each step is executed when all of its\n\ninput data links are fufilled.  An implementation may choose to execute\n\nthe steps in a different order than listed and/or execute steps\n\nconcurrently, provided that dependencies between steps are met.",
             "type": "array",
             "items": {
-                "$ref": "#/definitions/WorkflowStep",
-                "description": "A workflow step is an executable element of a workflow.  It specifies the\n\nunderlying process implementation (such as `CommandLineTool`) in the `run`\n\nfield and connects the input and output parameters of the underlying\n\nprocess to workflow parameters.\n\n\n\n# Scatter/gather\n\n\n\nTo use scatter/gather,\n\n[ScatterFeatureRequirement](#ScatterFeatureRequirement) must be specified\n\nin the workflow or workflow step requirements.\n\n\n\nA \"scatter\" operation specifies that the associated workflow step or\n\nsubworkflow should execute separately over a list of input elements.  Each\n\njob making up a scatter operation is independent and may be executed\n\nconcurrently.\n\n\n\nThe `scatter` field specifies one or more input parameters which will be\n\nscattered.  An input parameter may be listed more than once.  The declared\n\ntype of each input parameter is implicitly wrapped in an array for each\n\ntime it appears in the `scatter` field.  As a result, upstream parameters\n\nwhich are connected to scattered parameters may be arrays.\n\n\n\nAll output parameter types are also implicitly wrapped in arrays.  Each job\n\nin the scatter results in an entry in the output array.\n\n\n\nIf `scatter` declares more than one input parameter, `scatterMethod`\n\ndescribes how to decompose the input into a discrete set of jobs.\n\n\n\n* **dotproduct** specifies that each of the input arrays are aligned and one\n\nelement taken from each array to construct each job.  It is an error\n\nif all input arrays are not the same length.\n\n\n\n* **nested_crossproduct** specifies the Cartesian product of the inputs,\n\nproducing a job for every combination of the scattered inputs.  The\n\noutput must be nested arrays for each level of scattering, in the\n\norder that the input arrays are listed in the `scatter` field.\n\n\n\n* **flat_crossproduct** specifies the Cartesian product of the inputs,\n\nproducing a job for every combination of the scattered inputs.  The\n\noutput arrays must be flattened to a single level, but otherwise listed in the\n\norder that the input arrays are listed in the `scatter` field.\n\n\n\n# Subworkflows\n\n\n\nTo specify a nested workflow as part of a workflow step,\n\n[SubworkflowFeatureRequirement](#SubworkflowFeatureRequirement) must be\n\nspecified in the workflow or workflow step requirements."
+                "$ref": "#/definitions/WorkflowStep"
             }
         },
         "outputs": {
             "description": "Defines the parameters representing the output of the process.  May be\n\nused to generate and/or validate the output object.",
             "type": "array",
             "items": {
-                "$ref": "#/definitions/WorkflowOutputParameter",
-                "description": "Describe an output parameter of a workflow.  The parameter must be\n\nconnected to one or more parameters defined in the workflow that will\n\nprovide the value of the output parameter."
+                "$ref": "#/definitions/WorkflowOutputParameter"
             }
         },
         "id": {
@@ -36,8 +34,7 @@
             "description": "Declares requirements that apply to either the runtime environment or the\n\nworkflow engine that must be met in order to execute this process.  If\n\nan implementation cannot satisfy all requirements, or a requirement is\n\nlisted which is not recognized by the implementation, it is a fatal\n\nerror and the implementation must not attempt to run the process,\n\nunless overridden at user option.",
             "type": "array",
             "items": {
-                "$ref": "#/definitions/ProcessRequirement",
-                "description": "A process requirement declares a prerequisite that may or must be fulfilled\n\nbefore executing a process.  See [`Process.hints`](#process) and\n\n[`Process.requirements`](#process).\n\n\n\nProcess requirements are the primary mechanism for specifying extensions to\n\nthe CWL core specification."
+                "$ref": "#/definitions/ProcessRequirement"
             }
         },
         "hints": {
@@ -66,6 +63,7 @@
     ],
     "definitions": {
         "WorkflowStep": {
+            "description": "A workflow step is an executable element of a workflow.  It specifies the\n\nunderlying process implementation (such as `CommandLineTool`) in the `run`\n\nfield and connects the input and output parameters of the underlying\n\nprocess to workflow parameters.\n\n\n\n# Scatter/gather\n\n\n\nTo use scatter/gather,\n\n[ScatterFeatureRequirement](#ScatterFeatureRequirement) must be specified\n\nin the workflow or workflow step requirements.\n\n\n\nA \"scatter\" operation specifies that the associated workflow step or\n\nsubworkflow should execute separately over a list of input elements.  Each\n\njob making up a scatter operation is independent and may be executed\n\nconcurrently.\n\n\n\nThe `scatter` field specifies one or more input parameters which will be\n\nscattered.  An input parameter may be listed more than once.  The declared\n\ntype of each input parameter is implicitly wrapped in an array for each\n\ntime it appears in the `scatter` field.  As a result, upstream parameters\n\nwhich are connected to scattered parameters may be arrays.\n\n\n\nAll output parameter types are also implicitly wrapped in arrays.  Each job\n\nin the scatter results in an entry in the output array.\n\n\n\nIf `scatter` declares more than one input parameter, `scatterMethod`\n\ndescribes how to decompose the input into a discrete set of jobs.\n\n\n\n* **dotproduct** specifies that each of the input arrays are aligned and one\n\nelement taken from each array to construct each job.  It is an error\n\nif all input arrays are not the same length.\n\n\n\n* **nested_crossproduct** specifies the Cartesian product of the inputs,\n\nproducing a job for every combination of the scattered inputs.  The\n\noutput must be nested arrays for each level of scattering, in the\n\norder that the input arrays are listed in the `scatter` field.\n\n\n\n* **flat_crossproduct** specifies the Cartesian product of the inputs,\n\nproducing a job for every combination of the scattered inputs.  The\n\noutput arrays must be flattened to a single level, but otherwise listed in the\n\norder that the input arrays are listed in the `scatter` field.\n\n\n\n# Subworkflows\n\n\n\nTo specify a nested workflow as part of a workflow step,\n\n[SubworkflowFeatureRequirement](#SubworkflowFeatureRequirement) must be\n\nspecified in the workflow or workflow step requirements.",
             "type": "object",
             "properties": {
                 "id": {
@@ -76,21 +74,19 @@
                     "description": "Defines the input parameters of the workflow step.  The process is ready to\n\nrun when all required input parameters are associated with concrete\n\nvalues.  Input parameters include a schema for each parameter which is\n\nused to validate the input object.  It may also be used build a user\n\ninterface for constructing the input object.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/WorkflowStepInput",
-                        "description": "The input of a workflow step connects an upstream parameter (from the\n\nworkflow inputs, or the outputs of other workflows steps) with the input\n\nparameters of the underlying process.\n\n\n\n## Input object\n\n\n\nA WorkflowStepInput object must contain an `id` field in the form\n\n`#fieldname` or `#stepname.fieldname`.  When the `id` field contains a\n\nperiod `.` the field name consists of the characters following the final\n\nperiod.  This defines a field of the workflow step input object with the\n\nvalue of the `source` parameter(s).\n\n\n\n## Merging\n\n\n\nTo merge multiple inbound data links,\n\n[MultipleInputFeatureRequirement](#MultipleInputFeatureRequirement) must be specified\n\nin the workflow or workflow step requirements.\n\n\n\nIf the sink parameter is an array, or named in a [workflow\n\nscatter](#WorkflowStep) operation, there may be multiple inbound data links\n\nlisted in the `source` field.  The values from the input links are merged\n\ndepending on the method specified in the `linkMerge` field.  If not\n\nspecified, the default method is \"merge_nested\".\n\n\n\n* **merge_nested**\n\n\n\nThe input must be an array consisting of exactly one entry for each\n\ninput link.  If \"merge_nested\" is specified with a single link, the value\n\nfrom the link must be wrapped in a single-item list.\n\n\n\n* **merge_flattened**\n\n\n\n1. The source and sink parameters must be compatible types, or the source\n\ntype must be compatible with single element from the \"items\" type of\n\nthe destination array parameter.\n\n2. Source parameters which are arrays are concatenated.\n\nSource parameters which are single element types are appended as\n\nsingle elements."
+                        "$ref": "#/definitions/WorkflowStepInput"
                     }
                 },
                 "out": {
                     "description": "Defines the parameters representing the output of the process.  May be\n\nused to generate and/or validate the output object.",
                     "type": "array",
                     "items": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "type": "string"
                             },
                             {
-                                "$ref": "#/definitions/WorkflowStepOutput",
-                                "description": "Associate an output parameter of the underlying process with a workflow\n\nparameter.  The workflow parameter (given in the `id` field) be may be used\n\nas a `source` to connect with input parameters of other workflow steps, or\n\nwith an output parameter of the process."
+                                "$ref": "#/definitions/WorkflowStepOutput"
                             }
                         ]
                     }
@@ -99,8 +95,7 @@
                     "description": "Declares requirements that apply to either the runtime environment or the\n\nworkflow engine that must be met in order to execute this workflow step.  If\n\nan implementation cannot satisfy all requirements, or a requirement is\n\nlisted which is not recognized by the implementation, it is a fatal\n\nerror and the implementation must not attempt to run the process,\n\nunless overridden at user option.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ProcessRequirement",
-                        "description": "A process requirement declares a prerequisite that may or must be fulfilled\n\nbefore executing a process.  See [`Process.hints`](#process) and\n\n[`Process.requirements`](#process).\n\n\n\nProcess requirements are the primary mechanism for specifying extensions to\n\nthe CWL core specification."
+                        "$ref": "#/definitions/ProcessRequirement"
                     }
                 },
                 "hints": {
@@ -118,18 +113,17 @@
                 },
                 "run": {
                     "description": "Specifies the process to run.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
                         {
-                            "$ref": "#/definitions/Process",
-                            "description": "The base executable type in CWL is the `Process` object defined by the\n\ndocument.  Note that the `Process` object is abstract and cannot be\n\ndirectly executed."
+                            "$ref": "#/definitions/Process"
                         }
                     ]
                 },
                 "scatter": {
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -154,6 +148,7 @@
             ]
         },
         "WorkflowStepInput": {
+            "description": "The input of a workflow step connects an upstream parameter (from the\n\nworkflow inputs, or the outputs of other workflows steps) with the input\n\nparameters of the underlying process.\n\n\n\n## Input object\n\n\n\nA WorkflowStepInput object must contain an `id` field in the form\n\n`#fieldname` or `#stepname.fieldname`.  When the `id` field contains a\n\nperiod `.` the field name consists of the characters following the final\n\nperiod.  This defines a field of the workflow step input object with the\n\nvalue of the `source` parameter(s).\n\n\n\n## Merging\n\n\n\nTo merge multiple inbound data links,\n\n[MultipleInputFeatureRequirement](#MultipleInputFeatureRequirement) must be specified\n\nin the workflow or workflow step requirements.\n\n\n\nIf the sink parameter is an array, or named in a [workflow\n\nscatter](#WorkflowStep) operation, there may be multiple inbound data links\n\nlisted in the `source` field.  The values from the input links are merged\n\ndepending on the method specified in the `linkMerge` field.  If not\n\nspecified, the default method is \"merge_nested\".\n\n\n\n* **merge_nested**\n\n\n\nThe input must be an array consisting of exactly one entry for each\n\ninput link.  If \"merge_nested\" is specified with a single link, the value\n\nfrom the link must be wrapped in a single-item list.\n\n\n\n* **merge_flattened**\n\n\n\n1. The source and sink parameters must be compatible types, or the source\n\ntype must be compatible with single element from the \"items\" type of\n\nthe destination array parameter.\n\n2. Source parameters which are arrays are concatenated.\n\nSource parameters which are single element types are appended as\n\nsingle elements.",
             "type": "object",
             "properties": {
                 "id": {
@@ -165,7 +160,7 @@
                 },
                 "valueFrom": {
                     "description": "To use valueFrom, [StepInputExpressionRequirement](#StepInputExpressionRequirement) must\n\nbe specified in the workflow or workflow step requirements.\n\n\n\nIf `valueFrom` is a constant string value, use this as the value for\n\nthis input parameter.\n\n\n\nIf `valueFrom` is a parameter reference or expression, it must be\n\nevaluated to yield the actual value to be assiged to the input field.\n\n\n\nThe `self` value of in the parameter reference or expression must be\n\nthe value of the parameter(s) specified in the `source` field, or\n\nnull if there is no `source` field.\n\n\n\nThe value of `inputs` in the parameter reference or expression is the\n\ninput object to the workflow step after assigning the `source` values,\n\nbut before evaluating any step with `valueFrom`.  The order of\n\nevaluating `valueFrom` among step input parameters is undefined.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -179,7 +174,7 @@
                 },
                 "source": {
                     "description": "Specifies one or more workflow parameters that will provide input to\n\nthe underlying process parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -208,6 +203,7 @@
             ]
         },
         "WorkflowStepOutput": {
+            "description": "Associate an output parameter of the underlying process with a workflow\n\nparameter.  The workflow parameter (given in the `id` field) be may be used\n\nas a `source` to connect with input parameters of other workflow steps, or\n\nwith an output parameter of the process.",
             "type": "object",
             "properties": {
                 "id": {
@@ -220,6 +216,7 @@
             ]
         },
         "ProcessRequirement": {
+            "description": "A process requirement declares a prerequisite that may or must be fulfilled\n\nbefore executing a process.  See [`Process.hints`](#process) and\n\n[`Process.requirements`](#process).\n\n\n\nProcess requirements are the primary mechanism for specifying extensions to\n\nthe CWL core specification.",
             "type": "object",
             "properties": {
                 "class": {
@@ -232,6 +229,7 @@
             ]
         },
         "Process": {
+            "description": "The base executable type in CWL is the `Process` object defined by the\n\ndocument.  Note that the `Process` object is abstract and cannot be\n\ndirectly executed.",
             "type": "object",
             "properties": {
                 "id": {
@@ -256,8 +254,7 @@
                     "description": "Declares requirements that apply to either the runtime environment or the\n\nworkflow engine that must be met in order to execute this process.  If\n\nan implementation cannot satisfy all requirements, or a requirement is\n\nlisted which is not recognized by the implementation, it is a fatal\n\nerror and the implementation must not attempt to run the process,\n\nunless overridden at user option.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ProcessRequirement",
-                        "description": "A process requirement declares a prerequisite that may or must be fulfilled\n\nbefore executing a process.  See [`Process.hints`](#process) and\n\n[`Process.requirements`](#process).\n\n\n\nProcess requirements are the primary mechanism for specifying extensions to\n\nthe CWL core specification."
+                        "$ref": "#/definitions/ProcessRequirement"
                     }
                 },
                 "hints": {
@@ -299,7 +296,7 @@
                 },
                 "type": {
                     "description": "Specify valid types of data that may be assigned to this parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -363,7 +360,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -439,7 +436,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -452,7 +449,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -469,7 +466,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -524,7 +521,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -537,7 +534,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -554,7 +551,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -589,7 +586,7 @@
                 },
                 "type": {
                     "description": "The field type",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -647,7 +644,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -743,7 +740,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -756,7 +753,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -773,7 +770,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -809,7 +806,7 @@
                 },
                 "items": {
                     "description": "Defines the type of the array elements.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -867,7 +864,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -936,7 +933,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -949,7 +946,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -966,7 +963,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1015,7 +1012,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1028,7 +1025,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -1045,7 +1042,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1087,7 +1084,8 @@
                 "draft-3.dev5",
                 "draft-3",
                 "draft-4.dev1",
-                "draft-4.dev2"
+                "draft-4.dev2",
+                "v1.0"
             ]
         },
         "ScatterMethod": {
@@ -1099,11 +1097,12 @@
             ]
         },
         "WorkflowOutputParameter": {
+            "description": "Describe an output parameter of a workflow.  The parameter must be\n\nconnected to one or more parameters defined in the workflow that will\n\nprovide the value of the output parameter.",
             "type": "object",
             "properties": {
                 "outputSource": {
                     "description": "Specifies one or more workflow parameters that supply the value of to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1121,7 +1120,7 @@
                 },
                 "type": {
                     "description": "Specify valid types of data that may be assigned to this parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -1185,7 +1184,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1269,7 +1268,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1282,7 +1281,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -1299,7 +1298,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1345,7 +1344,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1358,7 +1357,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -1375,7 +1374,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1410,7 +1409,7 @@
                 },
                 "type": {
                     "description": "The field type",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -1468,7 +1467,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1564,7 +1563,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1577,7 +1576,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -1594,7 +1593,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1630,7 +1629,7 @@
                 },
                 "items": {
                     "description": "Defines the type of the array elements.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -1688,7 +1687,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1757,7 +1756,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1770,7 +1769,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -1787,7 +1786,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },

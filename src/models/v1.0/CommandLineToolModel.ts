@@ -1,13 +1,10 @@
-import {CommandLineTool} from "../../mappings/draft-4/CommandLineTool";
-import {ProcessRequirement} from "../../mappings/draft-4/ProcessRequirement";
-import {CWLVersions} from "../../mappings/draft-4/CWLVersions";
-import {Expression} from "../../mappings/draft-4/Expression";
+import {CommandLineTool, ProcessRequirement, CWLVersion, Expression} from "../../mappings/v1.0/";
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
-import {CommandLinePart} from "../helpers/CommandLinePart";
+import {CommandLinePart} from "../helpers";
 import {JobHelper} from "../helpers/JobHelper";
 import {CommandArgumentModel} from "./CommandArgumentModel";
-import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
+import {CommandLineRunnable} from "../interfaces";
 
 export class CommandLineToolModel implements CommandLineTool, CommandLineRunnable {
     constructor(json: any) {
@@ -51,7 +48,7 @@ export class CommandLineToolModel implements CommandLineTool, CommandLineRunnabl
     hints: Array<any>;
     label: string;
     description: string;
-    cwlVersion: CWLVersions;
+    cwlVersion: CWLVersion;
 
     'class': string = 'CommandLineTool';
     baseCommand: string|Array<string>;

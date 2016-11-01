@@ -7,7 +7,7 @@
         },
         "expression": {
             "description": "The expression to execute.  The expression must return a JSON object which\n\nmatches the output parameters of the ExpressionTool.",
-            "oneOf": [
+            "anyOf": [
                 {
                     "type": "string"
                 },
@@ -41,8 +41,7 @@
             "description": "Declares requirements that apply to either the runtime environment or the\n\nworkflow engine that must be met in order to execute this process.  If\n\nan implementation cannot satisfy all requirements, or a requirement is\n\nlisted which is not recognized by the implementation, it is a fatal\n\nerror and the implementation must not attempt to run the process,\n\nunless overridden at user option.",
             "type": "array",
             "items": {
-                "$ref": "#/definitions/ProcessRequirement",
-                "description": "A process requirement declares a prerequisite that may or must be fulfilled\n\nbefore executing a process.  See [`Process.hints`](#process) and\n\n[`Process.requirements`](#process).\n\n\n\nProcess requirements are the primary mechanism for specifying extensions to\n\nthe CWL core specification."
+                "$ref": "#/definitions/ProcessRequirement"
             }
         },
         "hints": {
@@ -86,7 +85,7 @@
                 },
                 "type": {
                     "description": "Specify valid types of data that may be assigned to this parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -150,7 +149,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -226,7 +225,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -239,7 +238,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -256,7 +255,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -311,7 +310,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -324,7 +323,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -341,7 +340,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -376,7 +375,7 @@
                 },
                 "type": {
                     "description": "The field type",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -434,7 +433,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -530,7 +529,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -543,7 +542,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -560,7 +559,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -596,7 +595,7 @@
                 },
                 "items": {
                     "description": "Defines the type of the array elements.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -654,7 +653,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -723,7 +722,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -736,7 +735,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -753,7 +752,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -794,7 +793,7 @@
                 },
                 "type": {
                     "description": "Specify valid types of data that may be assigned to this parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -858,7 +857,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -934,7 +933,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -947,7 +946,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -964,7 +963,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1014,7 +1013,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1027,7 +1026,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -1044,7 +1043,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1079,7 +1078,7 @@
                 },
                 "type": {
                     "description": "The field type",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -1137,7 +1136,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1233,7 +1232,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1246,7 +1245,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -1263,7 +1262,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1299,7 +1298,7 @@
                 },
                 "items": {
                     "description": "Defines the type of the array elements.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
                             "enum": [
@@ -1357,7 +1356,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string",
                                         "enum": [
@@ -1426,7 +1425,7 @@
                 },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1439,7 +1438,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "type": "string"
                                     },
@@ -1456,7 +1455,7 @@
                 },
                 "format": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more URIs of a concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string"
                         },
@@ -1485,6 +1484,7 @@
             ]
         },
         "ProcessRequirement": {
+            "description": "A process requirement declares a prerequisite that may or must be fulfilled\n\nbefore executing a process.  See [`Process.hints`](#process) and\n\n[`Process.requirements`](#process).\n\n\n\nProcess requirements are the primary mechanism for specifying extensions to\n\nthe CWL core specification.",
             "type": "object",
             "properties": {
                 "class": {
