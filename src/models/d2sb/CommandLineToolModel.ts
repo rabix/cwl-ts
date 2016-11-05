@@ -11,6 +11,7 @@ import {MSDSort} from "../helpers/MSDSort";
 import {ValidationError} from "../interfaces/ValidationError";
 import {Serializable} from "../interfaces/Serializable";
 import {Validatable} from "../interfaces/Validatable";
+import {ExpressionModel} from "./ExpressionModel";
 
 export class CommandLineToolModel implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
     job: any;
@@ -21,7 +22,7 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
     inputs: Array<CommandInputParameterModel>;
     outputs: Array<CommandOutputParameterModel>;
     readonly 'class': string;
-    baseCommand: Array<string | Expression>;
+    baseCommand: Array<ExpressionModel>;
 
     arguments: Array<CommandArgumentModel>;
 
@@ -37,41 +38,7 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
     constructor(attr?: CommandLineTool) {
         this.class = "CommandLineTool";
 
-        const serializedAttr = ["baseCommand", "class", "id"];
-        if (attr) {
-            this.id      = attr.id;
-            this.inputs  = attr.inputs.map(input => new CommandInputParameterModel(input));
-            this.outputs = attr.outputs.map(output => new CommandOutputParameterModel(output));
-
-            this.arguments = attr.arguments
-                ? attr.arguments.map(arg => new CommandArgumentModel(arg))
-                : [];
-
-            this.stdin  = attr.stdin || '';
-            this.stdout = attr.stdout || '';
-
-            this.successCodes       = attr.successCodes || [];
-            this.temporaryFailCodes = attr.temporaryFailCodes || [];
-            this.permanentFailCodes = attr.permanentFailCodes || [];
-            attr.baseCommand        = attr.baseCommand || [''];
-
-            this.baseCommand = !Array.isArray(attr.baseCommand)
-                ? [<string | Expression> attr.baseCommand]
-                : <Array<string | Expression>> attr.baseCommand;
-
-            this.job = attr['sbg:job']
-                ? attr['sbg:job']
-                : JobHelper.getJob(this);
-
-            this.jobInputs = this.job.inputs || this.job;
-
-            // populates object with all custom attributes not covered in model
-            Object.keys(attr).forEach(key => {
-                if (serializedAttr.indexOf(key) === -1) {
-                    this.customProps[key] = attr[key];
-                }
-            });
-        }
+        if (attr) this.deserialize(attr);
     }
 
     public addArgument(arg: CommandArgumentModel) {
@@ -142,12 +109,13 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
 
         MSDSort.sort(concat);
 
-        const baseCmdParts = (<Array<string | Expression>> this.baseCommand)
+        const baseCmdParts = (this.baseCommand)
             .map((baseCmd) => {
-                if (typeof baseCmd === 'string') {
-                    return new CommandLinePart(baseCmd, 0, "baseCommand");
+                const cmd = baseCmd.serialize();
+                if (typeof cmd === 'string') {
+                    return new CommandLinePart(cmd, 0, "baseCommand");
                 } else {
-                    const val = ExpressionEvaluator.evaluateD2(baseCmd, this.job);
+                    const val = ExpressionEvaluator.evaluateD2(cmd, this.job);
                     return new CommandLinePart(val, 0, "baseCommand");
                 }
             });
@@ -168,13 +136,13 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
         let errors: ValidationError[] = [];
 
         // check base command
-        if (this.baseCommand === [] || this.baseCommand === ['']) {
-            errors.push({
-                type: "Error",
-                location: "baseCommand",
-                message: "Missing required property baseCommand"
-            });
-        }
+        // if (this.baseCommand === [] || this.baseCommand === ['']) {
+        //     errors.push({
+        //         type: "Error",
+        //         location: "baseCommand",
+        //         message: "Missing required property baseCommand"
+        //     });
+        // }
 
         // check if all inputs are valid
         errors.concat(this.inputs
@@ -200,21 +168,51 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
         }
 
         base.class       = "CommandLineTool";
-        base.baseCommand = this.baseCommand;
+        base.baseCommand = this.baseCommand.map(cmd => cmd.serialize());
 
         base = Object.assign({}, base, this.customProps);
 
         return base;
     }
 
-    deserialize(CommandLineTool): void {
+    deserialize(attr: CommandLineTool): void {
+        const serializedAttr = ["baseCommand", "class", "id"];
 
-        const keys = [
-            "class",
-            "id",
-            "baseCommand",
-            "inputs",
-            "ouptuts"
-        ];
+        this.id      = attr.id;
+        this.inputs  = attr.inputs.map(input => new CommandInputParameterModel(input));
+        this.outputs = attr.outputs.map(output => new CommandOutputParameterModel(output));
+
+        this.arguments = attr.arguments
+            ? attr.arguments.map(arg => new CommandArgumentModel(arg))
+            : [];
+
+        this.stdin  = attr.stdin || '';
+        this.stdout = attr.stdout || '';
+
+        this.successCodes       = attr.successCodes || [];
+        this.temporaryFailCodes = attr.temporaryFailCodes || [];
+        this.permanentFailCodes = attr.permanentFailCodes || [];
+        attr.baseCommand        = attr.baseCommand || [''];
+
+        // wrap to array
+        attr.baseCommand = !Array.isArray(attr.baseCommand)
+            ? [<string | Expression> attr.baseCommand]
+            : <Array<string | Expression>> attr.baseCommand;
+
+        this.baseCommand = (<Array<string | Expression>> attr.baseCommand)
+            .map(cmd => new ExpressionModel(cmd));
+
+        this.job = attr['sbg:job']
+            ? attr['sbg:job']
+            : JobHelper.getJob(this);
+
+        this.jobInputs = this.job.inputs || this.job;
+
+        // populates object with all custom attributes not covered in model
+        Object.keys(attr).forEach(key => {
+            if (serializedAttr.indexOf(key) === -1) {
+                this.customProps[key] = attr[key];
+            }
+        });
     }
 }
