@@ -8,6 +8,12 @@ It supports JSON schemas and mappings for draft-3, draft-4, and v1.0. Draft-2 su
 npm install cwlts
 ```
 
+## Build
+The npm package can be built locally by running the following command. It will generate `.d.ts` and compiled `.js` files into the `/lib` directory.
+```bash
+./scripts/package.sh
+```
+
 ## Mappings
 
 `lib/mappings` contains TypeScript interfaces that can be used for type hinting when working with CWL documents in TS/JS.
