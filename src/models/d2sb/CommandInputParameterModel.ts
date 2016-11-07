@@ -7,11 +7,14 @@ import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {TypeResolver, TypeResolution} from "../helpers/TypeResolver";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
-import {ValidationError} from "../interfaces/ValidationError";
 import {Expression} from "../../mappings/d2sb/Expression";
-import {Validatable} from "../interfaces/Validatable";
+import {Validatable, Validation} from "../interfaces/Validatable";
 
 export class CommandInputParameterModel implements CommandLineInjectable, Validatable {
+    validation: Validation;
+
+    updateValidity(err: Validation): void {
+    }
     /**
      * Metadata properties about the input
      */
@@ -319,24 +322,22 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
     }
 
     //@todo(maya) implement validation
-    validate(): ValidationError[] {
-        let errors: ValidationError[] = [];
+    validate(): Validation {
+        let val: Validation = {};
         const location = this.isField ? "fields[<fieldIndex>]" : "inputs[<inputIndex>]";
 
         // check id validity
         // doesn't exist
         if (this.id === '' || this.id === undefined) {
-            errors.push({
-                type: "Error",
+            val.error.push({
                 message: "ID must be set",
-                location: location
+                loc: location
             });
             // contains illegal characters
         } else if (!/^[a-zA-Z0-9_]*/.test(this.id)) {
-            errors.push({
-                type: "Error",
+            val.error.push({
                 message: "ID can only contain alphanumeric and underscore characters",
-                location: location
+                loc: location
             });
         }
 
@@ -344,84 +345,74 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
         // if array, has items. Does not have symbols or items
         if (this.type === "array") {
             if (this.items === null) {
-                errors.push({
-                    type: "Error",
+                val.error.push({
                     message: "Type array must have items",
-                    location: location
+                    loc: location
                 });
             }
             if (this.symbols !== null) {
-                errors.push({
-                    type: "Error",
+                val.error.push({
                     message: "Type array must not have symbols",
-                    location: location
+                    loc: location
                 });
             }
             if (this.fields !== null) {
-                errors.push({
-                    type: "Error",
+                val.error.push({
                     message: "Type array must not have fields",
-                    location: location
+                    loc: location
                 });
             }
         }
         // if enum, has symbols. Does not have items or fields. Has name.
         if (this.type === "enum") {
             if (this.items !== null) {
-                errors.push({
-                    type: "Error",
+                val.error.push({
                     message: "Type enum must not have items",
-                    location: location
+                    loc: location
                 });
             }
             if (this.symbols === null) {
-                errors.push({
-                    type: "Error",
+                val.error.push({
                     message: "Type enum must have symbols",
-                    location: location
+                    loc: location
                 });
             }
             if (this.fields !== null) {
-                errors.push({
-                    type: "Error",
+                val.error.push({
                     message: "Type enum must not have fields",
-                    location: location
+                    loc: location
                 });
             }
 
             if (!this.typeName) {
-                errors.push({
-                    type: "Error",
+                val.error.push({
                     message: "Type enum must have a name",
-                    location: location
+                    loc: location
                 });
             }
         }
         // if record, has fields. Does not have items or symbols. Has name.
         if (this.type === "enum") {
             if (this.items !== null) {
-                errors.push({
-                    type: "Error",
+                val.error.push({
                     message: "Type record must not have items",
-                    location: location
+                    loc: location
                 });
             }
             if (this.symbols === null) {
-                errors.push({
-                    type: "Error",
+                val.error.push({
                     message: "Type record must have symbols",
-                    location: location
+                    loc: location
                 });
             }
             if (this.fields === null) {
-                errors.push({
-                    type: "Error",
+                val.error.push({
                     message: "Type record must have fields",
-                    location: location
+                    loc: location
                 });
             } else {
                 // check validity for each field.
-                errors.concat(this.fields.map(field => {
+                val.error.concat(this.fields.map(field => {
                     return field.validate().map((err, index) => {
                         err.location.replace(/<fieldIndex>/, index.toString());
                         err.location = "inputs[<inputIndex>]" + err.location;
@@ -433,10 +424,9 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
             }
 
             if (!this.typeName) {
-                errors.push({
-                    type: "Error",
+                val.error.push({
                     message: "Type record must have a name",
-                    location: location
+                    loc: location
                 });
             }
         }

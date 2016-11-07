@@ -8,10 +8,10 @@ import {JobHelper} from "../helpers/JobHelper";
 import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {MSDSort} from "../helpers/MSDSort";
-import {ValidationError} from "../interfaces/ValidationError";
 import {Serializable} from "../interfaces/Serializable";
-import {Validatable} from "../interfaces/Validatable";
+import {Validatable, ValidationError, Validation} from "../interfaces/Validatable";
 import {ExpressionModel} from "./ExpressionModel";
+import {ValidationUpdater} from "../helpers/ValidationUpdate";
 
 export class CommandLineToolModel implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
     job: any;
@@ -39,6 +39,14 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
         this.class = "CommandLineTool";
 
         if (attr) this.deserialize(attr);
+    }
+
+    public addBaseCommand(cmd?: ExpressionModel): ExpressionModel {
+        if (!cmd) cmd = new ExpressionModel();
+        this.baseCommand.push(cmd);
+        cmd.parent = this;
+
+        return cmd;
     }
 
     public addArgument(arg: CommandArgumentModel) {
@@ -115,8 +123,19 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
                 if (typeof cmd === 'string') {
                     return new CommandLinePart(cmd, 0, "baseCommand");
                 } else {
-                    const val = ExpressionEvaluator.evaluateD2(cmd, this.job);
-                    return new CommandLinePart(val, 0, "baseCommand");
+                    try {
+                        const val = ExpressionEvaluator.evaluateD2(cmd, this.job);
+                        baseCmd.result = val;
+                        return new CommandLinePart(val, 0, "baseCommand");
+                    } catch (ex) {
+                        if (ex.name === "SyntaxError") {
+                            baseCmd.validation = {error: [ex.toString()]};
+                        } else {
+                            baseCmd.validation = {warning: [ex.toString()]};
+                        }
+                        //@todo(maya): propagate exception to not render command line at all?
+                        return new CommandLinePart("", 0, "baseCommand");
+                    }
                 }
             });
 
@@ -132,7 +151,16 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
         console.warn("Not implemented yet");
     }
 
-    validate(): ValidationError[] {
+    validation: Validation;
+
+    updateValidity(err: Validation): void {
+        // search through warnings and errors with err.loc, remove them
+        // push err to err.type
+        this.validation = ValidationUpdater.interchangeErrors(this.validation, err);
+    }
+
+    validate(): Validation {
+        const validation:Validation = {};
         let errors: ValidationError[] = [];
 
         // check base command

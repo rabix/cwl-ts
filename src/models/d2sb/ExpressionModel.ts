@@ -1,13 +1,59 @@
 import {Expression} from "../../mappings/d2sb/Expression";
 import {Serializable} from "../interfaces/Serializable";
+import {Validatable, Validation, ValidationError} from "../interfaces/Validatable";
 
-export class ExpressionModel implements Serializable<string | Expression> {
+export class ExpressionModel implements Serializable<string | Expression>, Validatable {
+    public result: any;
+
+    get validation(): Validation {
+        return this._validation;
+    }
+
+    set validation(value: Validation) {
+        this._validation = Object.assign({error: [], warning: []}, value);
+    }
+
+    private _parent: Validatable;
+
+    public set parent(value: Validatable) {
+        if (value.validate && value.updateValidity) {
+            this._parent = value;
+        } else {
+            throw new TypeError(`Parent of ExpressionModel must implement Validatable interface`);
+        }
+    }
+
+    public get parent(): Validatable {
+        return this._parent;
+    }
+
+    updateValidity(): void {
+    }
+
+    validate(): Validation {
+        return this._validation;
+    }
+
+    /**
+     * Sets validation object on expression
+     * //@todo(maya) this should be replace with a validate function which calls internal executor
+     *
+     * @param err
+     * @param type
+     */
+    public setError(err: ValidationError[], type: "error" | "warning") {
+        this._validation       = {};
+        this._validation[type] = err;
+        this.parent.updateValidity(this._validation);
+    }
+
+    private _validation: Validation = {warning: [], error: []};
 
     /** Internal CWL representation of Expression */
     private value: string | Expression;
 
     /** Internal type */
-    private __type: "string" | "expression"; //@todo add other types (int, long, etc)
+    private _type: "string" | "expression"; //@todo add other types (int, long, etc)
 
     /** Flag if model contains expression */
     public get isExpression() {
@@ -16,20 +62,20 @@ export class ExpressionModel implements Serializable<string | Expression> {
 
     /** Setter for model type. Model holds either expression or primitive like "string" */
     public set type(type: "string" | "expression") {
-        if(type !== "string" && type !== "expression") {
+        if (type !== "string" && type !== "expression") {
             throw new TypeError(`Unknown ExpressionModel type. "${type}" does not exist or is not supported yet.`);
         }
-        this.__type = type;
+        this._type = type;
     }
 
     /** Getter for model type. Returns internal representation */
     public get type() {
-        return this.__type;
+        return this._type;
     }
 
     constructor(value: string | Expression = "") {
         this.deserialize(value);
-        this.type  = (value as Expression).script ? "expression" : "string"
+        this.type = (value as Expression).script ? "expression" : "string"
     }
 
     /**
@@ -44,7 +90,7 @@ export class ExpressionModel implements Serializable<string | Expression> {
     /**
      * Sets CWL representation as internal value
      */
-    public deserialize (val: string | Expression) {
+    public deserialize(val: string | Expression) {
         this.value = val;
     }
 
