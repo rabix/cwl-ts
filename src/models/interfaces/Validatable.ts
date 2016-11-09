@@ -1,3 +1,4 @@
+import {ValidationUpdater} from "../helpers/ValidationUpdate";
 export interface Validation {
     warnings: ValidationError[],
     errors: ValidationError[]
@@ -18,25 +19,30 @@ export interface Validatable {
      * If object can have children and its validation is composed of child validations,
      * children will call this method to propagate their new states
      */
-    setValidationCallback(loc: "string", fn:(err: Validation) => void): void;
+    setValidationCallback(loc: "string", fn: (err: Validation) => void): void;
 }
 
 
 export abstract class ValidationBase implements Validatable {
-    public validation: Validation;
+    public validation: Validation = {errors: [], warnings: []};
 
     public loc = "";
 
-    public validate(): Validation {
-        return this.validation;
+    constructor(loc: string) {
+        this.loc = loc;
     }
 
-    public setValidationCallback(loc, fn: (err: Validation)=>void): void {
-        this.loc = loc;
+    public validate: () => Validation;
+
+    public setValidationCallback(fn: (err: Validation)=>void): void {
         this.onValidate = fn;
     }
 
     protected onValidate = (err: Validation) => {
-        console.log("hello this is a thing");
     };
+
+    protected updateValidity(err: Validation): void {
+        if (this.validation === err) return;
+        this.validation = ValidationUpdater.interchangeErrors(this.validation, err);
+    }
 }

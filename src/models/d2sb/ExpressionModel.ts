@@ -32,9 +32,7 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
      */
     public evaluate(context: {$job?: any, $self?: any} = {}): any {
         try {
-            const val = ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self);
-            this.result = val;
-
+            this.result = ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self);
         } catch (ex) {
             if (ex.name === "SyntaxError") {
                 this._validation = {errors: [{loc: this.loc, message: ex.toString()}], warnings: []};
@@ -75,8 +73,8 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
         return this._type;
     }
 
-    constructor(value: string | Expression = "") {
-        super();
+    constructor(loc: string, value: string | Expression = "") {
+        super(loc);
         this.deserialize(value);
         this.type = (value as Expression).script ? "expression" : "string"
     }
@@ -156,7 +154,7 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
      */
     public setValueToExpression(expressionScript: string) {
         this.value = {
-            class: "Expression",
+            "class": "Expression",
             engine: "#cwl-js-engine",
             script: expressionScript
         };

@@ -5,23 +5,24 @@ import {Datatype} from "../../mappings/d2sb/Datatype";
 import {MapType, EnumType, ArrayType, RecordType} from "../../mappings/d2sb/CommandInputSchema";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {TypeResolver, TypeResolution} from "../helpers/TypeResolver";
-import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {Validation, ValidationBase} from "../interfaces/Validatable";
+import {Serializable} from "../interfaces/Serializable";
+import {CommandLineBindingModel} from "./CommandInputBindingModel";
+import {ExpressionModel} from "./ExpressionModel";
 
-export class CommandInputParameterModel extends ValidationBase implements CommandLineInjectable {
-    /**
-     * Metadata properties about the input
-     */
+export class CommandInputParameterModel extends ValidationBase implements Serializable, CommandLineInjectable {
+    /** unique identifier of input */
     public id: string;
+    /** Human readable short name */
     public label: string;
+    /** Human readable, Markdown format description */
     public description: string;
 
-    /**
-     * Derived type properties
-     */
+    /** Flag if input is required. Derived from type field */
     public isRequired: boolean = true;
+    /** Flag if input is field of a parent record. Derived from type field */
     public isField: boolean    = false;
 
     /**
@@ -30,32 +31,45 @@ export class CommandInputParameterModel extends ValidationBase implements Comman
      * are flattened to this.type == "array"
      * and this.items == "string"
      */
-    private type: string = null;
-    /* Primitive type of items, if input is an array */
+    public type: string = null;
+    /** Primitive type of items, if input is an array */
     public items: string = null;
-    /* InputBinding defined for items inside of {type: "array"} object */
+    /** InputBinding defined for items inside of {type: "array"} object */
     private itemsBinding: CommandLineBinding = null;
-    /* Fields mapped to InputParameterModel for easier command line generation */
+    /** Fields mapped to InputParameterModel for easier command line generation */
     public fields: Array<CommandInputParameterModel> = null;
+    /** Symbols defined in {type: "enum"} */
     public symbols: Array<string>                    = null;
 
-    private inputBinding: CommandLineBinding = null;
+    /** Binding for inclusion in command line */
+    private inputBinding: CommandLineBindingModel = null;
 
+    /** name property in type object, only applicable for "enum" and "record" */
     private typeName: string = null;
 
-    private map(input: CommandInputParameter | CommandInputRecordField) {
+    serialize(): CommandInputParameter | CommandInputRecordField {
+        return undefined;
+    }
+
+    deserialize(input: CommandInputParameter | CommandInputRecordField): void {
         this.isField     = !!(<CommandInputRecordField> input).name; // record fields don't have ids
         this.id          = (<CommandInputParameter> input).id
             || (<CommandInputRecordField> input).name; // for record fields
         this.label       = input.label;
         this.description = input.description;
 
-        this.inputBinding = input.inputBinding;
+        // if inputBinding isn't defined in input, it shouldn't exist as an object in model
+        this.inputBinding = input.inputBinding !== undefined ?
+            new CommandLineBindingModel(`${this.loc}.inputBinding`, input.inputBinding) : null;
 
         const resolved: TypeResolution = TypeResolver.resolveType(input.type);
 
         this.type   = resolved.type;
-        this.fields = resolved.fields ? resolved.fields.map(field => {
+        this.fields = resolved.fields ? resolved.fields.map((field, index) => {
+            const f = new CommandInputParameterModel(`${this.loc}.fields[${index}]`, field);
+            f.setValidationCallback((err: Validation) => {
+                this.updateValidity(err);
+            });
             return new CommandInputParameterModel(field);
         }) : resolved.fields;
 
@@ -67,11 +81,11 @@ export class CommandInputParameterModel extends ValidationBase implements Comman
         this.typeName = resolved.typeName;
     }
 
-    constructor(input?: CommandInputParameter | CommandInputRecordField) {
-        if (input) {
-            this.map(input);
-        } else {
 
+    constructor(loc: string, input?: CommandInputParameter | CommandInputRecordField) {
+        super(loc);
+        if (input) {
+            this.deserialize(input);
         }
     }
 
@@ -131,11 +145,13 @@ export class CommandInputParameterModel extends ValidationBase implements Comman
                 if (this.items === "boolean") {
                     calcVal = prefix + separator + parts
                             .map(part => part.value)
-                            .join(" ");
+                            .join(" ").trim();
                 } else {
+                    const itemPrefSep = this.inputBinding.separate !== false ? " " : "";
+                    const joiner = !!itemsPrefix ? " " : "";
                     calcVal = prefix + separator + parts
-                            .map(part => itemsPrefix + separator + part.value)
-                            .join(" ");
+                            .map(part => itemsPrefix + itemPrefSep + part.value)
+                            .join(joiner).trim();
                 }
 
             }
@@ -164,7 +180,7 @@ export class CommandInputParameterModel extends ValidationBase implements Comman
         if (typeof value === "boolean") {
             if (value) {
                 prefix        = this.items === "boolean" ? itemsPrefix : prefix;
-                const calcVal = prefix + separator + this.resolve(job, '', this.inputBinding);
+                const calcVal = prefix + separator + this.resolve({$job: job, $self: ''}, this.inputBinding);
                 return new CommandLinePart(calcVal, [position, this.id], "input");
             } else {
                 return new CommandLinePart('', [position, this.id], "input");
@@ -174,14 +190,16 @@ export class CommandInputParameterModel extends ValidationBase implements Comman
         // not record or array or boolean
         // if the input has items, this is a recursive call and prefix should not be added again
         prefix        = this.items ? '' : prefix;
-        const calcVal = prefix + separator + this.resolve(job, value, this.inputBinding);
+        const calcVal = prefix + separator + this.resolve({$job: job, $self: value}, this.inputBinding);
         return new CommandLinePart(calcVal, [position, this.id], "input");
     }
 
-    private resolve(jobInputs: any, value: any, inputBinding: CommandLineBinding) {
+    private resolve(context: {$job: any, $self: any}, inputBinding: CommandLineBindingModel): any {
         if (inputBinding.valueFrom) {
-            return ExpressionEvaluator.evaluateD2(inputBinding.valueFrom, jobInputs, value);
+            return inputBinding.valueFrom.evaluate(context);
         }
+
+        let value = context.$self;
 
         if (value.path) {
             value = value.path;
@@ -241,7 +259,7 @@ export class CommandInputParameterModel extends ValidationBase implements Comman
             if (field instanceof CommandInputParameterModel) {
                 this.fields.push(field);
             } else {
-                this.fields.push(new CommandInputParameterModel(field));
+                this.fields.push(new CommandInputParameterModel(`${this.loc}.fields[${this.fields.length}]`, <CommandInputRecordField>field));
             }
         }
     }
@@ -300,12 +318,12 @@ export class CommandInputParameterModel extends ValidationBase implements Comman
 
     public setValueFrom(value: string | Expression): void {
         if (!this.inputBinding) {
-            this.inputBinding = {};
+            this.inputBinding = new CommandLineBindingModel(`${this.loc}.inputBinding`, {});
         }
-        this.inputBinding.valueFrom = value;
+        this.inputBinding.setValueFrom(value);
     }
 
-    public getValueFrom(): string | Expression {
+    public getValueFrom(): ExpressionModel {
         return this.inputBinding ? this.inputBinding.valueFrom : undefined;
     }
 

@@ -1,14 +1,11 @@
 import {expect} from "chai";
-import {CommandLineToolModel} from "../d2sb/CommandLineToolModel";
-import {CommandInputParameterModel} from "../d2sb/CommandInputParameterModel";
-
+import {CommandLineToolModel} from "./CommandLineToolModel";
+import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import * as BWAMemTool from "../../tests/apps/bwa-mem-tool";
 import * as BWAMemJob from "../../tests/apps/bwa-mem-job";
-
 import * as BamtoolsIndex from "../../tests/apps/bamtools-index-sbg";
 import * as BamtoolsSplit from "../../tests/apps/bamtools-split-sbg";
 import * as BindingTestTool from "../../tests/apps/binding-test-tool";
-
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 import {ExpressionModel} from "./ExpressionModel";
 
@@ -20,7 +17,7 @@ describe("CommandLineToolModel d2sb", () => {
                 baseCommand: 'grep',
                 inputs: [],
                 outputs: [],
-                class: 'CommandLineTool'
+                "class": 'CommandLineTool'
             });
 
             expect(tool).to.not.be.undefined;
@@ -34,7 +31,7 @@ describe("CommandLineToolModel d2sb", () => {
                     {id: "i1", type: "string"}
                 ],
                 outputs: [],
-                class: 'CommandLineTool'
+                "class": 'CommandLineTool'
             });
 
             expect(tool.inputs).to.have.length(1);
@@ -46,12 +43,12 @@ describe("CommandLineToolModel d2sb", () => {
 
         it("Should evaluate baseCommand with expression", () => {
             let tool = new CommandLineToolModel({
-                class: "CommandLineTool",
+                "class": "CommandLineTool",
                 inputs: [],
                 outputs: [],
                 baseCommand: [{
                     script: "'aba'",
-                    class: "Expression",
+                    "class": "Expression",
                     engine: "cwl-js-engine"
                 }]
             });
@@ -62,12 +59,12 @@ describe("CommandLineToolModel d2sb", () => {
 
         it("Should evaluate baseCommand with expression that returns a number", () => {
             let tool = new CommandLineToolModel({
-                class: "CommandLineTool",
+                "class": "CommandLineTool",
                 inputs: [],
                 outputs: [],
                 baseCommand: [{
                     script: "3 + 3",
-                    class: "Expression",
+                    "class": "Expression",
                     engine: "cwl-js-engine"
                 }]
             });
@@ -190,7 +187,7 @@ describe("CommandLineToolModel d2sb", () => {
                 outputs: [],
                 baseCommand: []
             });
-            const expr = new ExpressionModel({
+            const expr = new ExpressionModel("", {
                 "class": "Expression",
                 script: "---",
                 engine: "#cwl-js-engine"
@@ -207,7 +204,7 @@ describe("CommandLineToolModel d2sb", () => {
             expect(tool.validation.errors[0].loc).to.equal("baseCommand[0]");
             expect(tool.validation.errors[0].message).to.contain("SyntaxError");
 
-            const expr2 = new ExpressionModel({
+            const expr2 = new ExpressionModel("", {
                 "class": "Expression",
                 script: "abb",
                 engine: "#cwl-js-engine"
