@@ -1,59 +1,61 @@
 import {Expression} from "../../mappings/d2sb/Expression";
 import {Serializable} from "../interfaces/Serializable";
-import {Validatable, Validation, ValidationError} from "../interfaces/Validatable";
+import {Validation, ValidationBase} from "../interfaces/Validatable";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 
-export class ExpressionModel implements Serializable<string | Expression>, Validatable {
-    public result: any;
+export class ExpressionModel extends ValidationBase implements Serializable<string | Expression> {
+
+    validate(): Validation {
+        return this._validation;
+    }
+
+    private _validation: Validation = {warnings: [], errors: []};
 
     get validation(): Validation {
         return this._validation;
     }
 
     set validation(value: Validation) {
-        this._validation = Object.assign({error: [], warning: []}, value);
-    }
-
-    private _parent: Validatable;
-
-    public set parent(value: Validatable) {
-        if (value.validate && value.updateValidity) {
-            this._parent = value;
-        } else {
-            throw new TypeError(`Parent of ExpressionModel must implement Validatable interface`);
+        if (value !== this._validation) {
+            this._validation = Object.assign({errors: [], warnings: []}, value);
         }
     }
 
-    public get parent(): Validatable {
-        return this._parent;
-    }
-
-    updateValidity(): void {
-    }
-
-    validate(): Validation {
-        return this._validation;
-    }
-
     /**
-     * Sets validation object on expression
-     * //@todo(maya) this should be replace with a validate function which calls internal executor
+     * Evaluates expression and sets its result to result property.
      *
-     * @param err
-     * @param type
+     * If expression throws a SyntaxError, no result is returned and the syntax error is pushed to
+     * validation.errors. If expression throws any other exception, it is pushed to validation.warnings
+     *
+     * @param context
+     * @returns {any}
      */
-    public setError(err: ValidationError[], type: "error" | "warning") {
-        this._validation       = {};
-        this._validation[type] = err;
-        this.parent.updateValidity(this._validation);
+    public evaluate(context: {$job?: any, $self?: any} = {}): any {
+        try {
+            const val = ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self);
+            this.result = val;
+
+        } catch (ex) {
+            if (ex.name === "SyntaxError") {
+                this._validation = {errors: [{loc: this.loc, message: ex.toString()}], warnings: []};
+                this.onValidate(this._validation);
+            } else {
+                this._validation = {warnings: [{loc: this.loc, message: ex.toString()}], errors: []};
+                this.onValidate(this._validation);
+            }
+        }
+
+        return this.result;
     }
 
-    private _validation: Validation = {warning: [], error: []};
+    /** Cached result of expression last time it was evaluated */
+    public result: any;
 
     /** Internal CWL representation of Expression */
     private value: string | Expression;
 
     /** Internal type */
-    private _type: "string" | "expression"; //@todo add other types (int, long, etc)
+    private _type: "string" | "expression"; //@todo add other primitive types (int, long, etc)
 
     /** Flag if model contains expression */
     public get isExpression() {
@@ -74,6 +76,7 @@ export class ExpressionModel implements Serializable<string | Expression>, Valid
     }
 
     constructor(value: string | Expression = "") {
+        super();
         this.deserialize(value);
         this.type = (value as Expression).script ? "expression" : "string"
     }

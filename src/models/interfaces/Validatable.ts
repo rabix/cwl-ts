@@ -1,11 +1,11 @@
 export interface Validation {
-    warning?: ValidationError[],
-    error?: ValidationError[]
+    warnings: ValidationError[],
+    errors: ValidationError[]
 }
 
 export interface ValidationError {
     message: string;
-    loc: string; // property where error occurred
+    loc: string; // property where errors occurred
 }
 
 export interface Validatable {
@@ -18,5 +18,25 @@ export interface Validatable {
      * If object can have children and its validation is composed of child validations,
      * children will call this method to propagate their new states
      */
-    updateValidity(err: Validation): void;
+    setValidationCallback(loc: "string", fn:(err: Validation) => void): void;
+}
+
+
+export abstract class ValidationBase implements Validatable {
+    public validation: Validation;
+
+    public loc = "";
+
+    public validate(): Validation {
+        return this.validation;
+    }
+
+    public setValidationCallback(loc, fn: (err: Validation)=>void): void {
+        this.loc = loc;
+        this.onValidate = fn;
+    }
+
+    protected onValidate = (err: Validation) => {
+        console.log("hello this is a thing");
+    };
 }

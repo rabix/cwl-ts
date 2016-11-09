@@ -6,10 +6,9 @@ import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {JobHelper} from "../helpers/JobHelper";
 import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
-import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {MSDSort} from "../helpers/MSDSort";
 import {Serializable} from "../interfaces/Serializable";
-import {Validatable, ValidationError, Validation} from "../interfaces/Validatable";
+import {Validatable, Validation} from "../interfaces/Validatable";
 import {ExpressionModel} from "./ExpressionModel";
 import {ValidationUpdater} from "../helpers/ValidationUpdate";
 
@@ -44,7 +43,9 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
     public addBaseCommand(cmd?: ExpressionModel): ExpressionModel {
         if (!cmd) cmd = new ExpressionModel();
         this.baseCommand.push(cmd);
-        cmd.parent = this;
+        cmd.setValidationCallback(`baseCommand[${this.baseCommand.indexOf(cmd)}]`, (err: Validation) => {
+            this.updateValidity(err);
+        });
 
         return cmd;
     }
@@ -64,6 +65,9 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
     public addInput(input?: CommandInputParameterModel) {
         input = input || new CommandInputParameterModel();
         this.inputs.push(input);
+        input.setValidationCallback(`inputs[${this.inputs.indexOf(input)}]`, (err: Validation) => {
+            this.updateValidity(err);
+        });
 
         return input;
     }
@@ -119,24 +123,8 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
 
         const baseCmdParts = (this.baseCommand)
             .map((baseCmd) => {
-                const cmd = baseCmd.serialize();
-                if (typeof cmd === 'string') {
-                    return new CommandLinePart(cmd, 0, "baseCommand");
-                } else {
-                    try {
-                        const val = ExpressionEvaluator.evaluateD2(cmd, this.job);
-                        baseCmd.result = val;
-                        return new CommandLinePart(val, 0, "baseCommand");
-                    } catch (ex) {
-                        if (ex.name === "SyntaxError") {
-                            baseCmd.validation = {error: [ex.toString()]};
-                        } else {
-                            baseCmd.validation = {warning: [ex.toString()]};
-                        }
-                        //@todo(maya): propagate exception to not render command line at all?
-                        return new CommandLinePart("", 0, "baseCommand");
-                    }
-                }
+                baseCmd.evaluate({$job: this.job});
+                return new CommandLinePart(baseCmd.result, 0, "baseCommand");
             });
 
         return baseCmdParts.concat(concat);
@@ -151,29 +139,18 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
         console.warn("Not implemented yet");
     }
 
-    validation: Validation;
+    public validation: Validation = {errors: [], warnings: []};
 
     updateValidity(err: Validation): void {
-        // search through warnings and errors with err.loc, remove them
-        // push err to err.type
+        if (this.validation === err) { return }
         this.validation = ValidationUpdater.interchangeErrors(this.validation, err);
     }
 
     validate(): Validation {
-        const validation:Validation = {};
-        let errors: ValidationError[] = [];
-
-        // check base command
-        // if (this.baseCommand === [] || this.baseCommand === ['']) {
-        //     errors.push({
-        //         type: "Error",
-        //         location: "baseCommand",
-        //         message: "Missing required property baseCommand"
-        //     });
-        // }
+        const validation:Validation = {errors: [], warnings: []};
 
         // check if all inputs are valid
-        errors.concat(this.inputs
+        validation.errors.concat(this.inputs
             .map(input => input.validate())
             .reduce((prev, curr, index) => {
                 curr.forEach(err => err.location.replace(/<inputIndex>/, index.toString()));
@@ -185,7 +162,7 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
 
         // check if inputs have unique id
 
-        return errors;
+        return validation;
     }
 
     serialize(): CommandLineTool | any {
@@ -227,8 +204,10 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
             ? [<string | Expression> attr.baseCommand]
             : <Array<string | Expression>> attr.baseCommand;
 
-        this.baseCommand = (<Array<string | Expression>> attr.baseCommand)
-            .map(cmd => new ExpressionModel(cmd));
+        this.baseCommand = [];
+
+        (<Array<string | Expression>> attr.baseCommand)
+            .forEach(cmd => this.addBaseCommand(new ExpressionModel(cmd)));
 
         this.job = attr['sbg:job']
             ? attr['sbg:job']
@@ -242,5 +221,8 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
                 this.customProps[key] = attr[key];
             }
         });
+    }
+
+    setValidationCallback(loc: string, fn: (any)=>void): void {
     }
 }

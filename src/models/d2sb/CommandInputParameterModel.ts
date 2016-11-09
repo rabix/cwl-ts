@@ -8,13 +8,9 @@ import {TypeResolver, TypeResolution} from "../helpers/TypeResolver";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {Expression} from "../../mappings/d2sb/Expression";
-import {Validatable, Validation} from "../interfaces/Validatable";
+import {Validation, ValidationBase} from "../interfaces/Validatable";
 
-export class CommandInputParameterModel implements CommandLineInjectable, Validatable {
-    validation: Validation;
-
-    updateValidity(err: Validation): void {
-    }
+export class CommandInputParameterModel extends ValidationBase implements CommandLineInjectable {
     /**
      * Metadata properties about the input
      */
@@ -323,19 +319,19 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
 
     //@todo(maya) implement validation
     validate(): Validation {
-        let val: Validation = {};
+        let val: Validation = {errors: [], warnings: []};
         const location = this.isField ? "fields[<fieldIndex>]" : "inputs[<inputIndex>]";
 
         // check id validity
         // doesn't exist
         if (this.id === '' || this.id === undefined) {
-            val.error.push({
+            val.errors.push({
                 message: "ID must be set",
                 loc: location
             });
             // contains illegal characters
         } else if (!/^[a-zA-Z0-9_]*/.test(this.id)) {
-            val.error.push({
+            val.errors.push({
                 message: "ID can only contain alphanumeric and underscore characters",
                 loc: location
             });
@@ -345,19 +341,19 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
         // if array, has items. Does not have symbols or items
         if (this.type === "array") {
             if (this.items === null) {
-                val.error.push({
+                val.errors.push({
                     message: "Type array must have items",
                     loc: location
                 });
             }
             if (this.symbols !== null) {
-                val.error.push({
+                val.errors.push({
                     message: "Type array must not have symbols",
                     loc: location
                 });
             }
             if (this.fields !== null) {
-                val.error.push({
+                val.errors.push({
                     message: "Type array must not have fields",
                     loc: location
                 });
@@ -366,26 +362,26 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
         // if enum, has symbols. Does not have items or fields. Has name.
         if (this.type === "enum") {
             if (this.items !== null) {
-                val.error.push({
+                val.errors.push({
                     message: "Type enum must not have items",
                     loc: location
                 });
             }
             if (this.symbols === null) {
-                val.error.push({
+                val.errors.push({
                     message: "Type enum must have symbols",
                     loc: location
                 });
             }
             if (this.fields !== null) {
-                val.error.push({
+                val.errors.push({
                     message: "Type enum must not have fields",
                     loc: location
                 });
             }
 
             if (!this.typeName) {
-                val.error.push({
+                val.errors.push({
                     message: "Type enum must have a name",
                     loc: location
                 });
@@ -394,42 +390,44 @@ export class CommandInputParameterModel implements CommandLineInjectable, Valida
         // if record, has fields. Does not have items or symbols. Has name.
         if (this.type === "enum") {
             if (this.items !== null) {
-                val.error.push({
+                val.errors.push({
                     message: "Type record must not have items",
                     loc: location
                 });
             }
             if (this.symbols === null) {
-                val.error.push({
+                val.errors.push({
                     message: "Type record must have symbols",
                     loc: location
                 });
             }
             if (this.fields === null) {
-                val.error.push({
+                val.errors.push({
                     message: "Type record must have fields",
                     loc: location
                 });
             } else {
                 // check validity for each field.
-                val.error.concat(this.fields.map(field => {
-                    return field.validate().map((err, index) => {
-                        err.location.replace(/<fieldIndex>/, index.toString());
-                        err.location = "inputs[<inputIndex>]" + err.location;
-                        return err;
-                    });
-                }).reduce((acc, curr) => acc.concat(curr)));
+
+                // val.error.concat(this.fields.map(field => {
+                //     return field.validate().map((err, index) => {
+                //         err.location.replace(/<fieldIndex>/, index.toString());
+                //         err.location = "inputs[<inputIndex>]" + err.location;
+                //         return err;
+                //     });
+                // }).reduce((acc, curr) => acc.concat(curr)));
 
                 // @todo check uniqueness of each field name
             }
 
             if (!this.typeName) {
-                val.error.push({
+                val.errors.push({
                     message: "Type record must have a name",
                     loc: location
                 });
             }
         }
-        return errors;
+
+        return val;
     }
 }
