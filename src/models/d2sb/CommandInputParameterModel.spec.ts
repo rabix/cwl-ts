@@ -1,5 +1,6 @@
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {expect} from "chai";
+import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 
 describe("CommandInputParameterModel d2sb", () => {
 
@@ -452,6 +453,52 @@ describe("CommandInputParameterModel d2sb", () => {
             expect(input.hasInputBinding()).to.equal(false);
         });
 
+    });
+
+    describe("updateValidity", () => {
+        it("Should be invalid if valueFrom is invalid", () => {
+            const input = new CommandInputParameterModel("", {
+                id: "i",
+                type: ["boolean"],
+                inputBinding: {
+                    valueFrom: {
+                        "class": "Expression",
+                        engine: "#cwl-js-engine",
+                        script: "---"
+                    }
+                }
+            });
+
+            input.validate();
+
+            expect(input.validation.errors).to.not.be.empty;
+            console.log(input.validation.errors.length);
+        });
+
+    });
+
+    describe("validate", () => {
+        it("Should check if ID exists", () => {
+            const input = new CommandInputParameterModel("", {
+                type: "string",
+                id: ''
+            });
+
+            input.validate();
+            expect(input.validation.errors).to.not.be.empty;
+            expect(input.validation.errors[0].message).to.equal("ID must be set");
+        });
+
+        it("Should check for invalid characters", () => {
+            const input = new CommandInputParameterModel("", <CommandInputParameter>{
+                type: "string",
+                id: "@"
+            });
+
+            input.validate();
+            expect(input.validation.errors).to.not.be.empty;
+            expect(input.validation.errors[0].message).to.equal("ID can only contain alphanumeric and underscore characters");
+        });
     });
 
 });

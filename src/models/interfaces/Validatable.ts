@@ -12,27 +12,33 @@ export interface ValidationError {
 export interface Validatable {
     validation: Validation;
     /**
-     * Validates object, saves validity to internal state and returns results
-     */
-    validate(): Validation;
-    /**
      * If object can have children and its validation is composed of child validations,
      * children will call this method to propagate their new states
      */
-    setValidationCallback(loc: "string", fn: (err: Validation) => void): void;
+    setValidationCallback(fn: (err: Validation) => void): void;
 }
 
 
 export abstract class ValidationBase implements Validatable {
-    public validation: Validation = {errors: [], warnings: []};
+
+    private _validation: Validation = {warnings: [], errors: []};
+
+    get validation(): Validation {
+        return this._validation;
+    }
+
+    set validation(value: Validation) {
+        if (value !== this._validation) {
+            this._validation = Object.assign({errors: [], warnings: []}, value);
+            this.onValidate(this._validation);
+        }
+    }
 
     public loc = "";
 
     constructor(loc: string) {
         this.loc = loc;
     }
-
-    public validate: () => Validation;
 
     public setValidationCallback(fn: (err: Validation)=>void): void {
         this.onValidate = fn;

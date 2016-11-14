@@ -6,19 +6,7 @@ import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 export class ExpressionModel extends ValidationBase implements Serializable<string | Expression> {
 
     validate(): Validation {
-        return this._validation;
-    }
-
-    private _validation: Validation = {warnings: [], errors: []};
-
-    get validation(): Validation {
-        return this._validation;
-    }
-
-    set validation(value: Validation) {
-        if (value !== this._validation) {
-            this._validation = Object.assign({errors: [], warnings: []}, value);
-        }
+        return this.validation;
     }
 
     /**
@@ -35,11 +23,9 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
             this.result = ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self);
         } catch (ex) {
             if (ex.name === "SyntaxError") {
-                this._validation = {errors: [{loc: this.loc, message: ex.toString()}], warnings: []};
-                this.onValidate(this._validation);
+                this.validation = {errors: [{loc: this.loc, message: ex.toString()}], warnings: []};
             } else {
-                this._validation = {warnings: [{loc: this.loc, message: ex.toString()}], errors: []};
-                this.onValidate(this._validation);
+                this.validation = {warnings: [{loc: this.loc, message: ex.toString()}], errors: []};
             }
         }
 
@@ -109,6 +95,8 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
             };
         } else {
             this.value = val;
+            // reset validation because strings cannot be invalid
+            this.validation = {errors: [], warnings: []};
         }
 
         this.type = type;

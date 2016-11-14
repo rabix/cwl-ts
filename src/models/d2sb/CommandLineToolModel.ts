@@ -68,6 +68,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
     public addInput(input?: CommandInputParameterModel) {
         input = input || new CommandInputParameterModel(`inputs[${this.inputs.length}]`);
+        input.job = this.job;
         this.inputs.push(input);
         input.setValidationCallback((err: Validation) => {
             this.updateValidity(err);
@@ -146,13 +147,15 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     validate(): Validation {
         const validation:Validation = {errors: [], warnings: []};
 
+        this.inputs.forEach(input => input.validate());
+
         // check if all inputs are valid
-        validation.errors.concat(this.inputs
-            .map(input => input.validate())
-            .reduce((prev, curr, index) => {
-                curr.forEach(err => err.location.replace(/<inputIndex>/, index.toString()));
-                return prev.concat(curr);
-            }));
+        // validation.errors.concat(this.inputs
+        //     .map(input => input.validate())
+        //     .reduce((prev, curr, index) => {
+        //         curr.forEach(err => err.location.replace(/<inputIndex>/, index.toString()));
+        //         return prev.concat(curr);
+        //     }));
 
 
         // check if ID exists and is valid

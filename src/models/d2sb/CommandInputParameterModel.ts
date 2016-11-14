@@ -9,10 +9,10 @@ import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordFie
 import {Expression} from "../../mappings/d2sb/Expression";
 import {Validation, ValidationBase} from "../interfaces/Validatable";
 import {Serializable} from "../interfaces/Serializable";
-import {CommandLineBindingModel} from "./CommandInputBindingModel";
+import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {ExpressionModel} from "./ExpressionModel";
 
-export class CommandInputParameterModel extends ValidationBase implements Serializable, CommandLineInjectable {
+export class CommandInputParameterModel extends ValidationBase implements Serializable<CommandInputParameter | CommandInputRecordField>, CommandLineInjectable {
     /** unique identifier of input */
     public id: string;
     /** Human readable short name */
@@ -47,6 +47,11 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     /** name property in type object, only applicable for "enum" and "record" */
     private typeName: string = null;
 
+
+    public job: any; //@todo better way to set job?
+
+    public self: any; //@todo calculate self based on id??
+
     serialize(): CommandInputParameter | CommandInputRecordField {
         return undefined;
     }
@@ -61,6 +66,10 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
         // if inputBinding isn't defined in input, it shouldn't exist as an object in model
         this.inputBinding = input.inputBinding !== undefined ?
             new CommandLineBindingModel(`${this.loc}.inputBinding`, input.inputBinding) : null;
+
+        if (this.inputBinding) {
+            this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
+        }
 
         const resolved: TypeResolution = TypeResolver.resolveType(input.type);
 
@@ -319,6 +328,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     public setValueFrom(value: string | Expression): void {
         if (!this.inputBinding) {
             this.inputBinding = new CommandLineBindingModel(`${this.loc}.inputBinding`, {});
+            this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
         }
         this.inputBinding.setValueFrom(value);
     }
@@ -337,21 +347,26 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
     //@todo(maya) implement validation
     validate(): Validation {
-        let val: Validation = {errors: [], warnings: []};
+        const val = {errors: [], warnings: []}; // purge current validation;
+
         const location = this.isField ? "fields[<fieldIndex>]" : "inputs[<inputIndex>]";
+
+        if (this.inputBinding && this.inputBinding.valueFrom) {
+            this.inputBinding.valueFrom.evaluate({$job: this.job, $self: this.self});
+        }
 
         // check id validity
         // doesn't exist
         if (this.id === '' || this.id === undefined) {
             val.errors.push({
                 message: "ID must be set",
-                loc: location
+                loc: `${this.loc}.id`
             });
             // contains illegal characters
-        } else if (!/^[a-zA-Z0-9_]*/.test(this.id)) {
+        } else if (!/^[a-zA-Z0-9_]*$/.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
             val.errors.push({
                 message: "ID can only contain alphanumeric and underscore characters",
-                loc: location
+                loc: `${this.loc}.id`
             });
         }
 
@@ -446,6 +461,11 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
             }
         }
 
-        return val;
+        const errors = this.validation.errors.concat(val.errors);
+        const warnings = this.validation.warnings.concat(val.warnings);
+
+        this.validation = {errors, warnings};
+
+        return this.validation;
     }
 }

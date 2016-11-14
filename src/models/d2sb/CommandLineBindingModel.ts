@@ -48,6 +48,10 @@ export class CommandLineBindingModel extends ValidationBase implements Serializa
         this.itemSeparator = binding.itemSeparator;
         this.valueFrom     = binding.valueFrom !== undefined ? new ExpressionModel(`${this.loc}.valueFrom`, binding.valueFrom) : undefined;
 
+        if (this.valueFrom) {
+            this.valueFrom.setValidationCallback((err: Validation) => this.updateValidity(err));
+        }
+
         // populates object with all custom attributes not covered in model
         Object.keys(binding).forEach(key => {
             if (this.serializedKeys.indexOf(key) === -1) {
