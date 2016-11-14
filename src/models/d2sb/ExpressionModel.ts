@@ -1,7 +1,7 @@
 import {Expression} from "../../mappings/d2sb/Expression";
 import {Serializable} from "../interfaces/Serializable";
-import {Validation, ValidationBase} from "../interfaces/Validatable";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
+import {ValidationBase, Validation} from "../helpers/validation";
 
 export class ExpressionModel extends ValidationBase implements Serializable<string | Expression> {
 

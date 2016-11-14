@@ -1,8 +1,8 @@
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {Serializable} from "../interfaces/Serializable";
-import {ValidationBase, Validation} from "../interfaces/Validatable";
 import {ExpressionModel} from "./ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
+import {ValidationBase, Validation} from "../helpers/validation";
 
 export class CommandLineBindingModel extends ValidationBase implements Serializable<CommandLineBinding> {
     public position: number;

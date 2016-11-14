@@ -7,10 +7,10 @@ import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {TypeResolver, TypeResolution} from "../helpers/TypeResolver";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {Expression} from "../../mappings/d2sb/Expression";
-import {Validation, ValidationBase} from "../interfaces/Validatable";
 import {Serializable} from "../interfaces/Serializable";
 import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {ExpressionModel} from "./ExpressionModel";
+import {ValidationBase, Validation} from "../helpers/validation";
 
 export class CommandInputParameterModel extends ValidationBase implements Serializable<CommandInputParameter | CommandInputRecordField>, CommandLineInjectable {
     /** unique identifier of input */

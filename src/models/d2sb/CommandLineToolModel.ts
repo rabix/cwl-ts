@@ -8,8 +8,8 @@ import {JobHelper} from "../helpers/JobHelper";
 import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
 import {MSDSort} from "../helpers/MSDSort";
 import {Serializable} from "../interfaces/Serializable";
-import {Validatable, Validation, ValidationBase} from "../interfaces/Validatable";
 import {ExpressionModel} from "./ExpressionModel";
+import {ValidationBase, Validatable, Validation} from "../helpers/validation";
 
 export class CommandLineToolModel extends ValidationBase implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
     job: any;

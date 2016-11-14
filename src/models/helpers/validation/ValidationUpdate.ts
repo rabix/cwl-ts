@@ -1,4 +1,5 @@
-import {Validation} from "../interfaces/Validatable";
+import {Validation} from "./Validation";
+
 export class ValidationUpdater {
     public static interchangeErrors(o: Validation, u: Validation): Validation {
         const base = {errors: [], warnings: []};
