@@ -59,7 +59,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     deserialize(input: CommandInputParameter | CommandInputRecordField): void {
         this.isField     = !!(<CommandInputRecordField> input).name; // record fields don't have ids
         this.id          = (<CommandInputParameter> input).id
-            || (<CommandInputRecordField> input).name; // for record fields
+            || (<CommandInputRecordField> input).name || ""; // for record fields
         this.label       = input.label;
         this.description = input.description;
 
@@ -321,10 +321,6 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
         }
     }
 
-    public toObject(): Object {
-        return undefined;
-    }
-
     public setValueFrom(value: string | Expression): void {
         if (!this.inputBinding) {
             this.inputBinding = new CommandLineBindingModel(`${this.loc}.inputBinding`, {});
@@ -357,7 +353,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
         // check id validity
         // doesn't exist
-        if (this.id === '' || this.id === undefined) {
+        if (this.id === "" || this.id === undefined) {
             val.errors.push({
                 message: "ID must be set",
                 loc: `${this.loc}.id`

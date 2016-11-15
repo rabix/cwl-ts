@@ -13,7 +13,7 @@ describe("CommandLineToolModel d2sb", () => {
     describe("constructor", () => {
 
         it("Should instantiate tool with minimum requirements", () => {
-            let tool = new CommandLineToolModel({
+            let tool = new CommandLineToolModel("", {
                 baseCommand: 'grep',
                 inputs: [],
                 outputs: [],
@@ -25,7 +25,7 @@ describe("CommandLineToolModel d2sb", () => {
         });
 
         it("Should create CommandInputParameterModel from input fields", () => {
-            let tool = new CommandLineToolModel({
+            let tool = new CommandLineToolModel("", {
                 baseCommand: 'grep',
                 inputs: [
                     {id: "i1", type: "string"}
@@ -42,7 +42,7 @@ describe("CommandLineToolModel d2sb", () => {
     describe("getCommandLine", () => {
 
         it("Should evaluate baseCommand with expression", () => {
-            let tool = new CommandLineToolModel({
+            let tool = new CommandLineToolModel("", {
                 "class": "CommandLineTool",
                 inputs: [],
                 outputs: [],
@@ -58,7 +58,7 @@ describe("CommandLineToolModel d2sb", () => {
 
 
         it("Should evaluate baseCommand with expression that returns a number", () => {
-            let tool = new CommandLineToolModel({
+            let tool = new CommandLineToolModel("", {
                 "class": "CommandLineTool",
                 inputs: [],
                 outputs: [],
@@ -92,14 +92,14 @@ describe("CommandLineToolModel d2sb", () => {
 
         it("Should evaluate BamTools Index from sbg", () => {
             //noinspection TypeScriptUnresolvedVariable
-            let tool = new CommandLineToolModel(<CommandLineTool> BamtoolsIndex.default);
+            let tool = new CommandLineToolModel("", <CommandLineTool> BamtoolsIndex.default);
 
             expect(tool.getCommandLine()).to.equal('/opt/bamtools/bin/bamtools index -in input_bam.bam');
         });
 
         it("Should evaluate BamTools Split from sbg", () => {
             //noinspection TypeScriptUnresolvedVariable
-            let tool = new CommandLineToolModel(BamtoolsSplit.default);
+            let tool = new CommandLineToolModel("", BamtoolsSplit.default);
 
             expect(tool.getCommandLine()).to.equal('/opt/bamtools/bin/bamtools split -in input/input_bam.ext -refPrefix refp -tagPrefix tagp -stub input_bam.splitted -mapped -paired -reference -tag tag');
         });
@@ -115,7 +115,7 @@ describe("CommandLineToolModel d2sb", () => {
                 baseCommand: []
             };
 
-            const model = new CommandLineToolModel(tool);
+            const model = new CommandLineToolModel("", tool);
 
             expect(model.serialize()).to.deep.equal(tool);
         });
@@ -137,7 +137,7 @@ describe("CommandLineToolModel d2sb", () => {
                 ]
             };
 
-            const model = new CommandLineToolModel(tool);
+            const model = new CommandLineToolModel("", tool);
 
             expect(model.serialize()).to.deep.equal(tool);
         });
@@ -153,7 +153,7 @@ describe("CommandLineToolModel d2sb", () => {
 
             tool["customProperty"] = 35;
 
-            const serialized = new CommandLineToolModel(tool).serialize();
+            const serialized = new CommandLineToolModel("", tool).serialize();
 
             expect(serialized).to.have.property("customProperty");
             expect(serialized["customProperty"]).to.equal(35);
@@ -168,12 +168,12 @@ describe("CommandLineToolModel d2sb", () => {
                 baseCommand: []
             };
 
-            const model = new CommandLineToolModel(tool);
+            const model = new CommandLineToolModel("", tool);
 
             // class and ID should be at the beginning of the object
             expect(JSON.stringify(model.serialize())).to.not.equal(JSON.stringify(tool));
 
-            const model2 = new CommandLineToolModel(tool);
+            const model2 = new CommandLineToolModel("", tool);
 
             expect(JSON.stringify(model.serialize())).to.equal(JSON.stringify(model2.serialize()));
         })
@@ -181,7 +181,7 @@ describe("CommandLineToolModel d2sb", () => {
 
     describe("updateValidity", () => {
         it("should be triggered when baseCommand is invalid", () => {
-            const tool = new CommandLineToolModel({
+            const tool = new CommandLineToolModel("", {
                 "class": "CommandLineTool",
                 inputs: [],
                 outputs: [],
