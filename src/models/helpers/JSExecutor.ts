@@ -1,9 +1,9 @@
-import {CWLVersions} from "../../mappings/draft-4/CWLVersions";
+import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 declare function require(name:string);
 const vm = require('vm');
 
 export class JSExecutor {
-    static evaluate(version: CWLVersions, expr: string, job?: any, self?: any): any {
+    static evaluate(version: CWLVersion, expr: string, job?: any, self?: any): any {
         const options = {
             displayErrors: true
         };

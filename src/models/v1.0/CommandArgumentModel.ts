@@ -22,7 +22,7 @@ export class CommandArgumentModel implements CommandLineBinding, CommandLineInje
             this.valueFrom = attr.valueFrom;
             this.shellQuote = attr.shellQuote;
         } else {
-            throw("Invalid argument error");
+            throw("Invalid argument errors");
         }
     }
 

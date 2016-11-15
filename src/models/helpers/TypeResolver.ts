@@ -1,5 +1,4 @@
 import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
-import {CWLType} from "../../mappings/draft-4/CWLType";
 
 export interface TypeResolution {
     type: string;
@@ -24,7 +23,7 @@ export class TypeResolver {
                 typeName: null
             };
 
-        if (type === null) {
+        if (type === null || type === undefined) {
             result.isRequired = false;
             return result;
         }
@@ -58,7 +57,7 @@ export class TypeResolver {
             }
 
             if (type.length !== 1) {
-                throw("Union types not supported yet! Sorry");
+                throw("TypeResolverError: Union types not supported yet! Sorry");
             }
 
             if (typeof type[0] === 'string') {
@@ -67,7 +66,7 @@ export class TypeResolver {
                 if (typeof type[0] === 'object') {
                     return TypeResolver.resolveType(type[0], result);
                 } else {
-                    throw("expected complex object, instead got " + type[0]);
+                    throw("TypeResolverError: expected complex object, instead got " + type[0]);
                 }
             }
         } else if (typeof type === 'object') {
@@ -107,15 +106,15 @@ export class TypeResolver {
                     case "double":
                         return result;
                     default:
-                        throw("unmatched complex type, expected 'enum', 'array', or 'record', got '" + type.type + "'");
+                        throw("TypeResolverError: unmatched complex type, expected 'enum', 'array', or 'record', got '" + type.type + "'");
                 }
 
             } else {
-                throw("expected complex object with type field, instead got " + JSON.stringify(type));
+                throw("TypeResolverError: expected complex object with type field, instead got " + JSON.stringify(type));
             }
 
         } else {
-            throw("expected complex object, array, or string, instead got " + type);
+            throw("TypeResolverError: expected complex object, array, or string, instead got " + type);
         }
     }
 
