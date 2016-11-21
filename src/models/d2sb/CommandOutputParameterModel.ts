@@ -1,68 +1,54 @@
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 import {CommandOutputBinding} from "../../mappings/d2sb/CommandOutputBinding";
 import {Serializable} from "../interfaces/Serializable";
-import {TypeResolution, TypeResolver, PrimitiveType} from "../helpers/TypeResolver";
 import {ValidationBase} from "../helpers/validation";
-import {CommandOutputRecordField} from "../../mappings/v1.0/CommandOutputRecordField";
-import {ParameterTypeModel, PrimitiveParameterType} from "./ParameterTypeModel";
+import {OutputParameterTypeModel} from "./OutputParameterTypeModel";
 
 export class CommandOutputParameterModel extends ValidationBase implements Serializable<CommandOutputParameter> {
+    customProps: any;
+
     id: string;
-    _type: ParameterTypeModel;
+    type: OutputParameterTypeModel;
     outputBinding: CommandOutputBinding;
     label: string;
     description: string;
 
-    get isRequired(): boolean {
-        return this._type.isRequired;
-    }
 
-    set isRequired(r: boolean) {
-        this._type.isRequired = r;
-    }
-
-    get type(): PrimitiveParameterType {
-        return this._type.type;
-    }
-
-    set type(t: PrimitiveParameterType) {
-        this._type.setType(t);
-    }
-
-    get items(): PrimitiveParameterType {
-        return this._type.items;
-    }
-
-    set items(t: PrimitiveParameterType) {
-        this._type.type = "array";
-        this._type.items = t;
-    }
-
-    get fields(): Array<CommandOutputRecordField> {
-        return <Array<CommandOutputRecordField>> this._type.fields;
-    }
-
-    constructor(loc: string, attr: CommandOutputParameter) {
+    constructor(loc: string, output: CommandOutputParameter) {
         super(loc);
-        this.deserialize(attr);
+        this.deserialize(output);
     }
 
     serialize(): CommandOutputParameter {
-        const output: CommandOutputParameter = <CommandOutputParameter>{};
+        let base: any = {};
+        base = Object.assign({}, base, this.customProps);
 
-        output.id = this.id;
+        base.type = this.type.serialize();
 
-        if (this.outputBinding) output.outputBinding = this.outputBinding;
+        if (this.label) base.label = this.label;
+        if (this.description) base.description = this.description;
+        if (this.outputBinding) base.outputBinding = this.outputBinding;
 
-        return output;
+        base.id = this.id;
+
+        return base;
     }
 
     deserialize(attr: CommandOutputParameter): void {
+        const serializedAttr = ["id", "label", "description", "outputBinding", "type"];
+
         this.id            = attr.id;
         this.outputBinding = attr.outputBinding;
-        this._type         = TypeResolver.resolveType(attr.type);
         this.label         = attr.label;
         this.description   = attr.description;
+
+        this.type = new OutputParameterTypeModel(attr.type, `${this.loc}.type`);
+
+        Object.keys(attr).forEach(key => {
+            if (serializedAttr.indexOf(key) === -1) {
+                this.customProps[key] = attr[key];
+            }
+        });
     }
 
 }

@@ -4,6 +4,7 @@ import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {ValidationBase, Validation} from "../helpers/validation";
 
 export class ExpressionModel extends ValidationBase implements Serializable<string | Expression> {
+    customProps: any = {};
 
     validate(): Validation {
         return this.validation;

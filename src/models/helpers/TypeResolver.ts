@@ -1,9 +1,6 @@
 import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {CommandOutputRecordField} from "../../mappings/v1.0/CommandOutputRecordField";
-import {CommandInputArraySchema} from "../../mappings/d2sb/CommandInputSchema";
-import {CommandInputRecordSchema} from "../../mappings/d2sb/CommandInputSchema";
-import {CommandInputEnumSchema} from "../../mappings/d2sb/CommandInputSchema";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 
 export type PrimitiveType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes";
@@ -31,10 +28,14 @@ export class TypeResolver {
                 name: null
             };
 
+
         if (type === null || type === undefined) {
             result.isNullable = true;
             return result;
         }
+
+        // clone type object because it will be sliced and modified later
+        type = JSON.parse(JSON.stringify(type));
 
         if (typeof type === 'string') {
             let matches = /(\w+)([\[\]?]+)/g.exec(<string> type);

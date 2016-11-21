@@ -489,4 +489,73 @@ describe("CommandInputParameterModel d2sb", () => {
         });
     });
 
+    describe("serialize", () => {
+        it("Should serialize simple type, label, description, inputBinding", () => {
+            const data  = {
+                type: ["string"],
+                label: "label",
+                description: "desc",
+                id: "hello",
+                inputBinding: {
+                    prefix: "--prefix"
+                }
+            };
+            const input = new CommandInputParameterModel("", <CommandInputParameter>data);
+            expect(input.serialize()).to.deep.equal(data);
+        });
+
+        it("Should serialize complex type, inputBinding with expression", () => {
+            const data  = {
+                type: [{
+                    type: "array",
+                    items: "string"
+                }],
+                id: "hello",
+                inputBinding: {
+                    prefix: "--prefix",
+                    valueFrom: {
+                        'class': "Expression",
+                        engine: "#cwl-js-engine",
+                        script: "{ return 3 + 3 + 3 }"
+                    }
+                }
+            };
+            const input = new CommandInputParameterModel("", <CommandInputParameter>data);
+            expect(input.serialize()).to.deep.equal(data);
+        });
+
+        it("Should serialize record type with fields", () => {
+            const data  = {
+                type: [{
+                    type: "record",
+                    name: "rec",
+                    fields: [
+                        {
+                            type: ["string"],
+                            id: "a",
+                            label: "field"
+                        }
+                    ]
+                }],
+                id: "b"
+            };
+            const input = new CommandInputParameterModel("", <CommandInputParameter>data);
+            expect(input.serialize()).to.deep.equal(data);
+        });
+
+        it("Should serialize with custom properties", () => {
+            const data = {
+                type: ["null", "string"],
+                id: "b",
+                "pref:customprop": "some value",
+                "pref:otherprop": {
+                    complex: "value"
+                }
+            };
+            const input = new CommandInputParameterModel("", <CommandInputParameter>data);
+            expect(input.serialize()).to.deep.equal(data);
+        });
+
+    });
+
 });

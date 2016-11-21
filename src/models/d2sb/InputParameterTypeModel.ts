@@ -61,4 +61,19 @@ export class InputParameterTypeModel extends ParameterTypeModel {
         //noinspection TypeScriptValidateTypes
         this.fields.splice(index, 1);
     }
+
+    serialize(): any {
+        const base = super.serialize();
+
+        if (this.fields) {
+            if (Array.isArray(base)) {
+                const t = base[0].fields ? base[0] : (base[1].fields ? base[1] : null);
+                if (t) t.fields = this.fields.map(field => field.serialize());
+            } else if (base.fields) {
+                base.fields = this.fields.map(field => field.serialize());
+            }
+        }
+
+        return base;
+    }
 }

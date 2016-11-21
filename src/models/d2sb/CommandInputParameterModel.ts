@@ -31,19 +31,43 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
     public self: any; //@todo calculate self based on id??
 
+    public customProps: any = {};
+
     constructor(loc: string, input?: CommandInputParameter | CommandInputRecordField) {
         super(loc);
         this.deserialize(input);
     }
 
     serialize(): CommandInputParameter | CommandInputRecordField {
-        return undefined;
+        let base: any = {};
+        base = Object.assign({}, base, this.customProps);
+
+        base.type = this.type.serialize();
+
+        if (this.inputBinding) {
+            base.inputBinding = this.inputBinding.serialize();
+        }
+
+        if (this.label) base.label = this.label;
+        if (this.description) base.description = this.description;
+
+        if (this.isField) {
+            base.name = this.id;
+            return <CommandInputRecordField> base;
+        } else {
+            base.id = this.id;
+            return <CommandInputParameter> base;
+        }
     }
 
     deserialize(input: CommandInputParameter | CommandInputRecordField): void {
+        const serializedAttr = ["label", "description", "inputBinding", "type"];
+
         input = input || {};
 
         this.isField     = !!(<CommandInputRecordField> input).name; // record fields don't have ids
+        this.isField ? serializedAttr.push("name") : serializedAttr.push("id");
+
         this.id          = (<CommandInputParameter> input).id
             || (<CommandInputRecordField> input).name || ""; // for record fields
         this.label       = input.label;
@@ -59,6 +83,13 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
         this.type = new InputParameterTypeModel(input.type, `${this.loc}.type`);
         this.type.setValidationCallback((err: Validation) => { this.updateValidity(err) });
+
+        // populates object with all custom attributes not covered in model
+        Object.keys(input).forEach(key => {
+            if (serializedAttr.indexOf(key) === -1) {
+                this.customProps[key] = input[key];
+            }
+        });
     }
 
     getCommandPart(job?: any, value?: any, self?: any): CommandLinePart {
