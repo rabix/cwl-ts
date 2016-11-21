@@ -238,12 +238,12 @@ describe("CommandInputParameterModel d2sb", () => {
                 }
             });
 
-            input.addField({
+            input.type.addField({
                 name: "field",
                 type: "string"
             });
 
-            expect(input.fields).to.have.length(1);
+            expect(input.type.fields).to.have.length(1);
         });
 
         // add field on non record input
@@ -257,12 +257,12 @@ describe("CommandInputParameterModel d2sb", () => {
             });
 
             expect(() => {
-                input.addField({
+                input.type.addField({
                     name: "field",
                     type: "string"
                 });
             }).to.throw;
-            expect(input.fields).to.be.null;
+            expect(input.type.fields).to.be.null;
         });
 
         // remove field
@@ -275,14 +275,14 @@ describe("CommandInputParameterModel d2sb", () => {
                 }
             });
 
-            input.addField({
+            input.type.addField({
                 name: "field",
                 type: "string"
             });
 
-            expect(input.fields).to.have.length(1);
-            input.removeField("field");
-            expect(input.fields).to.have.length(0);
+            expect(input.type.fields).to.have.length(1);
+            input.type.removeField("field");
+            expect(input.type.fields).to.have.length(0);
         });
 
         it("should remove an existing field by object", () => {
@@ -299,11 +299,11 @@ describe("CommandInputParameterModel d2sb", () => {
                 type: "string"
             });
 
-            input.addField(field);
+            input.type.addField(field);
 
-            expect(input.fields).to.have.length(1);
-            input.removeField(field);
-            expect(input.fields).to.have.length(0);
+            expect(input.type.fields).to.have.length(1);
+            input.type.removeField(field);
+            expect(input.type.fields).to.have.length(0);
         });
 
         // add field with duplicate name
@@ -316,13 +316,13 @@ describe("CommandInputParameterModel d2sb", () => {
                 }
             });
 
-            input.addField({
+            input.type.addField({
                 name: "field",
                 type: "string"
             });
 
             expect(() => {
-                input.addField({
+                input.type.addField({
                     name: "field",
                     type: "string"
                 });
@@ -339,14 +339,14 @@ describe("CommandInputParameterModel d2sb", () => {
                 }
             });
 
-            input.addField({
+            input.type.addField({
                 name: "field",
                 type: "string"
             });
 
-            expect(input.fields).to.have.length(1);
+            expect(input.type.fields).to.have.length(1);
             expect(() => {
-                input.removeField("boo");
+                input.type.removeField("boo");
             }).to.throw;
         });
     });
@@ -356,8 +356,8 @@ describe("CommandInputParameterModel d2sb", () => {
         it("should set type by string", () => {
             const input = new CommandInputParameterModel("");
 
-            input.setType("string");
-            expect(input.getType()).to.equal("string");
+            input.type.type = "string";
+            expect(input.type.type).to.equal("string");
         });
 
     });
@@ -370,8 +370,8 @@ describe("CommandInputParameterModel d2sb", () => {
                 type: {type: "array", items: "int"}
             });
 
-            input.setItems("string");
-            expect(input.items).to.equal("string");
+            input.type.items = "string";
+            expect(input.type.items).to.equal("string");
         });
 
         // set items type on non-array
@@ -382,25 +382,13 @@ describe("CommandInputParameterModel d2sb", () => {
             });
 
             expect(() => {
-                input.setItems("string");
+                input.type.items = "string";
             }).to.throw;
         });
     });
 
     describe("symbols", () => {
-        // add symbol
-
-        //
-    });
-
-    describe("toString", () => {
-        // json
-
-        // all the types
-
-        // yaml
-
-        // all the types
+        it("should add symbols")
     });
 
     describe("setValueFrom", () => {

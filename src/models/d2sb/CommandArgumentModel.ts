@@ -2,12 +2,14 @@ import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {CommandLineInjectable} from "../interfaces/CommandLineInjectable";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
+import {ValidationBase} from "../helpers/validation/ValidationBase";
 
-export class CommandArgumentModel implements CommandLineInjectable {
+export class CommandArgumentModel extends ValidationBase implements CommandLineInjectable {
     part: CommandLinePart;
     arg: string | CommandLineBinding;
 
-    constructor(arg: string | CommandLineBinding) {
+    constructor(loc: string, arg: string | CommandLineBinding) {
+        super(loc);
         this.arg = arg;
     }
 

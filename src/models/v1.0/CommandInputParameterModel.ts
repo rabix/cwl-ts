@@ -57,7 +57,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         this.symbols = typeResolution.symbols;
         this.items   = typeResolution.items;
 
-        this.isRequired = typeResolution.isRequired;
+        this.isRequired = !typeResolution.isNullable;
     }
 
     getCommandPart(job?: any, value?: any, self?: any): CommandLinePart {
