@@ -63,7 +63,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     deserialize(input: CommandInputParameter | CommandInputRecordField): void {
         const serializedAttr = ["label", "description", "inputBinding", "type"];
 
-        input = input || {};
+        input = input || <CommandInputParameter | CommandInputRecordField>{};
 
         this.isField     = !!(<CommandInputRecordField> input).name; // record fields don't have ids
         this.isField ? serializedAttr.push("name") : serializedAttr.push("id");
@@ -187,6 +187,12 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
                         $job: job,
                         $self: ''
                     }, this.inputBinding);
+                if (this.inputBinding.valueFrom && this.inputBinding.valueFrom.validation.errors.length) {
+                    return new CommandLinePart(`<Error at ${this.inputBinding.valueFrom.loc}>`, [position, this.id], "error");
+                }
+                if (this.inputBinding.valueFrom && this.inputBinding.valueFrom.validation.warnings.length) {
+                    return new CommandLinePart(`<Warning at ${this.inputBinding.valueFrom.loc}>`, [position, this.id], "warning");
+                }
                 return new CommandLinePart(calcVal, [position, this.id], "input");
             } else {
                 return new CommandLinePart('', [position, this.id], "input");
@@ -200,6 +206,12 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
                 $job: job,
                 $self: value
             }, this.inputBinding);
+        if (this.inputBinding.valueFrom && this.inputBinding.valueFrom.validation.errors.length) {
+            return new CommandLinePart(`<Error at ${this.inputBinding.valueFrom.loc}>`, [position, this.id], "error");
+        }
+        if (this.inputBinding.valueFrom && this.inputBinding.valueFrom.validation.warnings.length) {
+            return new CommandLinePart(`<Warning at ${this.inputBinding.valueFrom.loc}>`, [position, this.id], "warning");
+        }
         return new CommandLinePart(calcVal, [position, this.id], "input");
     }
 

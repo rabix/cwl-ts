@@ -5,7 +5,7 @@ import {ValidationBase} from "../helpers/validation";
 import {OutputParameterTypeModel} from "./OutputParameterTypeModel";
 
 export class CommandOutputParameterModel extends ValidationBase implements Serializable<CommandOutputParameter> {
-    customProps: any;
+    customProps: any = {};
 
     id: string;
     type: OutputParameterTypeModel;
@@ -14,7 +14,7 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
     description: string;
 
 
-    constructor(loc: string, output: CommandOutputParameter) {
+    constructor(loc: string, output?: CommandOutputParameter) {
         super(loc);
         this.deserialize(output);
     }

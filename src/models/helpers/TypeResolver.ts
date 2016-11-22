@@ -1,14 +1,14 @@
-import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
+import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
-import {CommandOutputRecordField} from "../../mappings/v1.0/CommandOutputRecordField";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
+import {CommandOutputSchema} from "../../mappings/d2sb/CommandOutputSchema";
 
 export type PrimitiveType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes";
 
 export interface TypeResolution {
     type: PrimitiveType;
     items: PrimitiveType;
-    fields: Array<CommandInputRecordField>|Array<CommandOutputRecordField>;
+    fields: Array<CommandInputRecordField>|Array<CommandOutputSchema>;
     symbols: string[]
     isNullable: boolean;
     typeBinding: CommandLineBinding;

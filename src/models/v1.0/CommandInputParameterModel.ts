@@ -10,16 +10,17 @@ import {
 } from "../../mappings/v1.0";
 import {CommandLineInjectable, Identifiable} from "../interfaces";
 import {CommandLinePart, ExpressionEvaluator, TypeResolver} from "../helpers";
+import {PrimitiveType} from "../helpers/TypeResolver";
 
 
 export class CommandInputParameterModel implements CommandInputParameter, CommandLineInjectable, Identifiable {
     id: string;
 
     isRequired: boolean = true;
-    items: string;
+    items: PrimitiveType;
     fields: Array<CommandInputParameterModel>;
     symbols: string[];
-    resolvedType: string;
+    resolvedType: PrimitiveType;
 
     type: CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string | Array<CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string>;
     inputBinding: CommandLineBinding;

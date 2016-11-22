@@ -5,12 +5,14 @@ import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 
 export class InputParameterTypeModel extends ParameterTypeModel {
+    public fields: Array<CommandInputParameterModel>;
 
     constructor(attr: any, loc: string) {
         super(loc, attr);
 
         if (this.fields) {
             this.fields = this.fields.map((field, index) => {
+                //noinspection TypeScriptValidateTypes
                 const f = new CommandInputParameterModel(`${this.loc}.fields[${index}]`, field);
                 f.setValidationCallback((err: Validation) => {this.updateValidity(err)});
                 return f;

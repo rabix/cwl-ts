@@ -1,35 +1,41 @@
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {CommandLineInjectable} from "../interfaces/CommandLineInjectable";
-import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
+import {Serializable} from "../interfaces/Serializable";
+import {CommandLineBindingModel} from "./CommandLineBindingModel";
+import {Validation} from "../helpers/validation/Validation";
 
-export class CommandArgumentModel extends ValidationBase implements CommandLineInjectable {
-    part: CommandLinePart;
-    arg: string | CommandLineBinding;
+export class CommandArgumentModel extends ValidationBase implements Serializable<string | CommandLineBinding>, CommandLineInjectable {
+    private arg: string;
+    private binding: CommandLineBindingModel;
 
-    constructor(loc: string, arg: string | CommandLineBinding) {
+    constructor(loc: string, arg?: string | CommandLineBinding) {
         super(loc);
-        this.arg = arg;
+        this.deserialize(arg);
     }
 
-    getCommandPart(job?: any, value?: any): CommandLinePart {
-        if (typeof this.arg === "object") {
-            return this.evaluateArg(this.arg, job);
+    public getCommandPart(job?: any, value?: any): CommandLinePart {
+        if (typeof this.binding === "object") {
+            return this.evaluate(job);
         } else if (typeof this.arg === 'string') {
             return new CommandLinePart(<string> this.arg, 0, "argument");
         }
     }
 
-    evaluateArg(arg: CommandLineBinding, job: any): CommandLinePart {
-        const itemSeparator = arg.itemSeparator;
-        const separate = arg.separate === false ? '' : ' ';
-        const prefix = arg.prefix || '';
-        const position = arg.position || 0;
+    private evaluate(job: any): CommandLinePart {
+        const itemSeparator = this.binding.itemSeparator;
+        const separate = this.binding.separate === false ? '' : ' ';
+        const prefix = this.binding.prefix || '';
+        const position = this.binding.position || 0;
 
-        const valueFrom = typeof arg.valueFrom === 'object'
-            ? (ExpressionEvaluator.evaluateD2(arg.valueFrom, job) || '')
-            : arg.valueFrom;
+        const valueFrom = this.binding.valueFrom.evaluate({$job: job}) || '';
+        if (this.binding.valueFrom.validation.errors.length) {
+            return new CommandLinePart(`<Error at ${this.binding.valueFrom.loc}>`, position, "error");
+        }
+        if (this.binding.valueFrom.validation.warnings.length) {
+            return new CommandLinePart(`<Warning at ${this.binding.valueFrom.loc}>`, position, "warning");
+        }
 
         let calculatedValue;
 
@@ -44,4 +50,22 @@ export class CommandArgumentModel extends ValidationBase implements CommandLineI
         return new CommandLinePart(calculatedValue, position, "argument");
     }
 
+    public customProps: any = {};
+
+    serialize(): string|CommandLineBinding {
+        if (this.arg) {
+            return this.arg;
+        } else {
+            return this.binding.serialize();
+        }
+    }
+
+    deserialize(attr: string|CommandLineBinding): void {
+        if (typeof attr === "string") {
+            this.arg = attr;
+        } else {
+            this.binding = new CommandLineBindingModel(this.loc, attr);
+            this.binding.setValidationCallback((err:Validation) => {this.updateValidity(err);})
+        }
+    }
 }

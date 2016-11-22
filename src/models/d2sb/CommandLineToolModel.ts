@@ -10,6 +10,7 @@ import {MSDSort} from "../helpers/MSDSort";
 import {Serializable} from "../interfaces/Serializable";
 import {ExpressionModel} from "./ExpressionModel";
 import {ValidationBase, Validatable, Validation} from "../helpers/validation";
+import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 
 export class CommandLineToolModel extends ValidationBase implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
     job: any;
@@ -55,7 +56,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     }
 
     public addArgument(argument: CommandArgumentModel) {
-        argument     = argument || new CommandInputParameterModel('');
+        argument     = argument || new CommandArgumentModel("");
         argument.loc = `${this.loc}.arguments[${this.arguments.length}]`;
 
         this.arguments.push(argument);
@@ -98,7 +99,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     }
 
     public addOutput(output: CommandOutputParameterModel) {
-        output     = output || new CommandInputParameterModel('');
+        output     = output || new CommandOutputParameterModel('');
         output.loc = `${this.loc}.outputs[${this.outputs.length}]`;
 
         this.outputs.push(output);
@@ -150,6 +151,12 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         const baseCmdParts = (this.baseCommand)
             .map((baseCmd) => {
                 baseCmd.evaluate({$job: this.job});
+                if (baseCmd.validation.errors.length) {
+                    return new CommandLinePart(`<Error at ${baseCmd.loc}>`, 0, "error");
+                }
+                if (baseCmd.validation.warnings.length) {
+                    return new CommandLinePart(`<Warning at ${baseCmd.loc}>`, 0, "warning");
+                }
                 return new CommandLinePart(baseCmd.result, 0, "baseCommand");
             });
 
@@ -194,7 +201,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
         base.class       = "CommandLineTool";
         base.baseCommand = this.baseCommand.map(cmd => cmd.serialize());
-        base.inputs      = this.inputs.map(input => input.serialize());
+        base.inputs      = <Array<CommandInputParameter>> this.inputs.map(input => input.serialize());
 
         base = Object.assign({}, base, this.customProps);
 
@@ -209,7 +216,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         attr.inputs.forEach((input, index) => {
             this.addInput(new CommandInputParameterModel(`${this.loc}.inputs[${index}]`, input));
         });
-        attr.inputs.forEach((output, index) => {
+        attr.outputs.forEach((output, index) => {
             this.addOutput(new CommandOutputParameterModel(`${this.loc}.outputs[${index}]`, output))
         });
 

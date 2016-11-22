@@ -1,6 +1,7 @@
 import {expect} from "chai";
 import {ExpressionModel} from "./ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
+import {ExpressionClass} from "../../mappings/d2sb/Expression";
 
 describe("ExpressionModel d2sb", () => {
 
@@ -107,7 +108,7 @@ describe("ExpressionModel d2sb", () => {
 
         it("Should serialize an expression with custom properties", () => {
             const data = {
-                "class": "Expression",
+                "class": <ExpressionClass> "Expression",
                 engine: "#cwl-js-engine",
                 script: "{ return 3 + 3 }",
                 "pref:custom": "some value"

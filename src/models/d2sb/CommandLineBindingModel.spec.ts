@@ -1,6 +1,7 @@
 import {expect} from "chai";
 import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
+import {ExpressionClass} from "../../mappings/d2sb/Expression";
 
 describe("CommandLineBindingModel", () => {
     describe("updateValidity", () => {
@@ -25,12 +26,12 @@ describe("CommandLineBindingModel", () => {
         it("Should serialize binding with valueFrom", () => {
             const data    = {
                 valueFrom: {
-                    "class": "Expression",
+                    "class": <ExpressionClass> "Expression",
                     engine: "#cwl-js-engine",
                     script: "---"
                 }
             };
-            const binding = new CommandLineBindingModel("", <CommandLineBinding>data);
+            const binding = new CommandLineBindingModel("", data);
 
             expect(binding.serialize()).to.deep.equal(data);
         });
@@ -38,7 +39,7 @@ describe("CommandLineBindingModel", () => {
         it("Should serialize binding with customProps", () => {
             const data    = {
                 valueFrom: {
-                    "class": "Expression",
+                    "class": <ExpressionClass> "Expression",
                     engine: "#cwl-js-engine",
                     script: "---"
                 },
@@ -50,6 +51,6 @@ describe("CommandLineBindingModel", () => {
             const binding = new CommandLineBindingModel("", <CommandLineBinding>data);
 
             expect(binding.serialize()).to.deep.equal(data);
-        })
+        });
     })
 });

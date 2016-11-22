@@ -1,5 +1,3 @@
-import {CommandOutputRecordField} from "../../mappings/v1.0/CommandOutputRecordField";
-import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {Serializable} from "../interfaces/Serializable";
 import {TypeResolver, TypeResolution} from "../helpers/TypeResolver";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
@@ -10,6 +8,8 @@ import {CommandInputParameterType} from "../../mappings/d2sb/CommandInputParamet
 export type PrimitiveParameterType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes";
 
 export abstract class ParameterTypeModel extends ValidationBase implements Serializable<any>, TypeResolution {
+    public customProps: any = {};
+
     private _items: PrimitiveParameterType;
 
     get items(): PrimitiveParameterType {
@@ -51,7 +51,7 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
 
     isNullable: boolean;
     typeBinding: CommandLineBinding;
-    fields: Array<CommandInputRecordField>|Array<CommandOutputRecordField>;
+    fields: Array<any>;
     symbols: string[];
     name: string;
 
@@ -61,12 +61,28 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
     }
 
     serialize(): any {
-        return TypeResolver.serializeType(this);
+        let type  = TypeResolver.serializeType(this);
+
+        if (typeof type === "object" && !Array.isArray(type)) {
+            type = Object.assign({}, type, this.customProps);
+        }
+
+        return type
     }
 
     deserialize(attr: any ): void {
+        const serializedKeys = ["type", "name", "symbols", "fields", "items", "inputBinding", "outputBinding"];
+
         TypeResolver.resolveType(attr, this);
 
+        // populates object with all custom attributes not covered in model
+        if (typeof attr === "object") {
+            Object.keys(attr).forEach(key => {
+                if (serializedKeys.indexOf(key) === -1) {
+                    this.customProps[key] = attr[key];
+                }
+            });
+        }
     }
 
     setType(t: PrimitiveParameterType): void {

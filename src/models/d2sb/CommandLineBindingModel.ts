@@ -11,7 +11,7 @@ export class CommandLineBindingModel extends ValidationBase implements Serializa
     public itemSeparator: string;
     public valueFrom: ExpressionModel;
 
-    private customProps: any = {};
+    public customProps: any = {};
     private serializedKeys: string[] = ["position", "prefix", "separate", "itemSeparator", "valueFrom"];
 
     constructor(loc: string, binding: CommandLineBinding) {

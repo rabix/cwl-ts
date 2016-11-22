@@ -1,6 +1,7 @@
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {expect} from "chai";
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
+import {ExpressionClass} from "../../mappings/d2sb/Expression";
 
 describe("CommandInputParameterModel d2sb", () => {
 
@@ -514,13 +515,13 @@ describe("CommandInputParameterModel d2sb", () => {
                 inputBinding: {
                     prefix: "--prefix",
                     valueFrom: {
-                        'class': "Expression",
+                        'class': <ExpressionClass> "Expression",
                         engine: "#cwl-js-engine",
                         script: "{ return 3 + 3 + 3 }"
                     }
                 }
             };
-            const input = new CommandInputParameterModel("", <CommandInputParameter>data);
+            const input = new CommandInputParameterModel("", data);
             expect(input.serialize()).to.deep.equal(data);
         });
 
