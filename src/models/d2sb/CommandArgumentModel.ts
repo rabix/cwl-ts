@@ -7,7 +7,15 @@ import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {Validation} from "../helpers/validation/Validation";
 
 export class CommandArgumentModel extends ValidationBase implements Serializable<string | CommandLineBinding>, CommandLineInjectable {
-    private arg: string;
+    get arg(): string|CommandLineBinding {
+        return this.stringVal || this.binding.serialize();
+    }
+
+    set arg(value: string|CommandLineBinding) {
+        this.deserialize(value);
+    }
+
+    private stringVal: string;
     private binding: CommandLineBindingModel;
 
     constructor(loc: string, arg?: string | CommandLineBinding) {
@@ -18,8 +26,8 @@ export class CommandArgumentModel extends ValidationBase implements Serializable
     public getCommandPart(job?: any, value?: any): CommandLinePart {
         if (typeof this.binding === "object") {
             return this.evaluate(job);
-        } else if (typeof this.arg === 'string') {
-            return new CommandLinePart(<string> this.arg, 0, "argument");
+        } else if (typeof this.stringVal === 'string') {
+            return new CommandLinePart(<string> this.stringVal, 0, "argument");
         }
     }
 
@@ -53,8 +61,8 @@ export class CommandArgumentModel extends ValidationBase implements Serializable
     public customProps: any = {};
 
     serialize(): string|CommandLineBinding {
-        if (this.arg) {
-            return this.arg;
+        if (this.stringVal) {
+            return this.stringVal;
         } else {
             return this.binding.serialize();
         }
@@ -62,7 +70,7 @@ export class CommandArgumentModel extends ValidationBase implements Serializable
 
     deserialize(attr: string|CommandLineBinding): void {
         if (typeof attr === "string") {
-            this.arg = attr;
+            this.stringVal = attr;
         } else {
             this.binding = new CommandLineBindingModel(this.loc, attr);
             this.binding.setValidationCallback((err:Validation) => {this.updateValidity(err);})
