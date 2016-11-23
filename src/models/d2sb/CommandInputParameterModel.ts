@@ -3,10 +3,8 @@ import {CommandLineInjectable} from "../interfaces/CommandLineInjectable";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {TypeResolver} from "../helpers/TypeResolver";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
-import {Expression} from "../../mappings/d2sb/Expression";
 import {Serializable} from "../interfaces/Serializable";
 import {CommandLineBindingModel} from "./CommandLineBindingModel";
-import {ExpressionModel} from "./ExpressionModel";
 import {ValidationBase, Validation} from "../helpers/validation";
 import {InputParameterTypeModel} from "./InputParameterTypeModel";
 
@@ -25,7 +23,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     public type: InputParameterTypeModel;
 
     /** Binding for inclusion in command line */
-    private inputBinding: CommandLineBindingModel = null;
+    public inputBinding: CommandLineBindingModel = null;
 
     public job: any; //@todo better way to set job?
 
@@ -227,17 +225,6 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
         }
 
         return value;
-    }
-
-    public setValueFrom(value: string | Expression): void {
-        if (!this.inputBinding) {
-            this.createInputBinding();
-        }
-        this.inputBinding.setValueFrom(value);
-    }
-
-    public getValueFrom(): ExpressionModel {
-        return this.inputBinding ? this.inputBinding.valueFrom : undefined;
     }
 
     public createInputBinding() {
