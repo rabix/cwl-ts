@@ -231,8 +231,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
     public setValueFrom(value: string | Expression): void {
         if (!this.inputBinding) {
-            this.inputBinding = new CommandLineBindingModel(`${this.loc}.inputBinding`, {});
-            this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
+            this.createInputBinding();
         }
         this.inputBinding.setValueFrom(value);
     }
@@ -241,12 +240,17 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
         return this.inputBinding ? this.inputBinding.valueFrom : undefined;
     }
 
-    public hasInputBinding(): boolean {
-        return this.inputBinding !== undefined && this.inputBinding !== null;
+    public createInputBinding() {
+        this.inputBinding = new CommandLineBindingModel(`${this.loc}.inputBinding`, {});
+        this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
     }
 
     public removeInputBinding(): void {
         this.inputBinding = null;
+    }
+
+    public get isBound(): boolean {
+        return this.inputBinding !== undefined && this.inputBinding !== null;
     }
 
     //@todo(maya) implement validation
