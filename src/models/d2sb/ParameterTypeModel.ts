@@ -41,10 +41,12 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
             case "enum":
                 this._items = null;
                 this.fields = null;
+                this.symbols = this.symbols || [];
                 break;
             case "record":
                 this._items = null;
                 this.symbols = null;
+                this.fields = this.fields || [];
                 break;
         }
     }
