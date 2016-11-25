@@ -244,8 +244,6 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     validate(): Validation {
         const val = {errors: [], warnings: []}; // purge current validation;
 
-        const location = this.isField ? "fields[<fieldIndex>]" : "inputs[<inputIndex>]";
-
         if (this.inputBinding && this.inputBinding.valueFrom) {
             this.inputBinding.valueFrom.evaluate({$job: this.job, $self: this.self});
         }
@@ -271,19 +269,19 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
             if (this.type.items === null) {
                 val.errors.push({
                     message: "Type array must have items",
-                    loc: location
+                    loc: `${this.loc}.type`
                 });
             }
             if (this.type.symbols !== null) {
                 val.errors.push({
                     message: "Type array must not have symbols",
-                    loc: location
+                    loc: `${this.loc}.type`
                 });
             }
             if (this.type.fields !== null) {
                 val.errors.push({
                     message: "Type array must not have fields",
-                    loc: location
+                    loc: `${this.loc}.type`
                 });
             }
         }
@@ -292,26 +290,26 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
             if (this.type.items !== null) {
                 val.errors.push({
                     message: "Type enum must not have items",
-                    loc: location
+                    loc: `${this.loc}.type`
                 });
             }
             if (this.type.symbols === null) {
                 val.errors.push({
                     message: "Type enum must have symbols",
-                    loc: location
+                    loc: `${this.loc}.type`
                 });
             }
             if (this.type.fields !== null) {
                 val.errors.push({
                     message: "Type enum must not have fields",
-                    loc: location
+                    loc: `${this.loc}.type`
                 });
             }
 
             if (!this.type.name) {
                 val.errors.push({
                     message: "Type enum must have a name",
-                    loc: location
+                    loc: `${this.loc}.type`
                 });
             }
         }
@@ -320,19 +318,19 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
             if (this.type.items !== null) {
                 val.errors.push({
                     message: "Type record must not have items",
-                    loc: location
+                    loc: `${this.loc}.type`
                 });
             }
             if (this.type.symbols === null) {
                 val.errors.push({
                     message: "Type record must have symbols",
-                    loc: location
+                    loc: `${this.loc}.type`
                 });
             }
-            if (this.type.fields === null) {
+            if (this.type.fields !== null) {
                 val.errors.push({
                     message: "Type record must have fields",
-                    loc: location
+                    loc: `${this.loc}.type`
                 });
             } else {
                 // check validity for each field.
@@ -342,7 +340,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
             if (!this.type.name) {
                 val.errors.push({
                     message: "Type record must have a name",
-                    loc: location
+                    loc: `${this.loc}.type`
                 });
             }
         }

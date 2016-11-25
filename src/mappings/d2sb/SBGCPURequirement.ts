@@ -1,7 +1,8 @@
 import {Expression} from "./Expression";
+import {ProcessRequirement} from "./ProcessRequirement";
 export type SBGCPURequirementClass = "sbg:CPURequirement"
 
-export interface SBGCPURequirement {
+export interface SBGCPURequirement  extends ProcessRequirement  {
     class: SBGCPURequirementClass;
     value: string | Expression
 }

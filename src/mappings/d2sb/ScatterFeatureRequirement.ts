@@ -1,3 +1,4 @@
-export interface ScatterFeatureRequirement {
+import {ProcessRequirement} from "./ProcessRequirement";
+export interface ScatterFeatureRequirement extends ProcessRequirement {
 
 }

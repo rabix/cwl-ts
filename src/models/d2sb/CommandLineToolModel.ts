@@ -11,17 +11,30 @@ import {Serializable} from "../interfaces/Serializable";
 import {ExpressionModel} from "./ExpressionModel";
 import {ValidationBase, Validatable, Validation} from "../helpers/validation";
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
+import {ProcessRequirementModel} from "./ProcessRequirementModel";
+import {DockerRequirementModel} from "./DockerRequirementModel";
+import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
+import {ExpressionEngineRequirementModel} from "./ExpressionEngineRequirementModel";
+import {DockerRequirement} from "../../mappings/d2sb/DockerRequirement";
+import {ExpressionEngineRequirement} from "../../mappings/d2sb/ExpressionEngineRequirement";
+import {RequirementBaseModel} from "./RequirementBaseModel";
+import {CreateFileRequirement} from "../../mappings/d2sb/CreateFileRequirement";
+import {CreateFileRequirementModel} from "./CreateFileRequirementModel";
+import {SBGCPURequirement} from "../../mappings/d2sb/SBGCPURequirement";
+import {SBGMemRequirement} from "../../mappings/d2sb/SBGMemRequirement";
+import {ResourceRequirementModel} from "./ResourceRequirementModel";
 
 export class CommandLineToolModel extends ValidationBase implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
     job: any;
     jobInputs: any;
-
+    readonly 'class': string;
     id: string;
 
-    inputs: Array<CommandInputParameterModel>   = [];
-    outputs: Array<CommandOutputParameterModel> = [];
-    readonly 'class': string;
-    baseCommand: Array<ExpressionModel>         = [];
+    baseCommand: Array<ExpressionModel>                    = [];
+    inputs: Array<CommandInputParameterModel>              = [];
+    outputs: Array<CommandOutputParameterModel>            = [];
+    requirements: { [id: string]: ProcessRequirementModel} = {};
+    hints: { [id: string]: ProcessRequirementModel}        = {};
 
     arguments: Array<CommandArgumentModel> = [];
 
@@ -119,6 +132,11 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         }
     }
 
+    public setRequirement(req: ProcessRequirement, hint?: boolean) {
+        const prop = hint ? "hints" : "requirements";
+        this.createReq(req, `${this.loc}.${prop}[${Object.keys(this.requirements).length}]`, hint);
+    }
+
     public getCommandLine(): string {
         //@todo(maya): implement with Observables so command line isn't generated anew every time
         const parts = this.getCommandLineParts()
@@ -203,58 +221,107 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         base.baseCommand = this.baseCommand.map(cmd => cmd.serialize());
         base.inputs      = <Array<CommandInputParameter>> this.inputs.map(input => input.serialize());
 
+        if (Object.keys(this.requirements).length) {
+            base.requirements = Object.keys(this.requirements).map(key => this.requirements[key].serialize());
+        }
+
+        if (Object.keys(this.hints).length) {
+            base.hints = Object.keys(this.hints).map(key => this.hints[key].serialize());
+        }
+
         base = Object.assign({}, base, this.customProps);
 
         return base;
     }
 
-    deserialize(attr: CommandLineTool): void {
-        const serializedAttr = ["baseCommand", "class", "id", "inputs"];
+    deserialize(tool: CommandLineTool): void {
+        const serializedAttr = ["baseCommand", "class", "id", "inputs", "hints", "requirements"];
 
-        this.id = attr.id;
+        this.id = tool.id;
 
-        attr.inputs.forEach((input, index) => {
+        tool.inputs.forEach((input, index) => {
             this.addInput(new CommandInputParameterModel(`${this.loc}.inputs[${index}]`, input));
         });
-        attr.outputs.forEach((output, index) => {
+        tool.outputs.forEach((output, index) => {
             this.addOutput(new CommandOutputParameterModel(`${this.loc}.outputs[${index}]`, output))
         });
 
-        if (attr.arguments) {
-            attr.arguments.forEach((arg, index) => {
+        if (tool.arguments) {
+            tool.arguments.forEach((arg, index) => {
                 this.addArgument(new CommandArgumentModel(`${this.loc}.arguments[${index}]`, arg))
             });
         }
 
-        this.stdin  = attr.stdin || '';
-        this.stdout = attr.stdout || '';
+        if (tool.requirements) {
+            tool.requirements.forEach((req, index) => {
+                this.createReq(req, `${this.loc}.requirements[${index}]`);
+            });
+        }
 
-        this.successCodes       = attr.successCodes || [];
-        this.temporaryFailCodes = attr.temporaryFailCodes || [];
-        this.permanentFailCodes = attr.permanentFailCodes || [];
-        attr.baseCommand        = attr.baseCommand || [''];
+        if (tool.hints) {
+            tool.hints.forEach((hint, index) => {
+                this.createReq(hint, `${this.loc}.hints[${index}]`, true);
+            });
+        }
+
+        this.stdin  = tool.stdin || '';
+        this.stdout = tool.stdout || '';
+
+        this.successCodes       = tool.successCodes || [];
+        this.temporaryFailCodes = tool.temporaryFailCodes || [];
+        this.permanentFailCodes = tool.permanentFailCodes || [];
+        tool.baseCommand        = tool.baseCommand || [''];
 
         // wrap to array
-        attr.baseCommand = !Array.isArray(attr.baseCommand)
-            ? [<string | Expression> attr.baseCommand]
-            : <Array<string | Expression>> attr.baseCommand;
+        tool.baseCommand = !Array.isArray(tool.baseCommand)
+            ? [<string | Expression> tool.baseCommand]
+            : <Array<string | Expression>> tool.baseCommand;
 
         this.baseCommand = [];
 
-        (<Array<string | Expression>> attr.baseCommand)
+        (<Array<string | Expression>> tool.baseCommand)
             .forEach((cmd, index) => this.addBaseCommand(new ExpressionModel(`baseCommand[${index}]`, cmd)));
 
-        this.job = attr['sbg:job']
-            ? attr['sbg:job']
+        this.job = tool['sbg:job']
+            ? tool['sbg:job']
             : JobHelper.getJob(this);
 
         this.jobInputs = this.job.inputs || this.job;
 
         // populates object with all custom attributes not covered in model
-        Object.keys(attr).forEach(key => {
+        Object.keys(tool).forEach(key => {
             if (serializedAttr.indexOf(key) === -1) {
-                this.customProps[key] = attr[key];
+                this.customProps[key] = tool[key];
             }
         });
+    }
+
+    createReq(req: ProcessRequirement, loc: string, hint?: boolean) {
+        let reqModel: ProcessRequirementModel;
+        const property = hint ? "hints" : "requirements";
+
+        switch (req.class) {
+            case "DockerRequirement":
+                reqModel = new DockerRequirementModel(<DockerRequirement>req, loc);
+                break;
+            case "ExpressionEngineRequirement":
+                reqModel = new ExpressionEngineRequirementModel(<ExpressionEngineRequirement>req, loc);
+                break;
+            case "CreateFileRequirement":
+                reqModel = new CreateFileRequirementModel(<CreateFileRequirement>req, loc);
+                break;
+            case "sbg:CPURequirement":
+            case "sbg:MemRequirement":
+                reqModel = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                break;
+            default:
+                reqModel = new RequirementBaseModel(req, loc);
+        }
+        if (reqModel) {
+            this[property][req.class] = reqModel;
+            reqModel.setValidationCallback((err: Validation) => {
+                this.updateValidity(err);
+            });
+        }
     }
 }
