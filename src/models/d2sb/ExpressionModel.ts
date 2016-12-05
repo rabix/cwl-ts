@@ -87,8 +87,8 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
      * @param val
      * @param type
      */
-    public setValue(val: string, type: "expression" | "string") {
-        if (type === "expression") {
+    public setValue(val: string | Expression, type: "expression" | "string") {
+        if (type === "expression" && typeof val === "string") {
             this.value = {
                 "class": "Expression",
                 engine: "#cwl-js-engine",
@@ -135,32 +135,5 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
         }
 
         return val.script;
-    }
-
-    /**
-     * @deprecated
-     * @param expressionScript
-     */
-    public setValueToExpression(expressionScript: string) {
-        this.value = {
-            "class": "Expression",
-            engine: "#cwl-js-engine",
-            script: expressionScript
-        };
-        this.type  = "expression";
-    }
-
-    /**
-     * @deprecated
-     * @param value
-     */
-    public setValueToString(value: string) {
-        this.value = value;
-        this.type  = "string";
-    }
-
-    /** @deprecated */
-    public getExpressionScript(): string {
-        return this.toString();
     }
 }

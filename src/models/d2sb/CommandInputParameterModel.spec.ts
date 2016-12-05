@@ -399,9 +399,10 @@ describe("CommandInputParameterModel d2sb", () => {
                 type: {type: "array", items: "int"}
             });
 
-            input.setValueFrom("asd 123");
+            input.createInputBinding();
+            input.inputBinding.setValueFrom("asd 123");
 
-            expect(input.getValueFrom().toString()).to.equal("asd 123");
+            expect(input.inputBinding.valueFrom.toString()).to.equal("asd 123");
         });
     });
 
@@ -413,8 +414,9 @@ describe("CommandInputParameterModel d2sb", () => {
                 type: {type: "array", items: "int"}
             });
 
-            input.setValueFrom("asd 123");
-            expect(input.hasInputBinding()).to.equal(true);
+            input.createInputBinding();
+            input.inputBinding.setValueFrom("asd 123");
+            expect(input.isBound).to.equal(true);
         });
 
         it("Should return false if there is no inputBinding", () => {
@@ -423,7 +425,7 @@ describe("CommandInputParameterModel d2sb", () => {
                 type: {type: "array", items: "int"}
             });
 
-            expect(input.hasInputBinding()).to.equal(false);
+            expect(input.isBound).to.equal(false);
         });
     });
 
@@ -435,11 +437,12 @@ describe("CommandInputParameterModel d2sb", () => {
                 type: {type: "array", items: "int"}
             });
 
-            input.setValueFrom("asd 123");
-            expect(input.hasInputBinding()).to.equal(true);
+            input.createInputBinding();
+            input.inputBinding.setValueFrom("asd 123");
+            expect(input.isBound).to.equal(true);
 
             input.removeInputBinding();
-            expect(input.hasInputBinding()).to.equal(false);
+            expect(input.isBound).to.equal(false);
         });
 
     });
