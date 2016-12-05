@@ -4,8 +4,6 @@
 rm -r lib/mappings
 rm -r lib/models
 rm -r lib/schemas
-rm lib/index.d.ts
-rm lib/index.js
 
 mkdir lib/schemas
 

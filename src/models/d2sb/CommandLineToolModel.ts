@@ -10,6 +10,7 @@ import {MSDSort} from "../helpers/MSDSort";
 import {Serializable} from "../interfaces/Serializable";
 import {ExpressionModel} from "./ExpressionModel";
 import {ValidationBase, Validatable, Validation} from "../helpers/validation";
+import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 
 export class CommandLineToolModel extends ValidationBase implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
     job: any;
@@ -20,9 +21,9 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     inputs: Array<CommandInputParameterModel>   = [];
     outputs: Array<CommandOutputParameterModel> = [];
     readonly 'class': string;
-    baseCommand: Array<ExpressionModel>;
+    baseCommand: Array<ExpressionModel>         = [];
 
-    arguments: Array<CommandArgumentModel>;
+    arguments: Array<CommandArgumentModel> = [];
 
     stdin: string | Expression;
     stdout: string | Expression;
@@ -54,8 +55,17 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         return cmd;
     }
 
-    public addArgument(arg: CommandArgumentModel) {
-        this.arguments.push(arg);
+    public addArgument(argument: CommandArgumentModel) {
+        argument     = argument || new CommandArgumentModel("");
+        argument.loc = `${this.loc}.arguments[${this.arguments.length}]`;
+
+        this.arguments.push(argument);
+
+        argument.setValidationCallback((err: Validation) => {
+            this.updateValidity(err);
+        });
+
+        return argument;
     }
 
     public removeArgument(arg: CommandArgumentModel | number) {
@@ -89,7 +99,16 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     }
 
     public addOutput(output: CommandOutputParameterModel) {
+        output     = output || new CommandOutputParameterModel('');
+        output.loc = `${this.loc}.outputs[${this.outputs.length}]`;
+
         this.outputs.push(output);
+
+        output.setValidationCallback((err: Validation) => {
+            this.updateValidity(err);
+        });
+
+        return output;
     }
 
     public removeOutput(output: CommandOutputParameterModel | number) {
@@ -132,6 +151,12 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         const baseCmdParts = (this.baseCommand)
             .map((baseCmd) => {
                 baseCmd.evaluate({$job: this.job});
+                if (baseCmd.validation.errors.length) {
+                    return new CommandLinePart(`<Error at ${baseCmd.loc}>`, 0, "error");
+                }
+                if (baseCmd.validation.warnings.length) {
+                    return new CommandLinePart(`<Warning at ${baseCmd.loc}>`, 0, "warning");
+                }
                 return new CommandLinePart(baseCmd.result, 0, "baseCommand");
             });
 
@@ -176,6 +201,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
         base.class       = "CommandLineTool";
         base.baseCommand = this.baseCommand.map(cmd => cmd.serialize());
+        base.inputs      = <Array<CommandInputParameter>> this.inputs.map(input => input.serialize());
 
         base = Object.assign({}, base, this.customProps);
 
@@ -183,18 +209,22 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     }
 
     deserialize(attr: CommandLineTool): void {
-        const serializedAttr = ["baseCommand", "class", "id"];
+        const serializedAttr = ["baseCommand", "class", "id", "inputs"];
 
         this.id = attr.id;
 
         attr.inputs.forEach((input, index) => {
             this.addInput(new CommandInputParameterModel(`${this.loc}.inputs[${index}]`, input));
         });
-        this.outputs = attr.outputs.map(output => new CommandOutputParameterModel(output));
+        attr.outputs.forEach((output, index) => {
+            this.addOutput(new CommandOutputParameterModel(`${this.loc}.outputs[${index}]`, output))
+        });
 
-        this.arguments = attr.arguments
-            ? attr.arguments.map(arg => new CommandArgumentModel(arg))
-            : [];
+        if (attr.arguments) {
+            attr.arguments.forEach((arg, index) => {
+                this.addArgument(new CommandArgumentModel(`${this.loc}.arguments[${index}]`, arg))
+            });
+        }
 
         this.stdin  = attr.stdin || '';
         this.stdout = attr.stdout || '';
@@ -226,8 +256,5 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
                 this.customProps[key] = attr[key];
             }
         });
-    }
-
-    setValidationCallback(fn: (any)=>void): void {
     }
 }

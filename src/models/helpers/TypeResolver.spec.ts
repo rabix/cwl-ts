@@ -7,7 +7,7 @@ describe("TypeResolver", () => {
             let resolved = TypeResolver.resolveType("string");
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("string");
-            expect(resolved.isRequired).to.be.true;
+            expect(resolved.isNullable).to.be.false;
             expect(resolved.items).to.be.null;
         });
 
@@ -16,7 +16,7 @@ describe("TypeResolver", () => {
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("array");
             expect(resolved.items).to.be.equal("string");
-            expect(resolved.isRequired).to.be.true;
+            expect(resolved.isNullable).to.be.false;
         });
 
         it("Should resolve type shorthand for optional single item", () => {
@@ -24,7 +24,7 @@ describe("TypeResolver", () => {
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("string");
             expect(resolved.items).to.be.null;
-            expect(resolved.isRequired).to.be.false;
+            expect(resolved.isNullable).to.be.true;
         });
 
         it("Should resolve type shorthand for optional array", () => {
@@ -32,7 +32,7 @@ describe("TypeResolver", () => {
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("array");
             expect(resolved.items).to.be.equal("string");
-            expect(resolved.isRequired).to.be.false;
+            expect(resolved.isNullable).to.be.true;
         });
 
         it("Should resolve optional union type of primitive type", () => {
@@ -40,7 +40,7 @@ describe("TypeResolver", () => {
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("string");
             expect(resolved.items).to.be.null;
-            expect(resolved.isRequired).to.be.false;
+            expect(resolved.isNullable).to.be.true;
         });
 
         it("Should resolve optional union type of primitive type", () => {
@@ -48,14 +48,14 @@ describe("TypeResolver", () => {
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("string");
             expect(resolved.items).to.be.null;
-            expect(resolved.isRequired).to.be.false;
+            expect(resolved.isNullable).to.be.true;
         });
 
         it("Should resolve required primitive type defined as union", () => {
             let resolved = TypeResolver.resolveType(["string"]);
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("string");
-            expect(resolved.isRequired).to.be.true;
+            expect(resolved.isNullable).to.be.false;
             expect(resolved.items).to.be.null;
         });
 
@@ -64,7 +64,7 @@ describe("TypeResolver", () => {
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("array");
             expect(resolved.items).to.be.equal("string");
-            expect(resolved.isRequired).to.be.true;
+            expect(resolved.isNullable).to.be.false;
         });
 
         it("Should resolve complex record type", () => {
@@ -76,7 +76,7 @@ describe("TypeResolver", () => {
             expect(resolved.type).to.be.equal("record");
             expect(resolved.items).to.be.null;
             expect(resolved.fields).to.have.lengthOf(1);
-            expect(resolved.isRequired).to.be.true;
+            expect(resolved.isNullable).to.be.false;
         });
 
         it("Should resolve complex enum type", () => {
@@ -86,7 +86,7 @@ describe("TypeResolver", () => {
             expect(resolved.symbols).to.have.lengthOf(2);
             expect(resolved.items).to.be.null;
             expect(resolved.fields).to.be.null;
-            expect(resolved.isRequired).to.be.true;
+            expect(resolved.isNullable).to.be.false;
         });
 
         it("Should resolve complex array of enum type", () => {
@@ -99,7 +99,7 @@ describe("TypeResolver", () => {
             expect(resolved.symbols).to.have.lengthOf(2);
             expect(resolved.items).to.equal("enum");
             expect(resolved.fields).to.be.null;
-            expect(resolved.isRequired).to.be.true;
+            expect(resolved.isNullable).to.be.false;
         });
 
         it("Should resolve complex array of record type", () => {
@@ -120,7 +120,7 @@ describe("TypeResolver", () => {
             expect(resolved.fields).to.have.lengthOf(1);
             expect(resolved.items).to.equal("record");
             expect(resolved.symbols).to.be.null;
-            expect(resolved.isRequired).to.be.true;
+            expect(resolved.isNullable).to.be.false;
         });
 
         it("Should resolve optional complex record type defined as union", () => {
@@ -132,7 +132,7 @@ describe("TypeResolver", () => {
             expect(resolved.type).to.be.equal("record");
             expect(resolved.items).to.be.null;
             expect(resolved.fields).to.have.length(1);
-            expect(resolved.isRequired).to.be.false;
+            expect(resolved.isNullable).to.be.true;
         });
 
         it("Should resolve required complex record type defined as union", () => {
@@ -144,7 +144,7 @@ describe("TypeResolver", () => {
             expect(resolved.type).to.be.equal("record");
             expect(resolved.items).to.be.null;
             expect(resolved.fields).to.have.length(1);
-            expect(resolved.isRequired).to.be.true;
+            expect(resolved.isNullable).to.be.false;
         });
 
         it("Should resolve array of records type", () => {
@@ -156,7 +156,7 @@ describe("TypeResolver", () => {
             expect(resolved.type).to.be.equal("record");
             expect(resolved.items).to.be.null;
             expect(resolved.fields).to.have.length(1);
-            expect(resolved.isRequired).to.be.true;
+            expect(resolved.isNullable).to.be.false;
         });
 
         it("Should throw an exception for an unexpected complex type", () => {
@@ -167,7 +167,7 @@ describe("TypeResolver", () => {
 
         it("Should return optional input of no type for null", () => {
             let resolved = TypeResolver.resolveType(null);
-            expect(resolved.isRequired).to.be.false;
+            expect(resolved.isNullable).to.be.true;
             expect(resolved.type).to.be.null;
         });
 
@@ -188,10 +188,10 @@ describe("TypeResolver", () => {
             expect(resolved).to.not.be.undefined;
             expect(resolved.type).to.be.equal("array");
             expect(resolved.items).to.equal("string");
-            expect(resolved.itemsBinding).to.not.be.null;
-            expect(resolved.itemsBinding).to.have.property('prefix');
-            expect(resolved.itemsBinding.prefix).to.equal("-p");
-            expect(resolved.isRequired).to.be.true;
+            expect(resolved.typeBinding).to.not.be.null;
+            expect(resolved.typeBinding).to.have.property('prefix');
+            expect(resolved.typeBinding.prefix).to.equal("-p");
+            expect(resolved.isNullable).to.be.false;
         })
     });
 
@@ -209,6 +209,137 @@ describe("TypeResolver", () => {
             expect(TypeResolver.doesTypeMatch("double", 323), "double should be a number").to.be.true;
             expect(TypeResolver.doesTypeMatch("int", 323), "int should be a number").to.be.true;
             expect(TypeResolver.doesTypeMatch("int", "hello"), "int shouldn't be a string").to.be.false;
+        });
+    });
+
+    describe("serializeType", () => {
+        it("should resolve a primitive type that is required", () => {
+            const resolved   = TypeResolver.resolveType(["string"]);
+            const serialized = TypeResolver.serializeType(resolved);
+
+            expect(serialized).to.deep.equal(["string"]);
+        });
+
+        it("should resolve a primitive type that is not required", () => {
+            const resolved   = TypeResolver.resolveType(["null", "string"]);
+            const serialized = TypeResolver.serializeType(resolved);
+
+            expect(serialized).to.deep.equal(["null", "string"]);
+        });
+
+        it("should resolve a complex array type that is required", () => {
+            const resolved   = TypeResolver.resolveType({type: "array", items: "File"});
+            const serialized = TypeResolver.serializeType(resolved);
+
+            expect(serialized).to.deep.equal([{type: "array", items: "File"}]);
+        });
+
+        it("should resolve a complex array type that is not required", () => {
+            const resolved   = TypeResolver.resolveType(["null", {type: "array", items: "File"}]);
+            const serialized = TypeResolver.serializeType(resolved);
+
+            expect(serialized).to.deep.equal(["null", {type: "array", items: "File"}]);
+        });
+
+        it("should resolve complex enum type that is required", () => {
+            const resolved   = TypeResolver.resolveType({
+                type: "enum",
+                name: "enum",
+                symbols: ["one", "two"]
+            });
+            const serialized = TypeResolver.serializeType(resolved);
+
+            expect(serialized).to.deep.equal([{
+                type: "enum",
+                name: "enum",
+                symbols: ["one", "two"]
+            }]);
+        });
+
+        it("should resolve complex enum type that is not required", () => {
+            const resolved   = TypeResolver.resolveType(["null", {
+                type: "enum",
+                name: "enum",
+                symbols: ["one", "two"]
+            }]);
+            const serialized = TypeResolver.serializeType(resolved);
+
+            expect(serialized).to.deep.equal(["null", {
+                type: "enum",
+                name: "enum",
+                symbols: ["one", "two"]
+            }]);
+        });
+
+        it("should resolve complex record type that is required", () => {
+            const resolved   = TypeResolver.resolveType({
+                type: "record",
+                name: "rec",
+                fields: [
+                    {id: "f1", type: "string"},
+                    {id: "f2", type: "File"}
+                ]
+            });
+            const serialized = TypeResolver.serializeType(resolved);
+
+            expect(serialized).to.deep.equal([{
+                type: "record",
+                name: "rec",
+                fields: [
+                    {id: "f1", type: "string"},
+                    {id: "f2", type: "File"}
+                ]
+            }]);
+        });
+
+        it("should resolve complex record type that is not required", () => {
+            const resolved   = TypeResolver.resolveType(["null", {
+                type: "record",
+                name: "rec",
+                fields: [
+                    {id: "f1", type: "string"},
+                    {id: "f2", type: "File"}
+                ]
+            }]);
+            const serialized = TypeResolver.serializeType(resolved);
+
+            expect(serialized).to.deep.equal(["null", {
+                type: "record",
+                name: "rec",
+                fields: [
+                    {id: "f1", type: "string"},
+                    {id: "f2", type: "File"}
+                ]
+            }]);
+        });
+
+        it("should resolve shorthand for array", () => {
+            const resolved   = TypeResolver.resolveType("string[]");
+            const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
+            const serializedD2 = TypeResolver.serializeType(resolved);
+
+            expect(serializedV1).to.deep.equal("string[]");
+            expect(serializedD2).to.deep.equal([{type: "array", items: "string"}]);
+        });
+
+        it("should resolve shorthand for primitive that is not required", () => {
+            const resolved   = TypeResolver.resolveType("string?");
+            const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
+            const serializedD2 = TypeResolver.serializeType(resolved);
+
+            expect(serializedV1).to.deep.equal("string?");
+            expect(serializedD2).to.deep.equal(["null", "string"]);
+        });
+
+        it("should resolve shorthand for array that is not required", () => {
+            it("should resolve shorthand for array", () => {
+                const resolved   = TypeResolver.resolveType("string[]?");
+                const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
+                const serializedD2 = TypeResolver.serializeType(resolved);
+
+                expect(serializedV1).to.deep.equal("string[]?");
+                expect(serializedD2).to.deep.equal(["null", {type: "array", items: "string"}]);
+            });
         });
     });
 });

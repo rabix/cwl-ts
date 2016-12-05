@@ -1,6 +1,7 @@
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {expect} from "chai";
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
+import {ExpressionClass} from "../../mappings/d2sb/Expression";
 
 describe("CommandInputParameterModel d2sb", () => {
 
@@ -238,12 +239,12 @@ describe("CommandInputParameterModel d2sb", () => {
                 }
             });
 
-            input.addField({
+            input.type.addField({
                 name: "field",
                 type: "string"
             });
 
-            expect(input.fields).to.have.length(1);
+            expect(input.type.fields).to.have.length(1);
         });
 
         // add field on non record input
@@ -257,12 +258,12 @@ describe("CommandInputParameterModel d2sb", () => {
             });
 
             expect(() => {
-                input.addField({
+                input.type.addField({
                     name: "field",
                     type: "string"
                 });
             }).to.throw;
-            expect(input.fields).to.be.null;
+            expect(input.type.fields).to.be.null;
         });
 
         // remove field
@@ -275,14 +276,14 @@ describe("CommandInputParameterModel d2sb", () => {
                 }
             });
 
-            input.addField({
+            input.type.addField({
                 name: "field",
                 type: "string"
             });
 
-            expect(input.fields).to.have.length(1);
-            input.removeField("field");
-            expect(input.fields).to.have.length(0);
+            expect(input.type.fields).to.have.length(1);
+            input.type.removeField("field");
+            expect(input.type.fields).to.have.length(0);
         });
 
         it("should remove an existing field by object", () => {
@@ -299,11 +300,11 @@ describe("CommandInputParameterModel d2sb", () => {
                 type: "string"
             });
 
-            input.addField(field);
+            input.type.addField(field);
 
-            expect(input.fields).to.have.length(1);
-            input.removeField(field);
-            expect(input.fields).to.have.length(0);
+            expect(input.type.fields).to.have.length(1);
+            input.type.removeField(field);
+            expect(input.type.fields).to.have.length(0);
         });
 
         // add field with duplicate name
@@ -316,13 +317,13 @@ describe("CommandInputParameterModel d2sb", () => {
                 }
             });
 
-            input.addField({
+            input.type.addField({
                 name: "field",
                 type: "string"
             });
 
             expect(() => {
-                input.addField({
+                input.type.addField({
                     name: "field",
                     type: "string"
                 });
@@ -339,14 +340,14 @@ describe("CommandInputParameterModel d2sb", () => {
                 }
             });
 
-            input.addField({
+            input.type.addField({
                 name: "field",
                 type: "string"
             });
 
-            expect(input.fields).to.have.length(1);
+            expect(input.type.fields).to.have.length(1);
             expect(() => {
-                input.removeField("boo");
+                input.type.removeField("boo");
             }).to.throw;
         });
     });
@@ -356,8 +357,8 @@ describe("CommandInputParameterModel d2sb", () => {
         it("should set type by string", () => {
             const input = new CommandInputParameterModel("");
 
-            input.setType("string");
-            expect(input.getType()).to.equal("string");
+            input.type.type = "string";
+            expect(input.type.type).to.equal("string");
         });
 
     });
@@ -370,8 +371,8 @@ describe("CommandInputParameterModel d2sb", () => {
                 type: {type: "array", items: "int"}
             });
 
-            input.setItems("string");
-            expect(input.items).to.equal("string");
+            input.type.items = "string";
+            expect(input.type.items).to.equal("string");
         });
 
         // set items type on non-array
@@ -382,25 +383,13 @@ describe("CommandInputParameterModel d2sb", () => {
             });
 
             expect(() => {
-                input.setItems("string");
+                input.type.items = "string";
             }).to.throw;
         });
     });
 
     describe("symbols", () => {
-        // add symbol
-
-        //
-    });
-
-    describe("toString", () => {
-        // json
-
-        // all the types
-
-        // yaml
-
-        // all the types
+        it("should add symbols")
     });
 
     describe("setValueFrom", () => {
@@ -499,6 +488,75 @@ describe("CommandInputParameterModel d2sb", () => {
             expect(input.validation.errors).to.not.be.empty;
             expect(input.validation.errors[0].message).to.equal("ID can only contain alphanumeric and underscore characters");
         });
+    });
+
+    describe("serialize", () => {
+        it("Should serialize simple type, label, description, inputBinding", () => {
+            const data  = {
+                type: ["string"],
+                label: "label",
+                description: "desc",
+                id: "hello",
+                inputBinding: {
+                    prefix: "--prefix"
+                }
+            };
+            const input = new CommandInputParameterModel("", <CommandInputParameter>data);
+            expect(input.serialize()).to.deep.equal(data);
+        });
+
+        it("Should serialize complex type, inputBinding with expression", () => {
+            const data  = {
+                type: [{
+                    type: "array",
+                    items: "string"
+                }],
+                id: "hello",
+                inputBinding: {
+                    prefix: "--prefix",
+                    valueFrom: {
+                        'class': <ExpressionClass> "Expression",
+                        engine: "#cwl-js-engine",
+                        script: "{ return 3 + 3 + 3 }"
+                    }
+                }
+            };
+            const input = new CommandInputParameterModel("", data);
+            expect(input.serialize()).to.deep.equal(data);
+        });
+
+        it("Should serialize record type with fields", () => {
+            const data  = {
+                type: [{
+                    type: "record",
+                    name: "rec",
+                    fields: [
+                        {
+                            type: ["string"],
+                            id: "a",
+                            label: "field"
+                        }
+                    ]
+                }],
+                id: "b"
+            };
+            const input = new CommandInputParameterModel("", <CommandInputParameter>data);
+            expect(input.serialize()).to.deep.equal(data);
+        });
+
+        it("Should serialize with custom properties", () => {
+            const data = {
+                type: ["null", "string"],
+                id: "b",
+                "pref:customprop": "some value",
+                "pref:otherprop": {
+                    complex: "value"
+                }
+            };
+            const input = new CommandInputParameterModel("", <CommandInputParameter>data);
+            expect(input.serialize()).to.deep.equal(data);
+        });
+
     });
 
 });

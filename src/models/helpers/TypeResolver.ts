@@ -1,13 +1,18 @@
-import {CommandLineBinding} from "../../mappings/draft-4/CommandLineBinding";
+import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
+import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
+import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
+import {CommandOutputSchema} from "../../mappings/d2sb/CommandOutputSchema";
+
+export type PrimitiveType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes";
 
 export interface TypeResolution {
-    type: string;
-    items: string;
-    fields: any[];
-    symbols: string[];
-    isRequired: boolean;
-    itemsBinding: CommandLineBinding,
-    typeName: string;
+    type: PrimitiveType;
+    items: PrimitiveType;
+    fields: Array<CommandInputRecordField>|Array<CommandOutputSchema>;
+    symbols: string[]
+    isNullable: boolean;
+    typeBinding: CommandLineBinding;
+    name: string;
 }
 
 export class TypeResolver {
@@ -18,33 +23,37 @@ export class TypeResolver {
                 items: null,
                 fields: null,
                 symbols: null,
-                isRequired: true,
-                itemsBinding: null,
-                typeName: null
+                isNullable: false,
+                typeBinding: null,
+                name: null
             };
 
+
         if (type === null || type === undefined) {
-            result.isRequired = false;
+            result.isNullable = true;
             return result;
         }
+
+        // clone type object because it will be sliced and modified later
+        type = JSON.parse(JSON.stringify(type));
 
         if (typeof type === 'string') {
             let matches = /(\w+)([\[\]?]+)/g.exec(<string> type);
             if (matches) {
                 if (/\?/.test(matches[2])) {
-                    result.isRequired = false;
+                    result.isNullable = true;
                 }
 
                 if (/\[]/.test(matches[2])) {
                     result.type  = 'array';
-                    result.items = matches[1];
+                    result.items = <PrimitiveType> matches[1];
                 } else {
-                    result.type = matches[1];
+                    result.type = <PrimitiveType> matches[1];
                 }
 
                 return result;
             } else {
-                result.type = type;
+                result.type = <PrimitiveType> type;
                 return result;
             }
         } else if (Array.isArray(type)) {
@@ -52,7 +61,7 @@ export class TypeResolver {
             let nullIndex = (<Array<any>> type).indexOf('null');
 
             if (nullIndex > -1) {
-                result.isRequired = false;
+                result.isNullable = true;
                 type.splice(nullIndex, 1);
             }
 
@@ -80,7 +89,7 @@ export class TypeResolver {
                 }
                 switch (type.type) {
                     case "array":
-                        result.itemsBinding = type.inputBinding || null;
+                        result.typeBinding = type.inputBinding || null;
                         if (typeof type.items === 'string') {
                             // primitive types don't need to be reevaluated
                             result.items = type.items;
@@ -91,11 +100,11 @@ export class TypeResolver {
                         }
                     case "record":
                         result.fields = type.fields;
-                        result.typeName = type.name || null;
+                        result.name   = type.name || null;
                         return result;
                     case "enum":
                         result.symbols = type.symbols;
-                        result.typeName = type.name || null;
+                        result.name    = type.name || null;
                         return result;
                     case "string":
                     case "File":
@@ -118,7 +127,7 @@ export class TypeResolver {
         }
     }
 
-    public static doesTypeMatch(type: string, value: any) {
+    public static doesTypeMatch(type: PrimitiveType, value: any) {
 
         if (type) {
             switch (type) {
@@ -140,5 +149,54 @@ export class TypeResolver {
         }
 
         return true;
+    }
+
+    public static serializeType(type: TypeResolution, version?: CWLVersion): any {
+        let t;
+
+        switch (type.type) {
+            case "array":
+                if (version === "v1.0" && !type.typeBinding) {
+                    t = `${type.items}[]`;
+                } else {
+                    t = {
+                        type: "array",
+                        items: type.items
+                    };
+                    if (type.typeBinding) t.inputBinding = t;
+                }
+
+                break;
+
+            case "record":
+                t = {
+                    type: "record",
+                    fields: type.fields,
+                    name: type.name
+                };
+                if (type.typeBinding) t.inputBinding = t;
+                break;
+
+            case "enum":
+                t = {
+                    type: "enum",
+                    symbols: type.symbols,
+                    name: type.name
+                };
+
+                if (type.typeBinding) t.inputBinding = t;
+                break;
+
+            default:
+                t = type.type;
+        }
+
+        if (type.isNullable) {
+            t = version === "v1.0" ? `${t}?` : ["null", t];
+        } else if (version !== "v1.0") {
+            t = [t];
+        }
+
+        return t;
     }
 }

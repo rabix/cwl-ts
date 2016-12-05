@@ -74,7 +74,7 @@ describe("CommandLineToolModel d2sb", () => {
 
         it("Should evaluate BWA mem tool: General test of command line generation", () => {
             //noinspection TypeScriptUnresolvedVariable
-            let tool = new CommandLineToolModel(BWAMemTool.default);
+            let tool = new CommandLineToolModel("", BWAMemTool.default);
             //noinspection TypeScriptUnresolvedVariable
             tool.setJob(BWAMemJob.default);
 
@@ -83,7 +83,7 @@ describe("CommandLineToolModel d2sb", () => {
 
         it("Should evaluate BWM mem tool: Test nested prefixes with arrays", () => {
             //noinspection TypeScriptUnresolvedVariable
-            let tool = new CommandLineToolModel(BindingTestTool.default);
+            let tool = new CommandLineToolModel("", BindingTestTool.default);
             //noinspection TypeScriptUnresolvedVariable
             tool.setJob(BWAMemJob.default);
 
@@ -201,7 +201,7 @@ describe("CommandLineToolModel d2sb", () => {
             expr.evaluate();
 
             expect(tool.validation.errors).to.not.be.empty;
-            expect(tool.validation.errors[0].loc).to.equal("baseCommand[0]");
+            expect(tool.validation.errors[0].loc).to.equal("document.baseCommand[0]");
             expect(tool.validation.errors[0].message).to.contain("SyntaxError");
 
             const expr2 = new ExpressionModel("", {
@@ -215,10 +215,10 @@ describe("CommandLineToolModel d2sb", () => {
             expr2.evaluate();
 
             expect(tool.validation.warnings).to.not.be.empty;
-            expect(tool.validation.warnings[0].loc).to.equal("baseCommand[1]", "location of warning");
+            expect(tool.validation.warnings[0].loc).to.equal("document.baseCommand[1]", "location of warning");
             expect(tool.validation.warnings[0].message).to.contain("ReferenceError", "value of warning");
 
-            expect(tool.validation.errors[0].loc).to.equal("baseCommand[0]", "location of error after setting warning");
+            expect(tool.validation.errors[0].loc).to.equal("document.baseCommand[0]", "location of error after setting warning");
             expect(tool.validation.errors[0].message).to.contain("SyntaxError", "value of error after setting warning");
         });
 

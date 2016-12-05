@@ -1,6 +1,7 @@
 import {expect} from "chai";
 import {ExpressionModel} from "./ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
+import {ExpressionClass} from "../../mappings/d2sb/Expression";
 
 describe("ExpressionModel d2sb", () => {
 
@@ -88,6 +89,34 @@ describe("ExpressionModel d2sb", () => {
         });
     });
 
+    describe("serialize", () => {
+        it("Should serialize a simple string", () => {
+            const data = "simple string";
+            const expr = new ExpressionModel("", data);
+            expect(expr.serialize()).to.equal(data);
+        });
+
+        it("Should serialize an expression", () => {
+            const data = {
+                "class": "Expression",
+                engine: "#cwl-js-engine",
+                script: "{ return 3 + 3 }"
+            };
+            const expr = new ExpressionModel("", <Expression> data);
+            expect(expr.serialize()).to.equal(data);
+        });
+
+        it("Should serialize an expression with custom properties", () => {
+            const data = {
+                "class": <ExpressionClass> "Expression",
+                engine: "#cwl-js-engine",
+                script: "{ return 3 + 3 }",
+                "pref:custom": "some value"
+            };
+            const expr = new ExpressionModel("", <Expression> data);
+            expect(expr.serialize()).to.equal(data);
+        });
+    });
 
     //
     // describe("getExpressionScript", () => {

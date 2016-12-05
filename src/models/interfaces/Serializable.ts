@@ -1,4 +1,5 @@
 export interface Serializable<T> {
+    customProps: any;
     serialize():T;
-    deserialize(T):void;
+    deserialize(attr: T):void;
 }
