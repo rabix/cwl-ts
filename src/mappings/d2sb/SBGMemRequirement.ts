@@ -1,8 +1,8 @@
 import {Expression} from "./Expression";
 import {ProcessRequirement} from "./ProcessRequirement";
-export type SBGMemRequirementClass = "SBGMemRequirement";
+export type SBGMemRequirementClass = "sbg:MemRequirement";
 
 export interface SBGMemRequirement  extends ProcessRequirement {
     class: SBGMemRequirementClass;
-    value: string | Expression;
+    value: number | string | Expression;
 }

@@ -7,3 +7,5 @@ export * from "./DockerRequirementModel";
 export * from "./ExpressionEngineRequirementModel";
 export * from "./ProcessRequirementModel";
 export * from "./RequirementBaseModel";
+export * from "./ResourceRequirementModel";
+export * from "./InputParameterTypeModel";

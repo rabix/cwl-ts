@@ -4,5 +4,5 @@ export type SBGCPURequirementClass = "sbg:CPURequirement"
 
 export interface SBGCPURequirement  extends ProcessRequirement  {
     class: SBGCPURequirementClass;
-    value: string | Expression
+    value: number | string | Expression
 }
