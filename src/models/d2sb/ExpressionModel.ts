@@ -20,13 +20,16 @@ export class ExpressionModel extends ValidationBase implements Serializable<numb
      * @returns {any}
      */
     public evaluate(context: {$job?: any, $self?: any} = {}): any {
-        try {
-            this.result = ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self);
-        } catch (ex) {
-            if (ex.name === "SyntaxError") {
-                this.validation = {errors: [{loc: this.loc, message: ex.toString()}], warnings: []};
-            } else {
-                this.validation = {warnings: [{loc: this.loc, message: ex.toString()}], errors: []};
+        if (this.value !== undefined) {
+            try {
+                this.validation = {errors: [], warnings: []};
+                this.result = ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self);
+            } catch (ex) {
+                if (ex.name === "SyntaxError") {
+                    this.validation = {errors: [{loc: this.loc, message: ex.toString()}], warnings: []};
+                } else {
+                    this.validation = {warnings: [{loc: this.loc, message: ex.toString()}], errors: []};
+                }
             }
         }
 
@@ -60,16 +63,21 @@ export class ExpressionModel extends ValidationBase implements Serializable<numb
         return this._type;
     }
 
-    constructor(loc: string, value: number | string | Expression = "") {
+    constructor(loc?: string, value?: number | string | Expression) {
         super(loc);
         this.deserialize(value);
-        this.type = (value as Expression).script ? "expression" : "string"
+        if (value) {
+            this.type = (value as Expression).script ? "expression" : "string"
+        }
     }
 
     /**
      * Returns CWL representation.
      */
     public serialize(): number | string | Expression {
+        if (this.value && this.value.hasOwnProperty("script") && (<Expression> this.value).script === "") {
+            return undefined;
+        }
         return this.value;
     }
 

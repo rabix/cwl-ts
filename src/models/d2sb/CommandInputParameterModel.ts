@@ -13,7 +13,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     public id: string;
     /** Human readable short name */
     public label: string;
-    /** Human readable, Markdown format description */
+    /** Human readable description */
     public description: string;
 
     /** Flag if input is field of a parent record. Derived from type field */
@@ -31,7 +31,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
     public customProps: any = {};
 
-    constructor(loc: string, input?: CommandInputParameter | CommandInputRecordField) {
+    constructor(loc?: string, input?: CommandInputParameter | CommandInputRecordField) {
         super(loc);
         this.deserialize(input);
     }
@@ -73,7 +73,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
         // if inputBinding isn't defined in input, it shouldn't exist as an object in model
         this.inputBinding = input.inputBinding !== undefined ?
-            new CommandLineBindingModel(`${this.loc}.inputBinding`, input.inputBinding) : null;
+            new CommandLineBindingModel(input.inputBinding, `${this.loc}.inputBinding`) : undefined;
 
         if (this.inputBinding) {
             this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
@@ -214,7 +214,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     }
 
     private resolve(context: {$job: any, $self: any}, inputBinding: CommandLineBindingModel): any {
-        if (inputBinding.valueFrom) {
+        if (inputBinding.valueFrom.serialize() !== undefined) {
             return inputBinding.valueFrom.evaluate(context);
         }
 
@@ -228,7 +228,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     }
 
     public createInputBinding() {
-        this.inputBinding = new CommandLineBindingModel(`${this.loc}.inputBinding`, {});
+        this.inputBinding = new CommandLineBindingModel({}, `${this.loc}.inputBinding`);
         this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
     }
 

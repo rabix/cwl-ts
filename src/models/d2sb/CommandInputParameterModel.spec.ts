@@ -200,7 +200,6 @@ describe("CommandInputParameterModel d2sb", () => {
             });
 
             const part = input.getCommandPart(null, [true, true, false]);
-            //@todo(maya) this test is currently failing, booleans are not going through itemsPrefix
             expect(part.value).to.equal("--bool-arr -i -i");
         });
 
@@ -209,7 +208,7 @@ describe("CommandInputParameterModel d2sb", () => {
 
     describe("constructor", () => {
         it("should create new input from no parameters", () => {
-            const input = new CommandInputParameterModel("");
+            const input = new CommandInputParameterModel();
 
             expect(input).to.not.be.undefined;
         });

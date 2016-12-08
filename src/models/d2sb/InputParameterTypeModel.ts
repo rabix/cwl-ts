@@ -68,7 +68,6 @@ export class InputParameterTypeModel extends ParameterTypeModel {
             throw(`Field ${field} does not exist on input`);
         }
 
-        //noinspection TypeScriptValidateTypes
         this.fields.splice(index, 1);
     }
 

@@ -18,7 +18,7 @@ export class CommandArgumentModel extends ValidationBase implements Serializable
     private stringVal: string;
     private binding: CommandLineBindingModel;
 
-    constructor(loc: string, arg?: string | CommandLineBinding) {
+    constructor(arg?: string | CommandLineBinding, loc?: string) {
         super(loc);
         this.deserialize(arg);
     }
@@ -72,7 +72,7 @@ export class CommandArgumentModel extends ValidationBase implements Serializable
         if (typeof attr === "string") {
             this.stringVal = attr;
         } else {
-            this.binding = new CommandLineBindingModel(this.loc, attr);
+            this.binding = new CommandLineBindingModel(attr, this.loc);
             this.binding.setValidationCallback((err:Validation) => {this.updateValidity(err);})
         }
     }
