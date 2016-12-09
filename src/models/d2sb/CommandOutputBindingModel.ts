@@ -52,9 +52,9 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
     }
 
 
-    constructor(binding?: CommandOutputBinding = {}, loc?: string) {
+    constructor(binding?: CommandOutputBinding, loc?: string) {
         super(loc);
-        this.deserialize(binding);
+        this.deserialize(binding || {});
     }
 
     public updateSecondaryFile(file: ExpressionModel, index: number) {
@@ -91,7 +91,7 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
         if(Object.keys(this.metadata).length) {
             base["sbg:metadata"] = {};
             Object.keys(this.metadata).forEach(key => {
-                base["sbg:metadata"][key] = this.metadata[key].serialize();
+                base["sbg:metadata"][key] = <string | Expression> this.metadata[key].serialize();
             });
         }
 

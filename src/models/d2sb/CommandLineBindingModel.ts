@@ -31,9 +31,9 @@ export class CommandLineBindingModel extends ValidationBase implements Serializa
         "secondaryFiles"
     ];
 
-    constructor(binding?: CommandLineBinding = {}, loc?: string) {
+    constructor(binding?: CommandLineBinding, loc?: string) {
         super(loc);
-        this.deserialize(binding);
+        this.deserialize(binding || {});
     }
 
     setValueFrom(val: string | Expression) {
