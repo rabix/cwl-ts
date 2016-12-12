@@ -5,8 +5,37 @@ import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
 import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {Validation} from "../helpers/validation/Validation";
+import {ExpressionModel} from "./ExpressionModel";
 
 export class CommandArgumentModel extends ValidationBase implements Serializable<string | CommandLineBinding>, CommandLineInjectable {
+    get prefix(): string {
+        return this.binding.prefix;
+    }
+
+    get position(): number {
+        return this.binding.position || 0;
+    }
+
+    get separate(): boolean {
+        return this.binding.separate;
+    }
+
+    get itemSeparator(): string {
+        return this.binding.itemSeparator;
+    }
+
+    get valueFrom(): ExpressionModel {
+        return this.binding.valueFrom;
+    }
+
+    public updateBinding(binding: CommandLineBindingModel) {
+        this.binding = binding;
+        this.binding.setValidationCallback(err => {
+            this.updateValidity(err);
+        });
+        this.binding.loc = `${this.loc}`;
+    }
+
     get arg(): string|CommandLineBinding {
         return this.stringVal || this.binding;
     }
