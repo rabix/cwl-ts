@@ -3,6 +3,7 @@ import {Serializable} from "../interfaces/Serializable";
 import {ValidationBase} from "../helpers/validation";
 import {OutputParameterTypeModel} from "./OutputParameterTypeModel";
 import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
+import {Validation} from "../helpers/validation/Validation";
 
 export class CommandOutputParameterModel extends ValidationBase implements Serializable<CommandOutputParameter> {
 
@@ -33,7 +34,7 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
     }
 
     updateOutputBinding(binding?: CommandOutputBindingModel) {
-        this.outputBinding = binding || new CommandOutputBindingModel();
+        this.outputBinding     = binding || new CommandOutputBindingModel();
         this.outputBinding.loc = `${this.loc}.outputBinding`;
         this.outputBinding.setValidationCallback((err) => this.updateValidity(err));
     }
@@ -97,4 +98,19 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
         });
     }
 
+    validate(): Validation {
+        //@fixme context should be passed with constructor if model can have expressions
+        const val = {errors: [], warnings: []};
+
+        //@fixme outputBinding validation isn't implemented
+        // this.outputBinding.validate();
+        this.type.validate();
+
+        const errors   = this.validation.errors.concat(val.errors);
+        const warnings = this.validation.warnings.concat(val.warnings);
+
+        this.validation = {errors, warnings};
+
+        return this.validation;
+    }
 }

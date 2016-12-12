@@ -4,6 +4,7 @@ import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {CommandOutputParameterType} from "../../mappings/d2sb/CommandOutputParameter";
 import {CommandInputParameterType} from "../../mappings/d2sb/CommandInputParameter";
+import {Validation} from "../helpers/validation/Validation";
 
 export type PrimitiveParameterType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes";
 
@@ -60,6 +61,95 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
     constructor(loc: string, type: CommandInputParameterType | CommandOutputParameterType) {
         super(loc);
         this.deserialize(type);
+    }
+
+    validate(): Validation {
+        let val = {errors: [], warnings: []};
+
+        // check type
+        // if array, has items. Does not have symbols or items
+        if (this.type === "array") {
+            if (this.items === null) {
+                val.errors.push({
+                    message: "Type array must have items",
+                    loc: `${this.loc}`
+                });
+            }
+            if (this.symbols !== null) {
+                val.errors.push({
+                    message: "Type array must not have symbols",
+                    loc: `${this.loc}.symbols`
+                });
+            }
+            if (this.fields !== null) {
+                val.errors.push({
+                    message: "Type array must not have fields",
+                    loc: `${this.loc}.fields`
+                });
+            }
+        }
+        // if enum, has symbols. Does not have items or fields. Has name.
+        if (this.type === "enum") {
+            if (this.items !== null) {
+                val.errors.push({
+                    message: "Type enum must not have items",
+                    loc: `${this.loc}.items`
+                });
+            }
+            if (this.symbols === null) {
+                val.errors.push({
+                    message: "Type enum must have symbols",
+                    loc: `${this.loc}`
+                });
+            }
+            if (this.fields !== null) {
+                val.errors.push({
+                    message: "Type enum must not have fields",
+                    loc: `${this.loc}.fields`
+                });
+            }
+
+            if (!this.name) {
+                val.errors.push({
+                    message: "Type enum must have a name",
+                    loc: `${this.loc}`
+                });
+            }
+        }
+        // if record, has fields. Does not have items or symbols. Has name.
+        if (this.type === "record") {
+            if (this.items !== null) {
+                val.errors.push({
+                    message: "Type record must not have items",
+                    loc: `${this.loc}.items`
+                });
+            }
+            if (this.symbols === null) {
+                val.errors.push({
+                    message: "Type record must have symbols",
+                    loc: `${this.loc}.symbols`
+                });
+            }
+            if (this.fields !== null) {
+                val.errors.push({
+                    message: "Type record must have fields",
+                    loc: `${this.loc}`
+                });
+            } else {
+                // check validity for each field.
+                // @todo check uniqueness of each field name
+            }
+
+            if (!this.name) {
+                val.errors.push({
+                    message: "Type record must have a name",
+                    loc: `${this.loc}.type`
+                });
+            }
+        }
+
+        this.validation = val;
+        return val;
     }
 
     serialize(): any {

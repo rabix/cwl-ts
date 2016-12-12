@@ -223,10 +223,6 @@ describe("CommandInputParameterModel d2sb", () => {
         });
     });
 
-    describe("validation", () => {
-
-    });
-
     describe("fields", () => {
         // add field
         it("should add a field as object literal to an input type record", () => {
@@ -480,7 +476,7 @@ describe("CommandInputParameterModel d2sb", () => {
             expect(input.validation.errors[0].message).to.equal("ID must be set");
         });
 
-        it("Should check for invalid characters", () => {
+        it("Should check for invalid characters in ID", () => {
             const input = new CommandInputParameterModel("", <CommandInputParameter>{
                 type: "string",
                 id: "@"
@@ -489,6 +485,20 @@ describe("CommandInputParameterModel d2sb", () => {
             input.validate();
             expect(input.validation.errors).to.not.be.empty;
             expect(input.validation.errors[0].message).to.equal("ID can only contain alphanumeric and underscore characters");
+        });
+
+        it("Should ensure enum has symbols", () => {
+            const input = new CommandInputParameterModel("inp", <CommandInputParameter>{
+                id: "asdf",
+                type: {
+                    type: "enum"
+                }
+            });
+
+            input.validate();
+
+            expect(input.validation.errors).to.not.be.empty;
+            expect(input.validation.errors[0].loc).to.equal("inp.type");
         });
     });
 
