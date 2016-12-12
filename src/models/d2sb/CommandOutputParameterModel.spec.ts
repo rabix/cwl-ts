@@ -5,7 +5,10 @@ import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
 
 describe("CommandOutputParameterModel", () => {
     describe("constructor", () => {
-
+        it("Should initialize with an empty constructor", () => {
+            const out = new CommandOutputParameterModel();
+            expect(out).to.not.be.undefined;
+        });
     });
 
     describe("serialize", () => {
