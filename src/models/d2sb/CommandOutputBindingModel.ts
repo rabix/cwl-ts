@@ -114,7 +114,7 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
 
         if (binding && binding.constructor === Object) {
             if (!Array.isArray(binding.glob)) {
-                this._glob = new ExpressionModel(this.loc + '_glob', binding.glob);
+                this._glob = new ExpressionModel(this.loc + '.glob', binding.glob);
                 this._glob.setValidationCallback((err) => this.updateValidity(err));
             } else {
                 console.warn(`Not supporting glob which is string[] at ${this.loc}. Glob cannot be edited via model`);

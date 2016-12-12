@@ -9,6 +9,13 @@ describe("CommandOutputParameterModel", () => {
             const out = new CommandOutputParameterModel();
             expect(out).to.not.be.undefined;
         });
+
+        it("Should have a glob object if instantiated without params", () => {
+            const out = new CommandOutputParameterModel();
+            expect(out).to.not.be.undefined;
+            expect(out.outputBinding.glob).to.not.be.undefined;
+            expect(out.outputBinding.glob.toString()).to.be.undefined;
+        });
     });
 
     describe("serialize", () => {

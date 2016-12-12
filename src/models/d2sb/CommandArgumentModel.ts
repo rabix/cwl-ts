@@ -8,7 +8,7 @@ import {Validation} from "../helpers/validation/Validation";
 
 export class CommandArgumentModel extends ValidationBase implements Serializable<string | CommandLineBinding>, CommandLineInjectable {
     get arg(): string|CommandLineBinding {
-        return this.stringVal || this.binding.serialize();
+        return this.stringVal || this.binding;
     }
 
     set arg(value: string|CommandLineBinding) {
@@ -59,6 +59,16 @@ export class CommandArgumentModel extends ValidationBase implements Serializable
     }
 
     public customProps: any = {};
+
+    toString(): string {
+        if (this.stringVal) return this.stringVal;
+
+        if (this.binding) {
+            return this.binding.valueFrom.toString();
+        }
+
+        return "";
+    }
 
     serialize(): string|CommandLineBinding {
         if (this.stringVal) {

@@ -114,9 +114,14 @@ export class ExpressionModel extends ValidationBase implements Serializable<numb
      * @returns {string}
      */
     public toString(): string {
-        return this.type === "expression" ?
-            (<Expression> this.value).script :
-            <string> this.value.toString();
+
+        if (this.type === "expression") {
+            return (<Expression> this.value).script
+        } else if (this.value === null || this.value === undefined) {
+            return <string> this.value;
+        } else {
+            return this.value.toString();
+        }
     }
 
     /**
