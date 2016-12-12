@@ -13,7 +13,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     public id: string;
     /** Human readable short name */
     public label: string;
-    /** Human readable, Markdown format description */
+    /** Human readable description */
     public description: string;
 
     /** Flag if input is field of a parent record. Derived from type field */
@@ -31,7 +31,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
     public customProps: any = {};
 
-    constructor(loc: string, input?: CommandInputParameter | CommandInputRecordField) {
+    constructor(loc?: string, input?: CommandInputParameter | CommandInputRecordField) {
         super(loc);
         this.deserialize(input);
     }
@@ -73,7 +73,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
         // if inputBinding isn't defined in input, it shouldn't exist as an object in model
         this.inputBinding = input.inputBinding !== undefined ?
-            new CommandLineBindingModel(`${this.loc}.inputBinding`, input.inputBinding) : null;
+            new CommandLineBindingModel(input.inputBinding, `${this.loc}.inputBinding`) : undefined;
 
         if (this.inputBinding) {
             this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
@@ -214,7 +214,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     }
 
     private resolve(context: {$job: any, $self: any}, inputBinding: CommandLineBindingModel): any {
-        if (inputBinding.valueFrom) {
+        if (inputBinding.valueFrom.serialize() !== undefined) {
             return inputBinding.valueFrom.evaluate(context);
         }
 
@@ -228,7 +228,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     }
 
     public createInputBinding() {
-        this.inputBinding = new CommandLineBindingModel(`${this.loc}.inputBinding`, {});
+        this.inputBinding = new CommandLineBindingModel({}, `${this.loc}.inputBinding`);
         this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
     }
 
@@ -263,87 +263,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
             });
         }
 
-        // check type
-        // if array, has items. Does not have symbols or items
-        if (this.type.type === "array") {
-            if (this.type.items === null) {
-                val.errors.push({
-                    message: "Type array must have items",
-                    loc: `${this.loc}.type`
-                });
-            }
-            if (this.type.symbols !== null) {
-                val.errors.push({
-                    message: "Type array must not have symbols",
-                    loc: `${this.loc}.type`
-                });
-            }
-            if (this.type.fields !== null) {
-                val.errors.push({
-                    message: "Type array must not have fields",
-                    loc: `${this.loc}.type`
-                });
-            }
-        }
-        // if enum, has symbols. Does not have items or fields. Has name.
-        if (this.type.type === "enum") {
-            if (this.type.items !== null) {
-                val.errors.push({
-                    message: "Type enum must not have items",
-                    loc: `${this.loc}.type`
-                });
-            }
-            if (this.type.symbols === null) {
-                val.errors.push({
-                    message: "Type enum must have symbols",
-                    loc: `${this.loc}.type`
-                });
-            }
-            if (this.type.fields !== null) {
-                val.errors.push({
-                    message: "Type enum must not have fields",
-                    loc: `${this.loc}.type`
-                });
-            }
-
-            if (!this.type.name) {
-                val.errors.push({
-                    message: "Type enum must have a name",
-                    loc: `${this.loc}.type`
-                });
-            }
-        }
-        // if record, has fields. Does not have items or symbols. Has name.
-        if (this.type.type === "enum") {
-            if (this.type.items !== null) {
-                val.errors.push({
-                    message: "Type record must not have items",
-                    loc: `${this.loc}.type`
-                });
-            }
-            if (this.type.symbols === null) {
-                val.errors.push({
-                    message: "Type record must have symbols",
-                    loc: `${this.loc}.type`
-                });
-            }
-            if (this.type.fields !== null) {
-                val.errors.push({
-                    message: "Type record must have fields",
-                    loc: `${this.loc}.type`
-                });
-            } else {
-                // check validity for each field.
-                // @todo check uniqueness of each field name
-            }
-
-            if (!this.type.name) {
-                val.errors.push({
-                    message: "Type record must have a name",
-                    loc: `${this.loc}.type`
-                });
-            }
-        }
+        this.type.validate();
 
         const errors   = this.validation.errors.concat(val.errors);
         const warnings = this.validation.warnings.concat(val.warnings);

@@ -20,6 +20,14 @@ export class InputParameterTypeModel extends ParameterTypeModel {
         }
     }
 
+    /**
+     * Serializes information about type and creates an identical InputParameterTypeModel.
+     * Does deep copy, references to original fields, and complex objects are lost.
+     */
+    public clone(): InputParameterTypeModel {
+        return new InputParameterTypeModel(this.serialize(), this.loc);
+    }
+
     public addField(field: CommandInputParameterModel | CommandInputParameter | CommandInputRecordField): void {
         if (this.type !== "record" && this.items !== "record") {
             throw(`Fields can only be added to type or items record: type is ${this.type}, items is ${this.items}.`);
@@ -60,7 +68,6 @@ export class InputParameterTypeModel extends ParameterTypeModel {
             throw(`Field ${field} does not exist on input`);
         }
 
-        //noinspection TypeScriptValidateTypes
         this.fields.splice(index, 1);
     }
 

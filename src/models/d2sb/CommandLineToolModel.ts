@@ -30,11 +30,23 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     readonly 'class': string;
     id: string;
 
-    baseCommand: Array<ExpressionModel>                    = [];
-    inputs: Array<CommandInputParameterModel>              = [];
-    outputs: Array<CommandOutputParameterModel>            = [];
-    requirements: { [id: string]: ProcessRequirementModel} = {};
-    hints: { [id: string]: ProcessRequirementModel}        = {};
+    baseCommand: Array<ExpressionModel>         = [];
+    inputs: Array<CommandInputParameterModel>   = [];
+    outputs: Array<CommandOutputParameterModel> = [];
+
+    requirements: {
+        CreateFileRequirement?: CreateFileRequirementModel,
+        ExpressionEngineRequirement?: ExpressionEngineRequirementModel,
+        DockerRequirement?: DockerRequirementModel,
+        [id: string]: ProcessRequirementModel
+    } = {};
+
+    hints: {
+        "sbg:CPURequirement"?: ResourceRequirementModel,
+        "sbg:MemRequirement"?: ResourceRequirementModel,
+        DockerRequirement?: DockerRequirementModel,
+        [id: string]: ProcessRequirementModel
+    } = {};
 
     arguments: Array<CommandArgumentModel> = [];
 
@@ -112,7 +124,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     }
 
     public addOutput(output: CommandOutputParameterModel) {
-        output     = output || new CommandOutputParameterModel('');
+        output     = output || new CommandOutputParameterModel();
         output.loc = `${this.loc}.outputs[${this.outputs.length}]`;
 
         this.outputs.push(output);
@@ -211,14 +223,13 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     }
 
     serialize(): CommandLineTool | any {
-        //@todo(maya) create generic serialize/deserialize algorithm
         let base: CommandLineTool = <CommandLineTool>{};
         if (this.id) {
             base.id = this.id;
         }
 
         base.class       = "CommandLineTool";
-        base.baseCommand = this.baseCommand.map(cmd => cmd.serialize());
+        base.baseCommand = this.baseCommand.map(cmd => <Expression | string> cmd.serialize());
         base.inputs      = <Array<CommandInputParameter>> this.inputs.map(input => input.serialize());
 
         if (Object.keys(this.requirements).length) {
@@ -243,12 +254,12 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             this.addInput(new CommandInputParameterModel(`${this.loc}.inputs[${index}]`, input));
         });
         tool.outputs.forEach((output, index) => {
-            this.addOutput(new CommandOutputParameterModel(`${this.loc}.outputs[${index}]`, output))
+            this.addOutput(new CommandOutputParameterModel(output, `${this.loc}.outputs[${index}]`))
         });
 
         if (tool.arguments) {
             tool.arguments.forEach((arg, index) => {
-                this.addArgument(new CommandArgumentModel(`${this.loc}.arguments[${index}]`, arg))
+                this.addArgument(new CommandArgumentModel(arg, `${this.loc}.arguments[${index}]`));
             });
         }
 

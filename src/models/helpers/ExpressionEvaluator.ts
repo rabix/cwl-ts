@@ -22,8 +22,8 @@ export class ExpressionEvaluator {
         }
     }
 
-    public static evaluateD2(expr: string | ExpressionD2, job?: any, self?: any) {
-        if (typeof expr === "string") {
+    public static evaluateD2(expr: number | string | ExpressionD2, job?: any, self?: any) {
+        if (typeof expr === "string" || typeof expr === "number") {
             return expr;
         } else {
             let script = expr.script.charAt(0) === '{'

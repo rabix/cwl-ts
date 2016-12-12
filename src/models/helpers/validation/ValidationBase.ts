@@ -21,7 +21,7 @@ export abstract class ValidationBase implements Validatable {
     public loc = "";
 
     constructor(loc: string) {
-        this.loc = loc;
+        this.loc = loc || "";
     }
 
     public setValidationCallback(fn: (err: Validation)=>void): void {

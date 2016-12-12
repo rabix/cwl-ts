@@ -3,7 +3,7 @@ import {Serializable} from "../interfaces/Serializable";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {ValidationBase, Validation} from "../helpers/validation";
 
-export class ExpressionModel extends ValidationBase implements Serializable<string | Expression> {
+export class ExpressionModel extends ValidationBase implements Serializable<number | string | Expression> {
     customProps: any = {};
 
     validate(): Validation {
@@ -20,13 +20,16 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
      * @returns {any}
      */
     public evaluate(context: {$job?: any, $self?: any} = {}): any {
-        try {
-            this.result = ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self);
-        } catch (ex) {
-            if (ex.name === "SyntaxError") {
-                this.validation = {errors: [{loc: this.loc, message: ex.toString()}], warnings: []};
-            } else {
-                this.validation = {warnings: [{loc: this.loc, message: ex.toString()}], errors: []};
+        if (this.value !== undefined) {
+            try {
+                this.validation = {errors: [], warnings: []};
+                this.result = ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self);
+            } catch (ex) {
+                if (ex.name === "SyntaxError") {
+                    this.validation = {errors: [{loc: this.loc, message: ex.toString()}], warnings: []};
+                } else {
+                    this.validation = {warnings: [{loc: this.loc, message: ex.toString()}], errors: []};
+                }
             }
         }
 
@@ -37,10 +40,10 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
     public result: any;
 
     /** Internal CWL representation of Expression */
-    private value: string | Expression;
+    private value: number | string | Expression;
 
     /** Internal type */
-    private _type: "string" | "expression"; //@todo add other primitive types (int, long, etc)
+    private _type: "string" | "expression" | "number"; //@todo add other primitive types (int, long, etc)
 
     /** Flag if model contains expression */
     public get isExpression() {
@@ -48,8 +51,8 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
     };
 
     /** Setter for model type. Model holds either expression or primitive like "string" */
-    public set type(type: "string" | "expression") {
-        if (type !== "string" && type !== "expression") {
+    public set type(type: "string" | "expression" | "number") {
+        if (type !== "string" && type !== "expression" && type !== "number") {
             throw new TypeError(`Unknown ExpressionModel type. "${type}" does not exist or is not supported yet.`);
         }
         this._type = type;
@@ -60,17 +63,21 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
         return this._type;
     }
 
-    constructor(loc: string, value: string | Expression = "") {
+    constructor(loc?: string, value?: number | string | Expression) {
         super(loc);
         this.deserialize(value);
-        this.type = (value as Expression).script ? "expression" : "string"
+        if (value) {
+            this.type = (value as Expression).script ? "expression" : "string"
+        }
     }
 
     /**
      * Returns CWL representation.
-     * @returns {string|Expression}
      */
-    public serialize(): string | Expression {
+    public serialize(): number | string | Expression {
+        if (this.value && this.value.hasOwnProperty("script") && (<Expression> this.value).script === "") {
+            return undefined;
+        }
         return this.value;
     }
 
@@ -78,16 +85,17 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
     /**
      * Sets CWL representation as internal value
      */
-    public deserialize(val: string | Expression) {
+    public deserialize(val: number | string | Expression) {
         this.value = val;
     }
 
     /**
      * Sets value of expression.script or primitive based on type parameter.
-     * @param val
-     * @param type
      */
-    public setValue(val: string | Expression, type: "expression" | "string") {
+    public setValue(val: number | string | Expression, type: "expression" | "string" | "number") {
+        this.result = undefined;
+        this.validation = {errors: [], warnings: []};
+
         if (type === "expression" && typeof val === "string") {
             this.value = {
                 "class": "Expression",
@@ -96,8 +104,6 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
             };
         } else {
             this.value = val;
-            // reset validation because strings cannot be invalid
-            this.validation = {errors: [], warnings: []};
         }
 
         this.type = type;
@@ -108,9 +114,14 @@ export class ExpressionModel extends ValidationBase implements Serializable<stri
      * @returns {string}
      */
     public toString(): string {
-        return this.type === "expression" ?
-            (<Expression> this.value).script :
-            <string> this.value;
+
+        if (this.type === "expression") {
+            return (<Expression> this.value).script
+        } else if (this.value === null || this.value === undefined) {
+            return <string> this.value;
+        } else {
+            return this.value.toString();
+        }
     }
 
     /**

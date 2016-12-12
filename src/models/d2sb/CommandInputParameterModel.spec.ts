@@ -200,7 +200,6 @@ describe("CommandInputParameterModel d2sb", () => {
             });
 
             const part = input.getCommandPart(null, [true, true, false]);
-            //@todo(maya) this test is currently failing, booleans are not going through itemsPrefix
             expect(part.value).to.equal("--bool-arr -i -i");
         });
 
@@ -209,7 +208,7 @@ describe("CommandInputParameterModel d2sb", () => {
 
     describe("constructor", () => {
         it("should create new input from no parameters", () => {
-            const input = new CommandInputParameterModel("");
+            const input = new CommandInputParameterModel();
 
             expect(input).to.not.be.undefined;
         });
@@ -222,10 +221,6 @@ describe("CommandInputParameterModel d2sb", () => {
 
             expect(input).to.not.be.undefined;
         });
-    });
-
-    describe("validation", () => {
-
     });
 
     describe("fields", () => {
@@ -481,7 +476,7 @@ describe("CommandInputParameterModel d2sb", () => {
             expect(input.validation.errors[0].message).to.equal("ID must be set");
         });
 
-        it("Should check for invalid characters", () => {
+        it("Should check for invalid characters in ID", () => {
             const input = new CommandInputParameterModel("", <CommandInputParameter>{
                 type: "string",
                 id: "@"
@@ -490,6 +485,20 @@ describe("CommandInputParameterModel d2sb", () => {
             input.validate();
             expect(input.validation.errors).to.not.be.empty;
             expect(input.validation.errors[0].message).to.equal("ID can only contain alphanumeric and underscore characters");
+        });
+
+        it("Should ensure enum has symbols", () => {
+            const input = new CommandInputParameterModel("inp", <CommandInputParameter>{
+                id: "asdf",
+                type: {
+                    type: "enum"
+                }
+            });
+
+            input.validate();
+
+            expect(input.validation.errors).to.not.be.empty;
+            expect(input.validation.errors[0].loc).to.equal("inp.type");
         });
     });
 
