@@ -20,7 +20,7 @@ export class CommandArgumentModel extends ValidationBase implements Serializable
 
     constructor(arg?: string | CommandLineBinding, loc?: string) {
         super(loc);
-        this.deserialize(arg);
+        this.deserialize(arg || "");
     }
 
     public getCommandPart(job?: any, value?: any): CommandLinePart {
