@@ -19,4 +19,6 @@ export interface CommandInputParameter extends InputParameter {
     type?: CommandInputParameterType;
     inputBinding?: CommandLineBinding;
     "sbg:category"?: string;
+    "sbg:toolDefaultValue"?: string;
+    "sbg:stageInput"?: string;
 }

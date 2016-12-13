@@ -76,10 +76,12 @@ export class CommandLineBindingModel extends ValidationBase implements Serializa
 
         if (this._secondaryFiles.length) {
             serialized.secondaryFiles = <Array<string | Expression>> this._secondaryFiles
-                .map(file => file.serialize());
+                .map(file => file.serialize())
+                .filter(file => !!file);
         }
 
         if (!serialized.loadContents) delete serialized.loadContents;
+
         if (this.valueFrom.serialize() !== undefined) {
             serialized.valueFrom = <string | Expression> this.valueFrom.serialize();
         }
@@ -95,8 +97,10 @@ export class CommandLineBindingModel extends ValidationBase implements Serializa
             this.itemSeparator = binding.itemSeparator;
             this.loadContents  = binding.loadContents === true;
 
+            // if(binding.valueFrom) {
             this.valueFrom = new ExpressionModel(`${this.loc}.valueFrom`, binding.valueFrom);
             this.valueFrom.setValidationCallback((err: Validation) => this.updateValidity(err));
+            // }
 
             if (binding.secondaryFiles) {
                 if (Array.isArray(binding.secondaryFiles)) {

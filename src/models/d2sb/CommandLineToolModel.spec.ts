@@ -56,7 +56,6 @@ describe("CommandLineToolModel d2sb", () => {
             expect(tool.getCommandLine()).to.equal('aba');
         });
 
-
         it("Should evaluate baseCommand with expression that returns a number", () => {
             let tool = new CommandLineToolModel("", {
                 "class": "CommandLineTool",
@@ -111,7 +110,6 @@ describe("CommandLineToolModel d2sb", () => {
                 'class': "CommandLineTool",
                 inputs: [],
                 outputs: [],
-                arguments: [],
                 baseCommand: []
             };
 
@@ -125,7 +123,6 @@ describe("CommandLineToolModel d2sb", () => {
                 "class": "CommandLineTool",
                 inputs: [],
                 outputs: [],
-                arguments: [],
                 baseCommand: [
                     "string1",
                     "string2",
@@ -176,7 +173,182 @@ describe("CommandLineToolModel d2sb", () => {
             const model2 = new CommandLineToolModel("", tool);
 
             expect(JSON.stringify(model.serialize())).to.equal(JSON.stringify(model2.serialize()));
-        })
+        });
+
+        it("should serialize arguments", () => {
+            const tool: CommandLineTool = {
+                inputs: [],
+                outputs: [],
+                baseCommand: ["cmd"],
+                "class": "CommandLineTool",
+                "arguments": [
+                    "hello world",
+                    {
+                        "prefix": "asdf",
+                        "position": 3
+                    },
+                    {
+                        "separate": true,
+                        "valueFrom": {
+                            "script": "{\n  reference_file = $job.inputs.reference.path.split('/')[$job.inputs.reference.path.split('/').length-1]\n  ext = reference_file.split('.')[reference_file.split('.').length-1]\n  if(ext=='tar'){\n    return ''\n  }\n  else{\n    tar_cmd = 'tar -cf ' + reference_file + '.tar ' + reference_file + ' *.amb' + ' *.ann' + ' *.bwt' + ' *.pac' + ' *.sa' \n    return ' ; ' + tar_cmd\n  }\n}",
+                            "class": "Expression",
+                            "engine": "#cwl-js-engine"
+                        }
+                    }
+                ],
+            };
+
+            const model = new CommandLineToolModel("document", tool);
+
+            expect(model.serialize()).to.deep.equal(tool);
+        });
+
+        it("should serialize inputs", () => {
+            const tool: CommandLineTool = {
+                outputs: [],
+                baseCommand: 'cmd',
+                "class": "CommandLineTool",
+                inputs: [
+                    {
+                        "type": [
+                            "null",
+                            {
+                                "type": "enum",
+                                "name": "bwt_construction",
+                                "symbols": [
+                                    "bwtsw",
+                                    "is",
+                                    "div"
+                                ]
+                            }
+                        ],
+                        "inputBinding": {
+                            "separate": true,
+                            "sbg:cmdInclude": true,
+                            "prefix": "-a"
+                        },
+                        "sbg:toolDefaultValue": "auto",
+                        "description": "Algorithm for constructing BWT index. Available options are:s\tIS linear-time algorithm for constructing suffix array. It requires 5.37N memory where N is the size of the database. IS is moderately fast, but does not work with database larger than 2GB. IS is the default algorithm due to its simplicity. The current codes for IS algorithm are reimplemented by Yuta Mori. bwtsw\tAlgorithm implemented in BWT-SW. This method works with the whole human genome. Warning: `-a bwtsw' does not work for short genomes, while `-a is' and `-a div' do not work not for long genomes.",
+                        "sbg:category": "Configuration",
+                        "id": "#bwt_construction",
+                        "label": "Bwt construction"
+                    },
+                    {
+                        "description": "Prefix of the index [same as fasta name].",
+                        "sbg:category": "Configuration",
+                        "id": "#prefix_of_the_index_to_be_output",
+                        "label": "Prefix of the index to be output",
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    {
+                        "type": [
+                            "null",
+                            "int"
+                        ],
+                        "sbg:toolDefaultValue": "10000000",
+                        "description": "Block size for the bwtsw algorithm (effective with -a bwtsw).",
+                        "sbg:category": "Configuration",
+                        "id": "#block_size",
+                        "label": "Block size"
+                    },
+                    {
+                        "description": "Index files named as <in.fasta>64 instead of <in.fasta>.*.",
+                        "sbg:category": "Configuration",
+                        "id": "#add_64_to_fasta_name",
+                        "label": "Output index files renamed by adding 64",
+                        "type": [
+                            "null",
+                            "boolean"
+                        ]
+                    },
+                    {
+                        "type": [
+                            "File"
+                        ],
+                        "sbg:stageInput": "link",
+                        "description": "Input reference fasta of TAR file with reference and indices.",
+                        "sbg:category": "File input",
+                        "id": "#reference",
+                        "label": "Reference",
+                        "sbg:fileTypes": "FASTA,FA,FA.GZ,FASTA.GZ,TAR"
+                    },
+                    {
+                        "description": "Total memory [GB] to be reserved for the tool (Default value is 1.5 x size_of_the_reference).",
+                        "sbg:category": "Configuration",
+                        "id": "#total_memory",
+                        "label": "Total memory [Gb]",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    }
+                ]
+            };
+
+            const model = new CommandLineToolModel("document", tool);
+
+            expect(model.serialize()).to.deep.equal(tool);
+        });
+
+        it("should serialize outputs", () => {
+            const tool: CommandLineTool = {
+                inputs: [],
+                baseCommand: 'cmd',
+                "class": "CommandLineTool",
+                outputs: [
+                    {
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "description": "TARed fasta with its BWA indices.",
+                        "outputBinding": {
+                            "glob": {
+                                "script": "{\n  reference_file = $job.inputs.reference.path.split('/')[$job.inputs.reference.path.split('/').length-1]\n  ext = reference_file.split('.')[reference_file.split('.').length-1]\n  if(ext=='tar'){\n    return reference_file\n  }\n  else{\n    return reference_file + '.tar'\n  }\n}\n",
+                                "class": "Expression",
+                                "engine": "#cwl-js-engine"
+                            },
+                            "sbg:inheritMetadataFrom": "#reference"
+                        },
+                        "id": "#indexed_reference",
+                        "label": "TARed fasta with its BWA indices",
+                        "sbg:fileTypes": "TAR"
+                    },
+                    {
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "description": "TARed fasta with its BWA indices.",
+                        "outputBinding": {
+                            loadContents: true,
+                            secondaryFiles: [".txt", ".index"],
+                            outputEval: {
+                                "class": "Expression",
+                                engine: "#cwl-js-engine",
+                                script: "$job.inputs[1].path"
+                            },
+                            "glob": {
+                                "script": "{\n  reference_file = $job.inputs.reference.path.split('/')[$job.inputs.reference.path.split('/').length-1]\n  ext = reference_file.split('.')[reference_file.split('.').length-1]\n  if(ext=='tar'){\n    return reference_file\n  }\n  else{\n    return reference_file + '.tar'\n  }\n}\n",
+                                "class": "Expression",
+                                "engine": "#cwl-js-engine"
+                            },
+                            "sbg:inheritMetadataFrom": "#reference"
+                        },
+                        "id": "#indexed_reference",
+                        "label": "TARed fasta with its BWA indices",
+                        "sbg:fileTypes": "TAR"
+                    }
+                ]
+            };
+
+            const model = new CommandLineToolModel("document", tool);
+
+            expect(model.serialize()).to.deep.equal(tool);
+        });
     });
 
     describe("updateValidity", () => {

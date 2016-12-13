@@ -229,15 +229,24 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         }
 
         base.class       = "CommandLineTool";
-        base.baseCommand = this.baseCommand.map(cmd => <Expression | string> cmd.serialize());
-        base.inputs      = <Array<CommandInputParameter>> this.inputs.map(input => input.serialize());
+        base.baseCommand = this.baseCommand
+            .map(cmd => <Expression | string> cmd.serialize())
+            .filter(cmd => !!cmd);
+        base.inputs      = <Array<CommandInputParameter>> this.inputs
+            .map(input => input.serialize());
+        base.outputs     = this.outputs.map(output => output.serialize());
 
         if (Object.keys(this.requirements).length) {
-            base.requirements = Object.keys(this.requirements).map(key => this.requirements[key].serialize());
+            base.requirements = Object.keys(this.requirements)
+                .map(key => this.requirements[key].serialize());
         }
 
         if (Object.keys(this.hints).length) {
             base.hints = Object.keys(this.hints).map(key => this.hints[key].serialize());
+        }
+
+        if (this.arguments.length) {
+            base.arguments = this.arguments.map(arg => arg.serialize());
         }
 
         base = Object.assign({}, base, this.customProps);
@@ -246,7 +255,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     }
 
     deserialize(tool: CommandLineTool): void {
-        const serializedAttr = ["baseCommand", "class", "id", "inputs", "hints", "requirements"];
+        const serializedAttr = ["baseCommand", "class", "id", "inputs", "hints", "requirements", "arguments", "outputs"];
 
         this.id = tool.id;
 
