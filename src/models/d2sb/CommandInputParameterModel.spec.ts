@@ -508,7 +508,7 @@ describe("CommandInputParameterModel d2sb", () => {
                 type: ["string"],
                 label: "label",
                 description: "desc",
-                id: "hello",
+                id: "#hello",
                 inputBinding: {
                     prefix: "--prefix"
                 }
@@ -523,7 +523,7 @@ describe("CommandInputParameterModel d2sb", () => {
                     type: "array",
                     items: "string"
                 }],
-                id: "hello",
+                id: "#hello",
                 inputBinding: {
                     prefix: "--prefix",
                     valueFrom: {
@@ -545,12 +545,12 @@ describe("CommandInputParameterModel d2sb", () => {
                     fields: [
                         {
                             type: ["string"],
-                            id: "a",
+                            id: "#a",
                             label: "field"
                         }
                     ]
                 }],
-                id: "b"
+                id: "#b"
             };
             const input = new CommandInputParameterModel("", <CommandInputParameter>data);
             expect(input.serialize()).to.deep.equal(data);
@@ -559,7 +559,7 @@ describe("CommandInputParameterModel d2sb", () => {
         it("Should serialize with custom properties", () => {
             const data = {
                 type: ["null", "string"],
-                id: "b",
+                id: "#b",
                 "pref:customprop": "some value",
                 "pref:otherprop": {
                     complex: "value"
