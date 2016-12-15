@@ -1,7 +1,7 @@
-export type ExpressionClass = "Expression";
-
 export interface Expression {
     engine: string;
     script: string;
-    class: ExpressionClass;
+    class: "Expression";
 }
+
+export type ExpressionClass = "Expression";

@@ -6,8 +6,8 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "tsc": "tsc -p tsconfig.json",
-    "test": "tsc -p tsconfig.json && mocha ./**/*.spec.js",
-    "coverage": "npm install istanbul && tsc -p tsconfig.json && ./node_modules/istanbul/lib/cli.js cover _mocha ./**/*.spec.js",
+    "test": "./node_modules/typescript/bin/tsc ./src/**/*.ts --lib es6 --target es5 && ./node_modules/mocha/bin/_mocha ./**/*.spec.js",
+    "coverage": "npm install istanbul && tsc /src/**/*.ts --lib es6 --target es5 && ./node_modules/istanbul/lib/cli.js cover _mocha ./**/*.spec.js",
     "regenerate": "./node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
     "schemas": "npm install cwl-ts-parser && scripts/schemas.sh",
     "d2sb-test": "mocha src/tests/*.d2sb.spec.js"

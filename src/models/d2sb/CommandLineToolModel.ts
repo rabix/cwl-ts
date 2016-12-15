@@ -6,24 +6,49 @@ import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {JobHelper} from "../helpers/JobHelper";
 import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
-import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {MSDSort} from "../helpers/MSDSort";
-import {ValidationError} from "../interfaces/ValidationError";
 import {Serializable} from "../interfaces/Serializable";
-import {Validatable} from "../interfaces/Validatable";
+import {ExpressionModel} from "./ExpressionModel";
+import {ValidationBase, Validatable, Validation} from "../helpers/validation";
+import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
+import {ProcessRequirementModel} from "./ProcessRequirementModel";
+import {DockerRequirementModel} from "./DockerRequirementModel";
+import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
+import {ExpressionEngineRequirementModel} from "./ExpressionEngineRequirementModel";
+import {DockerRequirement} from "../../mappings/d2sb/DockerRequirement";
+import {ExpressionEngineRequirement} from "../../mappings/d2sb/ExpressionEngineRequirement";
+import {RequirementBaseModel} from "./RequirementBaseModel";
+import {CreateFileRequirement} from "../../mappings/d2sb/CreateFileRequirement";
+import {CreateFileRequirementModel} from "./CreateFileRequirementModel";
+import {SBGCPURequirement} from "../../mappings/d2sb/SBGCPURequirement";
+import {SBGMemRequirement} from "../../mappings/d2sb/SBGMemRequirement";
+import {ResourceRequirementModel} from "./ResourceRequirementModel";
 
-export class CommandLineToolModel implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
+export class CommandLineToolModel extends ValidationBase implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
     job: any;
     jobInputs: any;
-
+    readonly 'class': string;
     id: string;
 
-    inputs: Array<CommandInputParameterModel>;
-    outputs: Array<CommandOutputParameterModel>;
-    readonly 'class': string;
-    baseCommand: Array<string | Expression>;
+    baseCommand: Array<ExpressionModel>         = [];
+    inputs: Array<CommandInputParameterModel>   = [];
+    outputs: Array<CommandOutputParameterModel> = [];
 
-    arguments: Array<CommandArgumentModel>;
+    requirements: {
+        CreateFileRequirement?: CreateFileRequirementModel,
+        ExpressionEngineRequirement?: ExpressionEngineRequirementModel,
+        DockerRequirement?: DockerRequirementModel,
+        [id: string]: ProcessRequirementModel
+    } = {};
+
+    hints: {
+        "sbg:CPURequirement"?: ResourceRequirementModel,
+        "sbg:MemRequirement"?: ResourceRequirementModel,
+        DockerRequirement?: DockerRequirementModel,
+        [id: string]: ProcessRequirementModel
+    } = {};
+
+    arguments: Array<CommandArgumentModel> = [];
 
     stdin: string | Expression;
     stdout: string | Expression;
@@ -34,48 +59,38 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
 
     customProps: any = {};
 
-    constructor(attr?: CommandLineTool) {
+    constructor(loc: string, attr?: CommandLineTool) {
+        super(loc || "document");
         this.class = "CommandLineTool";
 
-        const serializedAttr = ["baseCommand", "class", "id"];
-        if (attr) {
-            this.id      = attr.id;
-            this.inputs  = attr.inputs.map(input => new CommandInputParameterModel(input));
-            this.outputs = attr.outputs.map(output => new CommandOutputParameterModel(output));
-
-            this.arguments = attr.arguments
-                ? attr.arguments.map(arg => new CommandArgumentModel(arg))
-                : [];
-
-            this.stdin  = attr.stdin || '';
-            this.stdout = attr.stdout || '';
-
-            this.successCodes       = attr.successCodes || [];
-            this.temporaryFailCodes = attr.temporaryFailCodes || [];
-            this.permanentFailCodes = attr.permanentFailCodes || [];
-            attr.baseCommand        = attr.baseCommand || [''];
-
-            this.baseCommand = !Array.isArray(attr.baseCommand)
-                ? [<string | Expression> attr.baseCommand]
-                : <Array<string | Expression>> attr.baseCommand;
-
-            this.job = attr['sbg:job']
-                ? attr['sbg:job']
-                : JobHelper.getJob(this);
-
-            this.jobInputs = this.job.inputs || this.job;
-
-            // populates object with all custom attributes not covered in model
-            Object.keys(attr).forEach(key => {
-                if (serializedAttr.indexOf(key) === -1) {
-                    this.customProps[key] = attr[key];
-                }
-            });
-        }
+        if (attr) this.deserialize(attr);
     }
 
-    public addArgument(arg: CommandArgumentModel) {
-        this.arguments.push(arg);
+    public addBaseCommand(cmd?: ExpressionModel): ExpressionModel {
+        if (!cmd) {
+            cmd = new ExpressionModel(`${this.loc}.baseCommand[${this.baseCommand.length}]`);
+        } else {
+            cmd.loc = `${this.loc}.baseCommand[${this.baseCommand.length}]`;
+        }
+        this.baseCommand.push(cmd);
+        cmd.setValidationCallback((err: Validation) => {
+            this.updateValidity(err);
+        });
+
+        return cmd;
+    }
+
+    public addArgument(argument: CommandArgumentModel) {
+        argument     = argument || new CommandArgumentModel("");
+        argument.loc = `${this.loc}.arguments[${this.arguments.length}]`;
+
+        this.arguments.push(argument);
+
+        argument.setValidationCallback((err: Validation) => {
+            this.updateValidity(err);
+        });
+
+        return argument;
     }
 
     public removeArgument(arg: CommandArgumentModel | number) {
@@ -87,8 +102,15 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
     }
 
     public addInput(input?: CommandInputParameterModel) {
-        input = input || new CommandInputParameterModel();
+        input     = input || new CommandInputParameterModel('');
+        input.loc = `${this.loc}.inputs[${this.inputs.length}]`;
+        input.job = this.job;
+
         this.inputs.push(input);
+
+        input.setValidationCallback((err: Validation) => {
+            this.updateValidity(err);
+        });
 
         return input;
     }
@@ -102,7 +124,16 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
     }
 
     public addOutput(output: CommandOutputParameterModel) {
+        output     = output || new CommandOutputParameterModel();
+        output.loc = `${this.loc}.outputs[${this.outputs.length}]`;
+
         this.outputs.push(output);
+
+        output.setValidationCallback((err: Validation) => {
+            this.updateValidity(err);
+        });
+
+        return output;
     }
 
     public removeOutput(output: CommandOutputParameterModel | number) {
@@ -111,6 +142,11 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
         } else {
             this.outputs.splice(this.outputs.indexOf(output), 1);
         }
+    }
+
+    public setRequirement(req: ProcessRequirement, hint?: boolean) {
+        const prop = hint ? "hints" : "requirements";
+        this.createReq(req, `${this.loc}.${prop}[${Object.keys(this.requirements).length}]`, hint);
     }
 
     public getCommandLine(): string {
@@ -142,14 +178,16 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
 
         MSDSort.sort(concat);
 
-        const baseCmdParts = (<Array<string | Expression>> this.baseCommand)
+        const baseCmdParts = (this.baseCommand)
             .map((baseCmd) => {
-                if (typeof baseCmd === 'string') {
-                    return new CommandLinePart(baseCmd, 0, "baseCommand");
-                } else {
-                    const val = ExpressionEvaluator.evaluateD2(baseCmd, this.job);
-                    return new CommandLinePart(val, 0, "baseCommand");
+                baseCmd.evaluate({$job: this.job});
+                if (baseCmd.validation.errors.length) {
+                    return new CommandLinePart(`<Error at ${baseCmd.loc}>`, 0, "error");
                 }
+                if (baseCmd.validation.warnings.length) {
+                    return new CommandLinePart(`<Warning at ${baseCmd.loc}>`, 0, "warning");
+                }
+                return new CommandLinePart(baseCmd.result, 0, "baseCommand");
             });
 
         return baseCmdParts.concat(concat);
@@ -164,57 +202,146 @@ export class CommandLineToolModel implements CommandLineRunnable, Validatable, S
         console.warn("Not implemented yet");
     }
 
-    validate(): ValidationError[] {
-        let errors: ValidationError[] = [];
-
-        // check base command
-        if (this.baseCommand === [] || this.baseCommand === ['']) {
-            errors.push({
-                type: "Error",
-                location: "baseCommand",
-                message: "Missing required property baseCommand"
-            });
-        }
+    validate(): Validation {
+        const validation: Validation = {errors: [], warnings: []};
 
         // check if all inputs are valid
-        errors.concat(this.inputs
-            .map(input => input.validate())
-            .reduce((prev, curr, index) => {
-                curr.forEach(err => err.location.replace(/<inputIndex>/, index.toString()));
-                return prev.concat(curr);
-            }));
+        this.inputs.forEach(input => {
+            input.validate();
+        });
 
+        this.baseCommand.forEach(cmd => cmd.validate());
 
         // check if ID exists and is valid
 
         // check if inputs have unique id
 
-        return errors;
+        this.validation.errors   = this.validation.errors.concat(validation.errors);
+        this.validation.warnings = this.validation.warnings.concat(validation.warnings);
+
+        return this.validation;
     }
 
     serialize(): CommandLineTool | any {
-        //@todo(maya) create generic serialize/deserialize algorithm
         let base: CommandLineTool = <CommandLineTool>{};
         if (this.id) {
             base.id = this.id;
         }
 
         base.class       = "CommandLineTool";
-        base.baseCommand = this.baseCommand;
+        base.baseCommand = this.baseCommand
+            .map(cmd => <Expression | string> cmd.serialize())
+            .filter(cmd => !!cmd);
+        base.inputs      = <Array<CommandInputParameter>> this.inputs
+            .map(input => input.serialize());
+        base.outputs     = this.outputs.map(output => output.serialize());
+
+        if (Object.keys(this.requirements).length) {
+            base.requirements = Object.keys(this.requirements)
+                .map(key => this.requirements[key].serialize());
+        }
+
+        if (Object.keys(this.hints).length) {
+            base.hints = Object.keys(this.hints).map(key => this.hints[key].serialize());
+        }
+
+        if (this.arguments.length) {
+            base.arguments = this.arguments.map(arg => arg.serialize());
+        }
 
         base = Object.assign({}, base, this.customProps);
 
         return base;
     }
 
-    deserialize(CommandLineTool): void {
+    deserialize(tool: CommandLineTool): void {
+        const serializedAttr = ["baseCommand", "class", "id", "inputs", "hints", "requirements", "arguments", "outputs"];
 
-        const keys = [
-            "class",
-            "id",
-            "baseCommand",
-            "inputs",
-            "ouptuts"
-        ];
+        this.id = tool.id;
+
+        tool.inputs.forEach((input, index) => {
+            this.addInput(new CommandInputParameterModel(`${this.loc}.inputs[${index}]`, input));
+        });
+        tool.outputs.forEach((output, index) => {
+            this.addOutput(new CommandOutputParameterModel(output, `${this.loc}.outputs[${index}]`))
+        });
+
+        if (tool.arguments) {
+            tool.arguments.forEach((arg, index) => {
+                this.addArgument(new CommandArgumentModel(arg, `${this.loc}.arguments[${index}]`));
+            });
+        }
+
+        if (tool.requirements) {
+            tool.requirements.forEach((req, index) => {
+                this.createReq(req, `${this.loc}.requirements[${index}]`);
+            });
+        }
+
+        if (tool.hints) {
+            tool.hints.forEach((hint, index) => {
+                this.createReq(hint, `${this.loc}.hints[${index}]`, true);
+            });
+        }
+
+        this.stdin  = tool.stdin || '';
+        this.stdout = tool.stdout || '';
+
+        this.successCodes       = tool.successCodes || [];
+        this.temporaryFailCodes = tool.temporaryFailCodes || [];
+        this.permanentFailCodes = tool.permanentFailCodes || [];
+        tool.baseCommand        = tool.baseCommand || [''];
+
+        // wrap to array
+        tool.baseCommand = !Array.isArray(tool.baseCommand)
+            ? [<string | Expression> tool.baseCommand]
+            : <Array<string | Expression>> tool.baseCommand;
+
+        this.baseCommand = [];
+
+        (<Array<string | Expression>> tool.baseCommand)
+            .forEach((cmd, index) => this.addBaseCommand(new ExpressionModel(`baseCommand[${index}]`, cmd)));
+
+        this.job = tool['sbg:job']
+            ? tool['sbg:job']
+            : JobHelper.getJob(this);
+
+        this.jobInputs = this.job.inputs || this.job;
+
+        // populates object with all custom attributes not covered in model
+        Object.keys(tool).forEach(key => {
+            if (serializedAttr.indexOf(key) === -1) {
+                this.customProps[key] = tool[key];
+            }
+        });
+    }
+
+    createReq(req: ProcessRequirement, loc: string, hint?: boolean) {
+        let reqModel: ProcessRequirementModel;
+        const property = hint ? "hints" : "requirements";
+
+        switch (req.class) {
+            case "DockerRequirement":
+                reqModel = new DockerRequirementModel(<DockerRequirement>req, loc);
+                break;
+            case "ExpressionEngineRequirement":
+                reqModel = new ExpressionEngineRequirementModel(<ExpressionEngineRequirement>req, loc);
+                break;
+            case "CreateFileRequirement":
+                reqModel = new CreateFileRequirementModel(<CreateFileRequirement>req, loc);
+                break;
+            case "sbg:CPURequirement":
+            case "sbg:MemRequirement":
+                reqModel = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                break;
+            default:
+                reqModel = new RequirementBaseModel(req, loc);
+        }
+        if (reqModel) {
+            this[property][req.class] = reqModel;
+            reqModel.setValidationCallback((err: Validation) => {
+                this.updateValidity(err);
+            });
+        }
     }
 }

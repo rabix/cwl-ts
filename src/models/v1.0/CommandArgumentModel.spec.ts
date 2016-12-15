@@ -1,6 +1,6 @@
 import {CommandArgumentModel} from "./CommandArgumentModel";
 import {expect} from "chai";
-describe("CommandArgumentModel", () => {
+describe("CommandArgumentModel v1", () => {
     describe("getCommandPart", () => {
         it("Should handle arg with just a prefix", () => {
             let arg  = new CommandArgumentModel({prefix: "--p"});
