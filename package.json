@@ -6,7 +6,7 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "tsc": "tsc -p tsconfig.json",
-    "test": "./node_modules/typescript/bin/tsc ./src/**/*.spec.ts --outDir ./src/tests/model --lib es6 --target es5 || ./node_modules/mocha/bin/_mocha --ui bdd ./src/tests/model/**/*.spec.js",
+    "test": "./node_modules/typescript/bin/tsc ./src/**/*.ts --outDir ./src/tests/model --lib es6 --target es5 && ./node_modules/mocha/bin/_mocha --ui bdd ./src/tests/model/**/*.spec.js",
     "coverage": "npm install istanbul && tsc /src/**/*.ts --lib es6 --target es5 && ./node_modules/istanbul/lib/cli.js cover _mocha ./**/*.spec.js",
     "regenerate": "./node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
     "schemas": "npm install cwl-ts-parser && scripts/schemas.sh",
@@ -25,6 +25,7 @@
   "devDependencies": {
     "@types/chai": "^3.4.34",
     "@types/mocha": "^2.2.32",
+    "@types/node": "^6.0.52",
     "chai": "^3.5.0",
     "jsonschema": "^1.1.0",
     "mocha": "^2.5.3",

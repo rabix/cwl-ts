@@ -11,7 +11,8 @@
         "declaration": true,
         "outDir": "./lib",
         "target": "es5",
-        "lib": ["dom", "es6"]
+        "lib": ["dom", "es6"],
+        "types": ["node"]
     },
     "exclude": [
         "lib",
