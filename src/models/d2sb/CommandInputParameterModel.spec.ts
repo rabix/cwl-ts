@@ -459,7 +459,6 @@ describe("CommandInputParameterModel d2sb", () => {
             input.validate();
 
             expect(input.validation.errors).to.not.be.empty;
-            console.log(input.validation.errors.length);
         });
 
     });

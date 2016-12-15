@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "noEmitHelpers": true,
+        "noEmitHelpers": false, //@fixme, check if this is still necessary
         "module": "commonjs",
         "moduleResolution": "node",
         "preserveConstEnums": true,
@@ -11,7 +11,8 @@
         "declaration": true,
         "outDir": "./lib",
         "target": "es5",
-        "lib": ["dom", "es6"]
+        "lib": ["dom", "es6"],
+        "types": ["node", "mocha"]
     },
     "exclude": [
         "lib",

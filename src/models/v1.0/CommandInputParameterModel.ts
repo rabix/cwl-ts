@@ -51,9 +51,9 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         this.resolvedType = typeResolution.type;
 
         // create CommandInputParameterModel from fields, so they can generate their own command line
-        this.fields = typeResolution.fields ? typeResolution.fields.map(field => {
+        this.fields = typeResolution.fields ? (<CommandInputRecordField[]> typeResolution.fields).map(field => {
             return new CommandInputParameterModel(field);
-        }) : typeResolution.fields;
+        }) : undefined;
 
         this.symbols = typeResolution.symbols;
         this.items   = typeResolution.items;
