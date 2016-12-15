@@ -30,7 +30,7 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
 
     constructor(output?: CommandOutputParameter, loc?: string) {
         super(loc);
-        this.deserialize(output || {});
+        this.deserialize(output || <CommandOutputParameter>{});
     }
 
     updateOutputBinding(binding?: CommandOutputBindingModel) {

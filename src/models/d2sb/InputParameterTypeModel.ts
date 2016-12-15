@@ -13,7 +13,7 @@ export class InputParameterTypeModel extends ParameterTypeModel {
         if (this.fields) {
             this.fields = this.fields.map((field, index) => {
                 //noinspection TypeScriptValidateTypes
-                const f = new CommandInputParameterModel(`${this.loc}.fields[${index}]`, field);
+                const f = new CommandInputParameterModel(`${this.loc}.fields[${index}]`, <CommandInputRecordField>field);
                 f.setValidationCallback((err: Validation) => {this.updateValidity(err)});
                 return f;
             });

@@ -6,7 +6,7 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "tsc": "tsc -p tsconfig.json",
-    "test": "tsc ./src/**/*.ts --lib es6 --target es5 && mocha ./**/*.spec.js",
+    "test": "./node_modules/typescript/bin/tsc ./src/**/*.ts --noEmitHelpers --lib es6 --target es5 && mocha ./**/*.spec.js",
     "coverage": "npm install istanbul && tsc /src/**/*.ts --lib es6 --target es5 && ./node_modules/istanbul/lib/cli.js cover _mocha ./**/*.spec.js",
     "regenerate": "./node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
     "schemas": "npm install cwl-ts-parser && scripts/schemas.sh",
