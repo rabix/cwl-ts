@@ -7,6 +7,7 @@ import {Serializable} from "../interfaces/Serializable";
 import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {ValidationBase, Validation} from "../helpers/validation";
 import {InputParameterTypeModel} from "./InputParameterTypeModel";
+import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 
 export class CommandInputParameterModel extends ValidationBase implements Serializable<CommandInputParameter | CommandInputRecordField>, CommandLineInjectable {
     /** unique identifier of input */
@@ -17,7 +18,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     public description: string;
 
     /** Flag if input is field of a parent record. Derived from type field */
-    public isField: boolean    = false;
+    public isField: boolean = false;
 
     /** Complex object that holds logic and information about input's type property */
     public type: InputParameterTypeModel;
@@ -38,7 +39,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
     serialize(): CommandInputParameter | CommandInputRecordField {
         let base: any = {};
-        base = Object.assign({}, base, this.customProps);
+        base          = Object.assign({}, base, this.customProps);
 
         base.type = this.type.serialize();
 
@@ -53,7 +54,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
             base.name = this.id;
             return <CommandInputRecordField> base;
         } else {
-            base.id = this.id;
+            base.id = this.id ? "#" + this.id : "";
             return <CommandInputParameter> base;
         }
     }
@@ -61,18 +62,24 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     deserialize(input: CommandInputParameter | CommandInputRecordField): void {
         const serializedAttr = ["label", "description", "inputBinding", "type"];
 
+        const isNew = input === undefined;
         input = input || <CommandInputParameter | CommandInputRecordField>{};
 
-        this.isField     = !!(<CommandInputRecordField> input).name; // record fields don't have ids
+        this.isField = !!(<CommandInputRecordField> input).name; // record fields don't have ids
         this.isField ? serializedAttr.push("name") : serializedAttr.push("id");
 
-        this.id          = (<CommandInputParameter> input).id
-            || (<CommandInputRecordField> input).name || ""; // for record fields
+        if ((<CommandInputParameter> input).id && (<CommandInputParameter> input).id.charAt(0) === "#") {
+            this.id = (<CommandInputParameter> input).id.substr(1);
+        } else {
+            this.id = (<CommandInputParameter> input).id
+                || (<CommandInputRecordField> input).name || ""; // for record fields
+        }
+
         this.label       = input.label;
         this.description = input.description;
 
         // if inputBinding isn't defined in input, it shouldn't exist as an object in model
-        this.inputBinding = input.inputBinding !== undefined ?
+        this.inputBinding = (input.inputBinding !== undefined || isNew) ?
             new CommandLineBindingModel(input.inputBinding, `${this.loc}.inputBinding`) : undefined;
 
         if (this.inputBinding) {
@@ -80,7 +87,9 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
         }
 
         this.type = new InputParameterTypeModel(input.type, `${this.loc}.type`);
-        this.type.setValidationCallback((err: Validation) => { this.updateValidity(err) });
+        this.type.setValidationCallback((err: Validation) => {
+            this.updateValidity(err)
+        });
 
         // populates object with all custom attributes not covered in model
         Object.keys(input).forEach(key => {
@@ -225,6 +234,15 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
         }
 
         return value;
+    }
+
+    public updateInputBinding(binding: CommandLineBindingModel|CommandLineBinding) {
+        if (binding instanceof CommandLineBindingModel) {
+            binding = (binding as CommandLineBindingModel).serialize();
+        }
+        this.inputBinding = new CommandLineBindingModel(<CommandLineBinding> binding, `${this.loc}.inputBinding`);
+        this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
+
     }
 
     public createInputBinding() {

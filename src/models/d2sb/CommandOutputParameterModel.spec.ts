@@ -14,7 +14,7 @@ describe("CommandOutputParameterModel", () => {
             const out = new CommandOutputParameterModel();
             expect(out).to.not.be.undefined;
             expect(out.outputBinding.glob).to.not.be.undefined;
-            expect(out.outputBinding.glob.toString()).to.be.undefined;
+            expect(out.outputBinding.glob.serialize()).to.be.undefined;
         });
     });
 

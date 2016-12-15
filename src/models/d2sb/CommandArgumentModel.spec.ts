@@ -1,6 +1,6 @@
 import {expect} from "chai";
 import {CommandArgumentModel} from "./CommandArgumentModel";
-import {ExpressionClass} from "../../mappings/d2sb/Expression";
+import {ExpressionModel} from "./ExpressionModel";
 
 describe("CommandArgumentModel", () => {
     describe("constructor", () => {
@@ -9,6 +9,13 @@ describe("CommandArgumentModel", () => {
             expect(arg).to.not.be.undefined;
         });
 
+        it("Should have properties if constructor has no parameters", () => {
+            const arg = new CommandArgumentModel();
+            expect(arg).to.not.be.undefined;
+
+            expect(arg.valueFrom).to.not.be.undefined;
+            expect(arg.valueFrom).to.be.instanceOf(ExpressionModel);
+        });
 
     });
 

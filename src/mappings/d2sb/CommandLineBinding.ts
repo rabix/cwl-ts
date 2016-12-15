@@ -7,4 +7,5 @@ export interface CommandLineBinding extends Binding {
     separate?: boolean;
     itemSeparator?: string;
     valueFrom?: string | Expression;
+    "sbg:cmdInclude"?: boolean;
 }

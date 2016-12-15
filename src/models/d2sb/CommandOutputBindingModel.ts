@@ -82,10 +82,13 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
 
     serialize(): CommandOutputBinding {
         let base: CommandOutputBinding = {};
-        if (this._glob && this._glob.serialize()) base.glob = <string | Expression> this._glob.serialize();
+        if (this._glob && this._glob.serialize()) {
+            base.glob = <string | Expression> this._glob.serialize();
+        }
         if (this._secondaryFiles.length) {
             base.secondaryFiles = <Array<string | Expression>> this._secondaryFiles
-                .map(file => file.serialize());
+                .map(file => file.serialize())
+                .filter(file => !!file);
         }
 
         if(Object.keys(this.metadata).length) {
@@ -98,7 +101,9 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
         if (this.inheritMetadataFrom) base["sbg:inheritMetadataFrom"] = this.inheritMetadataFrom;
 
         if (this.loadContents) base.loadContents = true;
-        if (this._outputEval.serialize()) base.outputEval = <Expression> this._outputEval.serialize();
+        if (this._outputEval.serialize()) {
+            base.outputEval = <Expression> this._outputEval.serialize();
+        }
 
         return Object.assign({}, this.customProps, base);
     }

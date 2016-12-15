@@ -36,11 +36,11 @@ export class CommandArgumentModel extends ValidationBase implements Serializable
         this.binding.loc = `${this.loc}`;
     }
 
-    get arg(): string|CommandLineBinding {
+    get arg(): string|CommandLineBinding|CommandLineBindingModel {
         return this.stringVal || this.binding;
     }
 
-    set arg(value: string|CommandLineBinding) {
+    set arg(value: string|CommandLineBinding|CommandLineBindingModel) {
         this.deserialize(value);
     }
 
@@ -49,7 +49,7 @@ export class CommandArgumentModel extends ValidationBase implements Serializable
 
     constructor(arg?: string | CommandLineBinding, loc?: string) {
         super(loc);
-        this.deserialize(arg || "");
+        this.deserialize(arg || {});
     }
 
     public getCommandPart(job?: any, value?: any): CommandLinePart {
@@ -66,7 +66,7 @@ export class CommandArgumentModel extends ValidationBase implements Serializable
         const prefix = this.binding.prefix || '';
         const position = this.binding.position || 0;
 
-        const valueFrom = this.binding.valueFrom.evaluate({$job: job}) || '';
+        const valueFrom = this.binding.valueFrom.evaluate({$job: job}) || "";
         if (this.binding.valueFrom.validation.errors.length) {
             return new CommandLinePart(`<Error at ${this.binding.valueFrom.loc}>`, position, "error");
         }
@@ -107,11 +107,14 @@ export class CommandArgumentModel extends ValidationBase implements Serializable
         }
     }
 
-    deserialize(attr: string|CommandLineBinding): void {
+    deserialize(attr: string|CommandLineBinding|CommandLineBindingModel): void {
         if (typeof attr === "string") {
             this.stringVal = attr;
+        } else if (attr instanceof CommandLineBindingModel) {
+            this.binding = new CommandLineBindingModel(attr.serialize(), this.loc);
+            this.binding.setValidationCallback((err:Validation) => {this.updateValidity(err);})
         } else {
-            this.binding = new CommandLineBindingModel(attr, this.loc);
+            this.binding = new CommandLineBindingModel(<CommandLineBinding> attr, this.loc);
             this.binding.setValidationCallback((err:Validation) => {this.updateValidity(err);})
         }
     }
