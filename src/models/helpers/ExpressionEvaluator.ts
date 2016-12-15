@@ -26,7 +26,7 @@ export class ExpressionEvaluator {
         if (typeof expr === "string" || typeof expr === "number") {
             return expr;
         } else {
-            let script = expr.script.charAt(0) === '{'
+            let script = expr.script.trim().charAt(0) === '{'
                 ? "(function()" + expr.script + ")()"
                 : expr.script;
 
