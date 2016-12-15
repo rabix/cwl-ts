@@ -2,5 +2,7 @@
 .idea
 *.iml
 node_modules
-out/
-typings/
+src/tests/model/mappings/
+src/tests/model/models/
+src/tests/model/tests/
+coverage/
