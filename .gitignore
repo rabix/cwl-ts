@@ -2,7 +2,5 @@
 .idea
 *.iml
 node_modules
-src/tests/model/mappings/
-src/tests/model/models/
-src/tests/model/tests/
+compiled/
 coverage/
