@@ -260,7 +260,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
     //@todo(maya) implement validation
     validate(): Validation {
-        const val = {errors: [], warnings: []}; // purge current validation;
+        this.validation = {errors: [], warnings: []}; // purge current validation;
 
         if (this.inputBinding && this.inputBinding.valueFrom) {
             this.inputBinding.valueFrom.evaluate({$job: this.job, $self: this.self});
@@ -269,24 +269,19 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
         // check id validity
         // doesn't exist
         if (this.id === "" || this.id === undefined) {
-            val.errors.push({
+            this.validation.errors.push({
                 message: "ID must be set",
                 loc: `${this.loc}.id`
             });
             // contains illegal characters
         } else if (!/^[a-zA-Z0-9_]*$/.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
-            val.errors.push({
+            this.validation.errors.push({
                 message: "ID can only contain alphanumeric and underscore characters",
                 loc: `${this.loc}.id`
             });
         }
 
         this.type.validate();
-
-        const errors   = this.validation.errors.concat(val.errors);
-        const warnings = this.validation.warnings.concat(val.warnings);
-
-        this.validation = {errors, warnings};
 
         return this.validation;
     }

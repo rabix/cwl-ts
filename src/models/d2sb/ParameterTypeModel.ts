@@ -6,7 +6,7 @@ import {CommandOutputParameterType} from "../../mappings/d2sb/CommandOutputParam
 import {CommandInputParameterType} from "../../mappings/d2sb/CommandInputParameter";
 import {Validation} from "../helpers/validation/Validation";
 
-export type PrimitiveParameterType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes";
+export type PrimitiveParameterType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes" | "map";
 
 export abstract class ParameterTypeModel extends ValidationBase implements Serializable<any>, TypeResolution {
     public customProps: any = {};

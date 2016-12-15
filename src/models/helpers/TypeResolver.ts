@@ -3,7 +3,7 @@ import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordFie
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {CommandOutputSchema} from "../../mappings/d2sb/CommandOutputSchema";
 
-export type PrimitiveType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes";
+export type PrimitiveType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes" | "map";
 
 export interface TypeResolution {
     type: PrimitiveType;

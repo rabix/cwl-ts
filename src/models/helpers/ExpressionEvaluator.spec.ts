@@ -153,6 +153,21 @@ describe("ExpressionEvaluator", () => {
             })).to.equal(8);
         });
 
+        it("should evaluate a function body even if it begins with a whitespace", () => {
+            expect(ExpressionEvaluator.evaluateD2({
+                class: "Expression",
+                engine: "cwl-js-engine",
+                script: ` { return 5 + 3; }`
+            })).to.equal(8);
+
+            expect(ExpressionEvaluator.evaluateD2({
+                class: "Expression",
+                engine: "cwl-js-engine",
+                script: ` 
+                { return 5 + 3; }`
+            })).to.equal(8);
+        });
+
         it("should evaluate an inline expression", () => {
             expect(ExpressionEvaluator.evaluateD2({
                 class: "Expression",
