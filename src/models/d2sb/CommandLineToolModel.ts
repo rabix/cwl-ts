@@ -34,6 +34,10 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     inputs: Array<CommandInputParameterModel>   = [];
     outputs: Array<CommandOutputParameterModel> = [];
 
+    resources: {cpu?: ResourceRequirementModel, mem?: ResourceRequirementModel} = {};
+
+    docker: DockerRequirementModel;
+
     requirements: {
         CreateFileRequirement?: CreateFileRequirementModel,
         ExpressionEngineRequirement?: ExpressionEngineRequirementModel,
@@ -241,13 +245,21 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
                 .map(key => this.requirements[key].serialize());
         }
 
+        base.hints = [];
+
         if (Object.keys(this.hints).length) {
             base.hints = Object.keys(this.hints).map(key => this.hints[key].serialize());
         }
 
+        if (this.resources.cpu) base.hints.push(this.resources.cpu.serialize());
+        if (this.resources.mem) base.hints.push(this.resources.mem.serialize());
+        if (this.docker) base.hints.push(this.docker.serialize());
+
         if (this.arguments.length) {
             base.arguments = this.arguments.map(arg => arg.serialize());
         }
+
+        if (!base.hints.length) delete base.hints;
 
         base = Object.assign({}, base, this.customProps);
 
@@ -322,7 +334,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
         switch (req.class) {
             case "DockerRequirement":
-                reqModel = new DockerRequirementModel(<DockerRequirement>req, loc);
+                this.docker = new DockerRequirementModel(<DockerRequirement>req, loc);
                 break;
             case "ExpressionEngineRequirement":
                 reqModel = new ExpressionEngineRequirementModel(<ExpressionEngineRequirement>req, loc);
@@ -331,9 +343,11 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
                 reqModel = new CreateFileRequirementModel(<CreateFileRequirement>req, loc);
                 break;
             case "sbg:CPURequirement":
+                this.resources.cpu = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                return;
             case "sbg:MemRequirement":
-                reqModel = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
-                break;
+                this.resources.mem = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                return;
             default:
                 reqModel = new RequirementBaseModel(req, loc);
         }
