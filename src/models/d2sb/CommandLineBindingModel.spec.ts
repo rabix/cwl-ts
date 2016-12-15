@@ -4,7 +4,7 @@ import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
 import {ExpressionModel} from "./ExpressionModel";
 
-describe("CommandLineBindingModel", () => {
+describe("CommandLineBindingModel d2sb", () => {
     describe("updateValidity", () => {
         it("Should be invalid if valueFrom is invalid", () => {
             const binding = new CommandLineBindingModel({

@@ -3,7 +3,7 @@ import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
 import {ExpressionModel} from "./ExpressionModel";
 
-describe("CommandOutputBindingModel", () => {
+describe("CommandOutputBindingModel d2sb", () => {
     describe("constructor", () => {
         it("should create model from blank object", () => {
             const bind = new CommandOutputBindingModel();

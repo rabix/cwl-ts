@@ -3,7 +3,7 @@ import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
 import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
 
-describe("CommandOutputParameterModel", () => {
+describe("CommandOutputParameterModel d2sb", () => {
     describe("constructor", () => {
         it("Should initialize with an empty constructor", () => {
             const out = new CommandOutputParameterModel();
