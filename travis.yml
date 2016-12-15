@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+  - "6"
+script:
+  - npm run test
+
+install:
+  - npm install
+
+notifications:
+  email: false
+
+branches:
+  only:
+    - develop
