@@ -2,7 +2,7 @@ import {expect} from "chai";
 import {CommandArgumentModel} from "./CommandArgumentModel";
 import {ExpressionModel} from "./ExpressionModel";
 
-describe("CommandArgumentModel", () => {
+describe("CommandArgumentModel d2sb", () => {
     describe("constructor", () => {
         it("Should initialize if constructor has no parameters", () => {
             const arg = new CommandArgumentModel();
