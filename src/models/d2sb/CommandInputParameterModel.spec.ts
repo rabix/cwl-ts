@@ -358,6 +358,28 @@ describe("CommandInputParameterModel d2sb", () => {
 
     });
 
+    describe("isNullable", () => {
+        it("should be false if input is required", () => {
+            const input = new CommandInputParameterModel("", {
+                id: "a",
+                type: {type: "array", items: "int"}
+            });
+
+            console.log(input.type);
+
+            expect(input.type.isNullable).to.be.false;
+        });
+
+        it("should be true if input is not required", () => {
+            const input = new CommandInputParameterModel("", {
+                id: "a",
+                type: [{type: "array", items: "int"}, "null"]
+            });
+
+            expect(input.type.isNullable).to.be.true;
+        });
+    });
+
     describe("items", () => {
         // set items type
         it("should set items for array type", () => {

@@ -8,7 +8,7 @@ export class InputParameterTypeModel extends ParameterTypeModel {
     public fields: Array<any>; //@fixme: should be type CommandInputParameterModel
 
     constructor(attr: any, loc: string) {
-        super(loc, attr);
+        super(attr, loc);
 
         if (this.fields) {
             this.fields = this.fields.map((field, index) => {

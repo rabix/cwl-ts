@@ -11,7 +11,7 @@ export type PrimitiveParameterType = "array" | "enum" | "record" | "File" | "str
 export abstract class ParameterTypeModel extends ValidationBase implements Serializable<any>, TypeResolution {
     public customProps: any = {};
 
-    private _items: PrimitiveParameterType;
+    private _items: PrimitiveParameterType = null;
 
     get items(): PrimitiveParameterType {
         return this._items;
@@ -40,25 +40,29 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
                 this.fields  = null;
                 break;
             case "enum":
-                this._items = null;
-                this.fields = null;
+                this._items  = null;
+                this.fields  = null;
                 this.symbols = this.symbols || [];
                 break;
             case "record":
-                this._items = null;
+                this._items  = null;
                 this.symbols = null;
-                this.fields = this.fields || [];
+                this.fields  = this.fields || [];
                 break;
+            default:
+                this._items  = null;
+                this.symbols = null;
+                this.fields  = null;
         }
     }
 
-    isNullable: boolean;
-    typeBinding: CommandLineBinding;
-    fields: Array<any>;
-    symbols: string[];
-    name: string;
+    isNullable: boolean = false;
+    typeBinding: CommandLineBinding = null;
+    fields: Array<any> = null;
+    symbols: string[] = null;
+    name: string = null;
 
-    constructor(loc: string, type: CommandInputParameterType | CommandOutputParameterType) {
+    constructor(type: CommandInputParameterType | CommandOutputParameterType, loc: string) {
         super(loc);
         this.deserialize(type);
     }
@@ -153,7 +157,7 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
     }
 
     serialize(): any {
-        let type  = TypeResolver.serializeType(this);
+        let type = TypeResolver.serializeType(this);
 
         if (typeof type === "object" && !Array.isArray(type)) {
             type = Object.assign({}, type, this.customProps);
@@ -162,7 +166,7 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
         return type
     }
 
-    deserialize(attr: any ): void {
+    deserialize(attr: any): void {
         const serializedKeys = ["type", "name", "symbols", "fields", "items", "inputBinding", "outputBinding"];
 
         TypeResolver.resolveType(attr, this);
@@ -190,7 +194,7 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
                 this.fields = null;
                 break;
             case "record":
-                this._items = null;
+                this._items  = null;
                 this.symbols = null;
                 break;
         }

@@ -3,6 +3,6 @@ import {CommandOutputParameterType} from "../../mappings/d2sb/CommandOutputParam
 
 export class OutputParameterTypeModel extends ParameterTypeModel {
     constructor(attr: CommandOutputParameterType, loc: string) {
-        super(loc, attr);
+        super(attr, loc);
     }
 }

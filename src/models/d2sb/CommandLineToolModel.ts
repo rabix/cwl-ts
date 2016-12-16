@@ -199,7 +199,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     }
 
     public setJobProperty(key: string, value: any) {
-        console.warn("Not implemented yet");
+        this.jobInputs[key] = value;
     }
 
     validate(): Validation {
