@@ -44,8 +44,8 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
     arguments: Array<CommandArgumentModel> = [];
 
-    stdin: string | Expression;
-    stdout: string | Expression;
+    stdin: ExpressionModel;
+    stdout: ExpressionModel;
 
     successCodes: number[];
     temporaryFailCodes: number[];
@@ -143,6 +143,11 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         this.createReq(req, `${this.loc}.${prop}[${this[prop].length}]`, hint);
     }
 
+    public updateStream(stream: ExpressionModel, type: "stdin" | "stdout") {
+        this[type] = stream;
+        stream.setValidationCallback((err) => this.updateValidity(err));
+    }
+
     public getCommandLine(): string {
         //@todo(maya): implement with Observables so command line isn't generated anew every time
         const parts = this.getCommandLineParts()
@@ -222,6 +227,8 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         }
 
         base.class       = "CommandLineTool";
+
+        // BASECOMMAND
         base.baseCommand = this.baseCommand
             .map(cmd => <Expression | string> cmd.serialize())
             .filter(cmd => !!cmd)
@@ -233,14 +240,20 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
                     return acc.concat([curr]);
                 }
             }, []);
+
+        // INPUTS
         base.inputs      = <Array<CommandInputParameter>> this.inputs
             .map(input => input.serialize());
+
+        // OUTPUTS
         base.outputs     = this.outputs.map(output => output.serialize());
 
+        // REQUIREMENTS
         if (this.requirements.length) {
             base.requirements = this.requirements.map(req => req.serialize());
         }
 
+        // HINTS
         base.hints = [];
 
         if (this.hints.length) {
@@ -251,11 +264,21 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         if (this.resources.mem) base.hints.push(this.resources.mem.serialize());
         if (this.docker) base.hints.push(this.docker.serialize());
 
+        if (!base.hints.length) delete base.hints;
+
+        // ARGUMENTS
         if (this.arguments.length) {
             base.arguments = this.arguments.map(arg => arg.serialize());
         }
 
-        if (!base.hints.length) delete base.hints;
+        // STREAM
+        if (this.stdin.serialize()) {
+            base.stdin = <string | Expression> this.stdin.serialize();
+        }
+
+        if (this.stdout.serialize()) {
+            base.stdout = <string | Expression> this.stdout.serialize();
+        }
 
         base = Object.assign({}, base, this.customProps);
 
@@ -263,7 +286,18 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     }
 
     deserialize(tool: CommandLineTool): void {
-        const serializedAttr = ["baseCommand", "class", "id", "inputs", "hints", "requirements", "arguments", "outputs"];
+        const serializedAttr = [
+            "baseCommand",
+            "class",
+            "id",
+            "inputs",
+            "hints",
+            "requirements",
+            "arguments",
+            "outputs",
+            "stdin",
+            "stdout"
+        ];
 
         this.id = tool.id;
 
@@ -292,8 +326,8 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             });
         }
 
-        this.stdin  = tool.stdin || '';
-        this.stdout = tool.stdout || '';
+        this.stdin  = new ExpressionModel(`${this.loc}.stdin`, tool.stdin);
+        this.stdout = new ExpressionModel(`${this.loc}.stdout`, tool.stdout);
 
         this.successCodes       = tool.successCodes || [];
         this.temporaryFailCodes = tool.temporaryFailCodes || [];
