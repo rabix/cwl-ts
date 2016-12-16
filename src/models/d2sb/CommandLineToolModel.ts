@@ -38,19 +38,9 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
     docker: DockerRequirementModel;
 
-    requirements: {
-        CreateFileRequirement?: CreateFileRequirementModel,
-        ExpressionEngineRequirement?: ExpressionEngineRequirementModel,
-        DockerRequirement?: DockerRequirementModel,
-        [id: string]: ProcessRequirementModel
-    } = {};
+    requirements: Array<ProcessRequirementModel> = [];
 
-    hints: {
-        "sbg:CPURequirement"?: ResourceRequirementModel,
-        "sbg:MemRequirement"?: ResourceRequirementModel,
-        DockerRequirement?: DockerRequirementModel,
-        [id: string]: ProcessRequirementModel
-    } = {};
+    hints: Array<ProcessRequirementModel> = [];
 
     arguments: Array<CommandArgumentModel> = [];
 
@@ -150,7 +140,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
     public setRequirement(req: ProcessRequirement, hint?: boolean) {
         const prop = hint ? "hints" : "requirements";
-        this.createReq(req, `${this.loc}.${prop}[${Object.keys(this.requirements).length}]`, hint);
+        this.createReq(req, `${this.loc}.${prop}[${this[prop].length}]`, hint);
     }
 
     public getCommandLine(): string {
@@ -216,7 +206,6 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
         this.baseCommand.forEach(cmd => cmd.validate());
 
-        // check if ID exists and is valid
 
         // check if inputs have unique id
 
@@ -240,15 +229,14 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             .map(input => input.serialize());
         base.outputs     = this.outputs.map(output => output.serialize());
 
-        if (Object.keys(this.requirements).length) {
-            base.requirements = Object.keys(this.requirements)
-                .map(key => this.requirements[key].serialize());
+        if (this.requirements.length) {
+            base.requirements = this.requirements.map(req => req.serialize());
         }
 
         base.hints = [];
 
-        if (Object.keys(this.hints).length) {
-            base.hints = Object.keys(this.hints).map(key => this.hints[key].serialize());
+        if (this.hints.length) {
+            base.hints = this.hints.map(hint => hint.serialize());
         }
 
         if (this.resources.cpu) base.hints.push(this.resources.cpu.serialize());
@@ -335,7 +323,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         switch (req.class) {
             case "DockerRequirement":
                 this.docker = new DockerRequirementModel(<DockerRequirement>req, loc);
-                break;
+                return;
             case "ExpressionEngineRequirement":
                 reqModel = new ExpressionEngineRequirementModel(<ExpressionEngineRequirement>req, loc);
                 break;
@@ -352,7 +340,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
                 reqModel = new RequirementBaseModel(req, loc);
         }
         if (reqModel) {
-            this[property][req.class] = reqModel;
+            this[property].push(reqModel);
             reqModel.setValidationCallback((err: Validation) => {
                 this.updateValidity(err);
             });
