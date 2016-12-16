@@ -139,6 +139,29 @@ describe("CommandLineToolModel d2sb", () => {
             expect(model.serialize()).to.deep.equal(tool);
         });
 
+        it("should split string with whitespace in baseCommand", () => {
+            const tool: CommandLineTool = {
+                "class": "CommandLineTool",
+                inputs: [],
+                outputs: [],
+                baseCommand: [
+                    "string1 string2",
+                    {
+                        "class": "Expression",
+                        engine: "cwl-js-engine",
+                        script: "{ return $job.inputs.file.path; }"
+                    }
+                ]
+            };
+
+            const model = new CommandLineToolModel("", tool);
+            expect(tool.baseCommand).to.have.length(2);
+            expect((<CommandLineTool> model.serialize()).baseCommand).to.have.length(3);
+            expect((<CommandLineTool> model.serialize()).baseCommand[0]).to.equal("string1");
+            expect((<CommandLineTool> model.serialize()).baseCommand[1]).to.equal("string2");
+
+        });
+
         it("should serialize object with custom properties", () => {
             const tool: CommandLineTool = {
                 "class": "CommandLineTool",

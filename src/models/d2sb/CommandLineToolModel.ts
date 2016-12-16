@@ -148,7 +148,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         const parts = this.getCommandLineParts()
             .filter(part => part !== null)
             .map(part => part.value)
-            .join(' ');
+            .join(" ");
 
         return parts.trim();
     }
@@ -224,7 +224,15 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         base.class       = "CommandLineTool";
         base.baseCommand = this.baseCommand
             .map(cmd => <Expression | string> cmd.serialize())
-            .filter(cmd => !!cmd);
+            .filter(cmd => !!cmd)
+            .reduce((acc, curr) => {
+                if (typeof curr === "string") {
+                    //@todo implement not splitting quoted text
+                    return acc.concat(curr.split(/\s+/));
+                } else {
+                    return acc.concat([curr]);
+                }
+            }, []);
         base.inputs      = <Array<CommandInputParameter>> this.inputs
             .map(input => input.serialize());
         base.outputs     = this.outputs.map(output => output.serialize());
@@ -299,8 +307,20 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
         this.baseCommand = [];
 
-        (<Array<string | Expression>> tool.baseCommand)
-            .forEach((cmd, index) => this.addBaseCommand(new ExpressionModel(`baseCommand[${index}]`, cmd)));
+        (<Array<string | Expression>> tool.baseCommand).reduce((acc, curr) => {
+            if (typeof curr === "string") {
+                if (typeof acc[acc.length - 1] === "string") {
+                    acc[acc.length - 1] += ` ${curr}`;
+                    return acc;
+                } else {
+                    return acc.concat([curr]);
+                }
+            } else {
+                return acc.concat([curr]);
+            }
+        }, []).forEach((cmd, index) => {
+            this.addBaseCommand(new ExpressionModel(`baseCommand[${index}]`, cmd))
+        });
 
         this.job = tool['sbg:job']
             ? tool['sbg:job']
