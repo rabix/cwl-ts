@@ -27,6 +27,15 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
         return this._secondaryFiles;
     }
 
+    set secondaryFiles(files: ExpressionModel[]) {
+        this._secondaryFiles = files;
+
+        files.forEach((file, index) => {
+            file.loc = `${this.loc}.secondaryFiles[${index}]`;
+            file.setValidationCallback((err) => this.updateValidity(err))
+        });
+    }
+
     private _outputEval: ExpressionModel;
 
     get outputEval(): ExpressionModel {

@@ -145,6 +145,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
     public updateStream(stream: ExpressionModel, type: "stdin" | "stdout") {
         this[type] = stream;
+        stream.loc = `${this.loc}.${type}`;
         stream.setValidationCallback((err) => this.updateValidity(err));
     }
 
@@ -211,7 +212,6 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
         this.baseCommand.forEach(cmd => cmd.validate());
 
-
         // check if inputs have unique id
 
         this.validation.errors   = this.validation.errors.concat(validation.errors);
@@ -226,7 +226,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             base.id = this.id;
         }
 
-        base.class       = "CommandLineTool";
+        base.class = "CommandLineTool";
 
         // BASECOMMAND
         base.baseCommand = this.baseCommand
@@ -242,11 +242,11 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             }, []);
 
         // INPUTS
-        base.inputs      = <Array<CommandInputParameter>> this.inputs
+        base.inputs = <Array<CommandInputParameter>> this.inputs
             .map(input => input.serialize());
 
         // OUTPUTS
-        base.outputs     = this.outputs.map(output => output.serialize());
+        base.outputs = this.outputs.map(output => output.serialize());
 
         // REQUIREMENTS
         if (this.requirements.length) {
