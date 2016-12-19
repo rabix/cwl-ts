@@ -25,6 +25,9 @@ export class CreateFileRequirementModel extends ProcessRequirementModel implemen
     serialize(): CreateFileRequirement {
         let base = <CreateFileRequirement> {};
 
+        base.class = "CreateFileRequirement";
+        base.fileDef = this.fileDef;
+
         return Object.assign({}, base, this.customProps);
     }
 

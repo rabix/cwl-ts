@@ -40,6 +40,8 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
     requirements: Array<ProcessRequirementModel> = [];
 
+    createFileRequirement: CreateFileRequirementModel;
+
     hints: Array<ProcessRequirementModel> = [];
 
     arguments: Array<CommandArgumentModel> = [];
@@ -249,9 +251,14 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         base.outputs = this.outputs.map(output => output.serialize());
 
         // REQUIREMENTS
+        base.requirements = [];
         if (this.requirements.length) {
             base.requirements = this.requirements.map(req => req.serialize());
         }
+
+        if (this.createFileRequirement) base.requirements.push(this.createFileRequirement.serialize());
+
+        if(!base.requirements.length) delete base.requirements;
 
         // HINTS
         base.hints = [];
@@ -383,12 +390,18 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
                 break;
             case "CreateFileRequirement":
                 reqModel = new CreateFileRequirementModel(<CreateFileRequirement>req, loc);
-                break;
+                this.createFileRequirement = <CreateFileRequirementModel> reqModel;
+                reqModel.setValidationCallback(err => this.updateValidity(err));
+                return;
             case "sbg:CPURequirement":
-                this.resources.cpu = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                reqModel = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                this.resources.cpu = <ResourceRequirementModel>reqModel;
+                reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:MemRequirement":
-                this.resources.mem = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                reqModel = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                this.resources.mem = <ResourceRequirementModel>reqModel;
+                reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             default:
                 reqModel = new RequirementBaseModel(req, loc);

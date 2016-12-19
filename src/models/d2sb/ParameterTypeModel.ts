@@ -18,7 +18,7 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
     }
 
     set items(t: PrimitiveParameterType) {
-        if (this._type !== "array") {
+        if (t && this._type !== "array") {
             throw("ParameterTypeModel: Items can only be set to inputs type Array");
         } else {
             this._items = t;
@@ -79,13 +79,13 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
                     loc: `${this.loc}`
                 });
             }
-            if (this.symbols !== null) {
+            if (this.symbols) {
                 val.errors.push({
                     message: "Type array must not have symbols",
                     loc: `${this.loc}.symbols`
                 });
             }
-            if (this.fields !== null) {
+            if (this.fields) {
                 val.errors.push({
                     message: "Type array must not have fields",
                     loc: `${this.loc}.fields`
@@ -94,19 +94,19 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
         }
         // if enum, has symbols. Does not have items or fields. Has name.
         if (this.type === "enum") {
-            if (this.items !== null) {
+            if (this.items) {
                 val.errors.push({
                     message: "Type enum must not have items",
                     loc: `${this.loc}.items`
                 });
             }
-            if (this.symbols === null) {
+            if (!this.symbols) {
                 val.errors.push({
                     message: "Type enum must have symbols",
                     loc: `${this.loc}`
                 });
             }
-            if (this.fields !== null) {
+            if (this.fields) {
                 val.errors.push({
                     message: "Type enum must not have fields",
                     loc: `${this.loc}.fields`
@@ -122,19 +122,19 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
         }
         // if record, has fields. Does not have items or symbols. Has name.
         if (this.type === "record") {
-            if (this.items !== null) {
+            if (this.items) {
                 val.errors.push({
                     message: "Type record must not have items",
                     loc: `${this.loc}.items`
                 });
             }
-            if (this.symbols === null) {
+            if (this.symbols) {
                 val.errors.push({
-                    message: "Type record must have symbols",
+                    message: "Type record must not have symbols",
                     loc: `${this.loc}.symbols`
                 });
             }
-            if (this.fields !== null) {
+            if (this.fields) {
                 val.errors.push({
                     message: "Type record must have fields",
                     loc: `${this.loc}`
