@@ -7,7 +7,7 @@ export class RequirementBaseModel extends ProcessRequirementModel implements Ser
     'class': string;
     value?: any | ExpressionModel;
 
-    constructor(req?: ProcessRequirement, loc?: string) {
+    constructor(req?: ProcessRequirement | any, loc?: string) {
         super(req, loc);
         this.deserialize(req);
     }
@@ -24,6 +24,11 @@ export class RequirementBaseModel extends ProcessRequirementModel implements Ser
     }
 
     serialize(): ProcessRequirement {
+        // value stored in customProps was whole value of hint
+        if (this.customProps.constructor.name !== "Object") {
+            return this.customProps;
+        }
+
         let base = <ProcessRequirement>{};
         if (this.class) base.class = this.class;
         if (this.value) {
@@ -36,6 +41,12 @@ export class RequirementBaseModel extends ProcessRequirementModel implements Ser
     }
 
     deserialize(attr: ProcessRequirement): void {
+        // hint is not an object type, therefore it cannot be deserialized
+        if (attr.constructor.name !== "Object") {
+            this.customProps = attr;
+            return;
+        }
+
         this.class = attr.class;
 
         if (attr["value"]) {

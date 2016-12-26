@@ -45,6 +45,10 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
         if (this.inputBinding) {
             base.inputBinding = this.inputBinding.serialize();
+
+            if (this.type.type !== "File" && this.type.items !== "File") {
+                delete base.inputBinding.secondaryFiles;
+            }
         }
 
         if (this.label) base.label = this.label;

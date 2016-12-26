@@ -586,9 +586,24 @@ describe("CommandInputParameterModel d2sb", () => {
                     complex: "value"
                 }
             };
-            const input = new CommandInputParameterModel("", <CommandInputParameter>data);
+            const input = new CommandInputParameterModel("", data);
             expect(input.serialize()).to.deep.equal(data);
         });
+
+        it("Should remove File-specific attributes if type is not file", () => {
+            const data = {
+                type: ["null", "File"],
+                id: "#b",
+                inputBinding: {
+                    secondaryFiles: ["bam", "bai"]
+                }
+            };
+            const input = new CommandInputParameterModel("", data);
+            input.type.type = "string";
+
+            expect(input.serialize().inputBinding).to.not.haveOwnProperty("secondaryFiles");
+
+        })
 
     });
 
