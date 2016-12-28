@@ -16,7 +16,6 @@ export class CreateFileRequirementModel extends ProcessRequirementModel implemen
     set fileDef(value: FileDefModel[]) {
         this._fileDef = [];
 
-        debugger;
         value.forEach((def, index) => {
             if (!(def instanceof FileDefModel)) {
                 def = new FileDefModel(<FileDef> def);
