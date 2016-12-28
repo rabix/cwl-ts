@@ -3,6 +3,6 @@ import {ProcessRequirement} from "./ProcessRequirement";
 export type CreateFileRequirementClass = "CreateFileRequirement";
 
 export interface CreateFileRequirement  extends ProcessRequirement {
-    class: CreateFileRequirementClass;
+    class: "CreateFileRequirement";
     fileDef: FileDef[];
 }

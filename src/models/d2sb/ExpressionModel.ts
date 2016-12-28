@@ -72,6 +72,12 @@ export class ExpressionModel extends ValidationBase implements Serializable<numb
 
     constructor(loc?: string, value?: number | string | Expression) {
         super(loc);
+
+        // guard against passing something that is already wrapped
+        if (value instanceof ExpressionModel) {
+            value = (<ExpressionModel> value).serialize();
+        }
+
         this.deserialize(value);
         if (value) {
             this.type = (value as Expression).script ? "expression" : "string"

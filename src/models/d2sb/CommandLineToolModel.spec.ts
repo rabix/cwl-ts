@@ -372,6 +372,72 @@ describe("CommandLineToolModel d2sb", () => {
 
             expect(model.serialize()).to.deep.equal(tool);
         });
+
+        it("should serialize createFileRequirement", () => {
+            const tool = {
+                "baseCommand": [],
+                "inputs": [],
+                "outputs": [],
+                "class": "CommandLineTool",
+                "requirements": [
+                    {
+                        "fileDef": [
+                            {
+                                "fileContent": {
+                                    "engine": "#cwl-js-engine",
+                                    "class": "Expression",
+                                    "script": "script value"
+                                },
+                                "filename": {
+                                    "engine": "#cwl-js-engine",
+                                    "class": "Expression",
+                                    "script": "script value"
+                                }
+                            }
+                        ],
+                        "class": "CreateFileRequirement"
+                    }
+                ]
+            };
+
+            const model = new CommandLineToolModel("document", <CommandLineTool>tool);
+
+            expect(model.serialize()).to.deep.equal(tool);
+        });
+
+        it("should serialize hints", () => {
+           const tool = {
+               "baseCommand": [],
+               "inputs": [],
+               "outputs": [],
+               "class": "CommandLineTool",
+               "hints": [
+                   "value",
+                   {
+                       arbitrary: "object"
+                   },
+                   {
+                       "value": 1,
+                       "class": "sbg:CPURequirement"
+                   },
+                   {
+                       "value": 1000,
+                       "class": "sbg:MemRequirement"
+                   },
+                   {
+                       "dockerPull": "images",
+                       "dockerImageId": "asdf",
+                       "class": "DockerRequirement"
+                   }
+               ]
+           };
+
+            const model = new CommandLineToolModel("document", <CommandLineTool>tool);
+
+            expect(model.serialize()).to.deep.equal(tool);
+        });
+
+
     });
 
     describe("updateValidity", () => {

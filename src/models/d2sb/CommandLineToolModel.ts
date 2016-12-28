@@ -377,7 +377,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         });
     }
 
-    createReq(req: ProcessRequirement, loc: string, hint?: boolean) {
+    private createReq(req: ProcessRequirement, loc: string, hint?: boolean) {
         let reqModel: ProcessRequirementModel;
         const property = hint ? "hints" : "requirements";
 

@@ -5,6 +5,7 @@ export * from "./CommandLineToolModel";
 export * from "./CommandLineBindingModel";
 export * from "./ExpressionModel";
 export * from "./DockerRequirementModel";
+export * from "./FileDefModel";
 export * from "./ExpressionEngineRequirementModel";
 export * from "./ProcessRequirementModel";
 export * from "./RequirementBaseModel";
