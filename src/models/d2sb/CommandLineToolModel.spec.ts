@@ -6,7 +6,7 @@ import * as BWAMemJob from "../../tests/apps/bwa-mem-job";
 import * as BamtoolsIndex from "../../tests/apps/bamtools-index-sbg";
 import * as BamtoolsSplit from "../../tests/apps/bamtools-split-sbg";
 import * as BindingTestTool from "../../tests/apps/binding-test-tool";
-import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
+import {CommandLineTool, CommandLineToolClass} from "../../mappings/d2sb/CommandLineTool";
 import {ExpressionModel} from "./ExpressionModel";
 
 describe("CommandLineToolModel d2sb", () => {
@@ -378,7 +378,7 @@ describe("CommandLineToolModel d2sb", () => {
                 "baseCommand": [],
                 "inputs": [],
                 "outputs": [],
-                "class": "CommandLineTool",
+                "class": <CommandLineToolClass> "CommandLineTool",
                 "requirements": [
                     {
                         "fileDef": [
@@ -410,7 +410,7 @@ describe("CommandLineToolModel d2sb", () => {
                "baseCommand": [],
                "inputs": [],
                "outputs": [],
-               "class": "CommandLineTool",
+               "class": <CommandLineToolClass> "CommandLineTool",
                "hints": [
                    "value",
                    {
