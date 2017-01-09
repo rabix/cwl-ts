@@ -436,8 +436,6 @@ describe("CommandLineToolModel d2sb", () => {
 
             expect(model.serialize()).to.deep.equal(tool);
         });
-
-
     });
 
     describe("updateValidity", () => {

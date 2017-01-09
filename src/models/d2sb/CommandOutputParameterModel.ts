@@ -103,7 +103,7 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
         const val = {errors: [], warnings: []};
 
         //@fixme outputBinding validation isn't implemented
-        // this.outputBinding.validate();
+        this.outputBinding.validate();
         this.type.validate();
 
         const errors   = this.validation.errors.concat(val.errors);

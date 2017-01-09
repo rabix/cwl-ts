@@ -79,13 +79,13 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
                     loc: `${this.loc}`
                 });
             }
-            if (this.symbols) {
+            if (this.symbols && this.items !== "enum") {
                 val.errors.push({
                     message: "Type array must not have symbols",
                     loc: `${this.loc}.symbols`
                 });
             }
-            if (this.fields) {
+            if (this.fields && this.items !== "record") {
                 val.errors.push({
                     message: "Type array must not have fields",
                     loc: `${this.loc}.fields`
@@ -134,7 +134,7 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
                     loc: `${this.loc}.symbols`
                 });
             }
-            if (this.fields) {
+            if (!this.fields) {
                 val.errors.push({
                     message: "Type record must have fields",
                     loc: `${this.loc}`

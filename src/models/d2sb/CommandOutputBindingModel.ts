@@ -3,6 +3,7 @@ import {CommandOutputBinding} from "../../mappings/d2sb/CommandOutputBinding";
 import {ExpressionModel} from "./ExpressionModel";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Expression} from "../../mappings/d2sb/Expression";
+import {Validation} from "../helpers/validation/Validation";
 
 export class CommandOutputBindingModel extends ValidationBase implements Serializable<CommandOutputBinding> {
     public loadContents: boolean;
@@ -85,6 +86,21 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
 
     public addSecondaryFile(file: ExpressionModel) {
         this.updateSecondaryFile(file, this._secondaryFiles.length);
+    }
+
+    validate(): Validation {
+        this.validation = {errors: [], warnings: []};
+
+        if (!this._glob || (this._glob && this._glob.serialize() === undefined)) {
+            this.validation.warnings.push({
+                loc: `${this.loc}.glob`,
+                message: "Glob should be specified"
+            });
+        }
+
+        if (this._outputEval) {this._outputEval.validate()}
+
+        return this.validation;
     }
 
     customProps: any = {};

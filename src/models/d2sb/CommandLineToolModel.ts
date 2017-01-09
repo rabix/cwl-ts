@@ -333,8 +333,8 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             });
         }
 
-        this.stdin  = new ExpressionModel(`${this.loc}.stdin`, tool.stdin);
-        this.stdout = new ExpressionModel(`${this.loc}.stdout`, tool.stdout);
+        this.updateStream(new ExpressionModel(`${this.loc}.stdin`, tool.stdin), "stdin");
+        this.updateStream(new ExpressionModel(`${this.loc}.stdout`, tool.stdout), "stdout");
 
         this.successCodes       = tool.successCodes || [];
         this.temporaryFailCodes = tool.temporaryFailCodes || [];
