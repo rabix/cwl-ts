@@ -24,11 +24,15 @@
   "homepage": "https://github.com/rabix/cwl-ts#readme",
   "devDependencies": {
     "@types/chai": "^3.4.34",
+    "@types/chai-as-promised": "0.0.29",
     "@types/mocha": "^2.2.33",
     "@types/node": "^6.0.52",
     "chai": "^3.5.0",
+    "chai-as-promised": "^6.0.0",
+    "istanbul": "^0.4.5",
     "jsonschema": "^1.1.0",
     "mocha": "^2.5.3",
+    "rxjs": "^5.0.3",
     "typescript": "^2.0.0-beta",
     "typescript-json-schema": "0.1.1"
   }

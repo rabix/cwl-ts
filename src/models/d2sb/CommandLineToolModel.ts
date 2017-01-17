@@ -6,7 +6,6 @@ import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {JobHelper} from "../helpers/JobHelper";
 import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
-import {MSDSort} from "../helpers/MSDSort";
 import {Serializable} from "../interfaces/Serializable";
 import {ExpressionModel} from "./ExpressionModel";
 import {ValidationBase, Validatable, Validation} from "../helpers/validation";
@@ -23,43 +22,50 @@ import {CreateFileRequirementModel} from "./CreateFileRequirementModel";
 import {SBGCPURequirement} from "../../mappings/d2sb/SBGCPURequirement";
 import {SBGMemRequirement} from "../../mappings/d2sb/SBGMemRequirement";
 import {ResourceRequirementModel} from "./ResourceRequirementModel";
+import {Observable, ReplaySubject} from "rxjs";
+import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 
 export class CommandLineToolModel extends ValidationBase implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
-    job: any;
-    jobInputs: any;
-    readonly 'class': string;
-    id: string;
+    public job: any;
+    public jobInputs: any;
+    public readonly 'class': string;
+    public id: string;
 
-    baseCommand: Array<ExpressionModel>         = [];
-    inputs: Array<CommandInputParameterModel>   = [];
-    outputs: Array<CommandOutputParameterModel> = [];
+    public baseCommand: Array<ExpressionModel>         = [];
+    public inputs: Array<CommandInputParameterModel>   = [];
+    public outputs: Array<CommandOutputParameterModel> = [];
 
-    resources: {cpu?: ResourceRequirementModel, mem?: ResourceRequirementModel} = {};
+    private commandLine = new ReplaySubject<CommandLinePart[]>(1);
 
-    docker: DockerRequirementModel;
+    public resources: { cpu?: ResourceRequirementModel, mem?: ResourceRequirementModel } = {};
 
-    requirements: Array<ProcessRequirementModel> = [];
+    public docker: DockerRequirementModel;
 
-    createFileRequirement: CreateFileRequirementModel;
+    public requirements: Array<ProcessRequirementModel> = [];
 
-    hints: Array<ProcessRequirementModel> = [];
+    public createFileRequirement: CreateFileRequirementModel;
 
-    arguments: Array<CommandArgumentModel> = [];
+    public hints: Array<ProcessRequirementModel> = [];
 
-    stdin: ExpressionModel;
-    stdout: ExpressionModel;
+    public arguments: Array<CommandArgumentModel> = [];
 
-    successCodes: number[];
-    temporaryFailCodes: number[];
-    permanentFailCodes: number[];
+    public stdin: ExpressionModel;
+    public stdout: ExpressionModel;
 
-    customProps: any = {};
+    public successCodes: number[];
+    public temporaryFailCodes: number[];
+    public permanentFailCodes: number[];
+
+    private constructed = false;
+
+    public customProps: any = {};
 
     constructor(loc: string, attr?: CommandLineTool) {
         super(loc || "document");
         this.class = "CommandLineTool";
 
         if (attr) this.deserialize(attr);
+        this.constructed = true;
     }
 
     public addBaseCommand(cmd?: ExpressionModel): ExpressionModel {
@@ -98,9 +104,10 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     }
 
     public addInput(input?: CommandInputParameterModel) {
-        input     = input || new CommandInputParameterModel('');
-        input.loc = `${this.loc}.inputs[${this.inputs.length}]`;
-        input.job = this.job;
+        input      = input || new CommandInputParameterModel('');
+        input.loc  = `${this.loc}.inputs[${this.inputs.length}]`;
+        input.job  = this.job;
+        input.self = JobHelper.getJobPart(input);
 
         this.inputs.push(input);
 
@@ -151,48 +158,57 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         stream.setValidationCallback((err) => this.updateValidity(err));
     }
 
-    public getCommandLine(): string {
-        //@todo(maya): implement with Observables so command line isn't generated anew every time
-        const parts = this.getCommandLineParts()
-            .filter(part => part !== null)
-            .map(part => part.value)
-            .join(" ");
+    public getCommandLine(): Promise<string> {
+        return this.generateCommandLineParts().then(cmd => {
+            const parts = cmd.map(part => part.value).join(" ");
 
-        return parts.trim();
+            return parts.trim();
+        });
     }
 
-    public getCommandLineParts(): CommandLinePart[] {
-        const inputParts = this.inputs.map(input => {
-            const normalizedId = input.id.charAt(0) === '#'
-                ? input.id.substring(1)
-                : input.id;
-            const jobInput     = this.jobInputs[normalizedId];
-            try {
-                return input.getCommandPart(this.job, jobInput);
-            } catch (ex) {
-                // potential mismatch input and value type
-                // @todo(maya) add to validation stack
-                return null;
-            }
-        });
-        const argParts   = this.arguments.map(arg => arg.getCommandPart(this.job));
-        const concat     = inputParts.concat(argParts).filter(item => item !== null);
+    public updateCommandLine(): void {
+        if (this.constructed) {
+            this.generateCommandLineParts().then(res => {
+                this.commandLine.next(res);
+            })
+        }
+    }
 
-        MSDSort.sort(concat);
+    public getCommandLineParts(): Observable<CommandLinePart[]> {
+        this.updateCommandLine();
+        return this.commandLine as Observable<CommandLinePart[]>;
+    }
 
-        const baseCmdParts = (this.baseCommand)
-            .map((baseCmd) => {
-                baseCmd.evaluate({$job: this.job});
-                if (baseCmd.validation.errors.length) {
-                    return new CommandLinePart(`<Error at ${baseCmd.loc}>`, 0, "error");
-                }
-                if (baseCmd.validation.warnings.length) {
-                    return new CommandLinePart(`<Warning at ${baseCmd.loc}>`, 0, "warning");
-                }
-                return new CommandLinePart(baseCmd.result, 0, "baseCommand");
+    private generateCommandLineParts(): Promise<CommandLinePart[]> {
+        const flatInputs = CommandLinePrepare.flattenInputsAndArgs([].concat(this.arguments).concat(this.inputs));
+
+        const job = this.job.inputs ?
+            Object.assign({inputs: JobHelper.getJob(this)}, this.job || {}) : this.job || {};
+
+        const flatJobInputs = CommandLinePrepare.flattenJob(job.inputs || job, {});
+
+        const baseCmdPromise = this.baseCommand.map(cmd => {
+            return CommandLinePrepare.prepare(cmd, flatJobInputs, job, "baseCommand").then(suc => {
+                return new CommandLinePart(<string>suc, [], "baseCommand");
+            }, err => {
+                return new CommandLinePart(`<${err.type} at ${err.loc}>`, [], err.type);
             });
+        });
 
-        return baseCmdParts.concat(concat);
+        const inputPromise = flatInputs.map(input => {
+            return CommandLinePrepare.prepare(input, flatJobInputs, job)
+        }).filter(i => i instanceof Promise).map(promise => {
+            return promise.then(succ => succ, err => {
+                return new CommandLinePart(`<${err.type} at ${err.loc}>`, [], err.type);
+            });
+        });
+
+        const stdOutPromise = CommandLinePrepare.prepare(this.stdout, flatJobInputs, job, "stdout");
+        const stdInPromise = CommandLinePrepare.prepare(this.stdin, flatJobInputs, job, "stdin");
+
+        return Promise.all([].concat(baseCmdPromise, inputPromise, stdOutPromise, stdInPromise)).then(parts => {
+            return parts.filter(part => part !== null);
+        });
     }
 
     public setJob(job: any) {
@@ -201,6 +217,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     }
 
     public setJobProperty(key: string, value: any) {
+        this.updateCommandLine();
         this.jobInputs[key] = value;
     }
 
@@ -258,7 +275,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
         if (this.createFileRequirement) base.requirements.push(this.createFileRequirement.serialize());
 
-        if(!base.requirements.length) delete base.requirements;
+        if (!base.requirements.length) delete base.requirements;
 
         // HINTS
         base.hints = [];
@@ -365,7 +382,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
 
         this.job = tool['sbg:job']
             ? tool['sbg:job']
-            : JobHelper.getJob(this);
+            : {inputs: JobHelper.getJob(this), allocatedResources: {mem: 1000, cpu: 1}};
 
         this.jobInputs = this.job.inputs || this.job;
 
@@ -389,17 +406,17 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
                 reqModel = new ExpressionEngineRequirementModel(<ExpressionEngineRequirement>req, loc);
                 break;
             case "CreateFileRequirement":
-                reqModel = new CreateFileRequirementModel(<CreateFileRequirement>req, loc);
+                reqModel                   = new CreateFileRequirementModel(<CreateFileRequirement>req, loc);
                 this.createFileRequirement = <CreateFileRequirementModel> reqModel;
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:CPURequirement":
-                reqModel = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                reqModel           = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
                 this.resources.cpu = <ResourceRequirementModel>reqModel;
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:MemRequirement":
-                reqModel = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                reqModel           = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
                 this.resources.mem = <ResourceRequirementModel>reqModel;
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;

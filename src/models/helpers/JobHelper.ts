@@ -1,12 +1,13 @@
-import {CommandInputParameterModel} from "../v1.0";
+import {CommandInputParameterModel} from "../d2sb";
 import {CommandLineRunnable} from "../interfaces";
 
 export class JobHelper {
 
-    private static getJobPart(input: CommandInputParameterModel) {
-        let type = <any> input.type;
-        let name: string = input.id;
-        let symbols: string[] = input.symbols;
+    public static getJobPart(input: CommandInputParameterModel) {
+        const type = <any> input.type.type;
+        const items = <any> input.type.items;
+        const name: string = input.id;
+        const symbols: string[] = input.type.symbols;
 
         /**
          * Returns a random integer between min (included) and max (excluded)
@@ -38,7 +39,7 @@ export class JobHelper {
             int: getRandomInt(0,11),
             float: getRandomFloat(0, 11),
             boolean: true,
-            record: {fields: {}},
+            record: {},
             map: {},
             array: {
                 file: [
@@ -52,13 +53,24 @@ export class JobHelper {
                 string: [name+'-string-value-1', name+'-string-value-2'],
                 int: [getRandomInt(0,11), getRandomInt(0,11)],
                 float: [getRandomFloat(0, 11), getRandomFloat(0, 11)],
-                record: [{fields: {}}],
+                record: [{}],
                 map: [{}],
                 'enum': [symbols ? symbols[0] : name]
             }
         };
 
-        return map[type];
+        let val = map[type];
+
+        if (type === "array") {
+            val = val[items];
+        }
+        if (type === "record") {
+            input.type.fields.forEach(field => {
+                val[field.id] = JobHelper.getJobPart(field);
+            });
+        }
+
+        return val;
     }
 
     public static getJob(tool: CommandLineRunnable): any {

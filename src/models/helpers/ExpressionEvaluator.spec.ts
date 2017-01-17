@@ -104,76 +104,91 @@ describe("ExpressionEvaluator", () => {
     });
 
     describe("evaluate", () => {
-        it("should evaluate a string", () => {
-            expect(ExpressionEvaluator.evaluate("hello world")).to.equal("hello world");
+        it("should evaluate a string", (done) => {
+            ExpressionEvaluator.evaluate("hello world").then(res => {
+                 expect(res).to.equal("hello world");
+            }).then(done, done)
         });
 
-        it("should evaluate 3 + 3 expression", () => {
-            expect(ExpressionEvaluator.evaluate("$(3 + 3)")).to.equal(6);
+        it("should evaluate 3 + 3 expression", (done) => {
+            ExpressionEvaluator.evaluate("$(3 + 3)").then(res => {
+                expect(res).to.equal(6);
+            }).then(done, done);
         });
 
-        it("should evaluate 3 + 7 function", () => {
-            expect(ExpressionEvaluator.evaluate("${return 3 + 7;}")).to.equal(10);
+        it("should evaluate 3 + 7 function", (done) => {
+            ExpressionEvaluator.evaluate("${return 3 + 7;}").then(res => {
+                expect(res).to.equal(10);
+            }).then(done, done);
         });
 
-        it("should concat values of two expressions", () => {
-            expect(ExpressionEvaluator.evaluate("$(3 + 3)$(9 + 1)")).to.equal("610");
+        it("should concat values of two expressions", (done) => {
+            ExpressionEvaluator.evaluate("$(3 + 3)$(9 + 1)").then(res => {
+                expect(res).to.equal("610");
+            }).then(done, done);
         });
 
-        it("should concat value of expression and literal", () => {
-            expect(ExpressionEvaluator.evaluate("$(3 + 3) + 3")).to.equal("6 + 3");
+        it("should concat value of expression and literal", (done) => {
+            ExpressionEvaluator.evaluate("$(3 + 3) + 3").then(res => {
+                expect(res).to.equal("6 + 3");
+            }).then(done, done);
         });
 
-        it("should concat value of function and literal", () => {
-            expect(ExpressionEvaluator.evaluate("$(3 + 3) + ${ return 5}")).to.equal("6 + 5");
+        it("should concat value of function and literal", (done) => {
+            ExpressionEvaluator.evaluate("$(3 + 3) + ${ return 5}").then(res => {
+                expect(res).to.equal("6 + 5");
+            }).then(done, done);
         });
 
-        it("should evaluate an expression with an inputs reference", () => {
-            expect(ExpressionEvaluator.evaluate(
+        it("should evaluate an expression with an inputs reference", (done) => {
+            ExpressionEvaluator.evaluate(
                 "${ return inputs.text }",
                 {text: "hello"}
-                )).to.equal("hello");
+            ).then(res => {
+                expect(res).to.equal("hello");
+            }).then(done, done);
         });
 
-        it("should evaluate an expression with a self reference", () => {
-            expect(ExpressionEvaluator.evaluate(
+        it("should evaluate an expression with a self reference", (done) => {
+            ExpressionEvaluator.evaluate(
                 "${ return self.prop }",
                 null,
                 {prop: "baz"}
-                )).to.equal("baz");
+            ).then(res => {
+                expect(res).to.equal("baz");
+            }).then(done, done);
         });
     });
 
     describe("evaluateD2", () => {
-        it("should evaluate function body", () => {
-            expect(ExpressionEvaluator.evaluateD2({
-                class: "Expression",
+        it("should evaluate function body", (done) => {
+            ExpressionEvaluator.evaluateD2({
+                'class': "Expression",
                 engine: "cwl-js-engine",
                 script: "{ return 5 + 3; }"
-            })).to.equal(8);
+            }).then(res => {
+                expect(res).to.equal(8);
+            }).then(done, done);
         });
 
-        it("should evaluate a function body even if it begins with a whitespace", () => {
-            expect(ExpressionEvaluator.evaluateD2({
-                class: "Expression",
+        it("should evaluate a function body even if it begins with a whitespace", (done) => {
+            ExpressionEvaluator.evaluateD2({
+                'class': "Expression",
                 engine: "cwl-js-engine",
                 script: ` { return 5 + 3; }`
-            })).to.equal(8);
-
-            expect(ExpressionEvaluator.evaluateD2({
-                class: "Expression",
-                engine: "cwl-js-engine",
-                script: ` 
-                { return 5 + 3; }`
-            })).to.equal(8);
+            }).then(res => {
+                expect(res).to.equal(8);
+            }).then(done, done);
         });
 
-        it("should evaluate an inline expression", () => {
-            expect(ExpressionEvaluator.evaluateD2({
-                class: "Expression",
+        it("should evaluate an inline expression", (done) => {
+            ExpressionEvaluator.evaluateD2({
+                'class': "Expression",
                 engine: "cwl-js-engine",
                 script: " 5 + 3"
-            })).to.equal(8);
+            }).then(res => {
+                expect(res).to.equal(8);
+            }).then(done, done);
         });
     })
 });
