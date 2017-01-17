@@ -51,41 +51,47 @@ describe("ExpressionModel d2sb", () => {
     });
 
     describe("evaluate", () => {
-        it("should return value if model is string, not expression", () => {
+        it("should return value if model is string, not expression", (done) => {
             const expr = new ExpressionModel("", "value");
-            expect(expr.evaluate()).to.equal("value");
+            expr.evaluate().then(res => {
+                expect(res).to.equal("value");
+            }).then(done, done);
         });
 
-        it("should return a result for a valid expression", () => {
+        it("should return a result for a valid expression", (done) => {
             const expr = new ExpressionModel("");
             expr.setValue("3 + 3", "expression");
-
             expect(expr.result).to.be.undefined;
-            expect(expr.evaluate()).to.equal(6);
-            expect(expr.result).to.equal(6);
+
+            expr.evaluate().then(res => {
+                expect(res).to.equal(6);
+                expect(expr.result).to.equal(6);
+            }).then(done, done);
         });
 
-        it("should add a SyntaxError to model validation.errors", () => {
+        it("should add a SyntaxError to model validation.errors", (done) => {
             const expr = new ExpressionModel("");
             expr.setValue("--", "expression");
 
             expect(expr.validation.errors).to.be.empty;
-            expect(expr.evaluate()).to.be.undefined;
-            expect(expr.validation.errors).to.not.be.empty;
-            expect(expr.validation.errors[0].message).to.contain("SyntaxError");
-            expect(expr.validation.warnings).to.be.empty;
+
+            expr.evaluate().then(done, () => {
+                expect(expr.validation.errors).to.not.be.empty;
+                expect(expr.validation.errors[0].message).to.contain("SyntaxError");
+                expect(expr.validation.warnings).to.be.empty;
+            }).then(done, done);
         });
 
-        it("should add ReferenceError to model validation.warnings", () => {
+        it("should add ReferenceError to model validation.warnings", (done) => {
             const expr = new ExpressionModel("");
             expr.setValue("a", "expression");
 
             expect(expr.validation.warnings).to.be.empty;
-            expect(expr.evaluate()).to.be.undefined;
-            expect(expr.validation.warnings).to.not.be.empty;
-            expect(expr.validation.warnings[0].message).to.contain("ReferenceError");
-            expect(expr.validation.errors).to.be.empty;
-
+            expr.evaluate().then(done, () => {
+                expect(expr.validation.warnings).to.not.be.empty;
+                expect(expr.validation.warnings[0].message).to.contain("ReferenceError");
+                expect(expr.validation.errors).to.be.empty;
+            }).then(done, done);
         });
     });
 

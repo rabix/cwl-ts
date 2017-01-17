@@ -19,27 +19,65 @@ export class ExpressionModel extends ValidationBase implements Serializable<numb
      * @param context
      * @returns {any}
      */
-    public evaluate(context: {$job?: any, $self?: any} = {}): any {
+    public evaluate(context: { $job?: any, $self?: any } = {}): Promise<any> {
         if (this.value !== undefined) {
-            try {
-                this.validation = {errors: [], warnings: []};
-                this.result     = ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self);
-            } catch (ex) {
-                if (ex.name === "SyntaxError") {
-                    this.validation = {
-                        errors: [{loc: this.loc, message: ex.toString()}],
-                        warnings: []
-                    };
-                } else {
-                    this.validation = {
-                        warnings: [{loc: this.loc, message: ex.toString()}],
-                        errors: []
-                    };
-                }
-            }
+            this.validation = {errors: [], warnings: []};
+
+
+            return new Promise((res, rej) => {
+                ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self).then(suc => {
+                    this.result = suc;
+                    res(suc !== undefined ? suc : "");
+
+                }, ex => {
+                    const err = {loc: this.loc, message: ex.toString()};
+
+                    if (ex.name === "SyntaxError") {
+                        this.validation = {
+                            errors: [err],
+                            warnings: []
+                        };
+
+                        rej(Object.assign({type: "error"}, err));
+                    } else {
+                        this.validation = {
+                            warnings: [err],
+                            errors: []
+                        };
+
+                        rej(Object.assign({type: "warning"}, err));
+                    }
+                })
+            });
+            // return ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self).then(suc => {
+            //     this.result = suc;
+            //     return suc !== undefined ? suc : "";
+            // }, ex => {
+            //     const err = {loc: this.loc, message: ex.toString()};
+            //
+            //     if (ex.name === "SyntaxError") {
+            //         this.validation = {
+            //             errors: [err],
+            //             warnings: []
+            //         };
+            //
+            //         return new Promise((res, rej) => {
+            //             rej(Object.assign({type: "error"}, err));
+            //         });
+            //     } else {
+            //         this.validation = {
+            //             warnings: [err],
+            //             errors: []
+            //         };
+            //
+            //         return new Promise((res, rej) => {
+            //             rej(Object.assign({type: "warning"}, err));
+            //         });
+            //     }
+            // });
         }
 
-        return this.result;
+        return undefined;
     }
 
     /** Cached result of expression last time it was evaluated */
@@ -108,7 +146,7 @@ export class ExpressionModel extends ValidationBase implements Serializable<numb
      * Sets value of expression.script or primitive based on type parameter.
      */
     public setValue(val: number | string | Expression, type: "expression" | "string" | "number") {
-        this.result = undefined;
+        this.result     = undefined;
         this.validation = {errors: [], warnings: []};
 
         if (type === "expression" && typeof val === "string") {

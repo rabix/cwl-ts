@@ -3,28 +3,28 @@ import {Expression as ExpressionD2} from "../../mappings/d2sb/Expression";
 import {Expression as ExpressionV1} from "../../mappings/draft-4/Expression";
 
 export class ExpressionEvaluator {
-    public static evaluate(expr: string | ExpressionV1, job?: any, self?: any): any {
-        let results = ExpressionEvaluator.grabExpressions(expr).map(token => {
+    public static evaluate(expr: string | ExpressionV1, job?: any, self?: any): Promise<any> {
+        let results: Promise<any>[] = ExpressionEvaluator.grabExpressions(expr).map(token => {
             switch (token.type) {
                 case "func":
                     return JSExecutor.evaluate("v1.0", "(function() {" + token.value + "})()", job, self);
                 case "expr":
                     return JSExecutor.evaluate("v1.0", token.value, job, self);
                 case "literal":
-                    return token.value;
+                    return new Promise(res => res(token.value));
             }
         });
 
         if (results.length === 1) {
             return results[0];
         } else {
-            return results.join('');
+            return Promise.all(results).then(res => res.join(""));
         }
     }
 
-    public static evaluateD2(expr: number | string | ExpressionD2, job?: any, self?: any) {
+    public static evaluateD2(expr: number | string | ExpressionD2, job?: any, self?: any): Promise<any> {
         if (typeof expr === "string" || typeof expr === "number") {
-            return expr;
+            return new Promise(res => res(expr));
         } else {
             let script = expr.script.trim().charAt(0) === '{'
                 ? "(function()" + expr.script + ")()"

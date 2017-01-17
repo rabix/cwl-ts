@@ -1,13 +1,16 @@
-import {expect} from "chai";
+import {expect, should} from "chai";
 import {CommandLineToolModel} from "./CommandLineToolModel";
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import * as BWAMemTool from "../../tests/apps/bwa-mem-tool";
 import * as BWAMemJob from "../../tests/apps/bwa-mem-job";
 import * as BamtoolsIndex from "../../tests/apps/bamtools-index-sbg";
 import * as BamtoolsSplit from "../../tests/apps/bamtools-split-sbg";
+import * as BfctoolsAnnotate from "../../tests/apps/bfctools-annotate-sbg";
 import * as BindingTestTool from "../../tests/apps/binding-test-tool";
 import {CommandLineTool, CommandLineToolClass} from "../../mappings/d2sb/CommandLineTool";
 import {ExpressionModel} from "./ExpressionModel";
+
+should();
 
 describe("CommandLineToolModel d2sb", () => {
     describe("constructor", () => {
@@ -39,9 +42,93 @@ describe("CommandLineToolModel d2sb", () => {
         })
     });
 
+    describe("getCommandLine Async", () => {
+        it("Should evaluate some command line from inputs async", function (done) {
+            //noinspection TypeScriptUnresolvedVariable
+            let tool = new CommandLineToolModel("", {
+                'class': "CommandLineTool",
+                outputs: [],
+                baseCommand: [],
+                inputs: [
+                    {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "inputBinding": {},
+                        "id": "#inp1"
+                    },
+                    {
+                        "type": [
+                            "null",
+                            {
+                                "type": "record",
+                                "fields": [
+                                    {
+                                        "type": [
+                                            "null",
+                                            "string"
+                                        ],
+                                        "inputBinding": {
+                                            "prefix": "--s",
+                                            "separate": true
+                                        },
+                                        "name": "string_input"
+                                    },
+                                    {
+                                        "type": [
+                                            "null",
+                                            "boolean"
+                                        ],
+                                        "inputBinding": {
+                                            "separate": true,
+                                            "prefix": "--bool",
+                                            "valueFrom": {
+                                                "class": "Expression",
+                                                "engine": "#cwl-js-engine",
+                                                "script": "3 + 444"
+                                            }
+                                        },
+                                        "name": "valueFrom"
+                                    }
+                                ],
+                                "name": "record"
+                            }
+                        ],
+                        "inputBinding": {
+                            "prefix": "--rec",
+                            "separate": true
+                        },
+                        "id": "#record"
+                    },
+                    {
+                        "type": [
+                            "null",
+                            {
+                                "type": "enum",
+                                "symbols": [
+                                    "asdf",
+                                    "asdf",
+                                    "fdsa"
+                                ],
+                                "name": "enum"
+                            }
+                        ],
+                        "inputBinding": {},
+                        "id": "#enum"
+                    }
+                ]
+            });
+
+            tool.getCommandLine().then(function (cmd) {
+                expect(cmd).to.equal('asdf inp1-string-value --rec --s string_input-string-value --bool 447');
+            }).then(done, done);
+        });
+    });
+
     describe("getCommandLine", () => {
 
-        it("Should evaluate baseCommand with expression", () => {
+        it("Should evaluate baseCommand with expression", (done) => {
             let tool = new CommandLineToolModel("", {
                 "class": "CommandLineTool",
                 inputs: [],
@@ -53,10 +140,12 @@ describe("CommandLineToolModel d2sb", () => {
                 }]
             });
 
-            expect(tool.getCommandLine()).to.equal('aba');
+            tool.getCommandLine().then(cmd => {
+                expect(cmd).to.equal('aba');
+            }).then(done, done);
         });
 
-        it("Should evaluate baseCommand with expression that returns a number", () => {
+        it("Should evaluate baseCommand with expression that returns a number", (done) => {
             let tool = new CommandLineToolModel("", {
                 "class": "CommandLineTool",
                 inputs: [],
@@ -68,39 +157,60 @@ describe("CommandLineToolModel d2sb", () => {
                 }]
             });
 
-            expect(tool.getCommandLine()).to.equal('6');
+            tool.getCommandLine().then(cmd => {
+                expect(cmd).to.equal('6');
+            }).then(done, done);
         });
 
-        it("Should evaluate BWA mem tool: General test of command line generation", () => {
+        it("Should evaluate BWA mem tool: General test of command line generation", (done) => {
             //noinspection TypeScriptUnresolvedVariable
             let tool = new CommandLineToolModel("", BWAMemTool.default);
             //noinspection TypeScriptUnresolvedVariable
             tool.setJob(BWAMemJob.default);
 
-            expect(tool.getCommandLine()).to.equal(`python bwa mem -t 4 -I 1,2,3,4 -m 3 chr20.fa example_human_Illumina.pe_1.fastq example_human_Illumina.pe_2.fastq`);
+            tool.getCommandLine().then(cmd => {
+                expect(cmd).to.equal(`python bwa mem -t 4 -I 1,2,3,4 -m 3 chr20.fa example_human_Illumina.pe_1.fastq example_human_Illumina.pe_2.fastq > output.sam`);
+            }).then(done, done);
         });
 
-        it("Should evaluate BWM mem tool: Test nested prefixes with arrays", () => {
+
+        // it("Should evaluate Bfctools Annotate from sbg", () => {
+        //noinspection TypeScriptUnresolvedVariable
+        // let tool = new CommandLineToolModel("", BfctoolsAnnotate.default);
+        //noinspection TypeScriptUnresolvedVariable
+
+        // tool.getCommandLine().then(cmd => {
+        //     expect(cmd).to.equal(`bcftools annotate -o annotated_input_file.ext.vcf.gz -a /path/to/annotations.ext -i 'REF=C' -Ob /path/to/input_file.ext.vcf.gz`);
+        // }).then(done, done);
+        // });
+
+        it("Should evaluate BWM mem tool: Test nested prefixes with arrays", (done) => {
             //noinspection TypeScriptUnresolvedVariable
             let tool = new CommandLineToolModel("", BindingTestTool.default);
             //noinspection TypeScriptUnresolvedVariable
             tool.setJob(BWAMemJob.default);
 
-            expect(tool.getCommandLine()).to.equal(`python bwa mem chr20.fa -XXX -YYY example_human_Illumina.pe_1.fastq -YYY example_human_Illumina.pe_2.fastq`);
+            tool.getCommandLine().then(cmd => {
+                expect(cmd).to.equal(`python bwa mem chr20.fa -XXX -YYY example_human_Illumina.pe_1.fastq -YYY example_human_Illumina.pe_2.fastq`);
+            }).then(done, done);
         });
 
-        it("Should evaluate BamTools Index from sbg", () => {
+        it("Should evaluate BamTools Index from sbg", (done) => {
             //noinspection TypeScriptUnresolvedVariable
             let tool = new CommandLineToolModel("", <CommandLineTool> BamtoolsIndex.default);
 
-            expect(tool.getCommandLine()).to.equal('/opt/bamtools/bin/bamtools index -in input_bam.bam');
+            tool.getCommandLine().then(cmd => {
+                expect(cmd).to.equal('/opt/bamtools/bin/bamtools index -in input_bam.bam');
+            }).then(done, done);
         });
 
-        it("Should evaluate BamTools Split from sbg", () => {
+        it("Should evaluate BamTools Split from sbg", (done) => {
             //noinspection TypeScriptUnresolvedVariable
             let tool = new CommandLineToolModel("", BamtoolsSplit.default);
 
-            expect(tool.getCommandLine()).to.equal('/opt/bamtools/bin/bamtools split -in input/input_bam.ext -refPrefix refp -tagPrefix tagp -stub input_bam.splitted -mapped -paired -reference -tag tag');
+            tool.getCommandLine().then(cmd => {
+                expect(cmd).to.equal('/opt/bamtools/bin/bamtools split -in input/input_bam.ext -refPrefix refp -tagPrefix tagp -stub input_bam.splitted -mapped -paired -reference -tag tag');
+            }).then(done, done);
         });
     });
 
@@ -406,31 +516,31 @@ describe("CommandLineToolModel d2sb", () => {
         });
 
         it("should serialize hints", () => {
-           const tool = {
-               "baseCommand": [],
-               "inputs": [],
-               "outputs": [],
-               "class": <CommandLineToolClass> "CommandLineTool",
-               "hints": [
-                   "value",
-                   {
-                       arbitrary: "object"
-                   },
-                   {
-                       "value": 1,
-                       "class": "sbg:CPURequirement"
-                   },
-                   {
-                       "value": 1000,
-                       "class": "sbg:MemRequirement"
-                   },
-                   {
-                       "dockerPull": "images",
-                       "dockerImageId": "asdf",
-                       "class": "DockerRequirement"
-                   }
-               ]
-           };
+            const tool = {
+                "baseCommand": [],
+                "inputs": [],
+                "outputs": [],
+                "class": <CommandLineToolClass> "CommandLineTool",
+                "hints": [
+                    "value",
+                    {
+                        arbitrary: "object"
+                    },
+                    {
+                        "value": 1,
+                        "class": "sbg:CPURequirement"
+                    },
+                    {
+                        "value": 1000,
+                        "class": "sbg:MemRequirement"
+                    },
+                    {
+                        "dockerPull": "images",
+                        "dockerImageId": "asdf",
+                        "class": "DockerRequirement"
+                    }
+                ]
+            };
 
             const model = new CommandLineToolModel("document", <CommandLineTool>tool);
 
@@ -439,7 +549,7 @@ describe("CommandLineToolModel d2sb", () => {
     });
 
     describe("updateValidity", () => {
-        it("should be triggered when baseCommand is invalid", () => {
+        it("should be triggered when baseCommand is invalid", (done) => {
             const tool = new CommandLineToolModel("", {
                 "class": "CommandLineTool",
                 inputs: [],
@@ -452,16 +562,9 @@ describe("CommandLineToolModel d2sb", () => {
                 engine: "#cwl-js-engine"
             });
 
-
             expect(tool.validation.errors).to.be.empty;
             tool.addBaseCommand(expr);
             expect(tool.validation.errors).to.be.empty;
-
-            expr.evaluate();
-
-            expect(tool.validation.errors).to.not.be.empty;
-            expect(tool.validation.errors[0].loc).to.equal("document.baseCommand[0]");
-            expect(tool.validation.errors[0].message).to.contain("SyntaxError");
 
             const expr2 = new ExpressionModel("", {
                 "class": "Expression",
@@ -471,14 +574,11 @@ describe("CommandLineToolModel d2sb", () => {
 
             expect(tool.validation.warnings).to.be.empty;
             tool.addBaseCommand(expr2);
-            expr2.evaluate();
-
-            expect(tool.validation.warnings).to.not.be.empty;
-            expect(tool.validation.warnings[0].loc).to.equal("document.baseCommand[1]", "location of warning");
-            expect(tool.validation.warnings[0].message).to.contain("ReferenceError", "value of warning");
-
-            expect(tool.validation.errors[0].loc).to.equal("document.baseCommand[0]", "location of error after setting warning");
-            expect(tool.validation.errors[0].message).to.contain("SyntaxError", "value of error after setting warning");
+            expr2.evaluate().then(done, () => {
+                expect(tool.validation.warnings).to.not.be.empty;
+                expect(tool.validation.warnings[0].loc).to.equal("document.baseCommand[1]", "location of warning");
+                expect(tool.validation.warnings[0].message).to.contain("ReferenceError", "value of warning");
+            }).then(done, done);
         });
 
     });
