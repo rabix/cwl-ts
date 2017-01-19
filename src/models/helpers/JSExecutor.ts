@@ -1,17 +1,27 @@
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
-declare function require(name:string);
+declare function require(name: string);
 const vm = require('vm');
 
 export class JSExecutor {
-    static evaluate(version: CWLVersion, expr: string, job?: any, self?: any): any {
+    static evaluate(version: CWLVersion, expr: string, job?: any, self?: any): Promise<any> {
         const options = {
             displayErrors: true
         };
 
-        const script = new vm.Script(expr, options);
+        let script = new vm.Script("", options);
+
+        try {
+            script = new vm.Script(expr, options);
+        } catch (ex) {
+            //@todo figure out why this exception is even thrown..
+            return new Promise((res, rej) => {
+                rej(ex);
+            })
+        }
+
         let context = {};
 
-        switch(version) {
+        switch (version) {
             case "draft-2":
                 context = {
                     $job: job,
@@ -26,9 +36,13 @@ export class JSExecutor {
                 break;
         }
 
-        //@todo(maya): add runtime variable
-        const result = script.runInContext(vm.createContext(context));
-
-        return result;
+        return new Promise((res, rej) => {
+            try {
+                const result = script.runInContext(vm.createContext(context));
+                res(result);
+            } catch (err) {
+                rej(err);
+            }
+        });
     }
 }

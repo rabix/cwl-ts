@@ -164,6 +164,7 @@ export class TypeResolver {
                         items: type.items
                     };
                     if (type.typeBinding) t.inputBinding = t;
+                    //@todo fix for array of enum and record
                 }
 
                 break;
