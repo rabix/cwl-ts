@@ -1,5 +1,3 @@
-import { ValidationError } from './validation';
-import { NodeStringDecoder } from 'string_decoder';
 export enum VertexMissing {CreateVertex, IgnoreEdge, AddEdge, Error};
 
 export class Graph {
