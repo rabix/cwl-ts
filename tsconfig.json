@@ -10,8 +10,8 @@
         "experimentalDecorators": true,
         "declaration": true,
         "outDir": "./lib",
-        "target": "es5",
-        "lib": ["dom", "es6"],
+        "target": "es2015",
+        "lib": ["dom", "es2015"],
         "types": ["node", "mocha", "chai"]
     },
     "exclude": [
