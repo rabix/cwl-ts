@@ -9,7 +9,7 @@ export class Graph {
         this.vertices = new Map(vertices);
         this.edges = new Set();
         if (edges) {
-            for (let item of edges) {
+            for (let item of Array.from(edges)) {
                this.addEdge(item[0], item[1], missing);
             }
         }
@@ -84,7 +84,7 @@ export class Graph {
         let unusedEdges = new Set(this.edges.values());
         let sorted = [];
 
-        for (let e of unusedEdges) {
+        for (let e of Array.from(unusedEdges)) {
             topNodesInit.delete(e[1]);
         }
 
@@ -93,7 +93,7 @@ export class Graph {
         while (topNodes.length > 0) {
             let n = topNodes.shift();
             sorted.push(n);
-            for (let e of unusedEdges) {
+            for (let e of Array.from(unusedEdges)) {
                 if (e[0] == n) {
                     unusedEdges.delete(e);
                     if (!this.hasIncoming(e[1], unusedEdges)) {
@@ -111,7 +111,7 @@ export class Graph {
     }
 
     private hasIncoming(vertex: string, edges: Set<[string, string]>): boolean {
-        for (let e of edges) {
+        for (let e of Array.from(edges)) {
             if (e[1] == vertex) {
                 return true;
             }
@@ -133,11 +133,11 @@ export class Graph {
         unvisited.delete(starter);
         
         let unusedEdges = new Set(this.edges);
-        return this.connectedIter(unvisited, unusedEdges, new Set([starter]));
+        return this.connectedIter(unvisited, unusedEdges, [starter]);
 
     }
 
-    private connectedIter(unvisited: Set<string>, unusedEdges: Set<[string, string]>, toExpand: Set<string>): boolean {
+    private connectedIter(unvisited: Set<string>, unusedEdges: Set<[string, string]>, toExpand: Array<string>): boolean {
         let reached = new Set();
         
         for (let node of toExpand) {
@@ -146,7 +146,7 @@ export class Graph {
             }
         }
         
-        for (let item of reached) {
+        for (let item of Array.from(reached)) {
             let existing = unvisited.delete(item);
             if(!existing) {
                 reached.delete(item);
@@ -161,22 +161,22 @@ export class Graph {
             return false;
         }
 
-        return this.connectedIter(unvisited, unusedEdges, reached);
+        return this.connectedIter(unvisited, unusedEdges, Array.from(reached));
     }
 
-    private reached(unusedEdges: Set<[string, string]>, from: string): Set<string> {
+    private reached(unusedEdges: Set<[string, string]>, from: string): Array<string> {
         let reached = new Set();
-        for (let item of unusedEdges) {
+        for (let item of Array.from(unusedEdges)) {
             if (item[0] == from) {
                 reached.add(item[1]);
-                unusedEdges.delete(item)
+                unusedEdges.delete(item);
             } else if (item[1] == from) {
                 reached.add(item[0]);
-                unusedEdges.delete(item)
+                unusedEdges.delete(item);
             }
         }
 
-        return reached;
+        return Array.from(reached);
     }
 
     hasCycles(): boolean {

@@ -10,21 +10,24 @@ describe("Graph", () => {
         });
 
         it("should return true for graphs with one vertex", () => {
-            let g = new Graph([['a', null]]);
+            let vertex: [string, any] = ['a', null];
+            let g = new Graph([vertex]);
             expect(g.isConnected()).to.be.true;
         });
 
         it("should return false for graphs with many vertices and no edges", () => {
-            let g = new Graph([['a', null], ['b', null]]);
+            let vertices: Array<[string, any]> = [['a', null], ['b', null]];
+            let g = new Graph(vertices);
             expect(g.isConnected()).to.be.false;
         });
 
         it("should return false for unconnected graphs", () => {
-            
-            let g = new Graph([['a', null]], [['b', 'c']], VertexMissing.CreateVertex);
+            let vertices: Array<[string, any]> = [['a', null]];
+            let edges: [[string, string]] = [['b', 'c']]
+            let g = new Graph(vertices, edges, VertexMissing.CreateVertex);
             expect(g.isConnected()).to.be.false;
 
-            let edges: [[string, string]] = [
+            edges = [
                 ['a', 'b'],
                 ['b', 'c'],
                 ['b', 'd'],
@@ -58,7 +61,8 @@ describe("Graph", () => {
         });
 
         it("should return the one element for graphs with one vertex", () => {
-            let g = new Graph([['a', null]]);
+            let vertices: Array<[string, any]> = [['a', null]];
+            let g = new Graph(vertices);
             expect(g.topSort()).to.deep.equal(['a']);
         });
 
