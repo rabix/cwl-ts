@@ -63,6 +63,10 @@
         "description": {
             "type": "string"
         },
+        "cwlVersion": {
+            "$ref": "#/definitions/CWLVersions",
+            "description": "CWL document version"
+        },
         "sbg:modifiedBy": {
             "type": "string"
         },
@@ -1368,6 +1372,12 @@
             "required": [
                 "label",
                 "id"
+            ]
+        },
+        "CWLVersions": {
+            "type": "string",
+            "enum": [
+                "sbg:draft-2"
             ]
         }
     },

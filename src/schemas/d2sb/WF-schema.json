@@ -25,6 +25,10 @@
                 "$ref": "#/definitions/WorkflowStep"
             }
         },
+        "cwlVersion": {
+            "$ref": "#/definitions/CWLVersions",
+            "description": "CWL document version"
+        },
         "sbg:image_url": {
             "type": ["string", "null"]
         },
@@ -4086,6 +4090,12 @@
                 "dotproduct",
                 "nested_crossproduct",
                 "flat_crossproduct"
+            ]
+        },
+        "CWLVersions": {
+            "type": "string",
+            "enum": [
+                "sbg:draft-2"
             ]
         }
     },

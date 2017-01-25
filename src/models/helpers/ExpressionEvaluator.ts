@@ -1,6 +1,6 @@
 import {JSExecutor} from "./JSExecutor";
 import {Expression as ExpressionD2} from "../../mappings/d2sb/Expression";
-import {Expression as ExpressionV1} from "../../mappings/draft-4/Expression";
+import {Expression as ExpressionV1} from "../../mappings/v1.0/Expression";
 
 export class ExpressionEvaluator {
     public static evaluate(expr: string | ExpressionV1, job?: any, self?: any): Promise<any> {

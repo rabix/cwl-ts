@@ -3,7 +3,8 @@
     "type": "object",
     "properties": {
         "class": {
-            "type": "string"
+            "type": "string",
+            "enum": ["CommandLineTool"]
         },
         "baseCommand": {
             "description": "Specifies the program to execute.  If an array, the first element of\n\nthe array is the command to execute, and subsequent elements are\n\nmandatory command line arguments.  The elements in `baseCommand` must\n\nappear before any command line bindings from `inputBinding` or\n\n`arguments`.\n\n\n\nIf `baseCommand` is not provided or is an empty array, the first\n\nelement of the command line produced after processing `inputBinding` or\n\n`arguments` must be used as the program to execute.\n\n\n\nIf the program includes a path separator character it must\n\nbe an absolute path, otherwise it is an error.  If the program does not\n\ninclude a path separator, search the `$PATH` variable in the runtime\n\nenvironment of the workflow runner find the absolute path of the\n\nexecutable.",
@@ -1505,17 +1506,6 @@
         "CWLVersion": {
             "type": "string",
             "enum": [
-                "draft-2",
-                "draft-3.dev1",
-                "draft-3.dev2",
-                "draft-3.dev3",
-                "draft-3.dev4",
-                "draft-3.dev5",
-                "draft-3",
-                "draft-4.dev1",
-                "draft-4.dev2",
-                "draft-4.dev3",
-                "v1.0.dev4",
                 "v1.0"
             ]
         }
