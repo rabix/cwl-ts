@@ -1,5 +1,11 @@
 export const ensureArray = (map: {[key: string]: any} | any[], key: string, valueKey?: string): any[] => {
-    if (Array.isArray(map)) return map;
+    if (Array.isArray(map)) {
+      if (typeof map[0] === "object") {
+          return map;
+      } else {
+          return map.map(item => ({[key]: item}));
+      }
+    }
 
     if (!map) return [];
 

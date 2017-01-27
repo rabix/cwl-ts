@@ -245,6 +245,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             base.id = this.id;
         }
 
+        base.cwlVersion = "sbg:draft-2";
         base.class = "CommandLineTool";
 
         // BASECOMMAND
@@ -320,7 +321,8 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             "arguments",
             "outputs",
             "stdin",
-            "stdout"
+            "stdout",
+            "cwlVersion"
         ];
 
         this.id = tool.id;

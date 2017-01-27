@@ -16,6 +16,7 @@ export interface SBGLink {
 
 export interface Process {
     id?: string;
+    cwlVersion?: string;
     inputs: InputParameter[];
     outputs: OutputParameter[];
     requirements?: Array<DockerRequirement |

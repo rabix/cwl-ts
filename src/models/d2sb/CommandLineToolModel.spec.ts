@@ -218,6 +218,7 @@ describe("CommandLineToolModel d2sb", () => {
         it("should return same object for template", () => {
             const tool: CommandLineTool = {
                 'class': "CommandLineTool",
+                cwlVersion: "sbg:draft-2",
                 inputs: [],
                 outputs: [],
                 baseCommand: []
@@ -231,6 +232,7 @@ describe("CommandLineToolModel d2sb", () => {
         it("should return same object for tool with baseCommand", () => {
             const tool: CommandLineTool = {
                 "class": "CommandLineTool",
+                cwlVersion: "sbg:draft-2",
                 inputs: [],
                 outputs: [],
                 baseCommand: [
@@ -312,6 +314,7 @@ describe("CommandLineToolModel d2sb", () => {
             const tool: CommandLineTool = {
                 inputs: [],
                 outputs: [],
+                cwlVersion: "sbg:draft-2",
                 baseCommand: ["cmd"],
                 "class": "CommandLineTool",
                 "arguments": [
@@ -340,6 +343,7 @@ describe("CommandLineToolModel d2sb", () => {
             const tool: CommandLineTool = {
                 outputs: [],
                 baseCommand: 'cmd',
+                cwlVersion: "sbg:draft-2",
                 "class": "CommandLineTool",
                 inputs: [
                     {
@@ -429,6 +433,7 @@ describe("CommandLineToolModel d2sb", () => {
         it("should serialize outputs", () => {
             const tool: CommandLineTool = {
                 inputs: [],
+                cwlVersion: "sbg:draft-2",
                 baseCommand: 'cmd',
                 "class": "CommandLineTool",
                 outputs: [
@@ -486,6 +491,7 @@ describe("CommandLineToolModel d2sb", () => {
         it("should serialize createFileRequirement", () => {
             const tool = {
                 "baseCommand": [],
+                cwlVersion: "sbg:draft-2",
                 "inputs": [],
                 "outputs": [],
                 "class": <CommandLineToolClass> "CommandLineTool",
@@ -518,6 +524,7 @@ describe("CommandLineToolModel d2sb", () => {
         it("should serialize hints", () => {
             const tool = {
                 "baseCommand": [],
+                cwlVersion: "sbg:draft-2",
                 "inputs": [],
                 "outputs": [],
                 "class": <CommandLineToolClass> "CommandLineTool",

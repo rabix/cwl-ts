@@ -12,3 +12,4 @@ export * from "./RequirementBaseModel";
 export * from "./ResourceRequirementModel";
 export * from "./InputParameterTypeModel";
 export * from "./ParameterTypeModel";
+export * from "./SBDraft2WorkflowModel";

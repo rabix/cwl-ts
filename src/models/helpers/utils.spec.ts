@@ -7,7 +7,7 @@ describe("ensureArray", () => {
             foo: {d: "a"},
             bar: {a: "q"}
         };
-        const arr = ensureArray(test, "class");
+        const arr  = ensureArray(test, "class");
 
         expect(arr).to.not.be.empty;
         expect(arr).to.have.length(2);
@@ -17,11 +17,20 @@ describe("ensureArray", () => {
         });
     });
 
-    it("should return original array", () => {
-        const test = [1, 2, 4];
-        const arr = ensureArray(test, "foo");
+    it("should return original array of objects", () => {
+        const test = [{foo: 1}, {foo: 2}, {foo: 3}];
+        const arr  = ensureArray(test, "foo");
 
         expect(arr).to.deep.equal(test);
+    });
+
+    it("should return object array from primitive", () => {
+        const test = [1, 2, 4];
+        const arr  = ensureArray(test, "foo");
+
+        expect(arr).to.deep.equal([
+            {foo: 1}, {foo: 2}, {foo: 4}
+        ]);
     });
 
     it("should set inner property if objects are primitives", () => {
@@ -29,7 +38,7 @@ describe("ensureArray", () => {
             foo: "hello",
             bar: "world"
         };
-        const arr = ensureArray(test, "class", "type");
+        const arr  = ensureArray(test, "class", "type");
 
         expect(arr).to.not.be.empty;
         expect(arr).to.have.length(2);
