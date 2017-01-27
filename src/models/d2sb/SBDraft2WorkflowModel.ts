@@ -2,7 +2,7 @@ import {WorkflowModel} from "../generic/WorkflowModel";
 import {Workflow} from "../../mappings/d2sb/Workflow";
 import {StepModel} from "../generic/StepModel";
 import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
-import {WorkflowOutputParameterModel} from "../v1.0/WorkflowOutputParameterModel";
+import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
 
 export class SBDraft2WorkflowModel extends WorkflowModel {
     public steps: StepModel[];

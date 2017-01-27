@@ -38,6 +38,18 @@ describe("Graph", () => {
             expect(g.isConnected()).to.be.false;
         });
 
+        it("should return false for two unconnected graphs", () => {
+           let vertices: Array<[string, any]> = [['a', null], ['b', null], ['c', null], ['d', null], ['e', null]];
+           let edges: [[string, string]] = [
+               ['a', 'b'],
+               ['c', 'b'],
+               ['d', 'e']
+           ];
+
+           let g = new Graph(vertices, edges);
+           expect(g.isConnected()).to.be.false;
+        });
+
         it("should return true for connected graphs", () => {
             
             let edges: [[string, string]] = [

@@ -1,10 +1,12 @@
 import {WorkflowStepOutputModel as BaseWorkflowStepOutputModel} from "../generic/WorkflowStepOutputModel";
 import {WorkflowStepOutput} from "../../mappings/v1.0/WorkflowStepOutput";
 import {Serializable} from "../interfaces/Serializable";
+import {V1StepModel} from "./V1StepModel";
 
-export class WorkflowStepOutputModel extends BaseWorkflowStepOutputModel implements Serializable<WorkflowStepOutput>{
-    constructor(output?, loc?: string) {
+export class V1WorkflowStepOutputModel extends BaseWorkflowStepOutputModel implements Serializable<WorkflowStepOutput>{
+    constructor(output?, step?: V1StepModel, loc?: string) {
         super(loc);
+        this.parentStep = step;
         if (output) this.deserialize(output);
     }
 

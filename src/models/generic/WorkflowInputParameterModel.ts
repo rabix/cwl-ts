@@ -6,6 +6,10 @@ export class WorkflowInputParameterModel extends ValidationBase implements Seria
     id: string;
     type: ParameterTypeModel;
 
+    get connectionId(): string {
+        return this.id;
+    }
+
     customProps: any = {};
 
     serialize(): any {

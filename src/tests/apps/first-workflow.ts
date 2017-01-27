@@ -34,38 +34,3 @@ export default JSON.parse(`{
     }
   }
 }`);
-
-const inputs = [
-    {id: "inp", type: "File"},
-    {id: "ex", type: "string"}
-];
-
-const outputs = [
-    {
-        id: "classout",
-        type: "File",
-        outputSource: "compile/classfile"
-    }
-];
-
-const steps = [
-    {
-        id: "untar",
-        in: [
-            {id: "tarfile", source: "inp"},
-            {id: "extractfile", source: "ex"}
-        ],
-        out: [
-            {id: "example_out"}
-        ]
-    },
-    {
-        id: "compile",
-        in: [
-            {id: "src", source: "untar/example_out"}
-        ],
-        out: [
-            {id: "classfile"}
-        ]
-    }
-];

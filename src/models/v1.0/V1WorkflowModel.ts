@@ -1,24 +1,21 @@
 import {WorkflowModel} from "../generic/WorkflowModel";
-import {StepModel} from "./StepModel";
-import {WorkflowInputParameterModel} from "./WorkflowInputParameterModel";
-import {WorkflowOutputParameterModel} from "./WorkflowOutputParameterModel";
+import {V1StepModel} from "./V1StepModel";
+import {V1WorkflowInputParameterModel} from "./V1WorkflowInputParameterModel";
+import {V1WorkflowOutputParameterModel} from "./V1WorkflowOutputParameterModel";
 import {Workflow} from "../../mappings/v1.0/Workflow";
 import {Serializable} from "../interfaces/Serializable";
 import {RequirementBaseModel} from "../d2sb/RequirementBaseModel";
 import {Validation} from "../helpers/validation/Validation";
-import {checkMapValueType, ensureArray, convertToObject} from "../helpers/utils";
-import {InputParameter} from "../../mappings/v1.0/InputParameter";
-import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
-import {WorkflowStep} from "../../mappings/v1.0/WorkflowStep";
+import {ensureArray} from "../helpers/utils";
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
 
-    public steps: StepModel[] = [];
+    public steps: V1StepModel[] = [];
 
-    public inputs: WorkflowInputParameterModel[] = [];
+    public inputs: V1WorkflowInputParameterModel[] = [];
 
-    public outputs: WorkflowOutputParameterModel[] = [];
+    public outputs: V1WorkflowOutputParameterModel[] = [];
 
     public hints: RequirementBaseModel[] = [];
 
@@ -33,7 +30,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     public loc: string;
     public customProps: any = {};
 
-    public addEntry(entry: StepModel | WorkflowInputParameterModel | WorkflowOutputParameterModel, type: "inputs" | "outputs" | "steps") {
+    public addEntry(entry: V1StepModel | V1WorkflowInputParameterModel | V1WorkflowOutputParameterModel, type: "inputs" | "outputs" | "steps") {
         entry.loc = `${this.loc}.${type}[${this[type].length}]`;
 
         (this[type] as Array<any>).push(entry);
@@ -72,15 +69,15 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         this.id = workflow.id;
 
         ensureArray(workflow.inputs, "id", "type").forEach((input, i) => {
-            this.addEntry(new WorkflowInputParameterModel(input, `${this.loc}.inputs[${i}]`), "inputs");
+            this.addEntry(new V1WorkflowInputParameterModel(input, `${this.loc}.inputs[${i}]`), "inputs");
         });
 
         ensureArray(workflow.outputs, "id", "type").forEach((output, i) => {
-            this.addEntry(new WorkflowOutputParameterModel(output, `${this.loc}.outputs[${i}]`), "outputs");
+            this.addEntry(new V1WorkflowOutputParameterModel(output, `${this.loc}.outputs[${i}]`), "outputs");
         });
 
         ensureArray(workflow.steps, "id").forEach((step, i) => {
-            this.addEntry(new StepModel(step, `${this.loc}.steps[${i}]`), "steps");
+            this.addEntry(new V1StepModel(step, `${this.loc}.steps[${i}]`), "steps");
         });
 
         // populates object with all custom attributes not covered in model

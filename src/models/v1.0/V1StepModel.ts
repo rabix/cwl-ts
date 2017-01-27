@@ -1,11 +1,11 @@
-import {StepModel as BaseStepModel} from "../generic/StepModel";
+import {StepModel} from "../generic/StepModel";
 import {WorkflowStep} from "../../mappings/v1.0/WorkflowStep";
 import {Serializable} from "../interfaces/Serializable";
-import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
-import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
+import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
+import {V1WorkflowStepOutputModel} from "./V1WorkflowStepOutputModel";
 import {ensureArray} from "../helpers/utils";
 
-export class StepModel extends BaseStepModel implements Serializable<WorkflowStep> {
+export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
 
 
     constructor(step?, loc?: string) {
@@ -36,9 +36,9 @@ export class StepModel extends BaseStepModel implements Serializable<WorkflowSte
 
 
         this.in  = ensureArray(step.in, "id", "source")
-            .map((i, index) => new WorkflowStepInputModel(i, `${this.loc}.in[${index}]`));
+            .map((i, index) => new V1WorkflowStepInputModel(i, this, `${this.loc}.in[${index}]`));
         this.out = ensureArray(step.out, "id")
-            .map((o, index) => new WorkflowStepOutputModel(o, `${this.loc}.out[${index}]`));
+            .map((o, index) => new V1WorkflowStepOutputModel(o, this, `${this.loc}.out[${index}]`));
 
         //@todo: generalize and parse requirements and hints
         this.requirements = ensureArray(step.requirements, "class");

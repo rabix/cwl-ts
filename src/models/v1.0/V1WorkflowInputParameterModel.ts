@@ -1,8 +1,8 @@
-import {WorkflowInputParameterModel as BaseWorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
+import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
 import {InputParameterTypeModel} from "../d2sb/InputParameterTypeModel";
 
-export class WorkflowInputParameterModel extends BaseWorkflowInputParameterModel {
+export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
     constructor(input?, loc?: string) {
         super(loc);
