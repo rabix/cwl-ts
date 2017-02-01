@@ -11,7 +11,7 @@ export class DockerRequirementModel extends ProcessRequirementModel implements D
     public dockerImageId: string;
     public dockerOutputDirectory: string;
 
-    public customProps: any;
+    public customProps: any = {};
 
     private serializedKeys = [
         "class",
@@ -24,7 +24,7 @@ export class DockerRequirementModel extends ProcessRequirementModel implements D
 
     constructor(req?: DockerRequirement, loc?: string) {
         super(req, loc);
-        this.deserialize(req);
+        if (req) this.deserialize(req);
     }
 
     serialize(): DockerRequirement {

@@ -5,7 +5,7 @@ import * as DisconnectedFirstWF from "../../tests/apps/disconnected-first-workfl
 
 
 describe("WorkflowModel", () => {
-   describe("gatherIncoming", () => {
+   describe("gatherSources", () => {
       it("should return a list of all possible incoming connection points", () => {
           const wf = WorkflowFactory.from(FirstWF.default);
           const sources = wf.gatherSources();
@@ -15,7 +15,7 @@ describe("WorkflowModel", () => {
       });
    });
 
-   describe("gatherOutgoing", () => {
+   describe("gatherDestinations", () => {
       it("should return a list of all possible outgoing connection points", () => {
          const wf = WorkflowFactory.from(FirstWF.default);
          const destinations = wf.gatherDestinations();
