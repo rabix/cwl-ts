@@ -1,5 +1,6 @@
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
 import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
+import {V1OutputParameterTypeModel} from "./V1OutputParameterTypeModel";
 
 export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel {
 
@@ -11,6 +12,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
     deserialize(output: WorkflowOutputParameter) {
         this.id = output.id;
         this.source = output.outputSource;
+        this.type = new V1OutputParameterTypeModel(output.type, `${this.loc}.type`);
     }
 
     serialize(): WorkflowOutputParameter {

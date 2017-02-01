@@ -3,7 +3,7 @@ import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordFie
 import {Serializable} from "../interfaces/Serializable";
 import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {ValidationBase, Validation} from "../helpers/validation";
-import {InputParameterTypeModel} from "./InputParameterTypeModel";
+import {SBDraft2InputParameterTypeModel as InputParameterTypeModel} from "./SBDraft2InputParameterTypeModel";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 
 export class CommandInputParameterModel extends ValidationBase implements Serializable<CommandInputParameter | CommandInputRecordField> {

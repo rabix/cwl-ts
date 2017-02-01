@@ -7,6 +7,7 @@ import {CommandOutputEnumSchema} from "./CommandOutputEnumSchema";
 import {CommandOutputArraySchema} from "./CommandOutputArraySchema";
 import {CommandOutputBinding} from "./CommandOutputBinding";
 
+export type CommandOutputParameterType = CWLType | stdout | stderr | CommandOutputRecordSchema | CommandOutputEnumSchema | CommandOutputArraySchema | string | Array<CWLType | CommandOutputRecordSchema | CommandOutputEnumSchema | CommandOutputArraySchema | string>;
 
 /**
  * An output parameter for a CommandLineTool.
@@ -19,7 +20,7 @@ export interface CommandOutputParameter extends OutputParameter {
      * Specify valid types of data that may be assigned to this parameter.
      *
      */
-        type?: CWLType | stdout | stderr | CommandOutputRecordSchema | CommandOutputEnumSchema | CommandOutputArraySchema | string | Array<CWLType | CommandOutputRecordSchema | CommandOutputEnumSchema | CommandOutputArraySchema | string>;
+     type?: CommandOutputParameterType
 
 
     /**

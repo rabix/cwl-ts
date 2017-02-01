@@ -1,6 +1,6 @@
 import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
-import {InputParameterTypeModel} from "../d2sb/InputParameterTypeModel";
+import {V1InputParameterTypeModel} from "./V1InputParameterTypeModel";
 
 export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
@@ -11,7 +11,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
     deserialize(attr: InputParameter) {
         this.id = attr.id;
-        this.type = new InputParameterTypeModel(attr.type, `${this.loc}.type`);
+        this.type = new V1InputParameterTypeModel(attr.type, `${this.loc}.type`);
     }
 
     serialize(): InputParameter{

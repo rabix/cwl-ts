@@ -1,11 +1,11 @@
-import {ParameterTypeModel} from "./ParameterTypeModel";
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {Validation} from "../helpers/validation/Validation";
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
+import {InputParameterTypeModel} from "../generic/InputParameterTypeModel";
 
-export class InputParameterTypeModel extends ParameterTypeModel {
-    public fields: Array<any>; //@fixme: should be type CommandInputParameterModel
+export class SBDraft2InputParameterTypeModel extends InputParameterTypeModel {
+    public fields: Array<any>;
 
     constructor(attr: any, loc: string) {
         super(attr, loc);
@@ -17,14 +17,6 @@ export class InputParameterTypeModel extends ParameterTypeModel {
                 return f;
             });
         }
-    }
-
-    /**
-     * Serializes information about type and creates an identical InputParameterTypeModel.
-     * Does deep copy, references to original fields, and complex objects are lost.
-     */
-    public clone(): InputParameterTypeModel {
-        return new InputParameterTypeModel(this.serialize(), this.loc);
     }
 
     public addField(field: CommandInputParameterModel | CommandInputParameter | CommandInputRecordField): void {

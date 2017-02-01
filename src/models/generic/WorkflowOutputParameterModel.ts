@@ -1,6 +1,6 @@
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
-import {OutputParameterTypeModel} from "../d2sb/OutputParameterTypeModel";
+import {OutputParameterTypeModel} from "./OutputParameterTypeModel";
 
 export class WorkflowOutputParameterModel extends ValidationBase implements Serializable<any> {
     id: string;
@@ -11,8 +11,6 @@ export class WorkflowOutputParameterModel extends ValidationBase implements Seri
         return this.id;
     }
 
-
-
     customProps: any = {};
 
     serialize(): any {
@@ -21,6 +19,4 @@ export class WorkflowOutputParameterModel extends ValidationBase implements Seri
 
     deserialize(attr: any): void {
     }
-
-
 }

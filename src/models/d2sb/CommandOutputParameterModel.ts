@@ -1,7 +1,7 @@
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 import {Serializable} from "../interfaces/Serializable";
 import {ValidationBase} from "../helpers/validation";
-import {OutputParameterTypeModel} from "./OutputParameterTypeModel";
+import {SBDraft2OutputParameterTypeModel} from "./SBDraft2OutputParameterTypeModel";
 import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
 import {Validation} from "../helpers/validation/Validation";
 
@@ -18,7 +18,7 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
     public isField: boolean;
 
     /** Complex object that holds logic and information about output's type property */
-    public type: OutputParameterTypeModel;
+    public type: SBDraft2OutputParameterTypeModel;
 
     /** Binding for connecting output files and CWL output description */
     public outputBinding: CommandOutputBindingModel;
@@ -88,7 +88,7 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
         this.outputBinding = new CommandOutputBindingModel(attr.outputBinding);
         this.outputBinding.setValidationCallback(err => this.updateValidity(err));
 
-        this.type = new OutputParameterTypeModel(attr.type, `${this.loc}.type`);
+        this.type = new SBDraft2OutputParameterTypeModel(attr.type, `${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));
 
         Object.keys(attr).forEach(key => {

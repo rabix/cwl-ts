@@ -10,6 +10,7 @@ export * from "./ExpressionEngineRequirementModel";
 export * from "./ProcessRequirementModel";
 export * from "./RequirementBaseModel";
 export * from "./ResourceRequirementModel";
-export * from "./InputParameterTypeModel";
+export * from "./SBDraft2InputParameterTypeModel";
+export * from "./SBDraft2OutputParameterTypeModel";
 export * from "./ParameterTypeModel";
 export * from "./SBDraft2WorkflowModel";
