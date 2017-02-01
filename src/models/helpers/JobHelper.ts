@@ -3,7 +3,7 @@ import {CommandLineRunnable} from "../interfaces";
 
 export class JobHelper {
 
-    public static getJobPart(input: CommandInputParameterModel) {
+    public static generateMockJobData(input: CommandInputParameterModel) {
         const type = <any> input.type.type;
         const items = <any> input.type.items;
         const name: string = input.id;
@@ -66,7 +66,7 @@ export class JobHelper {
         }
         if (type === "record") {
             input.type.fields.forEach(field => {
-                val[field.id] = JobHelper.getJobPart(field);
+                val[field.id] = JobHelper.generateMockJobData(field);
             });
         }
 
@@ -77,7 +77,7 @@ export class JobHelper {
         let job = {};
 
         tool.inputs.forEach(input => {
-            job[input.id] = JobHelper.getJobPart(input);
+            job[input.id] = JobHelper.generateMockJobData(input);
         });
 
         return job;

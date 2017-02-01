@@ -107,7 +107,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         input      = input || new CommandInputParameterModel('');
         input.loc  = `${this.loc}.inputs[${this.inputs.length}]`;
         input.job  = this.job;
-        input.self = JobHelper.getJobPart(input);
+        input.self = JobHelper.generateMockJobData(input);
 
         this.inputs.push(input);
 
