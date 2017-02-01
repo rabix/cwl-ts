@@ -156,7 +156,23 @@ export class TypeResolver {
 
         switch (type.type) {
             case "array":
-                if (version === "v1.0" && !type.typeBinding) {
+                if (type.items === "enum") {
+                    t = {
+                        type: "array",
+                        items: {
+                            type: "enum",
+                            symbols: type.symbols
+                        }
+                    }
+                } else if (type.items === "record") {
+                    t = {
+                        type: "array",
+                        items: {
+                            type: "record",
+                            fields: type.fields
+                        }
+                    }
+                } else if (version === "v1.0" && !type.typeBinding) {
                     t = `${type.items}[]`;
                 } else {
                     t = {
