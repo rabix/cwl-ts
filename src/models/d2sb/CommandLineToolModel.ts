@@ -24,6 +24,7 @@ import {SBGMemRequirement} from "../../mappings/d2sb/SBGMemRequirement";
 import {ResourceRequirementModel} from "./ResourceRequirementModel";
 import {Observable, ReplaySubject} from "rxjs";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
+import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 
 export class CommandLineToolModel extends ValidationBase implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
     public job: any;
@@ -266,7 +267,8 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             .map(input => input.serialize());
 
         // OUTPUTS
-        base.outputs = this.outputs.map(output => output.serialize());
+        base.outputs = <Array<CommandOutputParameter>> this.outputs
+            .map(output => output.serialize());
 
         // REQUIREMENTS
         base.requirements = [];

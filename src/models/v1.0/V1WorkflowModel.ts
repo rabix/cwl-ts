@@ -7,6 +7,8 @@ import {Serializable} from "../interfaces/Serializable";
 import {RequirementBaseModel} from "../d2sb/RequirementBaseModel";
 import {Validation} from "../helpers/validation/Validation";
 import {ensureArray} from "../helpers/utils";
+import {InputParameter} from "../../mappings/v1.0/InputParameter";
+import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -47,8 +49,8 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         base.class      = "Workflow";
         base.cwlVersion = "v1.0";
 
-        base.inputs  = this.inputs.map(input => input.serialize());
-        base.outputs = this.outputs.map(output => output.serialize());
+        base.inputs  = <Array<InputParameter>> this.inputs.map(input => input.serialize());
+        base.outputs = <Array<WorkflowOutputParameter>> this.outputs.map(output => output.serialize());
         base.steps   = this.steps.map(step => step.serialize());
 
         return Object.assign({}, this.customProps, base);

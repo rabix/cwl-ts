@@ -25,6 +25,14 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
         if (t && this._type !== "array") {
             throw("ParameterTypeModel: Items can only be set to inputs type Array");
         } else {
+            switch(t) {
+                case "enum":
+                    this.symbols = [];
+                    break;
+                case "record":
+                    this.fields = [];
+                    break;
+            }
             this._items = t;
         }
     }

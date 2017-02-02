@@ -4,8 +4,9 @@ import {ValidationBase} from "../helpers/validation";
 import {SBDraft2OutputParameterTypeModel} from "./SBDraft2OutputParameterTypeModel";
 import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
 import {Validation} from "../helpers/validation/Validation";
+import {CommandOutputRecordField} from "../../mappings/d2sb/CommandOutputRecordField";
 
-export class CommandOutputParameterModel extends ValidationBase implements Serializable<CommandOutputParameter> {
+export class CommandOutputParameterModel extends ValidationBase implements Serializable<CommandOutputParameter | CommandOutputRecordField> {
 
     /** Unique identifier of output */
     public id: string;
@@ -28,7 +29,7 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
 
     customProps: any = {};
 
-    constructor(output?: CommandOutputParameter, loc?: string) {
+    constructor(output?: CommandOutputParameter | CommandOutputRecordField, loc?: string) {
         super(loc);
         this.deserialize(output || <CommandOutputParameter>{});
     }
@@ -39,7 +40,7 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
         this.outputBinding.setValidationCallback((err) => this.updateValidity(err));
     }
 
-    serialize(): CommandOutputParameter {
+    serialize(): CommandOutputParameter | CommandOutputRecordField {
         let base: any = {};
         base          = Object.assign({}, base, this.customProps);
 
@@ -64,13 +65,14 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
             }
         }
 
-
-        base.id = this.id;
+        if (this.isField) {
+            base.name = this.id;
+        } else { base.id = this.id; }
 
         return base;
     }
 
-    deserialize(attr: CommandOutputParameter): void {
+    deserialize(attr: CommandOutputParameter | CommandOutputRecordField): void {
         const serializedAttr = [
             "id",
             "label",
@@ -80,7 +82,7 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
             "sbg:fileTypes"
         ];
 
-        this.id          = attr.id;
+        this.id          = (<CommandOutputParameter> attr).id || (<CommandOutputRecordField> attr).name;
         this.label       = attr.label;
         this.description = attr.description;
         this.fileTypes   = attr["sbg:fileTypes"];

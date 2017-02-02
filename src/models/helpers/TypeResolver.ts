@@ -1,14 +1,13 @@
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
-import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
-import {CommandOutputSchema} from "../../mappings/d2sb/CommandOutputSchema";
+import {Serializable} from "../interfaces/Serializable";
 
 export type PrimitiveType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes" | "map";
 
 export interface TypeResolution {
     type: PrimitiveType;
     items: PrimitiveType;
-    fields: Array<CommandInputRecordField>|Array<CommandOutputSchema>;
+    fields: Array<Serializable<any>>;
     symbols: string[]
     isNullable: boolean;
     typeBinding: CommandLineBinding;
@@ -169,7 +168,7 @@ export class TypeResolver {
                         type: "array",
                         items: {
                             type: "record",
-                            fields: type.fields
+                            fields: type.fields.map(field => field.serialize())
                         }
                     }
                 } else if (version === "v1.0" && !type.typeBinding) {

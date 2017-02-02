@@ -28,7 +28,10 @@ export class SBDraft2InputParameterTypeModel extends InputParameterTypeModel {
                     || val.id === (<CommandInputParameter> field).id;
             });
             if (duplicate.length > 0) {
-                throw(`Field with name "${duplicate[0].id}" already exists`);
+                this.validation.errors.push({
+                    loc: this.loc,
+                    message: `Field with name "${duplicate[0].id}" already exists`
+                });
             }
 
             if (field instanceof CommandInputParameterModel) {
