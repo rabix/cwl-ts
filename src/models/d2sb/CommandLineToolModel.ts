@@ -307,6 +307,11 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             base.stdout = <string | Expression> this.stdout.serialize();
         }
 
+        // JOB
+        if (this.job) {
+            base["sbg:job"] = this.job;
+        }
+
         base = Object.assign({}, base, this.customProps);
 
         return base;
