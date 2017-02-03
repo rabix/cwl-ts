@@ -4,9 +4,10 @@ import {V1WorkflowModel} from "../v1.0/V1WorkflowModel";
 import {Workflow as V1Workflow} from "../../mappings/v1.0/Workflow";
 import {Workflow as SBDraft2Workflow} from "../../mappings/d2sb/Workflow";
 import {SBDraft2WorkflowModel} from "../d2sb/SBDraft2WorkflowModel";
+import {Process} from "../../mappings/v1.0/Process";
 
 export class WorkflowFactory {
-    public static from(workflow?: V1Workflow | SBDraft2Workflow, loc?: string): WorkflowModel {
+    public static from(workflow?: V1Workflow | SBDraft2Workflow | Process, loc?: string): WorkflowModel {
         if (workflow) {
             switch (workflow.cwlVersion) {
                 case "v1.0":

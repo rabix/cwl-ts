@@ -4,7 +4,7 @@ import {CommandLinePrepare} from "./CommandLinePrepare";
 import {ExpressionModel} from "../d2sb/ExpressionModel";
 export class CommandLineParsers {
 
-    static primitive(input, job, value, context, cmdType): Promise<CommandLinePart> {
+    static primitive(input, job, value, context, cmdType, loc): Promise<CommandLinePart> {
         CommandLineParsers.checkMismatch(input, job, value);
         const prefix    = input.inputBinding.prefix || "";
         const separator = input.inputBinding.separate !== false ? " " : "";
@@ -17,11 +17,11 @@ export class CommandLineParsers {
         //     });
         // }
         return new Promise(res => {
-            res(new CommandLinePart(prefix + separator + value, [], cmdType));
+            res(new CommandLinePart(prefix + separator + value, cmdType, loc));
         });
     }
 
-    static boolean(input, job, value, context, type): Promise<CommandLinePart> {
+    static boolean(input, job, value, context, type, loc): Promise<CommandLinePart> {
         CommandLineParsers.checkMismatch(input, job, value);
 
         let result        = "";
@@ -37,9 +37,9 @@ export class CommandLineParsers {
             if (input.inputBinding.valueFrom) {
                 return input.inputBinding.valueFrom.evaluate({$job: job, $self: job[input.id]})
                     .then(res => {
-                        return new CommandLinePart(prefix + separator + res, [], type);
+                        return new CommandLinePart(prefix + separator + res, type, loc);
                     }, err => {
-                        return new CommandLinePart(`<${err.type} at ${err.loc}>`, [], err.type);
+                        return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, loc);
                     });
             }
 
@@ -47,22 +47,22 @@ export class CommandLineParsers {
         }
 
         return new Promise(res => {
-            res(new CommandLinePart(result, [], type));
+            res(new CommandLinePart(result, type, loc));
         });
     }
 
-    static record(input, job, value, context, cmdType): Promise<CommandLinePart> {
+    static record(input, job, value, context, cmdType, loc): Promise<CommandLinePart> {
         CommandLineParsers.checkMismatch(input, job, value);
 
         const prefix    = input.inputBinding.prefix || "";
         const separator = input.inputBinding.separate !== false ? " " : "";
 
         return new Promise(res => {
-            res(new CommandLinePart(prefix + separator, [], cmdType));
+            res(new CommandLinePart(prefix + separator, cmdType, loc));
         });
     }
 
-    static array(input, job, value, context, cmdType): Promise<CommandLinePart> {
+    static array(input, job, value, context, cmdType, loc): Promise<CommandLinePart> {
         CommandLineParsers.checkMismatch(input, job, value);
         value = value || job[input.id];
 
@@ -72,7 +72,7 @@ export class CommandLineParsers {
 
         if (itemSeparator) {
             return new Promise(res => {
-                res(new CommandLinePart(prefix + separator + value.join(itemSeparator), [], cmdType))
+                res(new CommandLinePart(prefix + separator + value.join(itemSeparator), cmdType, loc))
             });
         } else {
             return Promise.all(value.map((val, index) => {
@@ -84,23 +84,23 @@ export class CommandLineParsers {
             }).map((item) => {
                 return CommandLinePrepare.prepare(item, value, value[item.id]);
             })).then((res: CommandLinePart[]) => {
-                return new CommandLinePart(prefix + separator + res.map(part => part.value).join(" "), [], cmdType);
+                return new CommandLinePart(prefix + separator + res.map(part => part.value).join(" "), cmdType, loc);
             });
         }
     }
 
-    static expression(expr: ExpressionModel, job, value, context, cmdType): Promise<any> {
+    static expression(expr: ExpressionModel, job, value, context, cmdType, loc): Promise<any> {
         return expr.evaluate(context).then(res => {
             return res;
         }, err => {
-            return new CommandLinePart(`<${err.type} at ${err.loc}>`, [], err.type);
+            return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, loc);
         });
     }
 
-    static argument(arg, job, value, context, cmdType): Promise<CommandLinePart> {
+    static argument(arg, job, value, context, cmdType, loc): Promise<CommandLinePart> {
         if (arg.stringVal) {
             return new Promise(res => {
-                res(new CommandLinePart(arg.stringVal, [], "argument"));
+                res(new CommandLinePart(arg.stringVal, "argument", loc));
             });
         }
 
@@ -109,20 +109,20 @@ export class CommandLineParsers {
 
         if (arg.valueFrom) {
             return CommandLinePrepare.prepare(arg.valueFrom, job, context.$job).then(res => {
-                return new CommandLinePart(prefix + separator + res, [], cmdType);
+                return new CommandLinePart(prefix + separator + res, cmdType, loc);
             });
         }
 
         return new Promise(res => {
-            res(new CommandLinePart(prefix, [], "input"));
+            res(new CommandLinePart(prefix, "input", loc));
         });
     }
 
-    static stream(stream, job, value, context, cmdType): Promise<CommandLinePart>{
+    static stream(stream, job, value, context, cmdType, loc): Promise<CommandLinePart>{
         if (stream instanceof ExpressionModel) {
-            return CommandLineParsers.expression(stream, job, value, context, cmdType).then(res => {
+            return CommandLineParsers.expression(stream, job, value, context, cmdType, loc).then(res => {
                 const prefix = res ? (cmdType === "stdin" ? "< " : "> ") : "";
-                return new CommandLinePart(prefix + res, [], cmdType);
+                return new CommandLinePart(prefix + res, cmdType, loc);
             });
         }
     }

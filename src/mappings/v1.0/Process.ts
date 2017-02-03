@@ -14,6 +14,8 @@ import {CWLVersion} from "./CWLVersion";
 
 export interface Process {
 
+    "class"?: string;
+
 
     /**
      * The unique identifier for this process object.

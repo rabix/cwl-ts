@@ -1,23 +1,49 @@
-export const ensureArray = (map: {[key: string]: any} | any[], key: string, valueKey?: string): any[] => {
+export const ensureArray = (map: { [key: string]: any } | any[], key?: string, valueKey?: string): any[] => {
+    // object is not defined or is null, return an empty array
+    if (map === undefined || map === null) return [];
+
     if (Array.isArray(map)) {
-      if (typeof map[0] === "object") {
-          return map;
-      } else {
-          return map.map(item => ({[key]: item}));
-      }
+        // if the object is already an array of objects, we don't want to transform it
+        if (typeof map[0] === "object") {
+            return map;
+        } else {
+            // if it's an array of something else, transform each element into {key: <any>item}
+            return map.map(item => ({[key]: item}));
+        }
     }
 
-    if (!map) return [];
+    // if the object is a primitive, wrap it in an array
+    if (typeof map === "string" || typeof map === "number" || typeof map === "boolean") {
+        return [map];
+    }
 
+    // if the object is a hashmap, transform it accordingly
     return Object.keys(map).map(prop => {
+        /*
+            if a valueKey is provided and the property isn't already an object, create an object from the valueKey
+            e.g.: map = {foo: "bar"}, key = "id", valueKey = "type"
+
+            return value is [ {id: "foo", type: "bar"} ];
+         */
         if (valueKey && checkMapValueType(map) !== "object") {
-            return {... {[valueKey]: map[prop]},...{[key]: prop}};
+            return {... {[valueKey]: map[prop]}, ...{[key]: prop}};
         }
+
+        /*
+            if they property is already an object, add its hashmap key under the property key provided as a param
+            e.g.: map = {foo: {bar: "baz"}}, key = "id", valueKey = "type"
+
+            return value is [ {id: "foo", bar: "baz"} ];
+        */
         return {... map[prop], ...{[key]: prop}};
     });
 };
 
-export const checkMapValueType = (map: {[key: string]: any}): "string" | "number" | "undefined" | "object" | "array" | "null" | "mismatch" => {
+/**
+ * Checks the type of each property in a hashMap. Returns "mismatch" if property types are mixed,
+ * otherwise returns type that corresponds to all properties.
+ */
+export const checkMapValueType = (map: { [key: string]: any }): "string" | "number" | "undefined" | "object" | "array" | "null" | "mismatch" => {
     let type = null;
 
     Object.keys(map).forEach((key) => {
@@ -45,6 +71,6 @@ export const checkMapValueType = (map: {[key: string]: any}): "string" | "number
     return type;
 };
 
-export const convertToObject = (item: any, key: string): {[key: string]: any} => {
+export const convertToObject = (item: any, key: string): { [key: string]: any } => {
     return {[key]: item};
 };

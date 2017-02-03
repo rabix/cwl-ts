@@ -1,5 +1,5 @@
 export * from "./CommandArgumentModel";
-export * from "./CommandLineToolModel";
+export * from "./V1CommandLineToolModel";
 export * from "./CommandInputParameterModel";
 export * from "./V1WorkflowModel";
 export * from "./V1StepModel";

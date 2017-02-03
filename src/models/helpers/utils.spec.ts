@@ -54,6 +54,15 @@ describe("ensureArray", () => {
         expect(arr[0]["type"]).to.equal("hello");
         expect(arr[1]["type"]).to.equal("world");
     });
+
+    it("should wrap a primitive value in an array", () => {
+        const test = "simple string";
+        const arr = ensureArray(<any> test);
+
+        expect(arr).to.have.length(1);
+        expect(arr).to.deep.equal(["simple string"]);
+
+    })
 });
 
 describe("checkMapValueType", () => {

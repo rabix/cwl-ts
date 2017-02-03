@@ -226,7 +226,9 @@ describe("CommandLineToolModel d2sb", () => {
 
             const model = new CommandLineToolModel("", tool);
 
-            expect(model.serialize()).to.deep.equal(tool);
+            const target = model.serialize();
+            delete target["sbg:job"];
+            expect(target).to.deep.equal(tool);
         });
 
         it("should return same object for tool with baseCommand", () => {
@@ -247,8 +249,9 @@ describe("CommandLineToolModel d2sb", () => {
             };
 
             const model = new CommandLineToolModel("", tool);
-
-            expect(model.serialize()).to.deep.equal(tool);
+            const serialized = model.serialize();
+            delete serialized["sbg:job"];
+            expect(serialized).to.deep.equal(tool);
         });
 
         it("should split string with whitespace in baseCommand", () => {
@@ -336,7 +339,9 @@ describe("CommandLineToolModel d2sb", () => {
 
             const model = new CommandLineToolModel("document", tool);
 
-            expect(model.serialize()).to.deep.equal(tool);
+            const target = model.serialize();
+            delete target["sbg:job"];
+            expect(target).to.deep.equal(tool);
         });
 
         it("should serialize inputs", () => {
@@ -422,7 +427,27 @@ describe("CommandLineToolModel d2sb", () => {
                             "int"
                         ]
                     }
-                ]
+                ],
+                "sbg:job": {
+                    "allocatedResources": {
+                        "cpu": 1,
+                        "mem": 1000
+                    },
+                    "inputs": {
+                        "add_64_to_fasta_name": true,
+                        "block_size": 5,
+                        "bwt_construction": "bwtsw",
+                        "prefix_of_the_index_to_be_output": "prefix_of_the_index_to_be_output-string-value",
+                        "reference": {
+                            "class": "File",
+                            "path": "/path/to/reference.ext",
+                            "secondaryFiles": [],
+                            "size": 0,
+                        },
+                        "total_memory": 8,
+                    }
+                }
+
             };
 
             const model = new CommandLineToolModel("document", tool);
@@ -485,7 +510,9 @@ describe("CommandLineToolModel d2sb", () => {
 
             const model = new CommandLineToolModel("document", tool);
 
-            expect(model.serialize()).to.deep.equal(tool);
+            const serialize = model.serialize();
+            delete serialize["sbg:job"];
+            expect(serialize).to.deep.equal(tool);
         });
 
         it("should serialize createFileRequirement", () => {
@@ -518,7 +545,9 @@ describe("CommandLineToolModel d2sb", () => {
 
             const model = new CommandLineToolModel("document", <CommandLineTool>tool);
 
-            expect(model.serialize()).to.deep.equal(tool);
+            const target = model.serialize();
+            delete target["sbg:job"];
+            expect(target).to.deep.equal(tool);
         });
 
         it("should serialize hints", () => {
@@ -551,7 +580,9 @@ describe("CommandLineToolModel d2sb", () => {
 
             const model = new CommandLineToolModel("document", <CommandLineTool>tool);
 
-            expect(model.serialize()).to.deep.equal(tool);
+            const target = model.serialize();
+            delete target["sbg:job"];
+            expect(target).to.deep.equal(tool);
         });
     });
 

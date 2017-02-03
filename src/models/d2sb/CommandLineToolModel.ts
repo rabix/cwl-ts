@@ -180,7 +180,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         return this.commandLine as Observable<CommandLinePart[]>;
     }
 
-    private generateCommandLineParts(): Promise<CommandLinePart[]> {
+    public generateCommandLineParts(): Promise<CommandLinePart[]> {
         const flatInputs = CommandLinePrepare.flattenInputsAndArgs([].concat(this.arguments).concat(this.inputs));
 
         const job = this.job.inputs ?
@@ -189,23 +189,23 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         const flatJobInputs = CommandLinePrepare.flattenJob(job.inputs || job, {});
 
         const baseCmdPromise = this.baseCommand.map(cmd => {
-            return CommandLinePrepare.prepare(cmd, flatJobInputs, job, "baseCommand").then(suc => {
-                return new CommandLinePart(<string>suc, [], "baseCommand");
+            return CommandLinePrepare.prepare(cmd, flatJobInputs, job, cmd.loc, "baseCommand").then(suc => {
+                return new CommandLinePart(<string>suc, "baseCommand", cmd.loc);
             }, err => {
-                return new CommandLinePart(`<${err.type} at ${err.loc}>`, [], err.type);
+                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, cmd.loc);
             });
         });
 
         const inputPromise = flatInputs.map(input => {
-            return CommandLinePrepare.prepare(input, flatJobInputs, job)
+            return CommandLinePrepare.prepare(input, flatJobInputs, job, input.loc)
         }).filter(i => i instanceof Promise).map(promise => {
             return promise.then(succ => succ, err => {
-                return new CommandLinePart(`<${err.type} at ${err.loc}>`, [], err.type);
+                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type);
             });
         });
 
-        const stdOutPromise = CommandLinePrepare.prepare(this.stdout, flatJobInputs, job, "stdout");
-        const stdInPromise = CommandLinePrepare.prepare(this.stdin, flatJobInputs, job, "stdin");
+        const stdOutPromise = CommandLinePrepare.prepare(this.stdout, flatJobInputs, job, this.stdout.loc, "stdout");
+        const stdInPromise = CommandLinePrepare.prepare(this.stdin, flatJobInputs, job, this.stdin.loc, "stdin");
 
         return Promise.all([].concat(baseCmdPromise, inputPromise, stdOutPromise, stdInPromise)).then(parts => {
             return parts.filter(part => part !== null);

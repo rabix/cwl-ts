@@ -168,7 +168,13 @@ export class TypeResolver {
                         type: "array",
                         items: {
                             type: "record",
-                            fields: type.fields.map(field => field.serialize())
+                            fields: type.fields.map(field => {
+                                if (typeof field.serialize === "function") {
+                                    return field.serialize();
+                                } else {
+                                    return field;
+                                }
+                            })
                         }
                     }
                 } else if (version === "v1.0" && !type.typeBinding) {
@@ -179,7 +185,6 @@ export class TypeResolver {
                         items: type.items
                     };
                     if (type.typeBinding) t.inputBinding = t;
-                    //@todo fix for array of enum and record
                 }
 
                 break;

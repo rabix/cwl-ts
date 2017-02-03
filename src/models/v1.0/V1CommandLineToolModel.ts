@@ -5,20 +5,16 @@ import {CommandLinePart} from "../helpers";
 import {JobHelper} from "../helpers/JobHelper";
 import {CommandArgumentModel} from "./CommandArgumentModel";
 import {CommandLineRunnable} from "../interfaces";
+import {CommandLineToolModel} from "../generic/CommandLineToolModel";
+import {ensureArray} from "../helpers/utils";
 
-export class CommandLineToolModel implements CommandLineTool, CommandLineRunnable {
-    constructor(json: any) {
-        if (!Array.isArray(json.inputs)) {
-            json.inputs = Object.keys(json.inputs).map(id =>(<any> Object).assign(json.inputs[id], {id}));
-        }
+export class V1CommandLineToolModel extends CommandLineToolModel implements CommandLineRunnable {
+    constructor(json: any, loc?: string) {
+        super(loc);
 
-        if (!Array.isArray(json.outputs)) {
-            json.inputs = Object.keys(json.outputs).map(id =>(<any> Object).assign(json.outputs[id], {id}));
-        }
-
-        this.inputs      = json.inputs.map(input => new CommandInputParameterModel(input));
-        this.outputs     = json.outputs.map(output => new CommandOutputParameterModel(output));
-        this.baseCommand = Array.isArray(json.baseCommand) ? json.baseCommand : [json.baseCommand];
+        this.inputs      = ensureArray(json.inputs, "id", "type").map(input => new CommandInputParameterModel(input));
+        this.outputs     = ensureArray(json.outputs, "id", "type").map(output => new CommandOutputParameterModel(output));
+        this.baseCommand = ensureArray(json.baseCommand);
 
         this.id          = json.id;
         this.description = json.description;
@@ -79,35 +75,8 @@ export class CommandLineToolModel implements CommandLineTool, CommandLineRunnabl
         allParts.concat(this.inputs.map(input => input.getCommandPart(job, job[input.id])));
         allParts.concat(this.arguments.map(arg => arg.getCommandPart(job)));
 
-        allParts.sort(this.sortingKeySort);
-
         //@todo(maya) add stdin and stdout
         return allParts;
-    }
-
-    //@todo(maya): implement MSD radix sort for sorting key
-    private sortingKeySort(a: CommandLinePart, b: CommandLinePart) {
-        let posA = a.sortingKey[0];
-        let posB = b.sortingKey[0];
-        if (posA > posB) {
-            return 1;
-        }
-        if (posA < posB) {
-            return -1;
-        }
-
-        let indA = a.sortingKey[1];
-        let indB = b.sortingKey[1];
-
-        if (indA > indB) {
-            return 1;
-        }
-        if (indA < indB) {
-            return -1;
-        }
-
-        // defaults to returning 1 in case both position and index match (should never happen)
-        return 0;
     }
 
     public toString(): string {
