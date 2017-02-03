@@ -88,8 +88,6 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
             let parts                   = value.map(val => this.getCommandPart(job, val));
             let calculatedValue: string = '';
 
-            parts.sort(this.sortingKeySort);
-
             parts.forEach(part => {
                 calculatedValue += " " + part.value;
             });
@@ -108,7 +106,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
                 }).join(" ");
             }
 
-            return new CommandLinePart(calculatedValue, position, "input");
+            return new CommandLinePart(calculatedValue, "input");
         }
 
         // record
@@ -117,7 +115,6 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
             if (!value.path) {
                 // evaluate record by calling generate part for each field
                 let parts = this.fields.map((field) => field.getCommandPart(job, value[field.id]));
-                parts.sort(this.sortingKeySort);
 
                 let calculatedValue: string = '';
 
@@ -125,7 +122,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
                     calculatedValue += " " + part.value;
                 });
 
-                return new CommandLinePart(calculatedValue, position, "input");
+                return new CommandLinePart(calculatedValue, "input");
             }
         }
 
@@ -133,7 +130,7 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
         // if the input has items, this is a recursive call and prefix should not be added again
         prefix              = this.items ? '' : prefix;
         let calculatedValue = prefix + separator + this.resolveValue(job, value, this.inputBinding);
-        return new CommandLinePart(calculatedValue, position, "input");
+        return new CommandLinePart(calculatedValue, "input");
     }
 
     private resolveValue(jobInputs: any, value: any, inputBinding: CommandLineBinding) {
@@ -150,16 +147,5 @@ export class CommandInputParameterModel implements CommandInputParameter, Comman
 
     toString(): string {
         return JSON.stringify(this, null, 4);
-    }
-
-    //@todo(maya): implement MSD radix sort for sorting key
-    private sortingKeySort(a: CommandLinePart, b: CommandLinePart) {
-        if (a.sortingKey[0] < b.sortingKey[0]) {
-            return -1;
-        }
-        if (a.sortingKey[0] > b.sortingKey[0]) {
-            return 1;
-        }
-        return 0;
     }
 }
