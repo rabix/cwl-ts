@@ -5,6 +5,34 @@
         "class": {
             "type": "string"
         },
+        "id": {
+            "description": "The unique identifier for this process object.",
+            "type": "string"
+        },
+        "requirements": {
+            "description": "Declares requirements that apply to either the runtime environment or the\n\nworkflow engine that must be met in order to execute this process.  If\n\nan implementation cannot satisfy all requirements, or a requirement is\n\nlisted which is not recognized by the implementation, it is a fatal\n\nerror and the implementation must not attempt to run the process,\n\nunless overridden at user option.",
+            "$ref": "#/definitions/Requirements"
+        },
+        "hints": {
+            "description": "Declares hints applying to either the runtime environment or the\n\nworkflow engine that may be helpful in executing this process.  It is\n\nnot an error if an implementation cannot satisfy all hints, however\n\nthe implementation may report a warning.",
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {}
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        },
+        "label": {
+            "description": "A short, human-readable label of this process object.",
+            "type": "string"
+        },
+        "doc": {
+            "description": "A long, human-readable description of this process object.",
+            "type": "string"
+        },
         "cwlVersion": {
             "description": "CWL document version. Always required at the document root. Not\n\nrequired for a Process embedded inside another Process.",
             "$ref": "#/definitions/CWLVersion"
@@ -99,34 +127,15 @@
                 "class"
             ]
         },
-        "Inputs": {
-            "oneOf": [
-                {
-                    "type": "array",
-                    "items": {
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/InputParameter"
-                            },
-                            {
-                                "$ref": "#/definitions/ObjectWithId"
-                            }
-                        ]
-                    }
-                },
-                {
-                    "type": "object",
-                    "additionalProperties": {
-                        "oneOf": [
-                            {
-                                "$ref": "#/definitions/InputParameter"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
-                    }
-                }
+        "ProcessRequirement": {
+            "description": "A process requirement declares a prerequisite that may or must be fulfilled\n\nbefore executing a process.  See [`Process.hints`](#process) and\n\n[`Process.requirements`](#process).\n\n\n\nProcess requirements are the primary mechanism for specifying extensions to\n\nthe CWL core specification.",
+            "type": "object",
+            "properties": {}
+        },
+        "CWLVersion": {
+            "type": "string",
+            "enum": [
+                "v1.0"
             ]
         },
         "Requirements": {
@@ -152,17 +161,9 @@
                 }
             ]
         },
-        "ExpressionToolOutputParameter": {
+        "Parameter": {
             "type": "object",
             "properties": {
-                "type": {
-                    "description": "Specify valid types of data that may be assigned to this parameter.",
-                    "$ref": "#/definitions/CwlType"
-                },
-                "outputBinding": {
-                    "$ref": "#/definitions/OutputBinding",
-                    "description": "Describes how to handle the outputs of a process."
-                },
                 "secondaryFiles": {
                     "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
                     "$ref": "#/definitions/StringOrArrayOfStrings"
@@ -297,40 +298,27 @@
             ]
         },
         "InputParameter": {
-            "type": "object",
-            "properties": {
-                "inputBinding": {
-                    "$ref": "#/definitions/InputBinding",
-                    "description": "Describes how to handle the inputs of a process and convert them\n\ninto a concrete form for execution, such as command line parameters."
+            "allOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "inputBinding": {
+                            "$ref": "#/definitions/InputBinding",
+                            "description": "Describes how to handle the inputs of a process and convert them\n\ninto a concrete form for execution, such as command line parameters."
+                        },
+                        "default": {
+                            "description": "The default value for this parameter if not provided in the input\n\nobject."
+                        },
+                        "type": {
+                            "description": "Specify valid types of data that may be assigned to this parameter.",
+                            "$ref": "#/definitions/CwlType"
+                        }
+                    }
                 },
-                "default": {
-                    "description": "The default value for this parameter if not provided in the input\n\nobject."
-                },
-                "type": {
-                    "description": "Specify valid types of data that may be assigned to this parameter.",
-                    "$ref": "#/definitions/CwlType"
-                },
-                "secondaryFiles": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "$ref": "#/definitions/StringOrArrayOfStrings"
-                },
-                "format": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nFor input parameters, this must be one or more IRIs of concept nodes\n\nthat represents file formats which are allowed as input to this\n\nparameter, preferrably defined within an ontology.  If no ontology is\n\navailable, file formats may be tested by exact match.\n\n\n\nFor output parameters, this is the file format that will be assigned to\n\nthe output parameter.",
-                    "$ref": "#/definitions/StringOrArrayOfStrings"
-                },
-                "streamable": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nA value of `true` indicates that the file is read or written\n\nsequentially without seeking.  An implementation may use this flag to\n\nindicate whether it is valid to stream file contents using a named\n\npipe.  Default: `false`.",
-                    "type": "boolean"
-                },
-                "doc": {
-                    "description": "A documentation string for this type, or an array of strings which should be concatenated.",
-                    "$ref": "#/definitions/StringOrArrayOfStrings"
-                },
-                "label": {
-                    "description": "A short, human-readable label of this object.",
-                    "type": "string"
+                {
+                    "$ref": "#/definitions/Parameter"
                 }
-            }
+            ]
         },
         "InputBinding": {
             "type": "object",
@@ -452,14 +440,91 @@
                 "type"
             ]
         },
+        "Inputs": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/InputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/definitions/InputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/CwlType"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "ExpressionToolOutputParameter": {
+            "allOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "description": "Specify valid types of data that may be assigned to this parameter.",
+                            "$ref": "#/definitions/CwlType"
+                        },
+                        "outputBinding": {
+                            "$ref": "#/definitions/OutputBinding",
+                            "description": "Describes how to handle the outputs of a process."
+                        }
+                    }
+                },
+                {
+                    "$ref": "#/definitions/Parameter"
+                }
+            ]
+        },
+        "ExpressionToolOutputParameters": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/ExpressionToolOutputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/ExpressionToolOutputParameter"
+                    }
+                }
+            ]
+        },
+        "ScatterMethod": {
+            "type": "string",
+            "enum": [
+                "dotproduct",
+                "nested_crossproduct",
+                "flat_crossproduct"
+            ]
+        },
         "WorkflowStep": {
             "description": "A workflow step is an executable element of a workflow.  It specifies the\n\nunderlying process implementation (such as `CommandLineTool` or another\n\n`Workflow`) in the `run` field and connects the input and output parameters\n\nof the underlying process to workflow parameters.\n\n\n\n# Scatter/gather\n\n\n\nTo use scatter/gather,\n\n[ScatterFeatureRequirement](#ScatterFeatureRequirement) must be specified\n\nin the workflow or workflow step requirements.\n\n\n\nA \"scatter\" operation specifies that the associated workflow step or\n\nsubworkflow should execute separately over a list of input elements.  Each\n\njob making up a scatter operation is independent and may be executed\n\nconcurrently.\n\n\n\nThe `scatter` field specifies one or more input parameters which will be\n\nscattered.  An input parameter may be listed more than once.  The declared\n\ntype of each input parameter is implicitly wrapped in an array for each\n\ntime it appears in the `scatter` field.  As a result, upstream parameters\n\nwhich are connected to scattered parameters may be arrays.\n\n\n\nAll output parameter types are also implicitly wrapped in arrays.  Each job\n\nin the scatter results in an entry in the output array.\n\n\n\nIf `scatter` declares more than one input parameter, `scatterMethod`\n\ndescribes how to decompose the input into a discrete set of jobs.\n\n\n\n* **dotproduct** specifies that each of the input arrays are aligned and one\n\nelement taken from each array to construct each job.  It is an error\n\nif all input arrays are not the same length.\n\n\n\n* **nested_crossproduct** specifies the Cartesian product of the inputs,\n\nproducing a job for every combination of the scattered inputs.  The\n\noutput must be nested arrays for each level of scattering, in the\n\norder that the input arrays are listed in the `scatter` field.\n\n\n\n* **flat_crossproduct** specifies the Cartesian product of the inputs,\n\nproducing a job for every combination of the scattered inputs.  The\n\noutput arrays must be flattened to a single level, but otherwise listed in the\n\norder that the input arrays are listed in the `scatter` field.\n\n\n\n# Subworkflows\n\n\n\nTo specify a nested workflow as part of a workflow step,\n\n[SubworkflowFeatureRequirement](#SubworkflowFeatureRequirement) must be\n\nspecified in the workflow or workflow step requirements.",
             "type": "object",
             "properties": {
-                "id": {
-                    "description": "The unique identifier for this workflow step.",
-                    "type": "string"
-                },
                 "in": {
                     "description": "Defines the input parameters of the workflow step.  The process is ready to\n\nrun when all required input parameters are associated with concrete\n\nvalues.  Input parameters include a schema for each parameter which is\n\nused to validate the input object.  It may also be used build a user\n\ninterface for constructing the input object.",
                     "type": "array",
@@ -482,16 +547,20 @@
                     }
                 },
                 "requirements": {
-                    "description": "Declares requirements that apply to either the runtime environment or the\n\nworkflow engine that must be met in order to execute this workflow step.  If\n\nan implementation cannot satisfy all requirements, or a requirement is\n\nlisted which is not recognized by the implementation, it is a fatal\n\nerror and the implementation must not attempt to run the process,\n\nunless overridden at user option.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ProcessRequirement"
-                    }
+                    "description": "Declares requirements that apply to either the runtime environment or the\n\nworkflow engine that must be met in order to execute this process.  If\n\nan implementation cannot satisfy all requirements, or a requirement is\n\nlisted which is not recognized by the implementation, it is a fatal\n\nerror and the implementation must not attempt to run the process,\n\nunless overridden at user option.",
+                    "$ref": "#/definitions/Requirements"
                 },
                 "hints": {
-                    "description": "Declares hints applying to either the runtime environment or the\n\nworkflow engine that may be helpful in executing this workflow step.  It is\n\nnot an error if an implementation cannot satisfy all hints, however\n\nthe implementation may report a warning.",
-                    "type": "array",
-                    "items": {}
+                    "description": "Declares hints applying to either the runtime environment or the\n\nworkflow engine that may be helpful in executing this process.  It is\n\nnot an error if an implementation cannot satisfy all hints, however\n\nthe implementation may report a warning.",
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {}
+                        },
+                        {
+                            "type": "object"
+                        }
+                    ]
                 },
                 "label": {
                     "description": "A short, human-readable label of this process object.",
@@ -508,22 +577,12 @@
                             "type": "string"
                         },
                         {
-                            "$ref": "#/definitions/Process"
+                            "$ref": "#"
                         }
                     ]
                 },
                 "scatter": {
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    ]
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
                 },
                 "scatterMethod": {
                     "$ref": "#/definitions/ScatterMethod",
@@ -531,7 +590,6 @@
                 }
             },
             "required": [
-                "id",
                 "in",
                 "out",
                 "run"
@@ -541,49 +599,22 @@
             "description": "The input of a workflow step connects an upstream parameter (from the\n\nworkflow inputs, or the outputs of other workflows steps) with the input\n\nparameters of the underlying step.\n\n\n\n## Input object\n\n\n\nA WorkflowStepInput object must contain an `id` field in the form\n\n`#fieldname` or `#stepname.fieldname`.  When the `id` field contains a\n\nperiod `.` the field name consists of the characters following the final\n\nperiod.  This defines a field of the workflow step input object with the\n\nvalue of the `source` parameter(s).\n\n\n\n## Merging\n\n\n\nTo merge multiple inbound data links,\n\n[MultipleInputFeatureRequirement](#MultipleInputFeatureRequirement) must be specified\n\nin the workflow or workflow step requirements.\n\n\n\nIf the sink parameter is an array, or named in a [workflow\n\nscatter](#WorkflowStep) operation, there may be multiple inbound data links\n\nlisted in the `source` field.  The values from the input links are merged\n\ndepending on the method specified in the `linkMerge` field.  If not\n\nspecified, the default method is \"merge_nested\".\n\n\n\n* **merge_nested**\n\n\n\nThe input must be an array consisting of exactly one entry for each\n\ninput link.  If \"merge_nested\" is specified with a single link, the value\n\nfrom the link must be wrapped in a single-item list.\n\n\n\n* **merge_flattened**\n\n\n\n1. The source and sink parameters must be compatible types, or the source\n\ntype must be compatible with single element from the \"items\" type of\n\nthe destination array parameter.\n\n2. Source parameters which are arrays are concatenated.\n\nSource parameters which are single element types are appended as\n\nsingle elements.",
             "type": "object",
             "properties": {
-                "id": {
-                    "description": "A unique identifier for this workflow input parameter.",
-                    "type": "string"
-                },
                 "default": {
                     "description": "The default value for this parameter if there is no `source`\n\nfield."
                 },
                 "valueFrom": {
                     "description": "To use valueFrom, [StepInputExpressionRequirement](#StepInputExpressionRequirement) must\n\nbe specified in the workflow or workflow step requirements.\n\n\n\nIf `valueFrom` is a constant string value, use this as the value for\n\nthis input parameter.\n\n\n\nIf `valueFrom` is a parameter reference or expression, it must be\n\nevaluated to yield the actual value to be assiged to the input field.\n\n\n\nThe `self` value of in the parameter reference or expression must be\n\nthe value of the parameter(s) specified in the `source` field, or\n\nnull if there is no `source` field.\n\n\n\nThe value of `inputs` in the parameter reference or expression must be\n\nthe input object to the workflow step after assigning the `source`\n\nvalues and then scattering.  The order of evaluating `valueFrom` among\n\nstep input parameters is undefined and the result of evaluating\n\n`valueFrom` on a parameter must not be visible to evaluation of\n\n`valueFrom` on other parameters.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        }
-                    ]
+                    "type": "string"
                 },
                 "source": {
                     "description": "Specifies one or more workflow parameters that will provide input to\n\nthe underlying step parameter.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    ]
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
                 },
                 "linkMerge": {
                     "$ref": "#/definitions/LinkMergeMethod",
                     "description": "The method to use to merge multiple inbound links into a single array.\n\nIf not specified, the default method is \"merge_nested\"."
                 }
-            },
-            "required": [
-                "id"
-            ]
+            }
         },
         "LinkMergeMethod": {
             "type": "string",
@@ -611,23 +642,94 @@
             "properties": {
                 "outputSource": {
                     "description": "Specifies one or more workflow parameters that supply the value of to\n\nthe output parameter.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    ]
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
                 },
                 "linkMerge": {
                     "$ref": "#/definitions/LinkMergeMethod",
                     "description": "The method to use to merge multiple sources into a single array.\n\nIf not specified, the default method is \"merge_nested\"."
                 }
             }
+        },
+        "WorkflowOutputParameters": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/WorkflowOutputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/WorkflowOutputParameter"
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/CwlType"
+                    }
+                }
+            ]
+        },
+        "WorkflowStepInputs": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/WorkflowStep"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/WorkflowStep"
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/StringOrArrayOfStrings"
+                    }
+                }
+            ]
+        },
+        "WorkflowSteps": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/WorkflowStep"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/WorkflowStep"
+                    }
+                }
+            ]
         },
         "CommandLineBinding": {
             "description": "When listed under `inputBinding` in the input schema, the term\n\n\"value\" refers to the the corresponding value in the input object.  For\n\nbinding objects listed in `CommandLineTool.arguments`, the term \"value\"\n\nrefers to the effective value after evaluating `valueFrom`.\n\n\n\nThe binding behavior when building the command line depends on the data\n\ntype of the value.  If there is a mismatch between the type described by\n\nthe input schema and the effective value, such as resulting from an\n\nexpression evaluation, an implementation must use the data type of the\n\neffective value.\n\n\n\n- **string**: Add `prefix` and the string to the command line.\n\n\n\n- **number**: Add `prefix` and decimal representation to command line.\n\n\n\n- **boolean**: If true, add `prefix` to the command line.  If false, add\n\nnothing.\n\n\n\n- **File**: Add `prefix` and the value of\n\n[`File.path`](#File) to the command line.\n\n\n\n- **array**: If `itemSeparator` is specified, add `prefix` and the join\n\nthe array into a single string with `itemSeparator` separating the\n\nitems.  Otherwise first add `prefix`, then recursively process\n\nindividual elements.\n\n\n\n- **object**: Add `prefix` only, and recursively add object fields for\n\nwhich `inputBinding` is specified.\n\n\n\n- **null**: Add nothing.",
@@ -651,7 +753,7 @@
                 },
                 "valueFrom": {
                     "description": "If `valueFrom` is a constant string value, use this as the value and\n\napply the binding rules above.\n\n\n\nIf `valueFrom` is an expression, evaluate the expression to yield the\n\nactual value to use to build the command line and apply the binding\n\nrules above.  If the inputBinding is associated with an input\n\nparameter, the value of `self` in the expression will be the value of the\n\ninput parameter.\n\n\n\nWhen a binding is part of the `CommandLineTool.arguments` field,\n\nthe `valueFrom` field is required.",
-                   "type": "string"
+                    "type": "string"
                 },
                 "shellQuote": {
                     "description": "If `ShellCommandRequirement` is in the requirements for the current command,\n\nthis controls whether the value is quoted on the command line (default is true).\n\nUse `shellQuote: false` to inject metacharacters for operations such as pipes.",
@@ -667,49 +769,11 @@
             "description": "An input parameter for a CommandLineTool.",
             "type": "object",
             "properties": {
-                
                 "inputBinding": {
                     "$ref": "#/definitions/CommandLineBinding",
                     "description": "Describes how to handle the inputs of a process and convert them\n\ninto a concrete form for execution, such as command line parameters."
-                },
-               
-                "default": {
-                    "description": "The default value for this parameter if not provided in the input\n\nobject."
-                },
-                "secondaryFiles": {
-                    "description": "Only valid when `type: File` or is an array of `items: File`.\n\n\n\nDescribes files that must be included alongside the primary file(s).\n\n\n\nIf the value is an expression, the value of `self` in the expression\n\nmust be the primary input or output File to which this binding applies.\n\n\n\nIf the value is a string, it specifies that the following pattern\n\nshould be applied to the primary file:\n\n\n\n1. If string begins with one or more caret `^` characters, for each\n\ncaret, remove the last file extension from the path (the last\n\nperiod `.` and all following characters).  If there are no file\n\nextensions, the path is unchanged.\n\n2. Append the remainder of the string to the end of the file path.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "string",
-                                        "enum": [
-                                            "ExpressionPlaceholder"
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ]
                 }
-            },
-            "required": [
-                "id"
-            ]
+            }
         },
         "CommandInputRecordSchema": {
             "type": "object",
@@ -845,17 +909,6 @@
                 }
             }
         },
-        "ProcessRequirement": {
-            "description": "A process requirement declares a prerequisite that may or must be fulfilled\n\nbefore executing a process.  See [`Process.hints`](#process) and\n\n[`Process.requirements`](#process).\n\n\n\nProcess requirements are the primary mechanism for specifying extensions to\n\nthe CWL core specification.",
-            "type": "object",
-            "properties": {}
-        },
-        "CWLVersion": {
-            "type": "string",
-            "enum": [
-                "v1.0"
-            ]
-        },
         "CommandLineTool": {
             "description": "This defines the schema of the CWL Command Line Tool Description document.",
             "type": "object",
@@ -946,34 +999,6 @@
                     "items": {
                         "$ref": "#/definitions/CommandOutputParameter"
                     }
-                },
-                "id": {
-                    "description": "The unique identifier for this process object.",
-                    "type": "string"
-                },
-                "requirements": {
-                    "description": "Declares requirements that apply to either the runtime environment or the\n\nworkflow engine that must be met in order to execute this process.  If\n\nan implementation cannot satisfy all requirements, or a requirement is\n\nlisted which is not recognized by the implementation, it is a fatal\n\nerror and the implementation must not attempt to run the process,\n\nunless overridden at user option.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ProcessRequirement"
-                    }
-                },
-                "hints": {
-                    "description": "Declares hints applying to either the runtime environment or the\n\nworkflow engine that may be helpful in executing this process.  It is\n\nnot an error if an implementation cannot satisfy all hints, however\n\nthe implementation may report a warning.",
-                    "type": "array",
-                    "items": {}
-                },
-                "label": {
-                    "description": "A short, human-readable label of this process object.",
-                    "type": "string"
-                },
-                "doc": {
-                    "description": "A long, human-readable description of this process object.",
-                    "type": "string"
-                },
-                "cwlVersion": {
-                    "$ref": "#/definitions/CWLVersion",
-                    "description": "CWL document version. Always required at the document root. Not\n\nrequired for a Process embedded inside another Process."
                 }
             },
             "required": [
@@ -998,38 +1023,11 @@
                 },
                 "outputs": {
                     "description": "Defines the parameters representing the output of the process.  May be\n\nused to generate and/or validate the output object.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ExpressionToolOutputParameter"
-                    }
-                },
-                "id": {
-                    "description": "The unique identifier for this process object.",
-                    "type": "string"
+                    "$ref": "#/definitions/ExpressionToolOutputParameters"
                 },
                 "inputs": {
                     "description": "Defines the input parameters of the process.  The process is ready to\n\nrun when all required input parameters are associated with concrete\n\nvalues.  Input parameters include a schema for each parameter which is\n\nused to validate the input object.  It may also be used to build a user\n\ninterface for constructing the input object.",
                     "$ref": "#/definitions/Inputs"
-                },
-                "requirements": {
-                    "description": "Declares requirements that apply to either the runtime environment or the\n\nworkflow engine that must be met in order to execute this process.  If\n\nan implementation cannot satisfy all requirements, or a requirement is\n\nlisted which is not recognized by the implementation, it is a fatal\n\nerror and the implementation must not attempt to run the process,\n\nunless overridden at user option.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ProcessRequirement"
-                    }
-                },
-                "hints": {
-                    "description": "Declares hints applying to either the runtime environment or the\n\nworkflow engine that may be helpful in executing this process.  It is\n\nnot an error if an implementation cannot satisfy all hints, however\n\nthe implementation may report a warning.",
-                    "type": "array",
-                    "items": {}
-                },
-                "label": {
-                    "description": "A short, human-readable label of this process object.",
-                    "type": "string"
-                },
-                "doc": {
-                    "description": "A long, human-readable description of this process object.",
-                    "type": "string"
                 }
             },
             "required": [
@@ -1058,41 +1056,11 @@
                 },
                 "outputs": {
                     "description": "Defines the parameters representing the output of the process.  May be\n\nused to generate and/or validate the output object.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/WorkflowOutputParameter"
-                    }
-                },
-                "id": {
-                    "description": "The unique identifier for this process object.",
-                    "type": "string"
+                    "$ref": "#/definitions/WorkflowOutputParameters"
                 },
                 "inputs": {
                     "description": "Defines the input parameters of the process.  The process is ready to\n\nrun when all required input parameters are associated with concrete\n\nvalues.  Input parameters include a schema for each parameter which is\n\nused to validate the input object.  It may also be used to build a user\n\ninterface for constructing the input object.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Inputs"
-                    }
-                },
-                "requirements": {
-                    "description": "Declares requirements that apply to either the runtime environment or the\n\nworkflow engine that must be met in order to execute this process.  If\n\nan implementation cannot satisfy all requirements, or a requirement is\n\nlisted which is not recognized by the implementation, it is a fatal\n\nerror and the implementation must not attempt to run the process,\n\nunless overridden at user option.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Requirements"
-                    }
-                },
-                "hints": {
-                    "description": "Declares hints applying to either the runtime environment or the\n\nworkflow engine that may be helpful in executing this process.  It is\n\nnot an error if an implementation cannot satisfy all hints, however\n\nthe implementation may report a warning.",
-                    "type": "array",
-                    "items": {}
-                },
-                "label": {
-                    "description": "A short, human-readable label of this process object.",
-                    "type": "string"
-                },
-                "doc": {
-                    "description": "A long, human-readable description of this process object.",
-                    "type": "string"
+                    "$ref": "#/definitions/Inputs"
                 }
             },
             "required": [
