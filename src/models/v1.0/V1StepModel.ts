@@ -7,9 +7,10 @@ import {ensureArray} from "../helpers/utils";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {Workflow} from "../../mappings/v1.0/Workflow";
 import {CommandLineToolFactory} from "../generic/CommandLineToolFactory";
+import {InputParameter} from "../generic/InputParameter";
+import {OutputParameter} from "../generic/OutputParameter";
 
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
-
 
     constructor(step?, loc?: string) {
         super(loc);
@@ -37,24 +38,33 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         this.label = step.label;
 
         if (typeof step.run === "string") {
-            console.warn(`Expected to get json for step.run at ${this.loc}`);
-        } else {
-            if (step.run) {
-                switch(step.run.class) {
-                    case "Workflow":
-                        this.run = WorkflowFactory.from(step.run);
-                        break;
-                    case "CommandLineTool":
-                        this.run = CommandLineToolFactory.from(step.run);
-                }
+            console.warn(`Expected to get json for step.run at ${this.loc}, reading in and out from step`);
+
+            this.in  = ensureArray(step.in, "id", "source")
+                .map((i, index) => new V1WorkflowStepInputModel(i, this, `${this.loc}.in[${index}]`));
+            this.out = ensureArray(step.out, "id")
+                .map((o, index) => new V1WorkflowStepOutputModel(o, this, `${this.loc}.out[${index}]`));
+
+        } else if (step.run && step.run.class) {
+            switch (step.run.class) {
+                case "Workflow":
+                    this.run = WorkflowFactory.from(step.run);
+                    break;
+                case "CommandLineTool":
+                    this.run = CommandLineToolFactory.from(step.run);
+                    break;
             }
+
+            this.compareInPorts(step);
+            this.compareOutPorts(step);
         }
 
-
-        this.in  = ensureArray(step.in, "id", "source")
-            .map((i, index) => new V1WorkflowStepInputModel(i, this, `${this.loc}.in[${index}]`));
-        this.out = ensureArray(step.out, "id")
-            .map((o, index) => new V1WorkflowStepOutputModel(o, this, `${this.loc}.out[${index}]`));
+        this.in.forEach(i => {
+            // if in type is a required file or required array of files, include it by default
+            if (i.type && !i.type.isNullable && (i.type.type === "File" || i.type.items === "File")) {
+                i.isVisible = true;
+            }
+        });
 
         //@todo: generalize and parse requirements and hints
         this.requirements = ensureArray(step.requirements, "class");
@@ -67,6 +77,55 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             if (serializedKeys.indexOf(key) === -1) {
                 this.customProps[key] = step[key];
             }
-        })
+        });
+    }
+
+    private compareInPorts(step: WorkflowStep) {
+        const inPorts                           = ensureArray(step.in, "id", "source");
+        const stepInputs: Array<InputParameter> = this.run.inputs;
+
+        // check if step.in includes ports which are not defined in the app
+        const inserted = inPorts.filter(port => {
+            return stepInputs.findIndex(inp => inp.id === port.id) === -1;
+        });
+
+        // if there are steps in ports which aren't in the app, throw a warning for interface mismatch
+        if (inserted.length) {
+            this.validation.warnings.push({
+                message: `Step contains input ports which are not present on the app: ${inserted.map(port => port.id)}`,
+                loc: this.loc
+            });
+        }
+
+        // because type cannot be check on the level of the step (step.in is just the id of the incoming port),
+        // type and fileTypes from the app's inputs are spliced into the in ports.
+        // Type validation is done for connections based on this information
+        this.in = stepInputs.map((input, index) => {
+            const match = inPorts.find(port => input.id === port.id) || {id: input.id};
+
+            // here will set source and default if they exist
+            return new V1WorkflowStepInputModel({
+                ...match,
+                type: input.type,
+                fileTypes: input["sbg:fileTypes"]
+            }, this, `${this.loc}.in[${index}]`);
+        }).filter(port => port !== undefined);
+    }
+
+    private compareOutPorts(step: WorkflowStep) {
+        const outPorts                            = ensureArray(step.out, "id");
+        const stepOutputs: Array<OutputParameter> = this.run.outputs;
+
+        this.out = outPorts.map((port, index) => {
+            const match = stepOutputs.find(output => port.id === output.id);
+
+            if (match) {
+                return new V1WorkflowStepOutputModel({
+                    ...port,
+                    type: match.type,
+                    fileTypes: match["sbg:fileTypes"]
+                }, this, `${this.loc}.out[${index}]`);
+            }
+        }).filter(port => port !== undefined);
     }
 }

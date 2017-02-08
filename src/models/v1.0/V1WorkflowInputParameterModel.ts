@@ -1,7 +1,7 @@
 import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
-import {V1InputParameterTypeModel} from "./V1InputParameterTypeModel";
 import {RecordField} from "../../mappings/v1.0/RecordField";
+import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 
 export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
@@ -12,7 +12,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
     deserialize(attr: InputParameter | RecordField) {
         this.id = (<InputParameter> attr).id || (<RecordField> attr).name;
-        this.type = new V1InputParameterTypeModel(attr.type, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(attr.type, V1WorkflowInputParameterModel, `${this.loc}.type`);
     }
 
     serialize(): InputParameter | RecordField{

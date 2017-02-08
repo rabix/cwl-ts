@@ -3,8 +3,8 @@ import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordFie
 import {Serializable} from "../interfaces/Serializable";
 import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {ValidationBase, Validation} from "../helpers/validation";
-import {SBDraft2InputParameterTypeModel as InputParameterTypeModel} from "./SBDraft2InputParameterTypeModel";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
+import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 
 export class CommandInputParameterModel extends ValidationBase implements Serializable<CommandInputParameter | CommandInputRecordField> {
     /** unique identifier of input */
@@ -18,7 +18,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     public isField: boolean = false;
 
     /** Complex object that holds logic and information about input's type property */
-    public type: InputParameterTypeModel;
+    public type: ParameterTypeModel;
 
     /** Binding for inclusion in command line */
     public inputBinding: CommandLineBindingModel = null;
@@ -29,7 +29,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
     public customProps: any = {};
 
-    constructor(loc?: string, input?: CommandInputParameter | CommandInputRecordField) {
+    constructor(input?: CommandInputParameter | CommandInputRecordField, loc?: string) {
         super(loc);
         this.deserialize(input);
     }
@@ -87,7 +87,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
             this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
         }
 
-        this.type = new InputParameterTypeModel(input.type, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(input.type, CommandInputParameterModel, `${this.loc}.type`);
         this.type.setValidationCallback((err: Validation) => {
             this.updateValidity(err)
         });

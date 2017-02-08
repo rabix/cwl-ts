@@ -7,14 +7,17 @@ import {CommandLineToolModel} from "./CommandLineToolModel";
 import {ExpressionToolModel} from "./ExpressionToolModel";
 import {ProcessRequirementModel} from "../d2sb/ProcessRequirementModel";
 import {ScatterMethod} from "../../mappings/v1.0/ScatterMethod";
+import {Plottable} from "./Plottable";
 
-export class StepModel extends ValidationBase implements Serializable<any> {
+export class StepModel extends ValidationBase implements Serializable<any>, Plottable {
     id: string;
     doc: string;
     label: string;
-    run: string | WorkflowModel | CommandLineToolModel | ExpressionToolModel;
-    in: WorkflowStepInputModel[];
+    run: WorkflowModel | CommandLineToolModel | ExpressionToolModel;
+    "in": WorkflowStepInputModel[];
     out: WorkflowStepOutputModel[];
+
+    isVisible = true;
 
     requirements?: ProcessRequirementModel[];
     hints?: any[];

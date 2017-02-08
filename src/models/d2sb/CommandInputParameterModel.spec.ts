@@ -214,7 +214,7 @@ describe("CommandInputParameterModel d2sb", () => {
         });
 
         it("should create new input from object", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "d",
                 type: "string"
             });
@@ -226,7 +226,7 @@ describe("CommandInputParameterModel d2sb", () => {
     describe("fields", () => {
         // add field
         it("should add a field as object literal to an input type record", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "baz",
                 type: {
                     type: "record",
@@ -244,7 +244,7 @@ describe("CommandInputParameterModel d2sb", () => {
 
         // add field on non record input
         it("should not add a field to an input type not record", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "baz",
                 type: {
                     type: "array",
@@ -263,7 +263,7 @@ describe("CommandInputParameterModel d2sb", () => {
 
         // remove field
         it("should remove an existing field by name", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "baz",
                 type: {
                     type: "record",
@@ -282,7 +282,7 @@ describe("CommandInputParameterModel d2sb", () => {
         });
 
         it("should remove an existing field by object", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "baz",
                 type: {
                     type: "record",
@@ -290,7 +290,7 @@ describe("CommandInputParameterModel d2sb", () => {
                 }
             });
 
-            const field = new CommandInputParameterModel("", {
+            const field = new CommandInputParameterModel({
                 name: "field",
                 type: "string"
             });
@@ -304,7 +304,7 @@ describe("CommandInputParameterModel d2sb", () => {
 
         // add field with duplicate name
         it("should not add field if name already exists", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "baz",
                 type: {
                     type: "record",
@@ -327,7 +327,7 @@ describe("CommandInputParameterModel d2sb", () => {
 
         // removing invalid field
         it("should throw exception when removing nonexistent field", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "baz",
                 type: {
                     type: "record",
@@ -350,7 +350,7 @@ describe("CommandInputParameterModel d2sb", () => {
     describe("type", () => {
         // set type
         it("should set type by string", () => {
-            const input = new CommandInputParameterModel("");
+            const input = new CommandInputParameterModel();
 
             input.type.type = "string";
             expect(input.type.type).to.equal("string");
@@ -360,7 +360,7 @@ describe("CommandInputParameterModel d2sb", () => {
 
     describe("isNullable", () => {
         it("should be false if input is required", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "a",
                 type: {type: "array", items: "int"}
             });
@@ -371,7 +371,7 @@ describe("CommandInputParameterModel d2sb", () => {
         });
 
         it("should be true if input is not required", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "a",
                 type: [{type: "array", items: "int"}, "null"]
             });
@@ -383,7 +383,7 @@ describe("CommandInputParameterModel d2sb", () => {
     describe("items", () => {
         // set items type
         it("should set items for array type", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "a",
                 type: {type: "array", items: "int"}
             });
@@ -394,7 +394,7 @@ describe("CommandInputParameterModel d2sb", () => {
 
         // set items type on non-array
         it("should not set items for type that's not array", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "a",
                 type: {type: "record", fields: []}
             });
@@ -411,7 +411,7 @@ describe("CommandInputParameterModel d2sb", () => {
 
     describe("setValueFrom", () => {
         it("Should set the valueFrom property in the inputBinding", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "a",
                 type: {type: "array", items: "int"}
             });
@@ -426,7 +426,7 @@ describe("CommandInputParameterModel d2sb", () => {
     describe("hasInputBinding", () => {
 
         it("Should return true if there is a an inputBinding", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "a",
                 type: {type: "array", items: "int"}
             });
@@ -437,7 +437,7 @@ describe("CommandInputParameterModel d2sb", () => {
         });
 
         it("Should return false if there is no inputBinding", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "a",
                 type: {type: "array", items: "int"}
             });
@@ -449,7 +449,7 @@ describe("CommandInputParameterModel d2sb", () => {
     describe("removeInputBinding", () => {
 
         it("Should remove the inputBinding property", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "a",
                 type: {type: "array", items: "int"}
             });
@@ -466,7 +466,7 @@ describe("CommandInputParameterModel d2sb", () => {
 
     describe("updateValidity", () => {
         it("Should be invalid if valueFrom is invalid", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 id: "i",
                 type: ["boolean"],
                 inputBinding: {
@@ -488,7 +488,7 @@ describe("CommandInputParameterModel d2sb", () => {
 
     describe("validate", () => {
         it("Should check if ID exists", () => {
-            const input = new CommandInputParameterModel("", {
+            const input = new CommandInputParameterModel({
                 type: "string",
                 id: ''
             });
@@ -499,7 +499,7 @@ describe("CommandInputParameterModel d2sb", () => {
         });
 
         it("Should check for invalid characters in ID", () => {
-            const input = new CommandInputParameterModel("", <CommandInputParameter>{
+            const input = new CommandInputParameterModel(<CommandInputParameter>{
                 type: "string",
                 id: "@"
             });
@@ -510,12 +510,12 @@ describe("CommandInputParameterModel d2sb", () => {
         });
 
         it("Should ensure enum has symbols", () => {
-            const input = new CommandInputParameterModel("inp", <CommandInputParameter>{
+            const input = new CommandInputParameterModel(<CommandInputParameter>{
                 id: "asdf",
                 type: {
                     type: "enum"
                 }
-            });
+            }, "inp");
 
             input.validate();
 
@@ -535,7 +535,7 @@ describe("CommandInputParameterModel d2sb", () => {
                     prefix: "--prefix"
                 }
             };
-            const input = new CommandInputParameterModel("", <CommandInputParameter>data);
+            const input = new CommandInputParameterModel(<CommandInputParameter>data);
             expect(input.serialize()).to.deep.equal(data);
         });
 
@@ -555,7 +555,7 @@ describe("CommandInputParameterModel d2sb", () => {
                     }
                 }
             };
-            const input = new CommandInputParameterModel("", data);
+            const input = new CommandInputParameterModel(data);
             expect(input.serialize()).to.deep.equal(data);
         });
 
@@ -574,7 +574,7 @@ describe("CommandInputParameterModel d2sb", () => {
                 }],
                 id: "#b"
             };
-            const input = new CommandInputParameterModel("", <CommandInputParameter>data);
+            const input = new CommandInputParameterModel(<CommandInputParameter>data);
             expect(input.serialize()).to.deep.equal(data);
         });
 
@@ -587,7 +587,7 @@ describe("CommandInputParameterModel d2sb", () => {
                     complex: "value"
                 }
             };
-            const input = new CommandInputParameterModel("", data);
+            const input = new CommandInputParameterModel(data);
             expect(input.serialize()).to.deep.equal(data);
         });
 
@@ -599,7 +599,7 @@ describe("CommandInputParameterModel d2sb", () => {
                     secondaryFiles: ["bam", "bai"]
                 }
             };
-            const input = new CommandInputParameterModel("", data);
+            const input = new CommandInputParameterModel(data);
             input.type.type = "string";
 
             expect(input.serialize().inputBinding).to.not.haveOwnProperty("secondaryFiles");

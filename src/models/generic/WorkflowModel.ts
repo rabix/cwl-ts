@@ -13,7 +13,15 @@ export class WorkflowModel extends ValidationBase implements Serializable<any> {
     public inputs: WorkflowInputParameterModel[] = [];
     public outputs: WorkflowOutputParameterModel[] = [];
 
-    private graph: Graph;
+    public get connections(): [string, string][] {
+        return Array.from(this.graph.edges);
+    }
+
+    public get nodes(): [string, any][] {
+        return Array.from(this.graph.vertices)
+    }
+
+    protected graph: Graph;
 
     constructor(loc: string) {
         super(loc);
@@ -27,6 +35,10 @@ export class WorkflowModel extends ValidationBase implements Serializable<any> {
     deserialize(attr: any): void {
         console.warn("versioned class must override deserialize(attr: any) method");
     }
+
+    public exposePort(port: WorkflowStepInputModel) {}
+
+    public includePort(port: WorkflowStepInputModel) {}
 
     public isConnected(): boolean {
         try {

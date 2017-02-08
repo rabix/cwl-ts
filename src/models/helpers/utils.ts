@@ -1,4 +1,4 @@
-export const ensureArray = (map: { [key: string]: any } | any[], key?: string, valueKey?: string): any[] => {
+export const ensureArray = (map: { [key: string]: any } | any[] | string | number | boolean, key?: string, valueKey?: string): any[] => {
     // object is not defined or is null, return an empty array
     if (map === undefined || map === null) return [];
 
@@ -20,21 +20,21 @@ export const ensureArray = (map: { [key: string]: any } | any[], key?: string, v
     // if the object is a hashmap, transform it accordingly
     return Object.keys(map).map(prop => {
         /*
-            if a valueKey is provided and the property isn't already an object, create an object from the valueKey
-            e.g.: map = {foo: "bar"}, key = "id", valueKey = "type"
+         if a valueKey is provided and the property isn't already an object, create an object from the valueKey
+         e.g.: map = {foo: "bar"}, key = "id", valueKey = "type"
 
-            return value is [ {id: "foo", type: "bar"} ];
+         return value is [ {id: "foo", type: "bar"} ];
          */
         if (valueKey && checkMapValueType(map) !== "object") {
             return {... {[valueKey]: map[prop]}, ...{[key]: prop}};
         }
 
         /*
-            if they property is already an object, add its hashmap key under the property key provided as a param
-            e.g.: map = {foo: {bar: "baz"}}, key = "id", valueKey = "type"
+         if they property is already an object, add its hashmap key under the property key provided as a param
+         e.g.: map = {foo: {bar: "baz"}}, key = "id", valueKey = "type"
 
-            return value is [ {id: "foo", bar: "baz"} ];
-        */
+         return value is [ {id: "foo", bar: "baz"} ];
+         */
         return {... map[prop], ...{[key]: prop}};
     });
 };
@@ -71,6 +71,11 @@ export const checkMapValueType = (map: { [key: string]: any }): "string" | "numb
     return type;
 };
 
-export const convertToObject = (item: any, key: string): { [key: string]: any } => {
-    return {[key]: item};
+export const incrementString = (str:string): string => {
+    const replaced = str.replace(/^(.*?)(\d+$)/gi, function (all, $1, $2) {
+        return $1 + ++$2;
+    });
+
+    if(replaced === str) return str + "_1";
+    return replaced;
 };

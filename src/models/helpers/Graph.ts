@@ -1,4 +1,4 @@
-export enum VertexMissing {CreateVertex, IgnoreEdge, AddEdge, Error};
+export enum VertexMissing {CreateVertex, IgnoreEdge, AddEdge, Error}
 
 export class Graph {
 
@@ -158,6 +158,7 @@ export class Graph {
         }
 
         if (reached.size == 0) {
+            console.log("Unreached nodes", Array.from(unvisited));
             return false;
         }
 
@@ -188,7 +189,12 @@ export class Graph {
             return false;    
         }
 
-        return false;
+        try {
+            this.topSort();
+            return false;
+        } catch (ex) {
+            return true;
+        }
     }
 
     private throwMissingVertex(key: string): void {

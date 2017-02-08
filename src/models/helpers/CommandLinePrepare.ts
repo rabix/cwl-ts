@@ -6,7 +6,7 @@ import {ExpressionModel} from "../d2sb/ExpressionModel";
 
 export class CommandLinePrepare {
 
-    static prepare(input, jobInputs, job, loc?: string, cmdType?: CommandType): Promise<CommandLinePart | string> {
+    static prepare(input, flatJobInputs, job, loc?: string, cmdType?: CommandType): Promise<CommandLinePart | string> {
         let inputType = "primitive";
 
         if (!input) {
@@ -14,7 +14,7 @@ export class CommandLinePrepare {
         }
 
         if (input instanceof CommandInputParameterModel) {
-            const value = jobInputs[input.id] || null;
+            const value = flatJobInputs[input.id] || null;
             cmdType = "input";
 
             if (value === null) {
@@ -41,9 +41,9 @@ export class CommandLinePrepare {
             inputType = "stream";
         }
 
-        return CommandLineParsers[inputType](input, jobInputs, jobInputs[input.id || null], {
+        return CommandLineParsers[inputType](input, flatJobInputs, flatJobInputs[input.id || null], {
             $job: job,
-            $self: jobInputs[input.id || ""] || null
+            $self: flatJobInputs[input.id || ""] || null
         }, cmdType, loc);
     };
 

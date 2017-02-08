@@ -3,7 +3,7 @@ import {CommandLineToolModel} from "./CommandLineToolModel";
 import {CommandLineTool as SBDraft2CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 import {CommandLineTool as V1CommandLineTool} from "../../mappings/v1.0/CommandLineTool";
 import {V1CommandLineToolModel} from "../v1.0/V1CommandLineToolModel";
-import {CommandLineToolModel as SBDraft2CommandLineToolModel} from "../d2sb/CommandLineToolModel";
+import {SBDraft2CommandLineToolModel} from "../d2sb/SBDraft2CommandLineToolModel";
 
 
 export class CommandLineToolFactory {

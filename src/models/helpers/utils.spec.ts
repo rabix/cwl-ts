@@ -1,5 +1,5 @@
 import {expect} from "chai";
-import {ensureArray, checkMapValueType} from "./utils";
+import {ensureArray, checkMapValueType, incrementString} from "./utils";
 
 describe("ensureArray", () => {
     it("should return an array from a map of objects", () => {
@@ -128,4 +128,18 @@ describe("checkMapValueType", () => {
 
         expect(checkMapValueType(test)).to.equal("mismatch");
     });
+});
+
+describe("incrementString", () => {
+    it("should increment a string ending in a number", () => {
+        expect(incrementString("test1")).to.equal("test2");
+    });
+
+    it("should increment the last number of a string", () => {
+        expect(incrementString("test3_34")).to.equal("test3_35");
+    });
+
+    it("should add _1 if string doesn't end in a number", () => {
+        expect(incrementString("test")).to.equal("test_1");
+    })
 });

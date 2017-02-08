@@ -123,7 +123,9 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
             });
         }
 
-        if (this.inheritMetadataFrom) base["sbg:inheritMetadataFrom"] = this.inheritMetadataFrom;
+        if (this.inheritMetadataFrom) {
+            base["sbg:inheritMetadataFrom"] = this.inheritMetadataFrom.substr(0) === "#" ? this.inheritMetadataFrom : "#" + this.inheritMetadataFrom;
+        }
 
         if (this.loadContents) base.loadContents = true;
         if (this._outputEval.serialize()) {
@@ -152,7 +154,13 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
             }
 
             this.loadContents        = binding.loadContents === true;
-            this.inheritMetadataFrom = binding["sbg:inheritMetadataFrom"];
+
+            this.inheritMetadataFrom = null;
+            if (binding["sbg:inheritMetadataFrom"]) {
+                this.inheritMetadataFrom = binding["sbg:inheritMetadataFrom"].charAt(0) === "#" ?
+                    binding["sbg:inheritMetadataFrom"].substr(1) :
+                    binding["sbg:inheritMetadataFrom"];
+            }
 
             this._outputEval = new ExpressionModel(`${this.loc}.outputEval`, binding.outputEval);
 

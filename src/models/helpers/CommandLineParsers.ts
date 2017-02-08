@@ -9,11 +9,10 @@ export class CommandLineParsers {
         const prefix    = input.inputBinding.prefix || "";
         const separator = input.inputBinding.separate !== false ? " " : "";
         value           = value || job[input.id];
-        value           = value.path ? value.path : value;
+        value           = value.hasOwnProperty("path") ? value.path : value;
 
         // if (input.inputBinding.valueFrom &&  input.inputBinding.valueFrom) {
         //     return CommandLinePrepare.prepare(input.inputBinding.valueFrom, job, context.$job, cmdType).then(suc => {
-        //        debugger;
         //     });
         // }
         return new Promise(res => {
@@ -64,29 +63,26 @@ export class CommandLineParsers {
 
     static array(input, job, value, context, cmdType, loc): Promise<CommandLinePart> {
         CommandLineParsers.checkMismatch(input, job, value);
-        value = value || job[input.id];
+        value = value || job[input.id] || [];
+        value = value.map(val => val.hasOwnProperty("path") ? val.path : val);
 
         const prefix        = input.inputBinding.prefix || "";
         const separator     = input.inputBinding.separate !== false ? " " : "";
-        const itemSeparator = input.inputBinding.itemSeparator || "";
+        const itemSeparator = typeof input.inputBinding.itemSeparator === "string" ?
+            input.inputBinding.itemSeparator : " ";
 
-        if (itemSeparator) {
-            return new Promise(res => {
-                res(new CommandLinePart(prefix + separator + value.join(itemSeparator), cmdType, loc))
-            });
-        } else {
-            return Promise.all(value.map((val, index) => {
-                return Object.assign({}, input, {
-                    id: index,
-                    type: input.type.items,
-                    inputBinding: input.type.typeBinding || {}
-                }, {items: undefined});
-            }).map((item) => {
-                return CommandLinePrepare.prepare(item, value, value[item.id]);
-            })).then((res: CommandLinePart[]) => {
-                return new CommandLinePart(prefix + separator + res.map(part => part.value).join(" "), cmdType, loc);
-            });
-        }
+        return Promise.all(value.map((val, index) => {
+            return Object.assign({}, input, {
+                id: index,
+                type: input.type.items,
+                inputBinding: input.type.typeBinding || {}
+            }, {items: undefined});
+        }).map((item) => {
+            return CommandLinePrepare.prepare(item, value, value[item.id]);
+        })).then((res: CommandLinePart[]) => {
+            return new CommandLinePart(prefix + separator + res.map(part => part.value).join(itemSeparator), cmdType, loc);
+        });
+
     }
 
     static expression(expr: ExpressionModel, job, value, context, cmdType, loc): Promise<any> {
@@ -104,7 +100,7 @@ export class CommandLineParsers {
             });
         }
 
-        const prefix = arg.prefix || "";
+        const prefix    = arg.prefix || "";
         const separator = arg.separate !== false ? " " : "";
 
         if (arg.valueFrom) {
@@ -118,11 +114,15 @@ export class CommandLineParsers {
         });
     }
 
-    static stream(stream, job, value, context, cmdType, loc): Promise<CommandLinePart>{
+    static stream(stream, job, value, context, cmdType, loc): Promise<CommandLinePart> {
         if (stream instanceof ExpressionModel) {
             return CommandLineParsers.expression(stream, job, value, context, cmdType, loc).then(res => {
-                const prefix = res ? (cmdType === "stdin" ? "< " : "> ") : "";
-                return new CommandLinePart(prefix + res, cmdType, loc);
+                if (res instanceof CommandLinePart) {
+                    return res;
+                } else {
+                    const prefix = res ? (cmdType === "stdin" ? "< " : "> ") : "";
+                    return new CommandLinePart(prefix + res, cmdType, loc);
+                }
             });
         }
     }

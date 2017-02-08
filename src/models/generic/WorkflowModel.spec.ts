@@ -2,6 +2,7 @@ import {expect} from "chai";
 import {WorkflowFactory} from "./WorkflowFactory";
 import * as FirstWF from "../../tests/apps/first-workflow";
 import * as DisconnectedFirstWF from "../../tests/apps/disconnected-first-workflow";
+import * as CyclicalWF from "../../tests/apps/cyclical-first-wf";
 
 
 describe("WorkflowModel", () => {
@@ -26,12 +27,14 @@ describe("WorkflowModel", () => {
    });
 
    describe("constructGraph", () => {
-       it("should construct a graph", () => {
+       it("should construct a graph with appropriate number of edges and vertices", () => {
            const wf = WorkflowFactory.from(FirstWF.default);
-
            const g = wf.constructGraph();
-           expect(g.hasCycles()).to.be.false;
-           expect(g.isConnected()).to.be.true;
+
+           console.log("graph edges", Array.from(g.edges));
+           expect(g.edges.size).to.equal(10);
+
+           expect(g.vertices.size).to.equal(11);
        });
    });
 
@@ -51,6 +54,19 @@ describe("WorkflowModel", () => {
        });
    });
 
+    describe("hasCycles", () => {
+        it("should return true for cyclical workflow", () => {
+            const wf = WorkflowFactory.from(CyclicalWF.default);
 
+            const g = wf.constructGraph();
+            expect(g.hasCycles()).to.be.true;
+        });
 
+        it("should return false for acyclical workflow", () => {
+            const wf = WorkflowFactory.from(FirstWF.default);
+
+            const g = wf.constructGraph();
+            expect(g.hasCycles()).to.be.false;
+        });
+    });
 });

@@ -1,12 +1,12 @@
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 import {Serializable} from "../interfaces/Serializable";
-import {ValidationBase} from "../helpers/validation";
-import {SBDraft2OutputParameterTypeModel} from "./SBDraft2OutputParameterTypeModel";
 import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
 import {Validation} from "../helpers/validation/Validation";
 import {CommandOutputRecordField} from "../../mappings/d2sb/CommandOutputRecordField";
+import {CommandOutputParameterModel as GenericCommandOutputParameterModel} from "../generic/CommandOutputParameterModel"
+import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 
-export class CommandOutputParameterModel extends ValidationBase implements Serializable<CommandOutputParameter | CommandOutputRecordField> {
+export class CommandOutputParameterModel extends GenericCommandOutputParameterModel implements Serializable<CommandOutputParameter | CommandOutputRecordField> {
 
     /** Unique identifier of output */
     public id: string;
@@ -19,13 +19,13 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
     public isField: boolean;
 
     /** Complex object that holds logic and information about output's type property */
-    public type: SBDraft2OutputParameterTypeModel;
+    public type: ParameterTypeModel;
 
     /** Binding for connecting output files and CWL output description */
     public outputBinding: CommandOutputBindingModel;
 
     /** Description of file types expected for output to be */
-    public fileTypes: string;
+    public fileTypes: string[];
 
     customProps: any = {};
 
@@ -66,8 +66,8 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
         }
 
         if (this.isField) {
-            base.name = this.id;
-        } else { base.id = this.id; }
+            base.name = this.id || "";
+        } else { base.id = this.id ? "#" + this.id : ""; }
 
         return base;
     }
@@ -82,7 +82,16 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
             "sbg:fileTypes"
         ];
 
-        this.id          = (<CommandOutputParameter> attr).id || (<CommandOutputRecordField> attr).name;
+        this.isField = !!(<CommandOutputRecordField> attr).name; // record fields don't have ids
+        this.isField ? serializedAttr.push("name") : serializedAttr.push("id");
+
+        if ((<CommandOutputParameter> attr).id && (<CommandOutputParameter> attr).id.charAt(0) === "#") {
+            this.id = (<CommandOutputParameter> attr).id.substr(1);
+        } else {
+            this.id = (<CommandOutputParameter> attr).id
+                || (<CommandOutputRecordField> attr).name || ""; // for record fields
+        }
+
         this.label       = attr.label;
         this.description = attr.description;
         this.fileTypes   = attr["sbg:fileTypes"];
@@ -90,7 +99,7 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
         this.outputBinding = new CommandOutputBindingModel(attr.outputBinding);
         this.outputBinding.setValidationCallback(err => this.updateValidity(err));
 
-        this.type = new SBDraft2OutputParameterTypeModel(attr.type, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(attr.type, CommandOutputParameterModel, `${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));
 
         Object.keys(attr).forEach(key => {

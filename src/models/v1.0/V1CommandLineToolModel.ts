@@ -1,20 +1,18 @@
-import {CommandLineTool, ProcessRequirement, CWLVersion, Expression} from "../../mappings/v1.0/";
-import {CommandInputParameterModel} from "./CommandInputParameterModel";
-import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
-import {CommandLinePart} from "../helpers";
-import {JobHelper} from "../helpers/JobHelper";
+import {CommandLineTool, CWLVersion, Expression, ProcessRequirement} from "../../mappings/v1.0/";
+import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
+import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
 import {CommandArgumentModel} from "./CommandArgumentModel";
-import {CommandLineRunnable} from "../interfaces";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
 import {ensureArray} from "../helpers/utils";
+import {V1ExpressionModel} from "./V1ExpressionModel";
 
-export class V1CommandLineToolModel extends CommandLineToolModel implements CommandLineRunnable {
+export class V1CommandLineToolModel extends CommandLineToolModel {
     constructor(json: any, loc?: string) {
         super(loc);
 
-        this.inputs      = ensureArray(json.inputs, "id", "type").map(input => new CommandInputParameterModel(input));
-        this.outputs     = ensureArray(json.outputs, "id", "type").map(output => new CommandOutputParameterModel(output));
-        this.baseCommand = ensureArray(json.baseCommand);
+        this.inputs      = ensureArray(json.inputs, "id", "type").map(input => new V1CommandInputParameterModel(input));
+        this.outputs     = ensureArray(json.outputs, "id", "type").map(output => new V1CommandOutputParameterModel(output));
+        this.baseCommand = ensureArray(json.baseCommand).map((cmd, index) => new V1ExpressionModel(cmd, `${this.loc}.baseCommand[${index}]`));
 
         this.id          = json.id;
         this.description = json.description;
@@ -22,7 +20,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel implements Comm
 
         this.requirements = json.requirements;
         this.hints        = json.hints;
-        this.arguments    = json.arguments.map(arg => new CommandArgumentModel(arg));
+        this.arguments    = ensureArray(json.arguments).map(arg => new CommandArgumentModel(arg));
 
         this.stdin  = json.stdin;
         this.stderr = json.stderr;
@@ -31,12 +29,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel implements Comm
         this.successCodes       = json.successCodes;
         this.temporaryFailCodes = json.temporaryFailCodes;
         this.permanentFailCodes = json.permanentFailCodes;
-
-        this.cwlVersion = json.cwlVersion;
     }
 
-    inputs: Array<CommandInputParameterModel>;
-    outputs: Array<CommandOutputParameterModel>;
+    inputs: Array<V1CommandInputParameterModel>;
+    outputs: Array<V1CommandOutputParameterModel>;
 
     id: string;
     requirements: Array<ProcessRequirement>;
@@ -47,7 +43,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel implements Comm
     cwlVersion: CWLVersion;
 
     'class': string = 'CommandLineTool';
-    baseCommand: string|Array<string>;
+    baseCommand: Array<V1ExpressionModel>;
 
     arguments: Array<CommandArgumentModel>;
     stdin: string|Expression;
@@ -58,28 +54,24 @@ export class V1CommandLineToolModel extends CommandLineToolModel implements Comm
     temporaryFailCodes: Array<number>;
     permanentFailCodes: Array<number>;
 
-    generateCommandLine(): string {
-        let parts = this.generateCommandLineParts();
+    // generateCommandLine(): string {
+    //     let parts = this.generateCommandLineParts();
+    //
+    //     return (<string []> this.baseCommand).concat(parts.map(part => part.value)).join(' ');
+    // }
 
-        return (<string []> this.baseCommand).concat(parts.map(part => part.value)).join(' ');
-    }
-
-    private generateCommandLineParts(job?: any): CommandLinePart[] {
-
-        if (!job) {
-            job = JobHelper.getJob(this);
-        }
-
-        let allParts: CommandLinePart[] = [];
-
-        allParts.concat(this.inputs.map(input => input.getCommandPart(job, job[input.id])));
-        allParts.concat(this.arguments.map(arg => arg.getCommandPart(job)));
-
-        //@todo(maya) add stdin and stdout
-        return allParts;
-    }
-
-    public toString(): string {
-        return JSON.stringify(this, null, 2);
-    }
+    // private generateCommandLineParts(job?: any): CommandLinePart[] {
+    //
+    //     if (!job) {
+    //         job = JobHelper.getJob(this);
+    //     }
+    //
+    //     let allParts: CommandLinePart[] = [];
+    //
+    //     allParts.concat(this.inputs.map(input => input.getCommandPart(job, job[input.id])));
+    //     allParts.concat(this.arguments.map(arg => arg.getCommandPart(job)));
+    //
+    //     //@todo(maya) add stdin and stdout
+    //     return allParts;
+    // }
 }
