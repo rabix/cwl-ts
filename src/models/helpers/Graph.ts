@@ -1,34 +1,49 @@
 export enum VertexMissing {CreateVertex, IgnoreEdge, AddEdge, Error}
 
+export interface EdgeNode {
+    id: string,
+    type?: string
+}
+
+export interface Edge {
+    source: EdgeNode,
+    destination: EdgeNode,
+    isVisible?: boolean;
+}
+
 export class Graph {
 
     vertices: Map<string, any>;
-    edges: Set<[string, string]>;
-    
-    constructor(vertices?: Iterable<[string, any]>, edges?: Iterable<[string, string]>, missing=VertexMissing.Error) {
+    // edges: Set<[string, string]>;
+    edges: Set<Edge>;
+
+    constructor(vertices?: Iterable<[string, any]>, edges?: Iterable<[string, string]>, missing = VertexMissing.Error) {
         this.vertices = new Map(vertices);
-        this.edges = new Set();
+        this.edges    = new Set();
         if (edges) {
             for (let item of Array.from(edges)) {
-               this.addEdge(item[0], item[1], missing);
+                this.addEdge({id: item[0]}, {id: item[1]}, true, missing);
+                // this.addEdge(item[0], item[1], missing);
             }
         }
     }
 
-    addVertex(key: string, data=null, onConflict?: (old: any)=>any): void {
+    addVertex(key: string, data = null, onConflict?: (old: any) => any): void {
         if (this.hasVertex(key)) {
             if (onConflict) {
                 data = onConflict(this.vertices.get(key));
             } else {
-                throw("Vertex '"+ key + "' already exist");    
+                throw("Vertex '" + key + "' already exist");
             }
         }
         this.vertices.set(key, data);
     }
 
-    setVertexData(key: string, data=null): void {
+    setVertexData(key: string, data = null): void {
         this.throwMissingVertex(key);
-        this.addVertex(key, data, () => {return data;});
+        this.addVertex(key, data, () => {
+            return data;
+        });
     }
 
     getVertexData(key: string): any {
@@ -43,32 +58,38 @@ export class Graph {
         return this.vertices.delete(key);
     }
 
-    addEdge(source: string, destination: string, missing=VertexMissing.Error) {
-        switch(missing) {
+    addEdge(source: EdgeNode, destination: EdgeNode, isVisible = true, missing = VertexMissing.Error) {
+        switch (missing) {
             case VertexMissing.Error:
-                this.throwMissingVertex(source);
-                this.throwMissingVertex(destination);
+                this.throwMissingVertex(source.id);
+                this.throwMissingVertex(destination.id);
                 break;
             case VertexMissing.CreateVertex:
-                this.addVertex(source, null, (old) => {return old;});
-                this.addVertex(destination, null, (old) => {return old;});
+                this.addVertex(source.id, null, (old) => {
+                    return old;
+                });
+                this.addVertex(destination.id, null, (old) => {
+                    return old;
+                });
                 break;
             case VertexMissing.IgnoreEdge:
-                if (!(this.hasVertex(source) && this.hasVertex(destination))) {
+                if (!(this.hasVertex(source.id) && this.hasVertex(destination.id))) {
                     return;
                 }
                 break;
         }
-        this.edges.add([source, destination]);
+        this.edges.add({
+            source, destination, isVisible
+        });
     }
 
-    removeEdge(source: string, destination: string): boolean {
-        return this.edges.delete([source, destination]);
+    removeEdge(edge: Edge): boolean {
+        return this.edges.delete(edge);
     }
 
     topSort(): Array<string> {
-        
-        if(!this.isConnected()) {
+
+        if (!this.isConnected()) {
             throw("Can't sort unconnected graph");
         }
 
@@ -79,25 +100,25 @@ export class Graph {
         if (this.vertices.size == 1) {
             return [this.vertices.keys().next().value];
         }
-        
-        let topNodesInit = new Set(this.vertices.keys());
-        let unusedEdges = new Set(this.edges.values());
-        let sorted = [];
+
+        let topNodesInit:Set<string> = new Set(this.vertices.keys());
+        let unusedEdges:Set<Edge>  = new Set(this.edges.values());
+        let sorted       = [];
 
         for (let e of Array.from(unusedEdges)) {
-            topNodesInit.delete(e[1]);
+            topNodesInit.delete(e.destination.id);
         }
 
-        let topNodes = Array.from(topNodesInit);
+        let topNodes:string[] = Array.from(topNodesInit);
 
         while (topNodes.length > 0) {
             let n = topNodes.shift();
             sorted.push(n);
             for (let e of Array.from(unusedEdges)) {
-                if (e[0] == n) {
+                if (e.source.id == n) {
                     unusedEdges.delete(e);
-                    if (!this.hasIncoming(e[1], unusedEdges)) {
-                        topNodes.push(e[1]);
+                    if (!this.hasIncoming(e.destination.id, unusedEdges)) {
+                        topNodes.push(e.destination.id);
                     }
                 }
             }
@@ -110,9 +131,9 @@ export class Graph {
         return sorted;
     }
 
-    private hasIncoming(vertex: string, edges: Set<[string, string]>): boolean {
+    private hasIncoming(vertex: string, edges: Set<Edge>): boolean {
         for (let e of Array.from(edges)) {
-            if (e[1] == vertex) {
+            if (e.destination.id == vertex) {
                 return true;
             }
         }
@@ -121,34 +142,34 @@ export class Graph {
 
     isConnected(): boolean {
         if (this.vertices.size == 0 || this.vertices.size == 1) {
-            return true;    
+            return true;
         }
 
         if (this.edges.size == 0) {
-            return false;    
+            return false;
         }
 
-        let unvisited = new Set(this.vertices.keys());
-        let starter = unvisited.values().next().value;
+        let unvisited: Set<string> = new Set(this.vertices.keys());
+        let starter: string        = unvisited.values().next().value;
         unvisited.delete(starter);
-        
-        let unusedEdges = new Set(this.edges);
+
+        let unusedEdges: Set<Edge> = new Set(this.edges);
         return this.connectedIter(unvisited, unusedEdges, [starter]);
 
     }
 
-    private connectedIter(unvisited: Set<string>, unusedEdges: Set<[string, string]>, toExpand: Array<string>): boolean {
-        let reached = new Set();
-        
+    private connectedIter(unvisited: Set<string>, unusedEdges: Set<Edge>, toExpand: Array<string>): boolean {
+        let reached:Set<string> = new Set();
+
         for (let node of toExpand) {
             for (let r of this.reached(unusedEdges, node)) {
                 reached.add(r);
             }
         }
-        
+
         for (let item of Array.from(reached)) {
             let existing = unvisited.delete(item);
-            if(!existing) {
+            if (!existing) {
                 reached.delete(item);
             }
         }
@@ -165,14 +186,14 @@ export class Graph {
         return this.connectedIter(unvisited, unusedEdges, Array.from(reached));
     }
 
-    private reached(unusedEdges: Set<[string, string]>, from: string): Array<string> {
+    private reached(unusedEdges: Set<Edge>, from: string): Array<string> {
         let reached = new Set();
         for (let item of Array.from(unusedEdges)) {
-            if (item[0] == from) {
-                reached.add(item[1]);
+            if (item.source.id == from) {
+                reached.add(item.destination.id);
                 unusedEdges.delete(item);
-            } else if (item[1] == from) {
-                reached.add(item[0]);
+            } else if (item.destination.id == from) {
+                reached.add(item.source.id);
                 unusedEdges.delete(item);
             }
         }
@@ -182,11 +203,11 @@ export class Graph {
 
     hasCycles(): boolean {
         if (this.vertices.size == 0) {
-            return false;    
+            return false;
         }
 
         if (this.edges.size == 0) {
-            return false;    
+            return false;
         }
 
         try {
@@ -199,7 +220,7 @@ export class Graph {
 
     private throwMissingVertex(key: string): void {
         if (!this.hasVertex(key)) {
-            throw("Vertex '"+ key + "' doesn't exist");
+            throw("Vertex '" + key + "' doesn't exist");
         }
     }
 }

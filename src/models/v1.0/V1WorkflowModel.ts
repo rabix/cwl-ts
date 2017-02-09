@@ -10,6 +10,7 @@ import {ensureArray, incrementString} from "../helpers/utils";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
 import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
+import {EdgeNode} from "../helpers/Graph";
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -51,8 +52,8 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     /**
      * Connects two vertices which have already been added to the graph
      */
-    public connect(source: string, destination: string) {
-        this.graph.addEdge(source, destination);
+    public connect(source: EdgeNode, destination: EdgeNode, isVisible = true) {
+        this.graph.addEdge(source, destination, isVisible);
     }
 
     /**
@@ -64,7 +65,14 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         // if the port has not been added to the graph yet
         if (!this.graph.hasVertex(inPort.connectionId)) {
             this.graph.addVertex(inPort.connectionId, inPort);
-            this.graph.addEdge(inPort.parentStep.id, inPort.connectionId);
+            // connect in port to step
+            this.connect({
+                id: inPort.connectionId,
+                type: "StepInput"
+            }, {
+                id: inPort.parentStep.id,
+                type: "Step"
+            }, false);
         }
 
         // create new input on the workflow to connect with the port
@@ -84,7 +92,13 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         // add input to graph
         this.graph.addVertex(input.connectionId, input);
         // connect input with inPort
-        this.connect(input.connectionId, inPort.connectionId);
+        this.connect({
+            id: input.connectionId,
+            type: "WorkflowInput"
+        }, {
+            id: inPort.connectionId,
+            type: "StepInput"
+        }, false);
     }
 
     /**
@@ -96,7 +110,13 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         // if the port has not been added to the graph yet
         if (!this.graph.hasVertex(inPort.connectionId)) {
             this.graph.addVertex(inPort.connectionId, inPort);
-            this.graph.addEdge(inPort.parentStep.id, inPort.connectionId);
+            this.graph.addEdge({
+                id: inPort.parentStep.id,
+                type: "StepInput"
+            }, {
+                id: inPort.connectionId,
+                type: "Step"
+            });
         }
     }
 
@@ -105,7 +125,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
      * it will increment the provided id, otherwise it returns the original id
      */
     private getNextAvailableId(id: string): string {
-        let hasId = true;
+        let hasId  = true;
         let result = id;
         while (hasId) {
             if (hasId = this.graph.hasVertex(id)) {

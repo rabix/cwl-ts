@@ -6,14 +6,14 @@ import {WorkflowOutputParameterModel} from "./WorkflowOutputParameterModel";
 import {Serializable} from "../interfaces/Serializable";
 import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
 import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
-import {Graph} from "../helpers/Graph";
+import {Edge, Graph} from "../helpers/Graph";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
-    public steps: StepModel[] = [];
-    public inputs: WorkflowInputParameterModel[] = [];
+    public steps: StepModel[]                      = [];
+    public inputs: WorkflowInputParameterModel[]   = [];
     public outputs: WorkflowOutputParameterModel[] = [];
 
-    public get connections(): [string, string][] {
+    public get connections(): Edge[] {
         return Array.from(this.graph.edges);
     }
 
@@ -36,9 +36,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         console.warn("versioned class must override deserialize(attr: any) method");
     }
 
-    public exposePort(port: WorkflowStepInputModel) {}
+    public exposePort(port: WorkflowStepInputModel) {
+    }
 
-    public includePort(port: WorkflowStepInputModel) {}
+    public includePort(port: WorkflowStepInputModel) {
+    }
 
     public isConnected(): boolean {
         try {
@@ -121,27 +123,64 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         sources.forEach(source => {
             if (source instanceof WorkflowStepOutputModel) {
-                graph.addEdge(source.parentStep.id, source.connectionId);
+                graph.addEdge({
+                        id: source.parentStep.id,
+                        type: "Step"
+                    },
+                    {
+                        id: source.connectionId,
+                        type: "StepOutput"
+                    },
+                    false
+                );
             }
         });
 
         destinations.forEach(dest => {
+            const destination = {
+                id: dest.connectionId,
+                type: this.getNodeType(dest)
+            };
+
             if (dest.source) {
                 if (Array.isArray(dest.source)) {
                     dest.source.forEach(s => {
-                        graph.addEdge(s, dest.connectionId)
+                        graph.addEdge({
+                            id: s,
+                            type: this.getNodeType(graph.getVertexData(s))
+                        }, destination)
                     });
                 } else {
-                    graph.addEdge(dest.source, dest.connectionId);
+                    graph.addEdge({
+                        id: dest.source,
+                        type: this.getNodeType(graph.getVertexData(dest.source))
+                    }, destination);
                 }
             }
 
             if (dest instanceof WorkflowStepInputModel) {
-                graph.addEdge(dest.connectionId, dest.parentStep.id);
+                graph.addEdge(destination, {
+                    id: dest.parentStep.id,
+                    type: "Step"
+                }, false);
             }
         });
 
         return graph;
+    }
+
+    private getNodeType(node): string {
+        if (node instanceof WorkflowInputParameterModel) {
+            return "WorkflowInput"
+        } else if (node instanceof WorkflowStepOutputModel) {
+            return "StepOutput"
+        } else if (node instanceof StepModel) {
+            return "Step";
+        } else if (node instanceof WorkflowStepInputModel) {
+            return "StepInput"
+        } else if (node instanceof WorkflowOutputParameterModel) {
+            return "WorkflowOutput"
+        }
     }
 
     customProps: any = {};

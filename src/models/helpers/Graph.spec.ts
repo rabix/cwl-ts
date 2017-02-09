@@ -23,7 +23,7 @@ describe("Graph", () => {
 
         it("should return false for unconnected graphs", () => {
             let vertices: Array<[string, any]> = [['a', null]];
-            let edges: [[string, string]] = [['b', 'c']]
+            let edges: [[string, string]] = [['b', 'c']];
             let g = new Graph(vertices, edges, VertexMissing.CreateVertex);
             expect(g.isConnected()).to.be.false;
 
@@ -51,7 +51,7 @@ describe("Graph", () => {
         });
 
         it("should return true for connected graphs", () => {
-            
+
             let edges: [[string, string]] = [
                 ['a', 'b'],
                 ['b', 'c'],
