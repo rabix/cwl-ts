@@ -18,7 +18,12 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
     }
 
     serialize(): WorkflowStep {
-        return undefined;
+        return {
+            id: this.id,
+            in: this.in.map(i => i.serialize()),
+            out: this.out.map(o => o.serialize()),
+            run: this.run.serialize()
+        };
     }
 
     deserialize(step: WorkflowStep): void {
@@ -34,7 +39,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         ];
 
         this.id    = step.id;
-        this.doc   = step.doc;
+        this.description   = step.doc;
         this.label = step.label;
 
         if (typeof step.run === "string") {

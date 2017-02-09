@@ -2,8 +2,20 @@ import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {StepModel} from "./StepModel";
 import {OutputParameterTypeModel} from "./OutputParameterTypeModel";
 import {Plottable} from "./Plottable";
+import {Serializable} from "../interfaces/Serializable";
+import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 
-export class WorkflowStepOutputModel extends ValidationBase implements Plottable {
+export class WorkflowStepOutputModel extends ValidationBase implements Plottable, Serializable<any> {
+    customProps: any;
+
+    serialize(): any {
+        throw new UnimplementedMethodException("serialize");
+    }
+
+    deserialize(attr: any): void {
+        throw new UnimplementedMethodException("deserialize");
+    }
+
     isVisible = true;
 
     get connectionId(): string {

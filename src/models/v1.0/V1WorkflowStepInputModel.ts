@@ -29,7 +29,7 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
         };
 
         if (this.default) base.default = this.default;
-        if (this.source) base.source = this.source;
+        if (this.source.length) base.source = this.source;
 
         return base;
     }

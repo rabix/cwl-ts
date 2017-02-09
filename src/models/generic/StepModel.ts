@@ -8,14 +8,22 @@ import {ExpressionToolModel} from "./ExpressionToolModel";
 import {ProcessRequirementModel} from "../d2sb/ProcessRequirementModel";
 import {ScatterMethod} from "../../mappings/v1.0/ScatterMethod";
 import {Plottable} from "./Plottable";
+import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 
 export class StepModel extends ValidationBase implements Serializable<any>, Plottable {
-    id: string;
-    doc: string;
-    label: string;
-    run: WorkflowModel | CommandLineToolModel | ExpressionToolModel;
-    "in": WorkflowStepInputModel[];
-    out: WorkflowStepOutputModel[];
+    public id: string;
+    public description: string;
+    public label: string;
+    public run: WorkflowModel | CommandLineToolModel | ExpressionToolModel;
+    public "in": WorkflowStepInputModel[];
+
+    public get inAsMap(): {[key: string]: WorkflowStepInputModel} {
+        return this.in.reduce((acc, curr) => {
+            return {...acc, ... {[curr.id]: curr}};
+        }, {});
+    }
+
+    public out: WorkflowStepOutputModel[];
 
     isVisible = true;
 
@@ -27,9 +35,10 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
     customProps: any = {};
 
     serialize(): any {
-        return undefined;
+        throw new UnimplementedMethodException("serialize");
     }
 
     deserialize(attr: any): void {
+        throw new UnimplementedMethodException("deserialize");
     }
 }

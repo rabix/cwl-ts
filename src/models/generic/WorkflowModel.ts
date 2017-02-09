@@ -8,7 +8,7 @@ import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
 import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
 import {Graph} from "../helpers/Graph";
 
-export class WorkflowModel extends ValidationBase implements Serializable<any> {
+export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public steps: StepModel[] = [];
     public inputs: WorkflowInputParameterModel[] = [];
     public outputs: WorkflowOutputParameterModel[] = [];
