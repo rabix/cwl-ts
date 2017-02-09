@@ -31,8 +31,6 @@ export class WorkflowStepInputModel extends ValidationBase implements Serializab
 
     isExposed: boolean;
 
-    isInPorts: boolean;
-
     customProps: any = {};
 
     serialize(): any {

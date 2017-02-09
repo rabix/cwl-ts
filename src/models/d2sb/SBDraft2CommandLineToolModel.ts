@@ -5,10 +5,9 @@ import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {JobHelper} from "../helpers/JobHelper";
-import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
 import {Serializable} from "../interfaces/Serializable";
 import {ExpressionModel} from "./ExpressionModel";
-import {ValidationBase, Validatable, Validation} from "../helpers/validation";
+import {Validation} from "../helpers/validation";
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {DockerRequirementModel} from "./DockerRequirementModel";
@@ -25,8 +24,9 @@ import {ResourceRequirementModel} from "./ResourceRequirementModel";
 import {Observable, ReplaySubject} from "rxjs";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
+import {CommandLineToolModel} from "../generic/CommandLineToolModel";
 
-export class SBDraft2CommandLineToolModel extends ValidationBase implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
+export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
     public job: any;
     public jobInputs: any;
     public readonly 'class': string;

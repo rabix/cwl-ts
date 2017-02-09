@@ -11,6 +11,8 @@ import {InputParameter} from "../generic/InputParameter";
 import {OutputParameter} from "../generic/OutputParameter";
 
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
+    public "in": V1WorkflowStepInputModel[] = [];
+    public out: V1WorkflowStepOutputModel[] = [];
 
     constructor(step?, loc?: string) {
         super(loc);
@@ -20,7 +22,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
     serialize(): WorkflowStep {
         return {
             id: this.id,
-            in: this.in.map(i => i.serialize()),
+            "in": this.in.map(i => i.serialize()),
             out: this.out.map(o => o.serialize()),
             run: this.run.serialize()
         };

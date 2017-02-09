@@ -9,13 +9,12 @@ import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {Serializable} from "../interfaces/Serializable";
 import {ensureArray} from "../helpers/utils";
 
-
 export class V1CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter | CommandInputRecordField> {
     public id: string;
     public type: ParameterTypeModel;
     public inputBinding: CommandLineBinding;
     public label: string;
-    public description: string[];
+    public description: string;
     public secondaryFiles: string | Expression | Array<string | Expression>;
     public format: string | Array<string> | Expression;
     public streamable: boolean;
@@ -65,7 +64,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         this.type           = new ParameterTypeModel(attr.type, V1CommandInputParameterModel, `${this.loc}.type`);
         this.inputBinding   = attr.inputBinding;
         this.label          = attr.label;
-        this.description    = ensureArray(attr.doc);
+        this.description    = ensureArray(attr.doc).join('\n');
         this.secondaryFiles = (<CommandInputParameter> attr).secondaryFiles;
         this.format         = (<CommandInputParameter> attr).format;
         this.streamable     = (<CommandInputParameter> attr).streamable;
