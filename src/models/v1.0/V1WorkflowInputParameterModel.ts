@@ -12,13 +12,19 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
     deserialize(attr: InputParameter | RecordField) {
         this.id = (<InputParameter> attr).id || (<RecordField> attr).name;
+        this.isField = !!(<RecordField> attr).name;
         this.type = new ParameterTypeModel(attr.type, V1WorkflowInputParameterModel, `${this.loc}.type`);
     }
 
     serialize(): InputParameter | RecordField{
-        return {
-            id: this.id,
-            type: this.type.serialize()
+        const base: any = {};
+        base.type = this.type.serialize();
+        if (this.isField) {
+            base.name = this.id;
+        } else {
+            base.id = this.id;
         }
+
+        return base;
     }
 }

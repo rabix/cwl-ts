@@ -1,9 +1,9 @@
-import {CommandInputParameterModel} from "../d2sb";
+import {SBDraft2CommandInputParameterModel} from "../d2sb";
 import {CommandLineRunnable} from "../interfaces";
 
 export class JobHelper {
 
-    public static generateMockJobData(input: CommandInputParameterModel) {
+    public static generateMockJobData(input: SBDraft2CommandInputParameterModel) {
         const type = <any> input.type.type;
         const items = <any> input.type.items;
         const name: string = input.id;

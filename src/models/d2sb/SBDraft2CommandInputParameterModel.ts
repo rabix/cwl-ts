@@ -6,7 +6,7 @@ import {ValidationBase, Validation} from "../helpers/validation";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 
-export class CommandInputParameterModel extends ValidationBase implements Serializable<CommandInputParameter | CommandInputRecordField> {
+export class SBDraft2CommandInputParameterModel extends ValidationBase implements Serializable<CommandInputParameter | CommandInputRecordField> {
     /** unique identifier of input */
     public id: string;
     /** Human readable short name */
@@ -35,8 +35,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     }
 
     serialize(): CommandInputParameter | CommandInputRecordField {
-        let base: any = {};
-        base          = Object.assign({}, base, this.customProps);
+        let base: any = {... this.customProps};
 
         base.type = this.type.serialize();
 
@@ -87,7 +86,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
             this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
         }
 
-        this.type = new ParameterTypeModel(input.type, CommandInputParameterModel, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(input.type, SBDraft2CommandInputParameterModel, `${this.loc}.type`);
         this.type.setValidationCallback((err: Validation) => {
             this.updateValidity(err)
         });

@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {CommandLineParsers} from "./CommandLineParsers";
 import {ExpressionModel} from "../d2sb/ExpressionModel";
-import {CommandInputParameterModel} from "../d2sb/CommandInputParameterModel";
+import {SBDraft2CommandInputParameterModel} from "../d2sb/SBDraft2CommandInputParameterModel";
 
 describe("CommandLineParsers", () => {
     describe("streams", () => {
@@ -21,7 +21,7 @@ describe("CommandLineParsers", () => {
 
     describe("array", () => {
         it("should evaluate an array of files without valueFrom", (done) => {
-            const input = new CommandInputParameterModel({
+            const input = new SBDraft2CommandInputParameterModel({
                 "type": [
                     {
                         "type": "array",
@@ -56,7 +56,7 @@ describe("CommandLineParsers", () => {
 
     describe("primitive", () => {
         it("should evaluate a file input without valueFrom", (done) => {
-            const input = new CommandInputParameterModel({
+            const input = new SBDraft2CommandInputParameterModel({
                 "type": [
                     "null",
                     "File"

@@ -1,5 +1,5 @@
 export * from "./CommandArgumentModel";
-export * from "./CommandInputParameterModel";
+export * from "./SBDraft2CommandInputParameterModel";
 export * from "./CommandOutputParameterModel";
 export * from "./SBDraft2CommandLineToolModel";
 export * from "./CommandLineBindingModel";

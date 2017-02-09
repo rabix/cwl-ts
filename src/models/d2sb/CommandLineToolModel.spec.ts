@@ -1,6 +1,6 @@
 import {expect, should} from "chai";
 import {SBDraft2CommandLineToolModel} from "./SBDraft2CommandLineToolModel";
-import {CommandInputParameterModel} from "./CommandInputParameterModel";
+import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParameterModel";
 import * as BWAMemTool from "../../tests/apps/bwa-mem-tool";
 import * as BWAMemJob from "../../tests/apps/bwa-mem-job";
 import * as BamtoolsIndex from "../../tests/apps/bamtools-index-sbg";
@@ -27,7 +27,7 @@ describe("SBDraft2CommandLineToolModel d2sb", () => {
             expect(tool.class).to.equal('CommandLineTool');
         });
 
-        it("Should create CommandInputParameterModel from input fields", () => {
+        it("Should create SBDraft2CommandInputParameterModel from input fields", () => {
             let tool = new SBDraft2CommandLineToolModel("", {
                 baseCommand: 'grep',
                 inputs: [
@@ -38,7 +38,7 @@ describe("SBDraft2CommandLineToolModel d2sb", () => {
             });
 
             expect(tool.inputs).to.have.length(1);
-            expect(tool.inputs[0]).to.be.instanceOf(CommandInputParameterModel);
+            expect(tool.inputs[0]).to.be.instanceOf(SBDraft2CommandInputParameterModel);
         })
     });
 

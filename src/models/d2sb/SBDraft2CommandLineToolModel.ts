@@ -1,5 +1,5 @@
 import {CommandArgumentModel} from "./CommandArgumentModel";
-import {CommandInputParameterModel} from "./CommandInputParameterModel";
+import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParameterModel";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
@@ -32,9 +32,9 @@ export class SBDraft2CommandLineToolModel extends ValidationBase implements Comm
     public readonly 'class': string;
     public id: string;
 
-    public baseCommand: Array<ExpressionModel>         = [];
-    public inputs: Array<CommandInputParameterModel>   = [];
-    public outputs: Array<CommandOutputParameterModel> = [];
+    public baseCommand: Array<ExpressionModel>               = [];
+    public inputs: Array<SBDraft2CommandInputParameterModel> = [];
+    public outputs: Array<CommandOutputParameterModel>       = [];
 
     private commandLine = new ReplaySubject<CommandLinePart[]>(1);
 
@@ -104,8 +104,8 @@ export class SBDraft2CommandLineToolModel extends ValidationBase implements Comm
         }
     }
 
-    public addInput(input?: CommandInputParameterModel) {
-        input      = input || new CommandInputParameterModel();
+    public addInput(input?: SBDraft2CommandInputParameterModel) {
+        input      = input || new SBDraft2CommandInputParameterModel();
         input.loc  = `${this.loc}.inputs[${this.inputs.length}]`;
         input.job  = this.job;
         input.self = JobHelper.generateMockJobData(input);
@@ -119,7 +119,7 @@ export class SBDraft2CommandLineToolModel extends ValidationBase implements Comm
         return input;
     }
 
-    public removeInput(input: CommandInputParameterModel | number) {
+    public removeInput(input: SBDraft2CommandInputParameterModel | number) {
         if (typeof input === "number") {
             this.inputs.splice(input, 1);
         } else {
@@ -206,7 +206,7 @@ export class SBDraft2CommandLineToolModel extends ValidationBase implements Comm
         });
 
         const stdOutPromise = CommandLinePrepare.prepare(this.stdout, flatJobInputs, job, this.stdout.loc, "stdout");
-        const stdInPromise = CommandLinePrepare.prepare(this.stdin, flatJobInputs, job, this.stdin.loc, "stdin");
+        const stdInPromise  = CommandLinePrepare.prepare(this.stdin, flatJobInputs, job, this.stdin.loc, "stdin");
 
         return Promise.all([].concat(baseCmdPromise, inputPromise, stdOutPromise, stdInPromise)).then(parts => {
             return parts.filter(part => part !== null);
@@ -248,7 +248,7 @@ export class SBDraft2CommandLineToolModel extends ValidationBase implements Comm
         }
 
         base.cwlVersion = "sbg:draft-2";
-        base.class = "CommandLineTool";
+        base.class      = "CommandLineTool";
 
         // BASECOMMAND
         base.baseCommand = this.baseCommand
@@ -336,7 +336,7 @@ export class SBDraft2CommandLineToolModel extends ValidationBase implements Comm
         this.id = tool.id;
 
         tool.inputs.forEach((input, index) => {
-            this.addInput(new CommandInputParameterModel(input, `${this.loc}.inputs[${index}]`));
+            this.addInput(new SBDraft2CommandInputParameterModel(input, `${this.loc}.inputs[${index}]`));
         });
         tool.outputs.forEach((output, index) => {
             this.addOutput(new CommandOutputParameterModel(output, `${this.loc}.outputs[${index}]`))

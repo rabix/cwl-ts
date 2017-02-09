@@ -1,10 +1,10 @@
 import {expect} from "chai";
-import {CommandInputParameterModel} from "../d2sb/CommandInputParameterModel";
+import {SBDraft2CommandInputParameterModel} from "../d2sb/SBDraft2CommandInputParameterModel";
 import {JobHelper} from "./JobHelper";
 
 describe("JobHelper", () => {
     it("should return mock values for an array or records", () => {
-        const input = new CommandInputParameterModel({
+        const input = new SBDraft2CommandInputParameterModel({
             id: "1",
             type: {
                 type: "array",

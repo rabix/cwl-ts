@@ -9,6 +9,8 @@ export class WorkflowInputParameterModel extends ValidationBase implements Input
     type: InputParameterTypeModel;
     fileTypes?: string[];
 
+    isField: boolean;
+
     isVisible = true;
 
     get connectionId(): string {

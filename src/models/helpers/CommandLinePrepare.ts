@@ -1,4 +1,4 @@
-import {CommandInputParameterModel} from "../d2sb/CommandInputParameterModel";
+import {SBDraft2CommandInputParameterModel} from "../d2sb/SBDraft2CommandInputParameterModel";
 import {CommandLinePart, CommandType} from "./CommandLinePart";
 import {CommandLineParsers} from "./CommandLineParsers";
 import {CommandArgumentModel} from "../d2sb/CommandArgumentModel";
@@ -13,7 +13,7 @@ export class CommandLinePrepare {
             inputType === "nullValue";
         }
 
-        if (input instanceof CommandInputParameterModel) {
+        if (input instanceof SBDraft2CommandInputParameterModel) {
             const value = flatJobInputs[input.id] || null;
             cmdType = "input";
 
@@ -47,9 +47,9 @@ export class CommandLinePrepare {
         }, cmdType, loc);
     };
 
-    static flattenInputsAndArgs(inputs: Array<CommandInputParameterModel | CommandArgumentModel>): Array<CommandInputParameterModel | CommandArgumentModel> {
+    static flattenInputsAndArgs(inputs: Array<SBDraft2CommandInputParameterModel | CommandArgumentModel>): Array<SBDraft2CommandInputParameterModel | CommandArgumentModel> {
         return inputs.filter(input => {
-            if (input instanceof CommandInputParameterModel) {
+            if (input instanceof SBDraft2CommandInputParameterModel) {
                 return !!input.inputBinding;
             }
             return true;
@@ -65,7 +65,7 @@ export class CommandLinePrepare {
                 return ~~c1.pos - ~~c2.pos || c1.id.localeCompare(c2.id);
             };
 
-            if (input instanceof CommandInputParameterModel) {
+            if (input instanceof SBDraft2CommandInputParameterModel) {
                 if (input.type.fields) {
                     return acc.concat(input, ...CommandLinePrepare.flattenInputsAndArgs(input.type.fields).sort(sortFn));
                 }
