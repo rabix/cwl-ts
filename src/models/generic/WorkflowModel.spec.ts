@@ -3,6 +3,7 @@ import {WorkflowFactory} from "./WorkflowFactory";
 import * as FirstWF from "../../tests/apps/first-workflow";
 import * as DisconnectedFirstWF from "../../tests/apps/disconnected-first-workflow";
 import * as CyclicalWF from "../../tests/apps/cyclical-first-wf";
+import * as OneStepWF from "../../tests/apps/one-step-wf";
 
 
 describe("WorkflowModel", () => {
@@ -69,4 +70,24 @@ describe("WorkflowModel", () => {
             expect(g.hasCycles()).to.be.false;
         });
     });
+
+    describe("connections", () => {
+        it("should distinguish between visible and invisible connections", () => {
+            const wf = WorkflowFactory.from(OneStepWF.default);
+
+            expect(wf.connections).to.have.length(5);
+            expect(wf.connections.filter(con => con.isVisible)).to.have.lengthOf(2);
+        });
+
+        it("should not show connections to steps as visible", () => {
+            const wf = WorkflowFactory.from(OneStepWF.default);
+
+            const visibleConn = wf.connections.filter(con => con.isVisible);
+            const sources = visibleConn.map(edge => edge.source.type);
+            const destinations = visibleConn.map(edge => edge.destination.type);
+
+            expect(sources).to.not.contain("Step");
+            expect(destinations).to.not.contain("Step");
+        });
+    })
 });
