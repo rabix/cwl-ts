@@ -4,7 +4,7 @@ import {InputParameterTypeModel} from "./InputParameterTypeModel";
 import {InputParameter} from "./InputParameter";
 import {Plottable} from "./Plottable";
 
-export class WorkflowInputParameterModel extends ValidationBase implements InputParameter, Serializable<any>, Plottable{
+export class WorkflowInputParameterModel extends ValidationBase implements InputParameter, Serializable<any>, Plottable {
     id: string;
     type: InputParameterTypeModel;
     fileTypes?: string[];

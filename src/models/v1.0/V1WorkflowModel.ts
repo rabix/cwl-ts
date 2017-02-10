@@ -11,9 +11,12 @@ import {InputParameter} from "../../mappings/v1.0/InputParameter";
 import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
 import {EdgeNode} from "../helpers/Graph";
+import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
+
+    public cwlVersion: CWLVersion =  "v1.0";
 
     public steps: V1StepModel[] = [];
 

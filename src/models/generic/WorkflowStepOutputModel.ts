@@ -4,6 +4,7 @@ import {OutputParameterTypeModel} from "./OutputParameterTypeModel";
 import {Plottable} from "./Plottable";
 import {Serializable} from "../interfaces/Serializable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
+import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 
 export class WorkflowStepOutputModel extends ValidationBase implements Plottable, Serializable<any> {
     customProps: any;
@@ -19,7 +20,7 @@ export class WorkflowStepOutputModel extends ValidationBase implements Plottable
     isVisible = true;
 
     get connectionId(): string {
-        return `${this.parentStep.id}/${this.id}`;
+        return `${STEP_OUTPUT_CONNECTION_PREFIX}${this.parentStep.id}/${this.id}`;
     }
 
     type?: OutputParameterTypeModel;

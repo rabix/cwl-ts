@@ -125,4 +125,19 @@ describe("Graph", () => {
         });
     });
 
+    describe("hasCycles", () => {
+        it("should detect cycle in graph", () => {
+            const edges: [[string, string]] = [
+                ['a', 'b'],
+                ['b', 'c'],
+                ['d', 'e'],
+                ['e', 'c'],
+                ['c', 'a']
+            ];
+
+            const g = new Graph(null, edges, VertexMissing.CreateVertex);
+            expect(g.hasCycles()).to.be.true;
+        })
+    })
+
 });

@@ -6,6 +6,7 @@ import {StepModel} from "./StepModel";
 import {InputParameterTypeModel} from "./InputParameterTypeModel";
 import {Plottable} from "./Plottable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
+import {STEP_INPUT_CONNECTION_PREFIX} from "../helpers/constants";
 
 export class WorkflowStepInputModel extends ValidationBase implements Serializable<any>, Plottable {
     id: string;
@@ -23,8 +24,11 @@ export class WorkflowStepInputModel extends ValidationBase implements Serializab
 
     parentStep: StepModel;
 
+    /**
+     * The connectionId used within the graph, prefix with "in/" because it refers to the
+     */
     get connectionId(): string {
-        return `${this.parentStep.id}/${this.id}`;
+        return `${STEP_INPUT_CONNECTION_PREFIX}${this.parentStep.id}/${this.id}`;
     }
 
     isVisible: boolean;

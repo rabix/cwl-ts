@@ -1,15 +1,19 @@
 import {WorkflowModel} from "../generic/WorkflowModel";
 import {Workflow} from "../../mappings/d2sb/Workflow";
-import {StepModel} from "../generic/StepModel";
-import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
-import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
+import {SBDraft2StepModel} from "./SBDraft2StepModel";
+import {SBDraft2WorkflowInputParameterModel} from "./SBDraft2WorkflowInputParameterModel";
+import {SBDraft2WorkflowOutputParameterModel} from "./SBDraft2WorkflowOutputParameterModel";
 
 export class SBDraft2WorkflowModel extends WorkflowModel {
-    public steps: StepModel[];
+    public id: string;
 
-    public inputs: WorkflowInputParameterModel[] = [];
+    public cwlVersion = "sbg:draft-2";
 
-    public outputs: WorkflowOutputParameterModel[] = [];
+    public steps: SBDraft2StepModel[];
+
+    public inputs: SBDraft2WorkflowInputParameterModel[] = [];
+
+    public outputs: SBDraft2WorkflowOutputParameterModel[] = [];
 
     constructor(workflow: Workflow, loc: string) {
         super(loc);

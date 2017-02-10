@@ -29,8 +29,9 @@ import {CommandLineToolModel} from "../generic/CommandLineToolModel";
 export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
     public job: any;
     public jobInputs: any;
-    public readonly 'class': string;
     public id: string;
+
+    public cwlVersion = "sbg:draft-2";
 
     public baseCommand: Array<ExpressionModel>               = [];
     public inputs: Array<SBDraft2CommandInputParameterModel> = [];

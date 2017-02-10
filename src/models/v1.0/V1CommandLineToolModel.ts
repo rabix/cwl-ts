@@ -1,4 +1,4 @@
-import {CommandLineTool, CWLVersion, Expression, ProcessRequirement} from "../../mappings/v1.0/";
+import {CommandLineTool, Expression, ProcessRequirement} from "../../mappings/v1.0/";
 import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
 import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
 import {CommandArgumentModel} from "./CommandArgumentModel";
@@ -7,6 +7,30 @@ import {ensureArray} from "../helpers/utils";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
+    public cwlVersion = "v1.0";
+
+    inputs: Array<V1CommandInputParameterModel>;
+    outputs: Array<V1CommandOutputParameterModel>;
+
+    id: string;
+    requirements: Array<ProcessRequirement>;
+
+    hints: Array<any>;
+    label: string;
+    description: string;
+
+    'class': string = 'CommandLineTool';
+    baseCommand: Array<V1ExpressionModel>;
+
+    arguments: Array<CommandArgumentModel>;
+    stdin: string|Expression;
+    stdout: string|Expression;
+    stderr: string|Expression;
+
+    successCodes: Array<number>;
+    temporaryFailCodes: Array<number>;
+    permanentFailCodes: Array<number>;
+
     constructor(json: any, loc?: string) {
         super(loc);
 
@@ -30,29 +54,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.temporaryFailCodes = json.temporaryFailCodes;
         this.permanentFailCodes = json.permanentFailCodes;
     }
-
-    inputs: Array<V1CommandInputParameterModel>;
-    outputs: Array<V1CommandOutputParameterModel>;
-
-    id: string;
-    requirements: Array<ProcessRequirement>;
-
-    hints: Array<any>;
-    label: string;
-    description: string;
-    cwlVersion: CWLVersion;
-
-    'class': string = 'CommandLineTool';
-    baseCommand: Array<V1ExpressionModel>;
-
-    arguments: Array<CommandArgumentModel>;
-    stdin: string|Expression;
-    stdout: string|Expression;
-    stderr: string|Expression;
-
-    successCodes: Array<number>;
-    temporaryFailCodes: Array<number>;
-    permanentFailCodes: Array<number>;
 
     // generateCommandLine(): string {
     //     let parts = this.generateCommandLineParts();

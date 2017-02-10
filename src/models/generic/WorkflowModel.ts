@@ -7,8 +7,14 @@ import {Serializable} from "../interfaces/Serializable";
 import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
 import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
 import {Edge, Graph} from "../helpers/Graph";
+import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
+import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
+import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
+    public id: string;
+    public cwlVersion: string | CWLVersion;
+
     public steps: StepModel[]                      = [];
     public inputs: WorkflowInputParameterModel[]   = [];
     public outputs: WorkflowOutputParameterModel[] = [];
@@ -28,12 +34,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     }
 
     serialize(): any {
-        console.warn("versioned class must override serialize() method");
-        return undefined;
+        throw new UnimplementedMethodException("serialize");
     }
 
     deserialize(attr: any): void {
-        console.warn("versioned class must override deserialize(attr: any) method");
+        throw new UnimplementedMethodException("deserialize");
     }
 
     public exposePort(port: WorkflowStepInputModel) {
@@ -47,9 +52,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             if (!this.graph) this.graph = this.constructGraph();
             const isConnected = this.graph.isConnected();
 
-            console.log("isConnected", isConnected);
             if (!isConnected) {
-                console.log(this.graph);
                 this.validation.errors.push({
                     message: "Workflow is not connected",
                     loc: this.loc
@@ -72,9 +75,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             if (!this.graph) this.graph = this.constructGraph();
             const hasCycles = this.graph.hasCycles();
 
-            console.log("hasCycles", hasCycles);
             if (hasCycles) {
-                console.log(this.graph);
                 this.validation.errors.push({
                     message: "Workflow contains cycles",
                     loc: this.loc
@@ -145,24 +146,41 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             if (dest.source) {
                 if (Array.isArray(dest.source)) {
                     dest.source.forEach(s => {
+                        // detect if source is a port of an input, if it is a port then add the prefix
+                        // to form the connectionId
+                        const prefix = s.indexOf("/") !== -1 ? STEP_OUTPUT_CONNECTION_PREFIX : "";
+
+                        const sourceNode = graph.getVertexData(prefix + s);
+
                         graph.addEdge({
-                            id: s,
-                            type: this.getNodeType(graph.getVertexData(s))
-                        }, destination)
+                                id: sourceNode.connectionId,
+                                type: this.getNodeType(sourceNode)
+                            },
+                            destination,
+                            sourceNode.isVisible || dest.isVisible)
                     });
                 } else {
+                    // detect if source is a port of an input, if it is a port then add the prefix
+                    // to form the connectionId
+                    const prefix = dest.source.indexOf("/") !== -1 ? STEP_OUTPUT_CONNECTION_PREFIX : "";
+
+                    const sourceNode = graph.getVertexData(prefix + dest.source);
+
                     graph.addEdge({
-                        id: dest.source,
-                        type: this.getNodeType(graph.getVertexData(dest.source))
-                    }, destination);
+                            id: sourceNode.connectionId,
+                            type: this.getNodeType(sourceNode)
+                        },
+                        destination,
+                        sourceNode.isVisible || dest.isVisible);
                 }
             }
 
             if (dest instanceof WorkflowStepInputModel) {
                 graph.addEdge(destination, {
-                    id: dest.parentStep.id,
-                    type: "Step"
-                }, false);
+                        id: dest.parentStep.id,
+                        type: "Step"
+                    },
+                    false);
             }
         });
 

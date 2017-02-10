@@ -214,7 +214,7 @@ export class Graph {
             this.topSort();
             return false;
         } catch (ex) {
-            return true;
+            return ex === "Graph has cycles";
         }
     }
 
