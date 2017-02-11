@@ -19,11 +19,27 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     customProps: any = {};
 
-    serialize(): any {
-        throw new UnimplementedMethodException("serialize");
+    public validate(): void {
+        new UnimplementedMethodException("validate");
     }
 
-    deserialize(attr: any): void {
-        throw new UnimplementedMethodException("deserialize");
+    public getCommandLineParts() {
+        new UnimplementedMethodException("getCommandLineParts");
+    }
+
+    public updateCommandLine(): void {
+        new UnimplementedMethodException("updateCommandLine");
+    }
+
+    public setJob(job: any): void {
+        new UnimplementedMethodException("setJob");
+    }
+
+    public serialize(): any {
+        new UnimplementedMethodException("serialize");
+    }
+
+    public deserialize(attr: any): void {
+        new UnimplementedMethodException("deserialize");
     }
 }

@@ -6,11 +6,11 @@ export abstract class ExpressionToolModel implements Serializable<any> {
     customProps: any = {};
 
     serialize(): any {
-        throw new UnimplementedMethodException("serialize");
+        new UnimplementedMethodException("serialize");
     }
 
     deserialize(attr: any): void {
-        throw new UnimplementedMethodException("deserialize");
+        new UnimplementedMethodException("deserialize");
     }
     inputs: InputParameter[];
     outputs: any[];

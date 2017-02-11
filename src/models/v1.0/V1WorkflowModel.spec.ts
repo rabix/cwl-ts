@@ -22,11 +22,11 @@ describe("V1WorkflowModel", () => {
        it("should set port to visible", () => {
            const wf = WorkflowFactory.from(OneStepWf.default);
 
-           expect(wf.steps[0].in[0].isVisible).to.be.false;
+           expect(wf.steps[0].in[1].isVisible).to.be.false;
 
-           wf.includePort(wf.steps[0].in[0]);
+           wf.includePort(wf.steps[0].in[1]);
 
-           expect(wf.steps[0].in[0].isVisible).to.be.true;
+           expect(wf.steps[0].in[1].isVisible).to.be.true;
        });
    })
 });

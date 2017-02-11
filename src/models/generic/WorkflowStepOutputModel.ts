@@ -10,11 +10,11 @@ export class WorkflowStepOutputModel extends ValidationBase implements Plottable
     customProps: any;
 
     serialize(): any {
-        throw new UnimplementedMethodException("serialize");
+        new UnimplementedMethodException("serialize");
     }
 
     deserialize(attr: any): void {
-        throw new UnimplementedMethodException("deserialize");
+        new UnimplementedMethodException("deserialize");
     }
 
     isVisible = true;

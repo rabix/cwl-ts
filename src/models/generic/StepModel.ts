@@ -35,10 +35,10 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
     customProps: any = {};
 
     serialize(): any {
-        throw new UnimplementedMethodException("serialize");
+        new UnimplementedMethodException("serialize");
     }
 
     deserialize(attr: any): void {
-        throw new UnimplementedMethodException("deserialize");
+        new UnimplementedMethodException("deserialize");
     }
 }

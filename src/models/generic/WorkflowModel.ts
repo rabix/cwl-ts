@@ -1,12 +1,11 @@
 import {ValidationBase} from "../helpers/validation/ValidationBase";
-
 import {StepModel} from "./StepModel";
 import {WorkflowInputParameterModel} from "./WorkflowInputParameterModel";
 import {WorkflowOutputParameterModel} from "./WorkflowOutputParameterModel";
 import {Serializable} from "../interfaces/Serializable";
 import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
 import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
-import {Edge, Graph} from "../helpers/Graph";
+import {Edge, EdgeNode, Graph} from "../helpers/Graph";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
@@ -34,11 +33,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     }
 
     serialize(): any {
-        throw new UnimplementedMethodException("serialize");
+        new UnimplementedMethodException("serialize");
     }
 
     deserialize(attr: any): void {
-        throw new UnimplementedMethodException("deserialize");
+        new UnimplementedMethodException("deserialize");
     }
 
     public exposePort(port: WorkflowStepInputModel) {
@@ -113,6 +112,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const sources      = this.gatherSources();
         const destinations = this.gatherDestinations();
 
+        // Gather all possible sources and destinations
         const nodes: Iterable<any> = [].concat(sources)
             .concat(destinations)
             .concat(this.steps)
@@ -120,9 +120,14 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 return [item.connectionId || item.id, item];
             });
 
+        // Construct a new Graph with nodes first, then add edges
         const graph = new Graph(nodes);
 
+        // Sources don't have information about their destinations,
+        // so we don't look through them for connections
         sources.forEach(source => {
+            // however, if the source comes from a step, we create an invisible connection between
+            // the step and its output
             if (source instanceof WorkflowStepOutputModel) {
                 graph.addEdge({
                         id: source.parentStep.id,
@@ -137,44 +142,60 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             }
         });
 
+        /**
+         * Helper function to connect source to destination
+         */
+        const connectSource = (source: string, dest: WorkflowOutputParameterModel | WorkflowStepInputModel, destNode: EdgeNode) => {
+            // detect if source is a port of an input, if it is a port then add the prefix
+            // to form the connectionId
+            const prefix = source.indexOf("/") !== -1 ? STEP_OUTPUT_CONNECTION_PREFIX : "";
+
+            // get source node by connectionId from graph's vertices
+            const sourceModel = graph.getVertexData(prefix + source);
+
+            // all workflow inputs are visible by default and should be shown
+            // except for those which are "exposed", these are explicitly hidden
+            const isVisible = !(sourceModel instanceof WorkflowInputParameterModel && !sourceModel.isVisible);
+
+            // if workflow input isn't visible, its destination and connection
+            // shouldn't be visible either
+            dest.isVisible = isVisible;
+
+            // add a connection between this destination and its source.
+            // visibility depends on both nodes, for ports that were "exposed" for example
+            // and are connected to nodes which are invisible
+            graph.addEdge({
+                    id: sourceModel.connectionId,
+                    type: this.getNodeType(sourceModel)
+                },
+                destNode,
+                isVisible)
+        };
+
+        // Destinations contain all information about connections in .source property,
+        // we loop through them and create the appropriate type of connection
         destinations.forEach(dest => {
+            // create destination EdgeNode
             const destination = {
                 id: dest.connectionId,
                 type: this.getNodeType(dest)
             };
 
+            // No point in connecting if there's no source
+            // @todo source should always be an array (just in case), change this check to dest.source.length
             if (dest.source) {
+                // if source is an array, loop through all sources for this destination
                 if (Array.isArray(dest.source)) {
                     dest.source.forEach(s => {
-                        // detect if source is a port of an input, if it is a port then add the prefix
-                        // to form the connectionId
-                        const prefix = s.indexOf("/") !== -1 ? STEP_OUTPUT_CONNECTION_PREFIX : "";
-
-                        const sourceNode = graph.getVertexData(prefix + s);
-
-                        graph.addEdge({
-                                id: sourceNode.connectionId,
-                                type: this.getNodeType(sourceNode)
-                            },
-                            destination,
-                            sourceNode.isVisible || dest.isVisible)
+                        connectSource(s, dest, destination);
                     });
                 } else {
-                    // detect if source is a port of an input, if it is a port then add the prefix
-                    // to form the connectionId
-                    const prefix = dest.source.indexOf("/") !== -1 ? STEP_OUTPUT_CONNECTION_PREFIX : "";
-
-                    const sourceNode = graph.getVertexData(prefix + dest.source);
-
-                    graph.addEdge({
-                            id: sourceNode.connectionId,
-                            type: this.getNodeType(sourceNode)
-                        },
-                        destination,
-                        sourceNode.isVisible || dest.isVisible);
+                    connectSource(dest.source, dest, destination);
                 }
             }
 
+            // If the destination is a step input, regardless of its connections, it must
+            // be connected with its parent step, this connection is invisible
             if (dest instanceof WorkflowStepInputModel) {
                 graph.addEdge(destination, {
                         id: dest.parentStep.id,
@@ -187,6 +208,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return graph;
     }
 
+    /**
+     * Returns type of node to be added to graph, for canvas rendering
+     */
     private getNodeType(node): string {
         if (node instanceof WorkflowInputParameterModel) {
             return "WorkflowInput"
@@ -201,5 +225,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
     }
 
+
+    public validate() {
+        new UnimplementedMethodException("validate");
+    }
     customProps: any = {};
 }

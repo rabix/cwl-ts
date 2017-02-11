@@ -2,7 +2,8 @@ export enum VertexMissing {CreateVertex, IgnoreEdge, AddEdge, Error}
 
 export interface EdgeNode {
     id: string,
-    type?: string
+    type?: string,
+    topSortIndex?: number,
 }
 
 export interface Edge {
@@ -101,29 +102,42 @@ export class Graph {
             return [this.vertices.keys().next().value];
         }
 
+        // initialize set of all nodes
         let topNodesInit:Set<string> = new Set(this.vertices.keys());
+        // initialize set of all edges
         let unusedEdges:Set<Edge>  = new Set(this.edges.values());
         let sorted       = [];
 
+        // go through edges, remove nodes which are destinations (meaning they have incoming connections)
         for (let e of Array.from(unusedEdges)) {
             topNodesInit.delete(e.destination.id);
         }
 
+        // create an array of strings from first nodes
         let topNodes:string[] = Array.from(topNodesInit);
 
+        // for each of the first nodes, go through tree
         while (topNodes.length > 0) {
+            // remove node from list and add it to sorted nodes
             let n = topNodes.shift();
             sorted.push(n);
+
+            // for each remaining edge check if it originates from this starting node
             for (let e of Array.from(unusedEdges)) {
                 if (e.source.id == n) {
+                    // delete the edge as used
                     unusedEdges.delete(e);
+                    // if the destination node of this edge has no other sources
+                    // (no edges contain it as a destination)
                     if (!this.hasIncoming(e.destination.id, unusedEdges)) {
+                        // add it as a new starting node
                         topNodes.push(e.destination.id);
                     }
                 }
             }
         }
 
+        // leftover edges are back-edges indicating cycles
         if (unusedEdges.size > 0) {
             throw "Graph has cycles";
         }

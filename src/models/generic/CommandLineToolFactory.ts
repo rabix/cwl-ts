@@ -18,7 +18,7 @@ export class CommandLineToolFactory {
                     return new SBDraft2CommandLineToolModel(loc, tool as SBDraft2CommandLineTool);
                 // default:
                 //     //@todo should default to draft-2 because that was the last draft that didn't require cwlVersion
-                //     console.warn("Unsupported CWL version", workflow.cwlVersion);
+                //     console.warn("Unsupported CWL version", tool.cwlVersion);
             }
         }
 

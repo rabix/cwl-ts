@@ -1,5 +1,5 @@
-export class UnimplementedMethodException extends Error {
+export class UnimplementedMethodException {
     constructor(method: string){
-        super(`Expected child class to implement ${method}.`);
+        console.error(`Expected child class to implement ${method}.`);
     }
 }

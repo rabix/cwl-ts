@@ -6,12 +6,6 @@ import {ensureArray} from "../helpers/utils";
 
 export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements Serializable<WorkflowStepInput> {
 
-    /**
-     * An in port is "exposed" when it isn't visible but has a workflow input to which it is solely connected
-     */
-    get isExposed() {
-        return this.source.length === 1 && !this.isVisible;
-    }
 
     /**
      * Should in port be shown on the canvas
