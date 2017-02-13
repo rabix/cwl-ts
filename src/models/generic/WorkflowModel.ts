@@ -46,6 +46,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     public includePort(port: WorkflowStepInputModel) {
     }
 
+    public clearPort(port: WorkflowStepInputModel) {
+    }
+
     public isConnected(): boolean {
         try {
             if (!this.graph) this.graph = this.constructGraph();

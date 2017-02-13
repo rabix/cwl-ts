@@ -18,7 +18,7 @@ export class WorkflowStepInputModel extends ValidationBase implements Serializab
     type?: InputParameterTypeModel;
     fileTypes?: string[];
 
-    constructor(input?: any, loc?: string){
+    constructor(loc?: string){
         super(loc);
     }
 
@@ -55,5 +55,4 @@ export class WorkflowStepInputModel extends ValidationBase implements Serializab
     deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize");
     }
-
 }

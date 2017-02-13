@@ -5,6 +5,7 @@ import {Validation} from "../helpers/validation/Validation";
 import {CommandOutputRecordField} from "../../mappings/d2sb/CommandOutputRecordField";
 import {CommandOutputParameterModel as GenericCommandOutputParameterModel} from "../generic/CommandOutputParameterModel"
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+import {spreadSelectProps} from "../helpers/utils";
 
 export class CommandOutputParameterModel extends GenericCommandOutputParameterModel implements Serializable<CommandOutputParameter | CommandOutputRecordField> {
 
@@ -102,11 +103,7 @@ export class CommandOutputParameterModel extends GenericCommandOutputParameterMo
         this.type = new ParameterTypeModel(attr.type, CommandOutputParameterModel, `${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));
 
-        Object.keys(attr).forEach(key => {
-            if (serializedAttr.indexOf(key) === -1) {
-                this.customProps[key] = attr[key];
-            }
-        });
+        spreadSelectProps(attr, this.customProps, serializedAttr);
     }
 
     validate(): Validation {

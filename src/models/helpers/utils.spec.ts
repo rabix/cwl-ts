@@ -1,5 +1,5 @@
 import {expect} from "chai";
-import {ensureArray, checkMapValueType, incrementString} from "./utils";
+import {ensureArray, checkMapValueType, incrementString, spreadSelectProps} from "./utils";
 
 describe("ensureArray", () => {
     it("should return an array from a map of objects", () => {
@@ -142,4 +142,32 @@ describe("incrementString", () => {
     it("should add _1 if string doesn't end in a number", () => {
         expect(incrementString("test")).to.equal("test_1");
     })
+});
+
+describe("spreadSelectProps", () => {
+   it("should transfer properties to new object", () => {
+       let dest = {a: 1, b: 2};
+       let source = {c: 4, d: 10};
+
+       spreadSelectProps(source, dest, []);
+
+       expect(dest).to.haveOwnProperty("a");
+       expect(dest).to.haveOwnProperty("b");
+       expect(dest).to.haveOwnProperty("c");
+       expect(dest).to.haveOwnProperty("d");
+   });
+
+    it("should transfer only unenumerated properties to new object", () => {
+        let dest = {a: 1, b: 2};
+        let source = {c: 4, d: 10, b: 33};
+
+        spreadSelectProps(source, dest, ["d", "b"]);
+
+        expect(dest).to.haveOwnProperty("a");
+        expect(dest).to.haveOwnProperty("b");
+        expect(dest).to.haveOwnProperty("c");
+        expect(dest).to.not.haveOwnProperty("d");
+
+        expect(dest.b).to.equal(2);
+    });
 });

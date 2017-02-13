@@ -7,7 +7,7 @@ import {
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {Serializable} from "../interfaces/Serializable";
-import {ensureArray} from "../helpers/utils";
+import {ensureArray, spreadSelectProps} from "../helpers/utils";
 
 export class V1CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter | CommandInputRecordField> {
     public id: string;
@@ -69,10 +69,6 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         this.format         = (<CommandInputParameter> attr).format;
         this.streamable     = (<CommandInputParameter> attr).streamable;
 
-        Object.keys(attr).forEach(key => {
-            if (serializedKeys.indexOf(key) === -1) {
-                this.customProps[key] = attr[key];
-            }
-        });
+        spreadSelectProps(attr, this.customProps, serializedKeys);
     }
 }

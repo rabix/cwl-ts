@@ -6,6 +6,7 @@ import {Validation} from "../helpers/validation";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
+import {spreadSelectProps} from "../helpers/utils";
 
 export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter | CommandInputRecordField> {
     /** unique identifier of input */
@@ -93,11 +94,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         });
 
         // populates object with all custom attributes not covered in model
-        Object.keys(input).forEach(key => {
-            if (serializedAttr.indexOf(key) === -1) {
-                this.customProps[key] = input[key];
-            }
-        });
+        spreadSelectProps(input, this.customProps, serializedAttr);
     }
 
     public updateInputBinding(binding: CommandLineBindingModel|CommandLineBinding) {

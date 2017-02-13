@@ -84,7 +84,12 @@ export class Graph {
         });
     }
 
-    removeEdge(edge: Edge): boolean {
+    removeEdge(edge: Edge | [string, string]): boolean {
+        if (Array.isArray(edge)) {
+            return this.edges.delete(Array.from(this.edges.values()).find(e => {
+                return e.source.id === edge[0] && e.destination.id === edge[1];
+            }));
+        }
         return this.edges.delete(edge);
     }
 
@@ -145,7 +150,16 @@ export class Graph {
         return sorted;
     }
 
-    private hasIncoming(vertex: string, edges: Set<Edge>): boolean {
+    public hasOutgoing(vertex: string, edges: Set<Edge> = this.edges): boolean {
+        for (let e of Array.from(edges)) {
+            if (e.source.id === vertex) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public hasIncoming(vertex: string, edges: Set<Edge> = this.edges): boolean {
         for (let e of Array.from(edges)) {
             if (e.destination.id == vertex) {
                 return true;

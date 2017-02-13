@@ -2,6 +2,7 @@ import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import { DockerRequirementClass} from "../../mappings/d2sb/DockerRequirement";
 import {Serializable} from "../interfaces/Serializable";
 import {DockerRequirement} from "../../mappings/d2sb/DockerRequirement";
+import {spreadSelectProps} from "../helpers/utils";
 
 export class DockerRequirementModel extends ProcessRequirementModel implements DockerRequirement, Serializable<DockerRequirement> {
     public class: DockerRequirementClass = "DockerRequirement";
@@ -42,11 +43,7 @@ export class DockerRequirementModel extends ProcessRequirementModel implements D
             this[key] = attr[key];
         });
 
-        Object.keys(attr).forEach(key => {
-            if (this.serializedKeys.indexOf(key) === -1) {
-                this.customProps[key] = attr[key];
-            }
-        });
 
+        spreadSelectProps(attr, this.customProps, this.serializedKeys);
     }
 }

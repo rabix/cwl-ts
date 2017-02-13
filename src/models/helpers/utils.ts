@@ -79,3 +79,15 @@ export const incrementString = (str:string): string => {
     if(replaced === str) return str + "_1";
     return replaced;
 };
+
+export const spreadAllProps = (sourceObj: Object, destObj: Object): void => {
+    destObj = {... destObj, ...sourceObj};
+};
+
+export const spreadSelectProps = (sourceObj: Object, destObj: Object, keys: string[]): void => {
+    Object.keys(sourceObj).forEach(key => {
+        if (keys.indexOf(key) === -1) {
+            destObj[key] = sourceObj[key];
+        }
+    });
+};

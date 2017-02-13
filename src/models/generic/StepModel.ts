@@ -16,6 +16,8 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
     public label: string;
     public run: WorkflowModel | CommandLineToolModel | ExpressionToolModel;
     public "in": WorkflowStepInputModel[];
+    public out: WorkflowStepOutputModel[];
+    isVisible = true;
 
     public get inAsMap(): {[key: string]: WorkflowStepInputModel} {
         return this.in.reduce((acc, curr) => {
@@ -23,14 +25,11 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
         }, {});
     }
 
-    public out: WorkflowStepOutputModel[];
-
-    isVisible = true;
-
     requirements?: ProcessRequirementModel[];
     hints?: any[];
     scatter?: string | string[];
     scatterMethod?: ScatterMethod;
+
 
     customProps: any = {};
 

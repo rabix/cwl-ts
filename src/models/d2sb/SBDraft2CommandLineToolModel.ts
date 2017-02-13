@@ -25,6 +25,7 @@ import {Observable, ReplaySubject} from "rxjs";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
+import {spreadSelectProps} from "../helpers/utils";
 
 export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
     public job: any;
@@ -398,11 +399,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.jobInputs = this.job.inputs || this.job;
 
         // populates object with all custom attributes not covered in model
-        Object.keys(tool).forEach(key => {
-            if (serializedAttr.indexOf(key) === -1) {
-                this.customProps[key] = tool[key];
-            }
-        });
+        spreadSelectProps(tool, this.customProps, serializedAttr);
     }
 
     private createReq(req: ProcessRequirement, loc: string, hint?: boolean) {

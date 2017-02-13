@@ -9,6 +9,7 @@ import {CommandOutputParameterType as V1CommandOutputParameterType} from "../../
 import {CommandInputParameterType as V1CommandInputParameterType} from "../../mappings/v1.0/CommandInputParameter";
 
 import {Validation} from "../helpers/validation/Validation";
+import {spreadSelectProps} from "../helpers/utils";
 
 export type PrimitiveParameterType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes" | "map";
 
@@ -189,12 +190,8 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         TypeResolver.resolveType(attr, this);
 
         // populates object with all custom attributes not covered in model
-        if (typeof attr === "object") {
-            Object.keys(attr).forEach(key => {
-                if (serializedKeys.indexOf(key) === -1) {
-                    this.customProps[key] = attr[key];
-                }
-            });
+        if (typeof attr === "object" && attr !== null) {
+            spreadSelectProps(attr, this.customProps, serializedKeys);
         }
 
         if (this.fields) {

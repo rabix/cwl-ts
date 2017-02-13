@@ -3,6 +3,7 @@ import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
 import {ExpressionModel} from "./ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
+import {spreadSelectProps} from "../helpers/utils";
 
 export class FileDefModel extends ValidationBase implements Serializable<FileDef>{
     public filename = new ExpressionModel(`${this.loc}.filename`);
@@ -38,10 +39,6 @@ export class FileDefModel extends ValidationBase implements Serializable<FileDef
             this.fileContent.setValidationCallback(err => this.updateValidity(err));
         }
 
-        Object.keys(attr).forEach(key => {
-            if (key !== "filename" && key !== "fileContent"){
-                this.customProps[key] = attr[key];
-            }
-        })
+        spreadSelectProps(attr, this.customProps, ["filename", "fileContent"]);
     }
 }

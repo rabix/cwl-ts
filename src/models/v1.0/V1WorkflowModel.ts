@@ -6,12 +6,13 @@ import {Workflow} from "../../mappings/v1.0/Workflow";
 import {Serializable} from "../interfaces/Serializable";
 import {RequirementBaseModel} from "../d2sb/RequirementBaseModel";
 import {Validation} from "../helpers/validation/Validation";
-import {ensureArray, incrementString} from "../helpers/utils";
+import {ensureArray, incrementString, spreadSelectProps} from "../helpers/utils";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
 import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
 import {EdgeNode} from "../helpers/Graph";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
+import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -127,6 +128,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
      * sets inPort.isVisible to true
      */
     public includePort(inPort: V1WorkflowStepInputModel) {
+        // add port to canvas
         inPort.isVisible = true;
         // if the port has not been added to the graph yet
         if (!this.graph.hasVertex(inPort.connectionId)) {
@@ -139,6 +141,27 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
                 type: "Step"
             });
         }
+    }
+
+    public clearPort(inPort: V1WorkflowStepInputModel) {
+        // remove port from canvas
+        inPort.isVisible = false;
+        // remove vertex from graph
+        this.graph.removeVertex(inPort.connectionId);
+        inPort.source.forEach(s => {
+            // if source has a slash, it's a step output
+            if (s.indexOf("/") !== -1) {
+                this.graph.removeEdge([STEP_OUTPUT_CONNECTION_PREFIX + s, inPort.connectionId]);
+            } else {
+                this.graph.removeEdge([s, inPort.connectionId]);
+
+                // remove dangling input if it has been left over
+                if(!this.graph.hasOutgoing(s)) {
+                    this.graph.removeVertex(s);
+                    this.inputs = this.inputs.filter(input => input.connectionId !== s);
+                }
+            }
+        });
     }
 
     /**
@@ -171,7 +194,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     }
 
     deserialize(workflow: Workflow): void {
-        const serializedAttr = [
+        const serializedKeys = [
             "class",
             "id",
             "inputs",
@@ -197,10 +220,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         });
 
         // populates object with all custom attributes not covered in model
-        Object.keys(workflow).forEach(key => {
-            if (serializedAttr.indexOf(key) === -1) {
-                this.customProps[key] = workflow[key];
-            }
-        });
+        spreadSelectProps(workflow, this.customProps, serializedKeys);
+
     }
 }

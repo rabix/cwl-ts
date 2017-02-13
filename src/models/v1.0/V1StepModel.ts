@@ -3,7 +3,7 @@ import {WorkflowStep} from "../../mappings/v1.0/WorkflowStep";
 import {Serializable} from "../interfaces/Serializable";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
 import {V1WorkflowStepOutputModel} from "./V1WorkflowStepOutputModel";
-import {ensureArray} from "../helpers/utils";
+import {ensureArray, spreadSelectProps} from "../helpers/utils";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {Workflow} from "../../mappings/v1.0/Workflow";
 import {CommandLineToolFactory} from "../generic/CommandLineToolFactory";
@@ -13,6 +13,8 @@ import {OutputParameter} from "../generic/OutputParameter";
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
     public "in": V1WorkflowStepInputModel[] = [];
     public out: V1WorkflowStepOutputModel[] = [];
+    hasMultipleScatter: true;
+    hasScatterMethod: true;
 
     constructor(step?, loc?: string) {
         super(loc);
@@ -80,11 +82,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         this.scatter       = step.scatter;
         this.scatterMethod = step.scatterMethod;
 
-        Object.keys(step).forEach(key => {
-            if (serializedKeys.indexOf(key) === -1) {
-                this.customProps[key] = step[key];
-            }
-        });
+        spreadSelectProps(step, this.customProps, serializedKeys);
     }
 
     private compareInPorts(step: WorkflowStep) {
