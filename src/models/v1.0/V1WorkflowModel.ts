@@ -84,6 +84,9 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
      * Sets input.isVisible to false
      */
     public exposePort(inPort: V1WorkflowStepInputModel) {
+        // remove extraneous connections to this port and set it as invisible
+        this.clearPort(inPort);
+
         // if the port has not been added to the graph yet
         if (!this.graph.hasVertex(inPort.connectionId)) {
             this.graph.addVertex(inPort.connectionId, inPort);
@@ -106,9 +109,6 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         // add a reference to the new input on the inPort
         inPort.source.push(input.id);
-
-        // reset visibility in case port has been shown
-        inPort.isVisible = false;
 
         // add it to the workflow tree
         input.setValidationCallback(err => this.updateValidity(err));
@@ -133,7 +133,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     public includePort(inPort: V1WorkflowStepInputModel) {
         // check if port was exposed before including it
         if (inPort.status === "exposed") {
-            this.cleanUpExposed(inPort);
+            this.clearPort(inPort);
         }
 
         // add port to canvas
@@ -151,11 +151,12 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         }
     }
 
+    /**
+     * Removes connections to port to out/inputs, removes dangling inputs, sets port to invisible
+     */
     public clearPort(inPort: V1WorkflowStepInputModel) {
         // remove port from canvas
         inPort.isVisible = false;
-        // remove vertex from graph
-        this.graph.removeVertex(inPort.connectionId);
 
         // loop through sources, removing their connections and clearing dangling inputs
         while (inPort.source.length > 0) {
@@ -172,18 +173,6 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
                 this.removeDanglingInput(source);
             }
         }
-    }
-
-    /**
-     * Removes connection and exposed step input port, cleans up source
-     */
-    private cleanUpExposed(inPort: V1WorkflowStepInputModel) {
-        if (inPort.source.length !== 1) {
-            throw new Error(`Expected inPort ${inPort.connectionId} to have exactly one source, instead got: ${inPort.source}`);
-        }
-        this.graph.removeEdge([inPort.source[0], inPort.connectionId]);
-        this.removeDanglingInput(inPort.source[0]);
-        inPort.source = [];
     }
 
     /**
