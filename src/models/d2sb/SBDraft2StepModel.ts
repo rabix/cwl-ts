@@ -5,7 +5,7 @@ import {ExpressionToolModel} from "../generic/ExpressionToolModel";
 import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
 import {SBDraft2WorkflowStepOutputModel} from "./SBDraft2WorkflowStepOutputModel";
 import {WorkflowStep} from "../../mappings/d2sb/WorkflowStep";
-import {ensureArray} from "../helpers/utils";
+import {ensureArray, spreadSelectProps} from "../helpers/utils";
 
 export class SBDraft2StepModel extends StepModel {
     id: string;
@@ -46,7 +46,6 @@ export class SBDraft2StepModel extends StepModel {
             return new SBDraft2WorkflowStepOutputModel(step, this, `${this.loc}.outputs[${index}]`)
         });
 
-
-
+        spreadSelectProps(step, this.customProps, serializedKeys);
     }
 }

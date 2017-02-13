@@ -107,6 +107,9 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         // add a reference to the new input on the inPort
         inPort.source.push(input.id);
 
+        // reset visibility in case port has been shown
+        inPort.isVisible = false;
+
         // add it to the workflow tree
         input.setValidationCallback(err => this.updateValidity(err));
         this.inputs.push(input);
@@ -128,6 +131,11 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
      * sets inPort.isVisible to true
      */
     public includePort(inPort: V1WorkflowStepInputModel) {
+        // check if port was exposed before including it
+        if (inPort.status === "exposed") {
+            this.cleanUpExposed(inPort);
+        }
+
         // add port to canvas
         inPort.isVisible = true;
         // if the port has not been added to the graph yet
@@ -148,20 +156,45 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         inPort.isVisible = false;
         // remove vertex from graph
         this.graph.removeVertex(inPort.connectionId);
-        inPort.source.forEach(s => {
-            // if source has a slash, it's a step output
-            if (s.indexOf("/") !== -1) {
-                this.graph.removeEdge([STEP_OUTPUT_CONNECTION_PREFIX + s, inPort.connectionId]);
-            } else {
-                this.graph.removeEdge([s, inPort.connectionId]);
 
-                // remove dangling input if it has been left over
-                if(!this.graph.hasOutgoing(s)) {
-                    this.graph.removeVertex(s);
-                    this.inputs = this.inputs.filter(input => input.connectionId !== s);
-                }
+        // loop through sources, removing their connections and clearing dangling inputs
+        while (inPort.source.length > 0) {
+
+            // pop each source so no connections lead back to port
+            let source = inPort.source.pop();
+
+            // source belongs to a step
+            if (source.indexOf("/") !== -1) {
+                this.graph.removeEdge([STEP_OUTPUT_CONNECTION_PREFIX + source, inPort.connectionId]);
+            } else {
+                // source is an input
+                this.graph.removeEdge([source, inPort.connectionId]);
+                this.removeDanglingInput(source);
             }
-        });
+        }
+    }
+
+    /**
+     * Removes connection and exposed step input port, cleans up source
+     */
+    private cleanUpExposed(inPort: V1WorkflowStepInputModel) {
+        if (inPort.source.length !== 1) {
+            throw new Error(`Expected inPort ${inPort.connectionId} to have exactly one source, instead got: ${inPort.source}`);
+        }
+        this.graph.removeEdge([inPort.source[0], inPort.connectionId]);
+        this.removeDanglingInput(inPort.source[0]);
+        inPort.source = [];
+    }
+
+    /**
+     * Checks if a workflow input has been leftover after removing
+     */
+    private removeDanglingInput(source: string) {
+        // remove dangling input if it has been left over
+        if(!this.graph.hasOutgoing(source)) {
+            this.graph.removeVertex(source);
+            this.inputs = this.inputs.filter(input => input.connectionId !== source);
+        }
     }
 
     /**
@@ -172,7 +205,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         let hasId  = true;
         let result = id;
         while (hasId) {
-            if (hasId = this.graph.hasVertex(id)) {
+            if (hasId = this.graph.hasVertex(result)) {
                 result = incrementString(result);
             }
         }

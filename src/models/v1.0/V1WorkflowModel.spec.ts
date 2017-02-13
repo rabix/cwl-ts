@@ -16,6 +16,28 @@ describe("V1WorkflowModel", () => {
             expect(wf.inputs[1].id).to.equal(wf.steps[0].in[1].id);
             expect(wf.connections).to.have.length(6);
         });
+
+        it("should should include in ports after being exposed", () => {
+            const wf = WorkflowFactory.from(OneStepWf.default);
+
+            // this will leave a dangling input :/
+            wf.exposePort(wf.steps[0].in[1]);
+            expect(wf.inputs).to.have.length(2);
+            expect(wf.steps[0].in[1].isVisible).to.be.false;
+            expect(wf.steps[0].in[1].status).to.equal("exposed");
+
+            wf.includePort(wf.steps[0].in[1]);
+            expect(wf.inputs).to.have.length(1);
+            expect(wf.steps[0].in[1].isVisible).to.be.true;
+            expect(wf.steps[0].in[1].status).to.equal("port");
+
+
+            wf.exposePort(wf.steps[0].in[1]);
+            expect(wf.inputs).to.have.length(2);
+            expect(wf.steps[0].in[1].isVisible).to.be.false;
+            expect(wf.steps[0].in[1].status).to.equal("exposed");
+
+        });
     });
 
     describe("includePort", () => {
@@ -23,10 +45,13 @@ describe("V1WorkflowModel", () => {
             const wf = WorkflowFactory.from(OneStepWf.default);
 
             expect(wf.steps[0].in[1].isVisible).to.be.false;
+            expect(wf.steps[0].in[1].status).to.equal("editable");
 
             wf.includePort(wf.steps[0].in[1]);
 
             expect(wf.steps[0].in[1].isVisible).to.be.true;
+            expect(wf.steps[0].in[1].status).to.equal("port");
+
         });
     });
 
@@ -35,6 +60,7 @@ describe("V1WorkflowModel", () => {
            const wf = WorkflowFactory.from(OneStepWf.default);
 
            expect(wf.connections).to.have.length(5);
+
            wf.clearPort(wf.steps[0].in[0]);
            expect(wf.connections).to.have.length(4);
 
@@ -53,8 +79,10 @@ describe("V1WorkflowModel", () => {
 
             expect(wf.steps[0].in[0].isVisible).to.be.true;
             expect(wf.inputs).to.have.length(1);
+            expect(wf.steps[0].in[0].status).to.equal("port");
 
             wf.clearPort(wf.steps[0].in[0]);
+            expect(wf.steps[0].in[0].status).to.equal("editable");
             expect(wf.inputs).to.have.length(0);
         });
     });
