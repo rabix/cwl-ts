@@ -731,6 +731,50 @@
                 }
             ]
         },
+        "CommandInputType": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/CwlType"
+                },
+                {
+                    "$ref": "#/definitions/CommandInputRecordSchema"
+                },
+                {
+                    "$ref": "#/definitions/CommandInputEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/CommandInputArraySchema"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CommandInputType"
+                    }
+                }
+            ]
+        },
+        "CommandOutputType": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/CwlType"
+                },
+                {
+                    "$ref": "#/definitions/CommandOutputRecordSchema"
+                },
+                {
+                    "$ref": "#/definitions/CommandOutputEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/CommandOutputArraySchema"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CommandOutputType"
+                    }
+                }
+            ]
+        },
         "CommandLineBinding": {
             "description": "When listed under `inputBinding` in the input schema, the term\n\n\"value\" refers to the the corresponding value in the input object.  For\n\nbinding objects listed in `CommandLineTool.arguments`, the term \"value\"\n\nrefers to the effective value after evaluating `valueFrom`.\n\n\n\nThe binding behavior when building the command line depends on the data\n\ntype of the value.  If there is a mismatch between the type described by\n\nthe input schema and the effective value, such as resulting from an\n\nexpression evaluation, an implementation must use the data type of the\n\neffective value.\n\n\n\n- **string**: Add `prefix` and the string to the command line.\n\n\n\n- **number**: Add `prefix` and decimal representation to command line.\n\n\n\n- **boolean**: If true, add `prefix` to the command line.  If false, add\n\nnothing.\n\n\n\n- **File**: Add `prefix` and the value of\n\n[`File.path`](#File) to the command line.\n\n\n\n- **array**: If `itemSeparator` is specified, add `prefix` and the join\n\nthe array into a single string with `itemSeparator` separating the\n\nitems.  Otherwise first add `prefix`, then recursively process\n\nindividual elements.\n\n\n\n- **object**: Add `prefix` only, and recursively add object fields for\n\nwhich `inputBinding` is specified.\n\n\n\n- **null**: Add nothing.",
             "type": "object",
@@ -767,13 +811,23 @@
         },
         "CommandInputParameter": {
             "description": "An input parameter for a CommandLineTool.",
-            "type": "object",
-            "properties": {
-                "inputBinding": {
-                    "$ref": "#/definitions/CommandLineBinding",
-                    "description": "Describes how to handle the inputs of a process and convert them\n\ninto a concrete form for execution, such as command line parameters."
+            "allOf": [
+                {
+                    "$ref": "#/definitions/InputParameter"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "inputBinding": {
+                            "$ref": "#/definitions/CommandLineBinding",
+                            "description": "Describes how to handle the inputs of a process and convert them\n\ninto a concrete form for execution, such as command line parameters."
+                        },
+                        "type": {
+                            "$ref": "#/definitions/CommandInputType"
+                        }
+                    }
                 }
-            }
+            ]
         },
         "CommandInputRecordSchema": {
             "type": "object",
@@ -782,7 +836,7 @@
                     "description": "Defines the fields of the record.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/CommandInputRecordField"
+                        "$ref": "#/definitions/CommandInputType"
                     }
                 },
                 "type": {
@@ -796,41 +850,81 @@
                     "description": "A short, human-readable label of this object.",
                     "type": "string"
                 }
-            }
+            },
+            "required": [
+                "type"
+            ]
         },
         "CommandInputRecordField": {
-            "type": "object",
-            "properties": {
-                "inputBinding": {
-                    "$ref": "#/definitions/CommandLineBinding"
+            "allOf": [
+                {
+                    "$ref": "#/definitions/InputRecordField"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "inputBinding": {
+                            "$ref": "#/definitions/CommandLineBinding"
+                        },
+                        "type": {
+                            "$ref": "#/definitions/CommandInputType"
+                        }
+                    }
                 }
-            }
+            ]
         },
         "CommandInputEnumSchema": {
-            "type": "object",
-            "properties": {
-                "inputBinding": {
-                    "$ref": "#/definitions/CommandLineBinding"
+            "allOf": [
+                {
+                    "$ref": "#/definitions/InputEnumSchema"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "inputBinding": {
+                            "$ref": "#/definitions/CommandLineBinding"
+                        }
+                    }
                 }
-            }
+            ]
         },
         "CommandInputArraySchema": {
-            "type": "object",
-            "properties": {
-                "inputBinding": {
-                    "$ref": "#/definitions/CommandLineBinding"
+            "allOf": [
+                {
+                    "$ref": "#/definitions/InputArraySchema"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "items": {
+                            "$ref": "#/definitions/CommandInputType"
+                        },
+                        "inputBinding": {
+                            "$ref": "#/definitions/CommandLineBinding"
+                        }
+                    }
                 }
-            }
+            ]
         },
         "CommandOutputParameter": {
-            "description": "An output parameter for a CommandLineTool.",
-            "type": "object",
-            "properties": {
-                "outputBinding": {
-                    "$ref": "#/definitions/CommandOutputBinding",
-                    "description": "Describes how to handle the outputs of a process."
+            "allOf": [
+                {
+                    "$ref": "#/definitions/OutputParameter"
+                },
+                {
+                    "description": "An output parameter for a CommandLineTool.",
+                    "type": "object",
+                    "properties": {
+                        "outputBinding": {
+                            "$ref": "#/definitions/CommandOutputBinding",
+                            "description": "Describes how to handle the outputs of a process."
+                        },
+                        "type": {
+                            "$ref": "#/definitions/CommandOutputType"
+                        }
+                    }
                 }
-            }
+            ]
         },
         "CommandOutputRecordSchema": {
             "type": "object",
@@ -859,12 +953,22 @@
             ]
         },
         "CommandOutputRecordField": {
-            "type": "object",
-            "properties": {
-                "outputBinding": {
-                    "$ref": "#/definitions/CommandOutputBinding"
+            "allOf": [
+                {
+                    "$ref": "#/definitions/OutputRecordField"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "outputBinding": {
+                            "$ref": "#/definitions/CommandOutputBinding"
+                        },
+                        "type": {
+                            "$ref": "#/definitions/CommandOutputType"
+                        }
+                    }
                 }
-            }
+            ]
         },
         "CommandOutputBinding": {
             "type": "object",
@@ -906,6 +1010,16 @@
             "properties": {
                 "outputBinding": {
                     "$ref": "#/definitions/CommandOutputBinding"
+                },
+                "items": {
+                    "$ref": "#/definitions/CommandOutputType"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["array"]
                 }
             }
         },
