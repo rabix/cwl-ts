@@ -2,6 +2,7 @@ import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterMode
 import {SBGWorkflowInputParameter} from "../../mappings/d2sb/SBGWorkflowInputParameter";
 import {RecordField} from "../../mappings/draft-3/RecordField";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 
 export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
@@ -11,7 +12,7 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
     }
 
     get connectionId(): string {
-        return this.id;
+        return `${STEP_OUTPUT_CONNECTION_PREFIX}${this.id}/${this.id}`;
     }
 
     deserialize(input: SBGWorkflowInputParameter | RecordField) {

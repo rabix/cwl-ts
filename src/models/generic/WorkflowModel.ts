@@ -119,7 +119,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             .concat(destinations)
             .concat(this.steps)
             .map(item => {
-                return [item.connectionId || item.id, item];
+                return [item.connectionId, item];
             });
 
         // Construct a new Graph with nodes first, then add edges
@@ -156,7 +156,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             const sourceModel = graph.getVertexData(sourceConnectionId);
 
             if (sourceModel === undefined) {
-                debugger;
+                console.log("Could not find source node ", sourceConnectionId);
+                return;
             }
 
             // all workflow inputs are visible by default and should be shown

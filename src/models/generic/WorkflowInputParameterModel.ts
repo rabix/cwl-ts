@@ -3,6 +3,7 @@ import {Serializable} from "../interfaces/Serializable";
 import {InputParameterTypeModel} from "./InputParameterTypeModel";
 import {InputParameter} from "./InputParameter";
 import {Plottable} from "./Plottable";
+import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 
 export class WorkflowInputParameterModel extends ValidationBase implements InputParameter, Serializable<any>, Plottable {
     id: string;
@@ -24,7 +25,7 @@ export class WorkflowInputParameterModel extends ValidationBase implements Input
      * ID to be used in graph
      */
     get connectionId(): string {
-        return this.id;
+        return `${STEP_OUTPUT_CONNECTION_PREFIX}${this.id}/${this.id}`;
     }
 
     customProps: any = {};

@@ -166,11 +166,11 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
             // source belongs to a step
             if (source.indexOf("/") !== -1) {
-                this.graph.removeEdge([STEP_OUTPUT_CONNECTION_PREFIX + source, inPort.connectionId]);
+                this.graph.removeEdge([`${STEP_OUTPUT_CONNECTION_PREFIX}${source}`, inPort.connectionId]);
             } else {
                 // source is an input
-                this.graph.removeEdge([source, inPort.connectionId]);
-                this.removeDanglingInput(source);
+                this.graph.removeEdge([`${STEP_OUTPUT_CONNECTION_PREFIX}${source}/${source}`, inPort.connectionId]);
+                this.removeDanglingInput(`${STEP_OUTPUT_CONNECTION_PREFIX}${source}/${source}`);
             }
         }
     }
@@ -203,8 +203,11 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     }
 
     protected getSourceConnectionId(source: string): string {
-        const prefix = /[\/]+/.test(source) ? STEP_OUTPUT_CONNECTION_PREFIX : "";
-        return `${prefix}${source}`;
+        if ( /[\/]+/.test(source) ) {
+            return STEP_OUTPUT_CONNECTION_PREFIX + source;
+        } else {
+            return `${STEP_OUTPUT_CONNECTION_PREFIX}${source}/${source}`;
+        }
     }
 
     serialize(): Workflow {

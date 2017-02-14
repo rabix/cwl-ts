@@ -30,6 +30,9 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
     scatter?: string | string[];
     scatterMethod?: ScatterMethod;
 
+    get connectionId(): string {
+        return this.id;
+    }
 
     customProps: any = {};
 

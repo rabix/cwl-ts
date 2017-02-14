@@ -36,9 +36,10 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
             let [step, id] = source.split(".");
             step = step.charAt(0) === "#" ? step.substr(1) : step;
             return `${STEP_OUTPUT_CONNECTION_PREFIX}${step}/${id}`;
+        } else {
+            const s = source.charAt(0) === "#" ? source.substr(1) : source;
+            return `${STEP_OUTPUT_CONNECTION_PREFIX}${s}/${s}`
         }
-
-        return source.charAt(0) === "#" ? source.substr(1) : source;
     }
 
     serialize(): Workflow {
