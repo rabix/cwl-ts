@@ -1,6 +1,6 @@
 {
   "name": "cwlts",
-  "version": "1.10.15",
+  "version": "1.10.19",
   "description": "TypeScript data model for Common Workflow Language",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -16,8 +16,5 @@
   "bugs": {
     "url": "https://github.com/rabix/cwl-ts/issues"
   },
-  "homepage": "https://github.com/rabix/cwl-ts#readme",
-  "peerDependencies": {
-    "rxjs": "^5.0.3"
-  }
+  "homepage": "https://github.com/rabix/cwl-ts#readme"
 }

@@ -7,7 +7,7 @@ import {UnimplementedMethodException} from "../helpers/UnimplementedMethodExcept
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 
 export class WorkflowStepOutputModel extends ValidationBase implements Plottable, Serializable<any> {
-    customProps: any;
+    customProps: any = {};
 
     serialize(): any {
         new UnimplementedMethodException("serialize");
@@ -19,6 +19,16 @@ export class WorkflowStepOutputModel extends ValidationBase implements Plottable
 
     isVisible = true;
 
+    /**
+     * ID used for creating connections
+     */
+    get sourceId(): string {
+        return `${this.parentStep.id}/${this.id}`;
+    }
+
+    /**
+     * ID used for graph
+     */
     get connectionId(): string {
         return `${STEP_OUTPUT_CONNECTION_PREFIX}${this.parentStep.id}/${this.id}`;
     }

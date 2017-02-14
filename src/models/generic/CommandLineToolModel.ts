@@ -23,10 +23,6 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         new UnimplementedMethodException("validate");
     }
 
-    public getCommandLineParts() {
-        new UnimplementedMethodException("getCommandLineParts");
-    }
-
     public updateCommandLine(): void {
         new UnimplementedMethodException("updateCommandLine");
     }
@@ -41,5 +37,9 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize");
+    }
+
+    public onCommandLineResult(fn: Function): void {
+        new UnimplementedMethodException("onCommandLineResult");
     }
 }

@@ -202,6 +202,11 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         return result;
     }
 
+    protected getSourceConnectionId(source: string): string {
+        const prefix = /[\/]+/.test(source) ? STEP_OUTPUT_CONNECTION_PREFIX : "";
+        return `${prefix}${source}`;
+    }
+
     serialize(): Workflow {
         const base: Workflow = <Workflow>{};
 

@@ -13,6 +13,16 @@ export class WorkflowInputParameterModel extends ValidationBase implements Input
 
     isVisible = true;
 
+    /**
+     * ID to be used when adding as source
+     */
+    get sourceId(): string {
+        return this.id;
+    }
+
+    /**
+     * ID to be used in graph
+     */
     get connectionId(): string {
         return this.id;
     }

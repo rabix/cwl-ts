@@ -18,6 +18,10 @@ export class V1WorkflowStepOutputModel extends WorkflowStepOutputModel implement
         }
     }
 
+    get sourceId () {
+        return `${this.parentStep.id}/${this.id}`
+    }
+
     deserialize(output: WorkflowStepOutput): void {
         this.id = output.id;
         this.type = output["type"];

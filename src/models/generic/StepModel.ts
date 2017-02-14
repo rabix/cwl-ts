@@ -12,8 +12,8 @@ import {UnimplementedMethodException} from "../helpers/UnimplementedMethodExcept
 
 export class StepModel extends ValidationBase implements Serializable<any>, Plottable {
     public id: string;
-    public description: string;
-    public label: string;
+    public description?: string;
+    public label?: string;
     public run: WorkflowModel | CommandLineToolModel | ExpressionToolModel;
     public "in": WorkflowStepInputModel[];
     public out: WorkflowStepOutputModel[];

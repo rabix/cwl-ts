@@ -4,7 +4,7 @@ export const ensureArray = (map: { [key: string]: any } | any[] | string | numbe
 
     if (Array.isArray(map)) {
         // if the object is already an array of objects, we don't want to transform it
-        if (typeof map[0] === "object") {
+        if (typeof map[0] === "object" || key === undefined) {
             return map;
         } else {
             // if it's an array of something else, transform each element into {key: <any>item}

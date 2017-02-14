@@ -21,7 +21,6 @@ import {CreateFileRequirementModel} from "./CreateFileRequirementModel";
 import {SBGCPURequirement} from "../../mappings/d2sb/SBGCPURequirement";
 import {SBGMemRequirement} from "../../mappings/d2sb/SBGMemRequirement";
 import {ResourceRequirementModel} from "./ResourceRequirementModel";
-import {Observable, ReplaySubject} from "rxjs";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
@@ -37,8 +36,6 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public baseCommand: Array<ExpressionModel>               = [];
     public inputs: Array<SBDraft2CommandInputParameterModel> = [];
     public outputs: Array<CommandOutputParameterModel>       = [];
-
-    private commandLine = new ReplaySubject<CommandLinePart[]>(1);
 
     public resources: { cpu?: ResourceRequirementModel, mem?: ResourceRequirementModel } = {};
 
@@ -172,14 +169,15 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public updateCommandLine(): void {
         if (this.constructed) {
             this.generateCommandLineParts().then(res => {
-                this.commandLine.next(res);
+                this.commandLineWatcher(res);
             })
         }
     }
 
-    public getCommandLineParts(): Observable<CommandLinePart[]> {
-        this.updateCommandLine();
-        return this.commandLine as Observable<CommandLinePart[]>;
+    private commandLineWatcher: Function = () => {};
+
+    public onCommandLineResult(fn: Function){
+        this.commandLineWatcher = fn;
     }
 
     private generateCommandLineParts(): Promise<CommandLinePart[]> {

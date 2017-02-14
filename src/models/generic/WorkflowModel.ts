@@ -8,7 +8,6 @@ import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
 import {Edge, EdgeNode, Graph} from "../helpers/Graph";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
-import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -149,12 +148,16 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
          * Helper function to connect source to destination
          */
         const connectSource = (source: string, dest: WorkflowOutputParameterModel | WorkflowStepInputModel, destNode: EdgeNode) => {
-            // detect if source is a port of an input, if it is a port then add the prefix
-            // to form the connectionId
-            const prefix = source.indexOf("/") !== -1 ? STEP_OUTPUT_CONNECTION_PREFIX : "";
+            const sourceConnectionId = this.getSourceConnectionId(source);
+            // detect if source is a port of an input (has a step in its identifier),
+            // if it is a port then add the prefix to form the connectionId
 
             // get source node by connectionId from graph's vertices
-            const sourceModel = graph.getVertexData(prefix + source);
+            const sourceModel = graph.getVertexData(sourceConnectionId);
+
+            if (sourceModel === undefined) {
+                debugger;
+            }
 
             // all workflow inputs are visible by default and should be shown
             // except for those which are "exposed", these are explicitly hidden
@@ -228,6 +231,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
     }
 
+    protected getSourceConnectionId(source: string): string{
+        new UnimplementedMethodException("getSourceConnectionId");
+        return undefined;
+    }
 
     public validate() {
         new UnimplementedMethodException("validate");
