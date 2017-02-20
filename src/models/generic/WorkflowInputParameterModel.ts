@@ -4,6 +4,7 @@ import {InputParameterTypeModel} from "./InputParameterTypeModel";
 import {InputParameter} from "./InputParameter";
 import {Plottable} from "./Plottable";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 
 export class WorkflowInputParameterModel extends ValidationBase implements InputParameter, Serializable<any>, Plottable {
     id: string;
@@ -31,9 +32,10 @@ export class WorkflowInputParameterModel extends ValidationBase implements Input
     customProps: any = {};
 
     serialize(): any {
-        return null;
+        new UnimplementedMethodException("serialize", "WorkflowInputParameterModel");
     }
 
     deserialize(attr: any): void {
+        new UnimplementedMethodException("deserialize", "WorkflowInputParameterModel");
     }
 }

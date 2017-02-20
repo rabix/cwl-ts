@@ -8,6 +8,8 @@ import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
 import {Edge, EdgeNode, Graph} from "../helpers/Graph";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
+import {CommandLineToolModel} from "./CommandLineToolModel";
+import {ExpressionToolModel} from "./ExpressionToolModel";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -31,21 +33,33 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         super(loc);
     }
 
-    serialize(): any {
-        new UnimplementedMethodException("serialize");
+
+    public serialize(): any {
+        new UnimplementedMethodException("serialize", "WorkflowModel");
     }
 
-    deserialize(attr: any): void {
-        new UnimplementedMethodException("deserialize");
+    public deserialize(attr: any): void {
+        new UnimplementedMethodException("deserialize", "WorkflowModel");
     }
 
     public exposePort(port: WorkflowStepInputModel) {
+        new UnimplementedMethodException("exposePort", "WorkflowModel");
     }
 
     public includePort(port: WorkflowStepInputModel) {
+        new UnimplementedMethodException("includePort", "WorkflowModel");
     }
 
     public clearPort(port: WorkflowStepInputModel) {
+        new UnimplementedMethodException("clearPort", "WorkflowModel");
+    }
+
+    public addStep(step: StepModel) {
+        new UnimplementedMethodException("addStep", "WorkflowModel");
+    }
+
+    public updateStepRun(run: WorkflowModel | CommandLineToolModel | ExpressionToolModel) {
+        new UnimplementedMethodException("updateStepRun", "WorkflowModel");
     }
 
     public isConnected(): boolean {

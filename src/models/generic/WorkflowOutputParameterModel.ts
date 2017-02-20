@@ -3,6 +3,7 @@ import {Serializable} from "../interfaces/Serializable";
 import {OutputParameterTypeModel} from "./OutputParameterTypeModel";
 import {Plottable} from "./Plottable";
 import {STEP_INPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 
 export class WorkflowOutputParameterModel extends ValidationBase implements Serializable<any>, Plottable {
     public id: string;
@@ -21,9 +22,10 @@ export class WorkflowOutputParameterModel extends ValidationBase implements Seri
     customProps: any = {};
 
     serialize(): any {
-        return undefined;
+        new UnimplementedMethodException("serialize", "WorkflowOutputParameterModel");
     }
 
     deserialize(attr: any): void {
+        new UnimplementedMethodException("deserialize", "WorkflowOutputParameterModel");
     }
 }
