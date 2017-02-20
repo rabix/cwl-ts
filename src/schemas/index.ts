@@ -17,9 +17,9 @@ export = {
             etSchema: require('./d2sb/ET-schema.json')
         },
         v1: {
-            cltSchema: require('.cwl-v10.json'),
-            wfSchema: require('.cwl-v10.json'),
-            etSchema: require('.cwl-v10.json')
+            cltSchema: require('./cwl-v10.json'),
+            wfSchema: require('./cwl-v10.json'),
+            etSchema: require('./cwl-v10.json')
         }
     }
 };
