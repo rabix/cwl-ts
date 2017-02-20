@@ -2,6 +2,7 @@ import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {Serializable} from "../interfaces/Serializable";
 import {ExpressionModel} from "./ExpressionModel";
+import {spreadSelectProps} from "../helpers/utils";
 
 export class RequirementBaseModel extends ProcessRequirementModel implements Serializable<ProcessRequirement> {
     'class': string;
@@ -57,12 +58,6 @@ export class RequirementBaseModel extends ProcessRequirementModel implements Ser
             }
         }
 
-        Object.keys(attr).forEach(key => {
-            if (key !== "class" && key !== "value") {
-                this.customProps[key] = attr[key];
-            }
-        });
+        spreadSelectProps(attr, this.customProps, ["class", "value"]);
     }
-
-
 }

@@ -1,14 +1,13 @@
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
-import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
-import {CommandOutputSchema} from "../../mappings/d2sb/CommandOutputSchema";
+import {Serializable} from "../interfaces/Serializable";
 
 export type PrimitiveType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes" | "map";
 
 export interface TypeResolution {
     type: PrimitiveType;
     items: PrimitiveType;
-    fields: Array<CommandInputRecordField>|Array<CommandOutputSchema>;
+    fields: Array<Serializable<any>>;
     symbols: string[]
     isNullable: boolean;
     typeBinding: CommandLineBinding;
@@ -17,7 +16,7 @@ export interface TypeResolution {
 
 export class TypeResolver {
 
-    public static resolveType(type: any, result?: TypeResolution): TypeResolution {
+    public static resolveType(originalType: any, result?: TypeResolution): TypeResolution {
         result = result || {
                 type: null,
                 items: null,
@@ -28,14 +27,19 @@ export class TypeResolver {
                 name: null
             };
 
-
-        if (type === null || type === undefined) {
+        if (originalType === null || originalType === undefined) {
             result.isNullable = true;
             return result;
         }
 
+        let tmp = originalType;
+
+        if (typeof originalType.serialize === "function") {
+            tmp = originalType.serialize();
+        }
+
         // clone type object because it will be sliced and modified later
-        type = JSON.parse(JSON.stringify(type));
+        const type = JSON.parse(JSON.stringify(tmp));
 
         if (typeof type === 'string') {
             let matches = /(\w+)([\[\]?]+)/g.exec(<string> type);
@@ -156,7 +160,29 @@ export class TypeResolver {
 
         switch (type.type) {
             case "array":
-                if (version === "v1.0" && !type.typeBinding) {
+                if (type.items === "enum") {
+                    t = {
+                        type: "array",
+                        items: {
+                            type: "enum",
+                            symbols: type.symbols
+                        }
+                    }
+                } else if (type.items === "record") {
+                    t = {
+                        type: "array",
+                        items: {
+                            type: "record",
+                            fields: type.fields.map(field => {
+                                if (typeof field.serialize === "function") {
+                                    return field.serialize();
+                                } else {
+                                    return field;
+                                }
+                            })
+                        }
+                    }
+                } else if (version === "v1.0" && !type.typeBinding) {
                     t = `${type.items}[]`;
                 } else {
                     t = {
@@ -164,7 +190,6 @@ export class TypeResolver {
                         items: type.items
                     };
                     if (type.typeBinding) t.inputBinding = t;
-                    //@todo fix for array of enum and record
                 }
 
                 break;
@@ -172,7 +197,13 @@ export class TypeResolver {
             case "record":
                 t = {
                     type: "record",
-                    fields: type.fields,
+                    fields: type.fields.map(field => {
+                        if (typeof field.serialize === "function") {
+                            return field.serialize();
+                        } else {
+                            return field;
+                        }
+                    }),
                     name: type.name
                 };
                 if (type.typeBinding) t.inputBinding = t;

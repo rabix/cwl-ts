@@ -27,4 +27,6 @@ export interface CommandLineTool extends Process {
     successCodes?: number[];
     temporaryFailCodes?: number[];
     permanentFailCodes?: number[];
+
+    "sbg:job"?: any;
 }

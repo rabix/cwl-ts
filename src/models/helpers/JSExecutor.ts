@@ -5,7 +5,8 @@ const vm = require('vm');
 export class JSExecutor {
     static evaluate(version: CWLVersion, expr: string, job?: any, self?: any): Promise<any> {
         const options = {
-            displayErrors: true
+            displayErrors: true,
+            timeout: 1000
         };
 
         let script = new vm.Script("", options);
@@ -38,7 +39,8 @@ export class JSExecutor {
 
         return new Promise((res, rej) => {
             try {
-                const result = script.runInContext(vm.createContext(context));
+                const result = script.runInContext(vm.createContext(context), {timeout: 1000});
+                //@todo this timeout works in isolation but not when targeted from the editor
                 res(result);
             } catch (err) {
                 rej(err);

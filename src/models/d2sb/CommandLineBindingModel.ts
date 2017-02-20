@@ -3,6 +3,7 @@ import {Serializable} from "../interfaces/Serializable";
 import {ExpressionModel} from "./ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {ValidationBase, Validation} from "../helpers/validation";
+import {spreadSelectProps} from "../helpers/utils";
 
 export class CommandLineBindingModel extends ValidationBase implements Serializable<CommandLineBinding> {
     public position: number;
@@ -128,11 +129,7 @@ export class CommandLineBindingModel extends ValidationBase implements Serializa
             }
 
             // populates object with all custom attributes not covered in model
-            Object.keys(binding).forEach(key => {
-                if (this.serializedKeys.indexOf(key) === -1) {
-                    this.customProps[key] = binding[key];
-                }
-            });
+            spreadSelectProps(binding, this.customProps, this.serializedKeys);
         }
     }
 }

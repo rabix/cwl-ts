@@ -332,14 +332,28 @@ describe("TypeResolver", () => {
         });
 
         it("should resolve shorthand for array that is not required", () => {
-            it("should resolve shorthand for array", () => {
-                const resolved   = TypeResolver.resolveType("string[]?");
-                const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
-                const serializedD2 = TypeResolver.serializeType(resolved);
+            const resolved     = TypeResolver.resolveType("string[]?");
+            const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
+            const serializedD2 = TypeResolver.serializeType(resolved);
 
-                expect(serializedV1).to.deep.equal("string[]?");
-                expect(serializedD2).to.deep.equal(["null", {type: "array", items: "string"}]);
-            });
+            expect(serializedV1).to.deep.equal("string[]?");
+            expect(serializedD2).to.deep.equal(["null", {type: "array", items: "string"}]);
+        });
+
+        it("should serialize array of enum", () => {
+            const data = [{type: "array", items: {type: "enum", symbols: ["foo", "bar"]}}];
+            const resolved = TypeResolver.resolveType(data);
+            const serialized = TypeResolver.serializeType(resolved);
+
+            expect(serialized).to.deep.equal(data);
+        });
+
+        it("should serialize array of records", () => {
+            const data = [{type: "array", items: {type: "record", fields: [{name: "a", type: "string"}]}}];
+            const resolved = TypeResolver.resolveType(data);
+            const serialized = TypeResolver.serializeType(resolved);
+
+            expect(serialized).to.deep.equal(data);
         });
     });
 });

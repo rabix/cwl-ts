@@ -1,7 +1,10 @@
-import {CommandLineBinding} from "../draft-3/CommandLineBinding";
+import {CommandLineBinding} from "./CommandLineBinding";
 import {
-    CommandInputMapSchema, CommandInputSchema,
-    CommandInputArraySchema, CommandInputRecordSchema, CommandInputEnumSchema
+    CommandInputArraySchema,
+    CommandInputEnumSchema,
+    CommandInputMapSchema,
+    CommandInputRecordSchema,
+    CommandInputSchema
 } from "./CommandInputSchema";
 import {Datatype} from "./Datatype";
 

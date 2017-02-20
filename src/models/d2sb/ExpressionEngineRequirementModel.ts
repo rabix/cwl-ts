@@ -6,6 +6,7 @@ import {
 import {Serializable} from "../interfaces/Serializable";
 import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
 import {RequirementBaseModel} from "./RequirementBaseModel";
+import {spreadSelectProps} from "../helpers/utils";
 
 export class ExpressionEngineRequirementModel extends ProcessRequirementModel implements Serializable<ExpressionEngineRequirement> {
     public class: ExpressionEngineRequirementClass                = "ExpressionEngineRequirement";
@@ -39,11 +40,7 @@ export class ExpressionEngineRequirementModel extends ProcessRequirementModel im
             });
         }
 
-        Object.keys(attr).forEach(key => {
-            if (serializedKeys.indexOf(key) === -1) {
-                this.customProps[key] = attr[key];
-            }
-        })
+        spreadSelectProps(attr, this.customProps, serializedKeys);
     }
 
 }

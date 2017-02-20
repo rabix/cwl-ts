@@ -30,7 +30,7 @@ export class CommandArgumentModel implements CommandLineBinding, CommandLineInje
         let position  = this.position || 0;
 
         if (this.value) {
-            return new CommandLinePart(this.value, position, "argument");
+            return new CommandLinePart(this.value, "argument");
         }
 
         let prefix    = this.prefix || "";
@@ -51,7 +51,7 @@ export class CommandArgumentModel implements CommandLineBinding, CommandLineInje
             calculatedValue = prefix + separator + value;
         }
 
-        return new CommandLinePart(calculatedValue, position, "argument");
+        return new CommandLinePart(calculatedValue, "argument");
     }
 
     private evaluate(valueFrom: string|Expression, jobInputs: any): any {

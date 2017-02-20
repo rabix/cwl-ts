@@ -1,14 +1,13 @@
 import {CommandArgumentModel} from "./CommandArgumentModel";
-import {CommandInputParameterModel} from "./CommandInputParameterModel";
+import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParameterModel";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {JobHelper} from "../helpers/JobHelper";
-import {CommandLineRunnable} from "../interfaces/CommandLineRunnable";
 import {Serializable} from "../interfaces/Serializable";
 import {ExpressionModel} from "./ExpressionModel";
-import {ValidationBase, Validatable, Validation} from "../helpers/validation";
+import {Validation} from "../helpers/validation";
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {DockerRequirementModel} from "./DockerRequirementModel";
@@ -22,20 +21,21 @@ import {CreateFileRequirementModel} from "./CreateFileRequirementModel";
 import {SBGCPURequirement} from "../../mappings/d2sb/SBGCPURequirement";
 import {SBGMemRequirement} from "../../mappings/d2sb/SBGMemRequirement";
 import {ResourceRequirementModel} from "./ResourceRequirementModel";
-import {Observable, ReplaySubject} from "rxjs";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
+import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
+import {CommandLineToolModel} from "../generic/CommandLineToolModel";
+import {spreadSelectProps} from "../helpers/utils";
 
-export class CommandLineToolModel extends ValidationBase implements CommandLineRunnable, Validatable, Serializable<CommandLineTool> {
+export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
     public job: any;
     public jobInputs: any;
-    public readonly 'class': string;
     public id: string;
 
-    public baseCommand: Array<ExpressionModel>         = [];
-    public inputs: Array<CommandInputParameterModel>   = [];
-    public outputs: Array<CommandOutputParameterModel> = [];
+    public cwlVersion = "sbg:draft-2";
 
-    private commandLine = new ReplaySubject<CommandLinePart[]>(1);
+    public baseCommand: Array<ExpressionModel>               = [];
+    public inputs: Array<SBDraft2CommandInputParameterModel> = [];
+    public outputs: Array<CommandOutputParameterModel>       = [];
 
     public resources: { cpu?: ResourceRequirementModel, mem?: ResourceRequirementModel } = {};
 
@@ -103,11 +103,11 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         }
     }
 
-    public addInput(input?: CommandInputParameterModel) {
-        input      = input || new CommandInputParameterModel('');
+    public addInput(input?: SBDraft2CommandInputParameterModel) {
+        input      = input || new SBDraft2CommandInputParameterModel();
         input.loc  = `${this.loc}.inputs[${this.inputs.length}]`;
         input.job  = this.job;
-        input.self = JobHelper.getJobPart(input);
+        input.self = JobHelper.generateMockJobData(input);
 
         this.inputs.push(input);
 
@@ -118,7 +118,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         return input;
     }
 
-    public removeInput(input: CommandInputParameterModel | number) {
+    public removeInput(input: SBDraft2CommandInputParameterModel | number) {
         if (typeof input === "number") {
             this.inputs.splice(input, 1);
         } else {
@@ -169,14 +169,15 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
     public updateCommandLine(): void {
         if (this.constructed) {
             this.generateCommandLineParts().then(res => {
-                this.commandLine.next(res);
+                this.commandLineWatcher(res);
             })
         }
     }
 
-    public getCommandLineParts(): Observable<CommandLinePart[]> {
-        this.updateCommandLine();
-        return this.commandLine as Observable<CommandLinePart[]>;
+    private commandLineWatcher: Function = () => {};
+
+    public onCommandLineResult(fn: Function){
+        this.commandLineWatcher = fn;
     }
 
     private generateCommandLineParts(): Promise<CommandLinePart[]> {
@@ -188,23 +189,24 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         const flatJobInputs = CommandLinePrepare.flattenJob(job.inputs || job, {});
 
         const baseCmdPromise = this.baseCommand.map(cmd => {
-            return CommandLinePrepare.prepare(cmd, flatJobInputs, job, "baseCommand").then(suc => {
-                return new CommandLinePart(<string>suc, [], "baseCommand");
+            return CommandLinePrepare.prepare(cmd, flatJobInputs, job, cmd.loc, "baseCommand").then(suc => {
+                if (suc instanceof CommandLinePart) return suc;
+                return new CommandLinePart(<string>suc, "baseCommand", cmd.loc);
             }, err => {
-                return new CommandLinePart(`<${err.type} at ${err.loc}>`, [], err.type);
+                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, cmd.loc);
             });
         });
 
         const inputPromise = flatInputs.map(input => {
-            return CommandLinePrepare.prepare(input, flatJobInputs, job)
+            return CommandLinePrepare.prepare(input, flatJobInputs, job, input.loc)
         }).filter(i => i instanceof Promise).map(promise => {
             return promise.then(succ => succ, err => {
-                return new CommandLinePart(`<${err.type} at ${err.loc}>`, [], err.type);
+                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type);
             });
         });
 
-        const stdOutPromise = CommandLinePrepare.prepare(this.stdout, flatJobInputs, job, "stdout");
-        const stdInPromise = CommandLinePrepare.prepare(this.stdin, flatJobInputs, job, "stdin");
+        const stdOutPromise = CommandLinePrepare.prepare(this.stdout, flatJobInputs, job, this.stdout.loc, "stdout");
+        const stdInPromise  = CommandLinePrepare.prepare(this.stdin, flatJobInputs, job, this.stdin.loc, "stdin");
 
         return Promise.all([].concat(baseCmdPromise, inputPromise, stdOutPromise, stdInPromise)).then(parts => {
             return parts.filter(part => part !== null);
@@ -245,7 +247,8 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             base.id = this.id;
         }
 
-        base.class = "CommandLineTool";
+        base.cwlVersion = "sbg:draft-2";
+        base.class      = "CommandLineTool";
 
         // BASECOMMAND
         base.baseCommand = this.baseCommand
@@ -265,7 +268,8 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             .map(input => input.serialize());
 
         // OUTPUTS
-        base.outputs = this.outputs.map(output => output.serialize());
+        base.outputs = <Array<CommandOutputParameter>> this.outputs
+            .map(output => output.serialize());
 
         // REQUIREMENTS
         base.requirements = [];
@@ -304,6 +308,11 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             base.stdout = <string | Expression> this.stdout.serialize();
         }
 
+        // JOB
+        if (this.job) {
+            base["sbg:job"] = this.job;
+        }
+
         base = Object.assign({}, base, this.customProps);
 
         return base;
@@ -320,13 +329,14 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
             "arguments",
             "outputs",
             "stdin",
-            "stdout"
+            "stdout",
+            "cwlVersion"
         ];
 
         this.id = tool.id;
 
         tool.inputs.forEach((input, index) => {
-            this.addInput(new CommandInputParameterModel(`${this.loc}.inputs[${index}]`, input));
+            this.addInput(new SBDraft2CommandInputParameterModel(input, `${this.loc}.inputs[${index}]`));
         });
         tool.outputs.forEach((output, index) => {
             this.addOutput(new CommandOutputParameterModel(output, `${this.loc}.outputs[${index}]`))
@@ -387,11 +397,7 @@ export class CommandLineToolModel extends ValidationBase implements CommandLineR
         this.jobInputs = this.job.inputs || this.job;
 
         // populates object with all custom attributes not covered in model
-        Object.keys(tool).forEach(key => {
-            if (serializedAttr.indexOf(key) === -1) {
-                this.customProps[key] = tool[key];
-            }
-        });
+        spreadSelectProps(tool, this.customProps, serializedAttr);
     }
 
     private createReq(req: ProcessRequirement, loc: string, hint?: boolean) {

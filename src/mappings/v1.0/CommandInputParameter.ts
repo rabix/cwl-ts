@@ -6,6 +6,7 @@ import {CommandInputArraySchema} from "./CommandInputArraySchema";
 import {CommandLineBinding} from "./CommandLineBinding";
 
 
+export type CommandInputParameterType = CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string | Array<CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string>;
 /**
  * An input parameter for a CommandLineTool.
  */
@@ -17,7 +18,7 @@ export interface CommandInputParameter extends InputParameter {
      * Specify valid types of data that may be assigned to this parameter.
      *
      */
-        type?: CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string | Array<CWLType | CommandInputRecordSchema | CommandInputEnumSchema | CommandInputArraySchema | string>;
+     type?: CommandInputParameterType;
 
 
     /**

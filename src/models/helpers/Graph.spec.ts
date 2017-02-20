@@ -23,7 +23,7 @@ describe("Graph", () => {
 
         it("should return false for unconnected graphs", () => {
             let vertices: Array<[string, any]> = [['a', null]];
-            let edges: [[string, string]] = [['b', 'c']]
+            let edges: [[string, string]] = [['b', 'c']];
             let g = new Graph(vertices, edges, VertexMissing.CreateVertex);
             expect(g.isConnected()).to.be.false;
 
@@ -38,8 +38,20 @@ describe("Graph", () => {
             expect(g.isConnected()).to.be.false;
         });
 
+        it("should return false for two unconnected graphs", () => {
+           let vertices: Array<[string, any]> = [['a', null], ['b', null], ['c', null], ['d', null], ['e', null]];
+           let edges: [[string, string]] = [
+               ['a', 'b'],
+               ['c', 'b'],
+               ['d', 'e']
+           ];
+
+           let g = new Graph(vertices, edges);
+           expect(g.isConnected()).to.be.false;
+        });
+
         it("should return true for connected graphs", () => {
-            
+
             let edges: [[string, string]] = [
                 ['a', 'b'],
                 ['b', 'c'],
@@ -112,5 +124,20 @@ describe("Graph", () => {
             expect(g.topSort.bind(g)).to.throw("Graph has cycles");
         });
     });
+
+    describe("hasCycles", () => {
+        it("should detect cycle in graph", () => {
+            const edges: [[string, string]] = [
+                ['a', 'b'],
+                ['b', 'c'],
+                ['d', 'e'],
+                ['e', 'c'],
+                ['c', 'a']
+            ];
+
+            const g = new Graph(null, edges, VertexMissing.CreateVertex);
+            expect(g.hasCycles()).to.be.true;
+        })
+    })
 
 });

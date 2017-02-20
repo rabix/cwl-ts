@@ -1,9 +1,9 @@
-import {CommandInputParameterModel} from "../d2sb";
+import {SBDraft2CommandInputParameterModel} from "../d2sb";
 import {CommandLineRunnable} from "../interfaces";
 
 export class JobHelper {
 
-    public static getJobPart(input: CommandInputParameterModel) {
+    public static generateMockJobData(input: SBDraft2CommandInputParameterModel) {
         const type = <any> input.type.type;
         const items = <any> input.type.items;
         const name: string = input.id;
@@ -63,10 +63,21 @@ export class JobHelper {
 
         if (type === "array") {
             val = val[items];
+
+            if (items === "record") {
+                val = [];
+                const obj = {};
+                input.type.fields.forEach(field => {
+                    obj[field.id] = JobHelper.generateMockJobData(field);
+                });
+
+                val.push(obj);
+                val.push(obj);
+            }
         }
         if (type === "record") {
             input.type.fields.forEach(field => {
-                val[field.id] = JobHelper.getJobPart(field);
+                val[field.id] = JobHelper.generateMockJobData(field);
             });
         }
 
@@ -77,7 +88,7 @@ export class JobHelper {
         let job = {};
 
         tool.inputs.forEach(input => {
-            job[input.id] = JobHelper.getJobPart(input);
+            job[input.id] = JobHelper.generateMockJobData(input);
         });
 
         return job;

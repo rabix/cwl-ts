@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "noEmitHelpers": false, //@fixme, check if this is still necessary
+        "noEmitHelpers": false,
         "module": "commonjs",
         "moduleResolution": "node",
         "preserveConstEnums": true,

@@ -2,11 +2,13 @@ import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {Serializable} from "../interfaces/Serializable";
 import {CommandLineBindingModel} from "./CommandLineBindingModel";
-import {ValidationBase, Validation} from "../helpers/validation";
-import {InputParameterTypeModel} from "./InputParameterTypeModel";
+import {Validation} from "../helpers/validation";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
+import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
+import {spreadSelectProps} from "../helpers/utils";
 
-export class CommandInputParameterModel extends ValidationBase implements Serializable<CommandInputParameter | CommandInputRecordField> {
+export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter | CommandInputRecordField> {
     /** unique identifier of input */
     public id: string;
     /** Human readable short name */
@@ -18,7 +20,7 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
     public isField: boolean = false;
 
     /** Complex object that holds logic and information about input's type property */
-    public type: InputParameterTypeModel;
+    public type: ParameterTypeModel;
 
     /** Binding for inclusion in command line */
     public inputBinding: CommandLineBindingModel = null;
@@ -29,14 +31,13 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
 
     public customProps: any = {};
 
-    constructor(loc?: string, input?: CommandInputParameter | CommandInputRecordField) {
+    constructor(input?: CommandInputParameter | CommandInputRecordField, loc?: string) {
         super(loc);
         this.deserialize(input);
     }
 
     serialize(): CommandInputParameter | CommandInputRecordField {
-        let base: any = {};
-        base          = Object.assign({}, base, this.customProps);
+        let base: any = {... this.customProps};
 
         base.type = this.type.serialize();
 
@@ -87,17 +88,13 @@ export class CommandInputParameterModel extends ValidationBase implements Serial
             this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
         }
 
-        this.type = new InputParameterTypeModel(input.type, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(input.type, SBDraft2CommandInputParameterModel, `${this.loc}.type`);
         this.type.setValidationCallback((err: Validation) => {
             this.updateValidity(err)
         });
 
         // populates object with all custom attributes not covered in model
-        Object.keys(input).forEach(key => {
-            if (serializedAttr.indexOf(key) === -1) {
-                this.customProps[key] = input[key];
-            }
-        });
+        spreadSelectProps(input, this.customProps, serializedAttr);
     }
 
     public updateInputBinding(binding: CommandLineBindingModel|CommandLineBinding) {

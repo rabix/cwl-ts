@@ -2,13 +2,18 @@ import {Serializable} from "../interfaces/Serializable";
 import {TypeResolver, TypeResolution} from "../helpers/TypeResolver";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
-import {CommandOutputParameterType} from "../../mappings/d2sb/CommandOutputParameter";
-import {CommandInputParameterType} from "../../mappings/d2sb/CommandInputParameter";
+import {CommandOutputParameterType as SBDraft2CommandOutputParameterType} from "../../mappings/d2sb/CommandOutputParameter";
+import {CommandInputParameterType as SBDraft2CommandInputParameterType} from "../../mappings/d2sb/CommandInputParameter";
+
+import {CommandOutputParameterType as V1CommandOutputParameterType} from "../../mappings/v1.0/CommandOutputParameter";
+import {CommandInputParameterType as V1CommandInputParameterType} from "../../mappings/v1.0/CommandInputParameter";
+
 import {Validation} from "../helpers/validation/Validation";
+import {spreadSelectProps} from "../helpers/utils";
 
 export type PrimitiveParameterType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes" | "map";
 
-export abstract class ParameterTypeModel extends ValidationBase implements Serializable<any>, TypeResolution {
+export class ParameterTypeModel extends ValidationBase implements Serializable<any>, TypeResolution {
     public customProps: any = {};
 
     private _items: PrimitiveParameterType = null;
@@ -21,6 +26,14 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
         if (t && this._type !== "array") {
             throw("ParameterTypeModel: Items can only be set to inputs type Array");
         } else {
+            switch (t) {
+                case "enum":
+                    this.symbols = [];
+                    break;
+                case "record":
+                    this.fields = [];
+                    break;
+            }
             this._items = t;
         }
     }
@@ -56,14 +69,19 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
         }
     }
 
-    isNullable: boolean = false;
-    typeBinding: CommandLineBinding = null;
-    fields: Array<any> = null;
-    symbols: string[] = null;
-    name: string = null;
+    public isNullable: boolean             = false;
+    public typeBinding: CommandLineBinding = null;
+    public fields: Array<any>              = null;
+    public symbols: string[]               = null;
+    public name: string                    = null;
+    private fieldConstructor;
 
-    constructor(type: CommandInputParameterType | CommandOutputParameterType, loc: string) {
+    constructor(type: SBDraft2CommandInputParameterType |
+        SBDraft2CommandOutputParameterType |
+        V1CommandOutputParameterType |
+        V1CommandInputParameterType, fieldConstructor, loc: string) {
         super(loc);
+        this.fieldConstructor = fieldConstructor;
         this.deserialize(type);
     }
 
@@ -160,7 +178,7 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
         let type = TypeResolver.serializeType(this);
 
         if (typeof type === "object" && !Array.isArray(type)) {
-            type = Object.assign({}, type, this.customProps);
+            type = { ...{}, ...type, ...this.customProps};
         }
 
         return type
@@ -172,13 +190,20 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
         TypeResolver.resolveType(attr, this);
 
         // populates object with all custom attributes not covered in model
-        if (typeof attr === "object") {
-            Object.keys(attr).forEach(key => {
-                if (serializedKeys.indexOf(key) === -1) {
-                    this.customProps[key] = attr[key];
-                }
+        if (typeof attr === "object" && attr !== null) {
+            spreadSelectProps(attr, this.customProps, serializedKeys);
+        }
+
+        if (this.fields) {
+            this.fields = this.fields.map((field, index) => {
+                const f = new this.fieldConstructor(field, `${this.loc}.fields[${index}]`);
+                f.setValidationCallback((err: Validation) => {
+                    this.updateValidity(err)
+                });
+                return f;
             });
         }
+
     }
 
     setType(t: PrimitiveParameterType): void {
@@ -198,5 +223,56 @@ export abstract class ParameterTypeModel extends ValidationBase implements Seria
                 this.symbols = null;
                 break;
         }
+    }
+
+    addField(field: any) {
+        if (this.type !== "record" && this.items !== "record") {
+            throw(`Fields can only be added to type or items record: type is ${this.type}, items is ${this.items}.`);
+        } else {
+            const duplicate = this.fields.filter(val => {
+                return val.id === field.name
+                    || val.id === field.id;
+            });
+
+            if (duplicate.length > 0) {
+                this.validation.errors.push({
+                    loc: this.loc,
+                    message: `Field with name "${duplicate[0].id}" already exists`
+                });
+            }
+
+            if (field instanceof this.fieldConstructor) {
+                field.loc = `${this.loc}.fields[${this.fields.length}]`;
+                field.setValidationCallback((err: Validation) => {
+                    this.updateValidity(err)
+                });
+
+                this.fields.push(field);
+            } else {
+                const f = new this.fieldConstructor(field, `${this.loc}.fields[${this.fields.length}]`);
+                f.setValidationCallback((err: Validation) => {
+                    this.updateValidity(err)
+                });
+
+                this.fields.push(f);
+            }
+        }
+    }
+
+    removeField(field: any) {
+        let found;
+
+        if (typeof field === "string") {
+            found = this.fields.filter(val => val.id === field)[0];
+        } else {
+            found = field;
+        }
+
+        const index = this.fields.indexOf(found);
+        if (index < 0) {
+            throw(`Field ${field} does not exist on input`);
+        }
+
+        this.fields.splice(index, 1);
     }
 }
