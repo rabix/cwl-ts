@@ -635,17 +635,24 @@
         },
         "WorkflowOutputParameter": {
             "description": "Describe an output parameter of a workflow.  The parameter must be\n\nconnected to one or more parameters defined in the workflow that will\n\nprovide the value of the output parameter.",
-            "type": "object",
-            "properties": {
-                "outputSource": {
-                    "description": "Specifies one or more workflow parameters that supply the value of to\n\nthe output parameter.",
-                    "$ref": "#/definitions/StringOrArrayOfStrings"
+            "allOf": [
+                {
+                    "$ref": "#/definitions/Parameter"
                 },
-                "linkMerge": {
-                    "$ref": "#/definitions/LinkMergeMethod",
-                    "description": "The method to use to merge multiple sources into a single array.\n\nIf not specified, the default method is \"merge_nested\"."
+                {
+                    "type": "object",
+                    "properties": {
+                        "outputSource": {
+                            "description": "Specifies one or more workflow parameters that supply the value of to\n\nthe output parameter.",
+                            "$ref": "#/definitions/StringOrArrayOfStrings"
+                        },
+                        "linkMerge": {
+                            "$ref": "#/definitions/LinkMergeMethod",
+                            "description": "The method to use to merge multiple sources into a single array.\n\nIf not specified, the default method is \"merge_nested\"."
+                        }
+                    }
                 }
-            }
+            ]
         },
         "WorkflowOutputParameters": {
             "oneOf": [
