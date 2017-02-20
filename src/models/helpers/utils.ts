@@ -80,8 +80,8 @@ export const incrementString = (str:string): string => {
     return replaced;
 };
 
-export const spreadAllProps = (sourceObj: Object, destObj: Object): void => {
-    destObj = {... destObj, ...sourceObj};
+export const spreadAllProps = (sourceObj: Object, destObj: Object): any => {
+    return {... destObj, ...sourceObj};
 };
 
 export const spreadSelectProps = (sourceObj: Object, destObj: Object, keys: string[]): void => {

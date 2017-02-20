@@ -3,6 +3,7 @@ import {SBGWorkflowInputParameter} from "../../mappings/d2sb/SBGWorkflowInputPar
 import {RecordField} from "../../mappings/draft-3/RecordField";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
 
 export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
@@ -16,6 +17,8 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
     }
 
     deserialize(input: SBGWorkflowInputParameter | RecordField) {
+        const serializedKeys = ["name", "id", "type"];
+
         this.isField = !!(<RecordField> input).name;
 
         if ((<SBGWorkflowInputParameter> input).id && (<SBGWorkflowInputParameter> input).id.charAt(0) === "#") {
@@ -26,9 +29,11 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
         }
 
         this.type = new ParameterTypeModel(input.type, SBDraft2WorkflowInputParameterModel, `${this.loc}.type`);
+
+        spreadSelectProps(input, this.customProps, serializedKeys);
     }
 
-    serialize(): SBGWorkflowInputParameter | RecordField{
+    serialize(): SBGWorkflowInputParameter | RecordField {
         const base: any = {};
         base.type = this.type.serialize();
         if (this.isField) {
@@ -37,6 +42,6 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
             base.id = this.id;
         }
 
-        return base;
+        return spreadAllProps(base, this.customProps);
     }
 }

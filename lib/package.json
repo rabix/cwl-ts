@@ -1,6 +1,6 @@
 {
   "name": "cwlts",
-  "version": "1.10.20",
+  "version": "1.10.21",
   "description": "TypeScript data model for Common Workflow Language",
   "main": "index.js",
   "typings": "index.d.ts",
