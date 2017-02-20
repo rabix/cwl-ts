@@ -1,28 +1,43 @@
 var chai = require('chai');
 var expect = chai.expect;
 
-describe("schema for D2SB CommandLineTool", function () {
-    var Validator = require('jsonschema').Validator;
-    var v = new Validator();
-    var d2sbCLTSchema = require('../schemas/d2sb/CLT-schema.json');
+describe("schema for V1 CommandLineTool", function () {
+    var AJV = require("ajv");
+    var v = new AJV({allErrors: true});
+    var cwlV1Schema = require("../schemas/cwl-v10.json");
+    var v1Validator = v.compile(cwlV1Schema);
+    var YAML = require("js-yaml");
+    var fs = require("fs");
+    var path = require('path');
 
-    describe("BamTools Split", function () {
-        var bamToolsSplit = require('./apps/bamtools-split.json');
-        var result = v.validate(bamToolsSplit, d2sbCLTSchema);
-        expect(result.valid).to.be.true;
+    describe("Batch for Variant Call", function () {
+        var batchForVariantCallPath = path.join(__dirname, 'apps/batch_for_variantcall.cwl')
+        var batchForVariantCall = fs.readFileSync(batchForVariantCallPath);
+        var result = v1Validator(YAML.safeLoad(batchForVariantCall));
+
+        var errors = v1Validator.errors || [];
+        console.log(errors);
+        expect(errors).to.be.empty;
     });
 
-    describe("BamTools Index", function () {
-        var bamToolsIndex = require('./apps/bamtools-index.json');
-        var result = v.validate(bamToolsIndex, d2sbCLTSchema);
-        expect(result.valid).to.be.true;
+    describe("GATK-VariantRecalibrator-SNPs", function () {
+        var gatkVariantRecalibratorPath = path.join(__dirname, 'apps/GATK-VariantRecalibrator-SNPs.cwl')
+        var gatkVariantRecalibrator = fs.readFileSync(gatkVariantRecalibratorPath);
+        var result = v1Validator(YAML.safeLoad(gatkVariantRecalibrator));
+        
+        var errors = v1Validator.errors || [];
+        console.log(errors);
+        expect(errors).to.be.empty;
     });
 
-    describe("BCFTools Annotate", function () {
-        var bcfToolsAnnotate = require("./apps/bcftools-annotate.json");
-        var result = v.validate(bcfToolsAnnotate, d2sbCLTSchema);
-        expect(result.valid).to.be.true;
+    describe("LobSTR tool", function () {
+        var lobSTRPath = path.join(__dirname, 'apps/lobSTR-tool.cwl')
+        var lobSTR = fs.readFileSync(lobSTRPath);
+        var result = v1Validator(YAML.safeLoad(lobSTR));
+        
+        var errors = v1Validator.errors || [];
+        console.log(errors);
+        expect(errors).to.be.empty;
     });
 
-    //todo: write tests for major cases were validation should fail (no class, no base command, etc)
 });

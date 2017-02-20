@@ -10,7 +10,8 @@
     "coverage": "npm install istanbul && ./node_modules/typescript/bin/tsc --outDir ./compiled --declaration false && ./node_modules/istanbul/lib/cli.js cover _mocha ./compiled/**/*.spec.js",
     "regenerate": "./node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
     "schemas": "npm install cwl-ts-parser && scripts/schemas.sh",
-    "d2sb-test": "mocha src/tests/*.d2sb.spec.js"
+    "d2sb-test": "mocha src/tests/*.d2sb.spec.js",
+    "v1-test": "mocha src/tests/*.v1.spec.js"
   },
   "repository": {
     "type": "git",

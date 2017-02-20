@@ -2,28 +2,41 @@ var chai = require('chai');
 var expect = chai.expect;
 
 describe("schema for V1 Workflow", function() {
-    var Validator = require('jsonschema').Validator;
-    var v = new Validator();
-    var cwlV1Schema = require("../schemas/cwl-v1.json");
+    var AJV = require("ajv");
+    var v = new AJV({allErrors: true});
+    var cwlV1Schema = require("../schemas/cwl-v10.json");
+    var v1Validator = v.compile(cwlV1Schema);
+    var YAML = require("js-yaml");
+    var fs = require("fs");
+    var path = require('path');
 
-    describe("RNA-seq Alignment STAR", function() {
-        var rnaSeq = require('./apps/rna-seq-alignment-star.json');
-        var result = v.validate(rnaSeq, cwlV1Schema);
-
-        expect(result.valid).to.be.true;
+    describe("GATK workflow", function() {
+        var gatkPath = path.join(__dirname, 'apps/GATK-complete-Workflow.cwl')
+        var gatkWorkflow = fs.readFileSync(gatkPath);
+        var isValid = v1Validator(YAML.safeLoad(gatkWorkflow));
+        
+        var errors = v1Validator.errors || [];
+        console.log(errors);
+        expect(errors).to.be.empty;
     });
 
-    describe("Whole Exome Sequencing GATK", function() {
-        var wholeExome = require('./apps/whole-exome-sequencing-gatk.json');
-        var result = v.validate(wholeExome, cwlV1Schema);
-
-        expect(result.valid).to.be.true;
+    describe("BcBio workflow", function() {
+        var bcbioPath = path.join(__dirname, 'apps/main-run_info-cwl.cwl')
+        var bcbioWorkflow = fs.readFileSync(bcbioPath);
+        var result = v1Validator(YAML.safeLoad(bcbioWorkflow));
+        
+        var errors = v1Validator.errors || [];
+        console.log(errors);
+        expect(errors).to.be.empty;
     });
 
-    describe("Fusion Transcript Detection ChimeraScan", function() {
-        var chimeraScan = require('./apps/chimerascan.json');
-        var result = v.validate(chimeraScan, cwlV1Schema);
-
-        expect(result.valid).to.be.true;
+    describe("LobSTR workflow", function() {
+        var lobstrPath = path.join(__dirname, 'apps/lobSTR-workflow.cwl')
+        var lobstrWorkflow = fs.readFileSync(lobstrPath);
+        var result = v1Validator(YAML.safeLoad(lobstrWorkflow));
+        
+        var errors = v1Validator.errors || [];
+        console.log(errors);
+        expect(errors).to.be.empty;
     });
 });

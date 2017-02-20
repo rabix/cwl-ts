@@ -458,7 +458,7 @@
                 {
                     "type": "object",
                     "additionalProperties": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "$ref": "#/definitions/InputParameter"
                             },
@@ -527,10 +527,7 @@
             "properties": {
                 "in": {
                     "description": "Defines the input parameters of the workflow step.  The process is ready to\n\nrun when all required input parameters are associated with concrete\n\nvalues.  Input parameters include a schema for each parameter which is\n\nused to validate the input object.  It may also be used build a user\n\ninterface for constructing the input object.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/WorkflowStepInput"
-                    }
+                    "$ref": "#/definitions/WorkflowStepInputs"
                 },
                 "out": {
                     "description": "Defines the parameters representing the output of the process.  May be\n\nused to generate and/or validate the output object.",
@@ -668,13 +665,14 @@
                 {
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": "#/definitions/WorkflowOutputParameter"
-                    }
-                },
-                {
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/CwlType"
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/WorkflowOutputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/CwlType"
+                            }
+                        ]
                     }
                 }
             ]
@@ -686,7 +684,7 @@
                     "items": {
                         "allOf": [
                             {
-                                "$ref": "#/definitions/WorkflowStep"
+                                "$ref": "#/definitions/WorkflowStepInput"
                             },
                             {
                                 "$ref": "#/definitions/ObjectWithId"
@@ -697,13 +695,14 @@
                 {
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": "#/definitions/WorkflowStep"
-                    }
-                },
-                {
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/StringOrArrayOfStrings"
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/WorkflowStepInput"
+                            },
+                            {
+                                "$ref": "#/definitions/StringOrArrayOfStrings"
+                            }
+                        ]
                     }
                 }
             ]
@@ -829,6 +828,36 @@
                 }
             ]
         },
+        "CommandInputParameters": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/CommandInputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/CommandInputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/CommandInputType"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
         "CommandInputRecordSchema": {
             "type": "object",
             "properties": {
@@ -907,21 +936,59 @@
             ]
         },
         "CommandOutputParameter": {
-            "allOf": [
+            "description": "An output parameter for a CommandLineTool.",
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/CommandOutputBinding",
+                    "description": "Describes how to handle the outputs of a process."
+                },
+                "type": {
+                    "$ref": "#/definitions/CommandOutputType"
+                },
+                "secondaryFiles": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "format": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "streamable": {
+                    "type": "boolean"
+                },
+                "doc": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
+        "CommandOutputParameters": {
+            "oneOf": [
                 {
-                    "$ref": "#/definitions/OutputParameter"
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/CommandOutputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
                 },
                 {
-                    "description": "An output parameter for a CommandLineTool.",
                     "type": "object",
-                    "properties": {
-                        "outputBinding": {
-                            "$ref": "#/definitions/CommandOutputBinding",
-                            "description": "Describes how to handle the outputs of a process."
-                        },
-                        "type": {
-                            "$ref": "#/definitions/CommandOutputType"
-                        }
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/CommandOutputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/CommandOutputType"
+                            }
+                        ]
                     }
                 }
             ]
@@ -983,17 +1050,7 @@
                 },
                 "outputEval": {
                     "description": "Evaluate an expression to generate the output value.  If `glob` was\n\nspecified, the value of `self` must be an array containing file objects\n\nthat were matched.  If no files were matched, `self` must be a zero\n\nlength array; if a single file was matched, the value of `self` is an\n\narray of a single element.  Additionally, if `loadContents` is `true`,\n\nthe File objects must include up to the first 64 KiB of file contents\n\nin the `contents` field.",
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "string",
-                            "enum": [
-                                "ExpressionPlaceholder"
-                            ]
-                        }
-                    ]
+                    "type": "string"
                 }
             }
         },
@@ -1019,7 +1076,9 @@
                 },
                 "type": {
                     "type": "string",
-                    "enum": ["array"]
+                    "enum": [
+                        "array"
+                    ]
                 }
             }
         },
@@ -1102,17 +1161,11 @@
                 },
                 "inputs": {
                     "description": "Defines the input parameters of the process.  The process is ready to\n\nrun when all required input parameters are associated with concrete\n\nvalues.  Input parameters include a schema for each parameter which is\n\nused to validate the input object.  It may also be used to build a user\n\ninterface for constructing the input object.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/CommandInputParameter"
-                    }
+                    "$ref": "#/definitions/CommandInputParameters"
                 },
                 "outputs": {
                     "description": "Defines the parameters representing the output of the process.  May be\n\nused to generate and/or validate the output object.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/CommandOutputParameter"
-                    }
+                    "$ref": "#/definitions/CommandOutputParameters"
                 }
             },
             "required": [
@@ -1163,10 +1216,7 @@
                 },
                 "steps": {
                     "description": "The individual steps that make up the workflow.  Each step is executed when all of its\n\ninput data links are fufilled.  An implementation may choose to execute\n\nthe steps in a different order than listed and/or execute steps\n\nconcurrently, provided that dependencies between steps are met.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/WorkflowStep"
-                    }
+                    "$ref": "#/definitions/WorkflowSteps"
                 },
                 "outputs": {
                     "description": "Defines the parameters representing the output of the process.  May be\n\nused to generate and/or validate the output object.",
