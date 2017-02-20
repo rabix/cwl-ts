@@ -79,7 +79,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     constructor(type: SBDraft2CommandInputParameterType |
         SBDraft2CommandOutputParameterType |
         V1CommandOutputParameterType |
-        V1CommandInputParameterType, fieldConstructor, loc: string) {
+        V1CommandInputParameterType, fieldConstructor?, loc?: string) {
         super(loc);
         this.fieldConstructor = fieldConstructor;
         this.deserialize(type);

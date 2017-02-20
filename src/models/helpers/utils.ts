@@ -25,7 +25,7 @@ export const ensureArray = (map: { [key: string]: any } | any[] | string | numbe
 
          return value is [ {id: "foo", type: "bar"} ];
          */
-        if (valueKey && checkMapValueType(map) !== "object") {
+        if (valueKey && checkMapValueType(map) !== "object" && checkValueType(map[prop]) !== "object") {
             return {... {[valueKey]: map[prop]}, ...{[key]: prop}};
         }
 
@@ -47,18 +47,7 @@ export const checkMapValueType = (map: { [key: string]: any }): "string" | "numb
     let type = null;
 
     Object.keys(map).forEach((key) => {
-        let valType;
-        const value = map[key];
-
-        if (Array.isArray(value)) {
-            valType = "array";
-        } else if (value === null) {
-            valType = "null";
-        } else if (typeof value === "object") {
-            valType = "object";
-        } else {
-            valType = typeof value;
-        }
+        let valType = checkValueType(map[key]);
 
         if (type && valType !== type) {
             type = "mismatch";
@@ -69,6 +58,22 @@ export const checkMapValueType = (map: { [key: string]: any }): "string" | "numb
     });
 
     return type;
+};
+
+export const checkValueType = (value: any): "string" | "number" | "undefined" | "object" | "array" | "null" => {
+    let valType;
+
+    if (Array.isArray(value)) {
+        valType = "array";
+    } else if (value === null) {
+        valType = "null";
+    } else if (typeof value === "object") {
+        valType = "object";
+    } else {
+        valType = typeof value;
+    }
+
+    return valType;
 };
 
 export const incrementString = (str:string): string => {

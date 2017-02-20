@@ -2,6 +2,34 @@ import {expect} from "chai";
 import {ensureArray, checkMapValueType, incrementString, spreadSelectProps} from "./utils";
 
 describe("ensureArray", () => {
+    it("should return an array of mismatched objects", () => {
+        const test = {
+            foo: "bar",
+            baz: {
+                meow: 3
+            },
+            myu: {
+                id: "grr"
+            }
+        };
+        const arr  = ensureArray(test, "id", "type");
+
+        expect(arr).to.have.length(3);
+        expect(arr).to.deep.equal(
+            [{
+                id: "foo",
+                type: "bar"
+            }, {
+                id: "baz",
+                meow: 3
+            }, {
+                id: "myu"
+            }]
+        );
+
+
+    });
+
     it("should return an array from a map of objects", () => {
         const test = {
             foo: {d: "a"},
@@ -57,7 +85,7 @@ describe("ensureArray", () => {
 
     it("should wrap a primitive value in an array", () => {
         const test = "simple string";
-        const arr = ensureArray(<any> test);
+        const arr  = ensureArray(<any> test);
 
         expect(arr).to.have.length(1);
         expect(arr).to.deep.equal(["simple string"]);
@@ -145,20 +173,20 @@ describe("incrementString", () => {
 });
 
 describe("spreadSelectProps", () => {
-   it("should transfer properties to new object", () => {
-       let dest = {a: 1, b: 2};
-       let source = {c: 4, d: 10};
+    it("should transfer properties to new object", () => {
+        let dest   = {a: 1, b: 2};
+        let source = {c: 4, d: 10};
 
-       spreadSelectProps(source, dest, []);
+        spreadSelectProps(source, dest, []);
 
-       expect(dest).to.haveOwnProperty("a");
-       expect(dest).to.haveOwnProperty("b");
-       expect(dest).to.haveOwnProperty("c");
-       expect(dest).to.haveOwnProperty("d");
-   });
+        expect(dest).to.haveOwnProperty("a");
+        expect(dest).to.haveOwnProperty("b");
+        expect(dest).to.haveOwnProperty("c");
+        expect(dest).to.haveOwnProperty("d");
+    });
 
     it("should transfer only unenumerated properties to new object", () => {
-        let dest = {a: 1, b: 2};
+        let dest   = {a: 1, b: 2};
         let source = {c: 4, d: 10, b: 33};
 
         spreadSelectProps(source, dest, ["d", "b"]);

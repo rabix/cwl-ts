@@ -54,9 +54,11 @@ export class SBDraft2StepModel extends StepModel {
 
             // here will set source and default if they exist
             const newPort = new SBDraft2WorkflowStepInputModel({
-                ...match,
                 type: input.type,
-                fileTypes: input["sbg:fileTypes"]
+                fileTypes: input["sbg:fileTypes"],
+                description: input.description,
+                label: input.label,
+                ...match,
             }, this, `${this.loc}.in[${index}]`);
 
             // for some absurd reason, visibility is kept inside the run property, on the actual input
@@ -75,9 +77,11 @@ export class SBDraft2StepModel extends StepModel {
 
             if (match) {
                 return new SBDraft2WorkflowStepOutputModel({
-                    ...port,
                     type: match.type,
-                    fileTypes: match["sbg:fileTypes"]
+                    fileTypes: match["sbg:fileTypes"],
+                    description: match.description,
+                    label: match.label,
+                    ...port,
                 }, this, `${this.loc}.out[${index}]`);
             }
         }).filter(port => port !== undefined);

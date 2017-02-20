@@ -7,6 +7,14 @@ import {UnimplementedMethodException} from "../helpers/UnimplementedMethodExcept
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 
 export class WorkflowStepOutputModel extends ValidationBase implements Plottable, Serializable<any> {
+    type?: OutputParameterTypeModel;
+    fileTypes?: string[];
+    label?: string;
+    description?: string;
+
+    parentStep: StepModel;
+    id: string;
+
     customProps: any = {};
 
     serialize(): any {
@@ -32,10 +40,4 @@ export class WorkflowStepOutputModel extends ValidationBase implements Plottable
     get connectionId(): string {
         return `${STEP_OUTPUT_CONNECTION_PREFIX}${this.parentStep.id}/${this.id}`;
     }
-
-    type?: OutputParameterTypeModel;
-    fileTypes?: string[];
-
-    parentStep: StepModel;
-    id: string;
 }

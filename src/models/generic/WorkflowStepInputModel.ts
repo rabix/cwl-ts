@@ -14,6 +14,8 @@ export class WorkflowStepInputModel extends ValidationBase implements Serializab
     valueFrom: string | Expression;
     source: string[] = [];
     linkMerge: LinkMergeMethod;
+    label: string;
+    description: string;
 
     type?: InputParameterTypeModel;
     fileTypes?: string[];
