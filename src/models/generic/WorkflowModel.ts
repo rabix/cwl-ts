@@ -10,6 +10,7 @@ import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {CommandLineToolModel} from "./CommandLineToolModel";
 import {ExpressionToolModel} from "./ExpressionToolModel";
+import {intersection} from "../helpers/utils";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -18,6 +19,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     public steps: StepModel[]                      = [];
     public inputs: WorkflowInputParameterModel[]   = [];
     public outputs: WorkflowOutputParameterModel[] = [];
+
+    public customProps: any = {};
 
     public get connections(): Edge[] {
         return Array.from(this.graph.edges);
@@ -106,6 +109,58 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             });
             return false;
         }
+    }
+
+    /**
+     * Finds matching ports to which pointA can connect within the workflow.
+     * Looks at port type and fileTypes if they are specified.
+     */
+    private gatherValidPorts(pointA: any, points: any[]): any[] {
+        return points.filter(pointB => {
+            // if both ports belong to the same step, connection is not possible
+            if (pointA.parentStep && pointB.parentStep && pointA.parentStep.id === pointB.parentStep.id) {
+                return false;
+            }
+
+            // fetch type
+            const pointBType = pointB.type.type;
+            const pointAType = pointA.type.type;
+
+            // match types, defined types can be matched with undefined types
+            if (pointAType === pointBType || pointAType === "null" || pointBType === "null") {
+                // if type match is file, and fileTypes are defined on both ports,
+                // match only if fileTypes match
+                if (pointAType === "File" && pointB.fileTypes.length && pointA.fileTypes.length) {
+                    return !!intersection(pointB.fileTypes, pointA.fileTypes).length;
+                }
+
+                // if not file or fileTypes not defined
+                return true;
+            }
+
+            // if types are both defined and do not match
+            return false;
+        });
+    }
+
+    /**
+     * Finds valid destination ports (workflow.outputs and step.in)
+     * for a given source port (workflow.inputs and step.out)
+     */
+    public gatherValidDestinations(source: WorkflowInputParameterModel | WorkflowStepOutputModel): Array<WorkflowOutputParameterModel | WorkflowStepInputModel> {
+        const destinations = this.gatherDestinations();
+
+        return this.gatherValidPorts(source, destinations);
+    }
+
+    /**
+     * Finds valid destination ports (workflow.inputs and step.out)
+     * for a given source port (workflow.outputs and step.in)
+     */
+    public gatherValidSources(dest: WorkflowOutputParameterModel | WorkflowStepInputModel): Array<WorkflowInputParameterModel | WorkflowStepOutputModel> {
+        const sources = this.gatherSources();
+
+        return this.gatherValidPorts(dest, sources);
     }
 
     public gatherSources(): Array<WorkflowInputParameterModel | WorkflowStepOutputModel> {
@@ -246,7 +301,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
     }
 
-    protected getSourceConnectionId(source: string): string{
+    protected getSourceConnectionId(source: string): string {
         new UnimplementedMethodException("getSourceConnectionId");
         return undefined;
     }
@@ -254,5 +309,4 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     public validate() {
         new UnimplementedMethodException("validate");
     }
-    customProps: any = {};
 }

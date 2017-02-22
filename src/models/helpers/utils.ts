@@ -76,12 +76,12 @@ export const checkValueType = (value: any): "string" | "number" | "undefined" | 
     return valType;
 };
 
-export const incrementString = (str:string): string => {
+export const incrementString = (str: string): string => {
     const replaced = str.replace(/^(.*?)(\d+$)/gi, function (all, $1, $2) {
         return $1 + ++$2;
     });
 
-    if(replaced === str) return str + "_1";
+    if (replaced === str) return str + "_1";
     return replaced;
 };
 
@@ -95,4 +95,17 @@ export const spreadSelectProps = (sourceObj: Object, destObj: Object, keys: stri
             destObj[key] = sourceObj[key];
         }
     });
+};
+
+export const intersection = (arrA: Array<any> = [], arrB: Array<any> = []): Array<any> => {
+    return arrA.filter(item => {
+        return arrB.indexOf(item) !== -1;
+    });
+};
+
+export const commaSeparatedToArray = (str: string): string[] => {
+    if (!str) return [];
+    if (Array.isArray(str)) return str;
+
+    return str.replace(/\s/g, "").split(",");
 };

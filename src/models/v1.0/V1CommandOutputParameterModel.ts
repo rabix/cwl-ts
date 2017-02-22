@@ -2,6 +2,7 @@ import {CommandOutputBinding, CommandOutputParameter, Expression} from "../../ma
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {Serializable} from "../interfaces/Serializable";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+import {commaSeparatedToArray} from "../helpers/utils";
 
 export class V1CommandOutputParameterModel extends CommandOutputParameterModel implements Serializable<CommandOutputParameter> {
     type: ParameterTypeModel;
@@ -22,7 +23,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         this.label          = attr.label;
         this.description    = attr.description;
         this.secondaryFiles = attr.secondaryFiles;
-        this.format         = attr.format;
+        this.fileTypes         = commaSeparatedToArray(attr.format);
         this.streamable     = attr.streamable;
     }
 

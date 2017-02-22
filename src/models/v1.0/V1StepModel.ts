@@ -110,9 +110,11 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
             // here will set source and default if they exist
             return new V1WorkflowStepInputModel({
-                ...match,
                 type: input.type,
-                fileTypes: input["sbg:fileTypes"]
+                fileTypes: input.fileTypes || [],
+                description: input.description,
+                label: input.label,
+                ...match
             }, this, `${this.loc}.in[${index}]`);
         }).filter(port => port !== undefined);
     }
@@ -121,14 +123,17 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         const outPorts                            = ensureArray(step.out, "id");
         const stepOutputs: Array<OutputParameter> = this.run.outputs;
 
-        this.out = outPorts.map((port, index) => {
-            const match = stepOutputs.find(output => port.id === output.id);
+        this.out = stepOutputs.map((output, index) => {
+            const match = outPorts.find(port => port.id === output.id);
 
             if (match) {
+
                 return new V1WorkflowStepOutputModel({
-                    ...port,
-                    type: match.type,
-                    fileTypes: match["sbg:fileTypes"]
+                    type: output.type,
+                    fileTypes: output.fileTypes || [],
+                    description: output.description,
+                    label: output.label,
+                    ...match
                 }, this, `${this.loc}.out[${index}]`);
             }
         }).filter(port => port !== undefined);

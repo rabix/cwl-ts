@@ -7,7 +7,7 @@ import {
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {Serializable} from "../interfaces/Serializable";
-import {ensureArray, spreadSelectProps} from "../helpers/utils";
+import {commaSeparatedToArray, ensureArray, spreadSelectProps} from "../helpers/utils";
 
 export class V1CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter | CommandInputRecordField> {
     public id: string;
@@ -16,7 +16,6 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
     public label: string;
     public description: string;
     public secondaryFiles: string | Expression | Array<string | Expression>;
-    public format: string | Array<string> | Expression;
     public streamable: boolean;
     public isField: boolean;
 
@@ -41,7 +40,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
 
         if (this.label) base.label = this.label;
         if (this.description.length) base.description = this.description;
-        if (this.format) base.format = this.format;
+        if (this.fileTypes.length) base.format = this.fileTypes;
         if (this.streamable !== undefined) base.streamable = this.streamable;
         if (this.secondaryFiles) base.secondaryFiles = this.secondaryFiles;
 
@@ -66,7 +65,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         this.label          = attr.label;
         this.description    = ensureArray(attr.doc).join('\n');
         this.secondaryFiles = (<CommandInputParameter> attr).secondaryFiles;
-        this.format         = (<CommandInputParameter> attr).format;
+        this.fileTypes      = commaSeparatedToArray(attr["format"]);
         this.streamable     = (<CommandInputParameter> attr).streamable;
 
         spreadSelectProps(attr, this.customProps, serializedKeys);

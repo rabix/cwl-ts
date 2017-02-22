@@ -9,7 +9,7 @@ import {UnimplementedMethodException} from "../helpers/UnimplementedMethodExcept
 export class WorkflowInputParameterModel extends ValidationBase implements InputParameter, Serializable<any>, Plottable {
     id: string;
     type: InputParameterTypeModel;
-    fileTypes?: string[];
+    fileTypes: string[] = [];
 
     isField: boolean;
 

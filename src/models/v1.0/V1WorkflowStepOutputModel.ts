@@ -25,8 +25,14 @@ export class V1WorkflowStepOutputModel extends WorkflowStepOutputModel implement
 
     deserialize(output: WorkflowStepOutput): void {
         this.id = output.id;
+
+        // properties that will not be serialized on the step.out,
+        // but are necessary for internal functions
         this.type = output["type"];
         if (!this.type) this.type = new ParameterTypeModel(null);
+
+        this.description = output["description"];
+        this.label = output["label"];
 
         this.fileTypes = output["fileTypes"];
     }

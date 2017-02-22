@@ -1,9 +1,13 @@
 import {expect} from "chai";
 import {WorkflowFactory} from "./WorkflowFactory";
 import * as FirstWF from "../../tests/apps/first-workflow";
+import * as TypelessFirstWF from "../../tests/apps/typeless-first-workflow";
+import * as EmbeddedFirstWF from "../../tests/apps/embedded-first-wf";
+import * as EmbeddedFileTypeFirstWF from "../../tests/apps/embedded-filetype-first-wf";
 import * as DisconnectedFirstWF from "../../tests/apps/disconnected-first-workflow";
 import * as CyclicalWF from "../../tests/apps/cyclical-first-wf";
 import * as OneStepWF from "../../tests/apps/one-step-wf";
+import {WorkflowInputParameterModel} from "./WorkflowInputParameterModel";
 
 
 describe("WorkflowModel", () => {
@@ -15,6 +19,44 @@ describe("WorkflowModel", () => {
           expect(sources).to.not.be.empty;
           expect(sources).to.have.length(5);
       });
+   });
+
+   describe("gatherValidSources", () => {
+       it("should return all sources if workflow defines no types", () => {
+           const wf = WorkflowFactory.from(TypelessFirstWF.default);
+           const validSources = wf.gatherValidSources(wf.steps[0].in[0]);
+
+           expect(validSources).to.not.be.empty;
+           expect(validSources).to.have.length(4);
+       });
+
+       it("should return only sources of the same type", () => {
+           const wf = WorkflowFactory.from(EmbeddedFirstWF.default);
+           // destination with type File
+           const validSourcesFile = wf.gatherValidSources(wf.steps[0].in[0]);
+
+           expect(validSourcesFile).to.not.be.empty;
+           expect(validSourcesFile).to.have.length(2);
+           expect(validSourcesFile[0].type.type).to.equal("File");
+           expect(validSourcesFile[1].type.type).to.equal("File");
+
+           // destination with type string
+           const validSourcesString = wf.gatherValidSources(wf.steps[0].in[1]);
+           expect(validSourcesString).to.not.be.empty;
+           expect(validSourcesString).to.have.length(1);
+           expect(validSourcesString[0].type.type).to.equal("string");
+           expect(validSourcesString[0]).instanceof(WorkflowInputParameterModel);
+       });
+
+       it("should return only sources with same fileTypes if destination is File", () => {
+           const wf = WorkflowFactory.from(EmbeddedFileTypeFirstWF.default);
+           const validSourcesFile = wf.gatherValidSources(wf.steps[0].in[0]);
+
+           expect(validSourcesFile).to.not.be.empty;
+           expect(validSourcesFile).to.have.length(1);
+           expect(validSourcesFile[0].type.type).to.equal("File");
+           expect(validSourcesFile[0].fileTypes).to.deep.equal(["TXT"]);
+       });
    });
 
    describe("gatherDestinations", () => {

@@ -30,6 +30,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public job: any;
     public jobInputs: any;
     public id: string;
+    public label: string;
+    public description: string;
 
     public cwlVersion = "sbg:draft-2";
 
@@ -174,9 +176,10 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         }
     }
 
-    private commandLineWatcher: Function = () => {};
+    private commandLineWatcher: Function = () => {
+    };
 
-    public onCommandLineResult(fn: Function){
+    public onCommandLineResult(fn: Function) {
         this.commandLineWatcher = fn;
     }
 
@@ -249,6 +252,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         base.cwlVersion = "sbg:draft-2";
         base.class      = "CommandLineTool";
+
+        if (this.label) base.label = this.label;
+        if (this.description) base.description = this.description;
 
         // BASECOMMAND
         base.baseCommand = this.baseCommand
@@ -323,6 +329,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             "baseCommand",
             "class",
             "id",
+            "label",
+            "description",
             "inputs",
             "hints",
             "requirements",
@@ -334,6 +342,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         ];
 
         this.id = tool.id;
+
+        this.label       = tool.label;
+        this.description = tool.description;
 
         tool.inputs.forEach((input, index) => {
             this.addInput(new SBDraft2CommandInputParameterModel(input, `${this.loc}.inputs[${index}]`));

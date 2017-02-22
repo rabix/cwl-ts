@@ -22,7 +22,7 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
 
     serialize(): WorkflowStepInput {
         return {
-            id:  `${this.parentStep.id}.${this._id}`,
+            id: `#${this.parentStep.id}.${this._id}`,
             source: this.source,
             linkMerge: this.linkMerge,
             default: this.default
@@ -30,11 +30,15 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
     }
 
     deserialize(attr: WorkflowStepInput): void {
-        const serializedKeys = ["default", "id", "sbg:fileTypes"];
+        const serializedKeys = ["default", "id", "fileTypes"];
 
         this.default     = attr.default;
         this._id         = attr.id.split(".")[1];
-        this.fileTypes   = attr["sbg:fileTypes"];
+
+
+        // properties that will not be serialized on the step.in,
+        // but are necessary for internal functions
+        this.fileTypes   = attr["fileTypes"];
         this.description = attr["description"];
         this.label       = attr["label"];
         this.source      = ensureArray(attr.source);

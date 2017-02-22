@@ -136,6 +136,9 @@ export class CommandLineParsers {
     static checkMismatch(input, job, value): void {
         value = value || job[input.id];
 
+        if (input === null || input.type === null) {
+            return;
+        }
         // If type declared does not match type of value, throw error
         if (!TypeResolver.doesTypeMatch(input.type.type, value)) {
             // If there are items, only throw exception if items don't match either

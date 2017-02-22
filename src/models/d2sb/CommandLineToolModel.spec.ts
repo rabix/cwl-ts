@@ -12,7 +12,7 @@ import {ExpressionModel} from "./ExpressionModel";
 
 should();
 
-describe("SBDraft2CommandLineToolModel d2sb", () => {
+describe("SBDraft2CommandLineToolModel", () => {
     describe("constructor", () => {
 
         it("Should instantiate tool with minimum requirements", () => {

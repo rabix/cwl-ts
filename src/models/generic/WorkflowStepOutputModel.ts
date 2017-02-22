@@ -8,7 +8,7 @@ import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 
 export class WorkflowStepOutputModel extends ValidationBase implements Plottable, Serializable<any> {
     type?: OutputParameterTypeModel;
-    fileTypes?: string[];
+    fileTypes: string[] = [];
     label?: string;
     description?: string;
 

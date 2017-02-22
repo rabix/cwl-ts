@@ -6,8 +6,8 @@ import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
 import {SBDraft2WorkflowStepOutputModel} from "./SBDraft2WorkflowStepOutputModel";
 import {WorkflowStep} from "../../mappings/d2sb/WorkflowStep";
 import {ensureArray, spreadSelectProps} from "../helpers/utils";
-import {InputParameter} from "../../mappings/d2sb/InputParameter";
-import {OutputParameter} from "../../mappings/d2sb/OutputParameter";
+import {InputParameter} from "../generic/InputParameter";
+import {OutputParameter} from "../generic/OutputParameter";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {CommandLineToolFactory} from "../generic/CommandLineToolFactory";
 
@@ -55,14 +55,14 @@ export class SBDraft2StepModel extends StepModel {
             // here will set source and default if they exist
             const newPort = new SBDraft2WorkflowStepInputModel({
                 type: input.type,
-                fileTypes: input["sbg:fileTypes"],
+                fileTypes: input.fileTypes || [],
                 description: input.description,
                 label: input.label,
                 ...match,
             }, this, `${this.loc}.in[${index}]`);
 
             // for some absurd reason, visibility is kept inside the run property, on the actual input
-            newPort.isVisible = !!input["sbg:includeInPorts"];
+            newPort.isVisible = !!input["customProps"]["sbg:includeInPorts"];
 
             return newPort;
         }).filter(port => port !== undefined);
@@ -72,16 +72,16 @@ export class SBDraft2StepModel extends StepModel {
         const outPorts                            = ensureArray(step.outputs);
         const stepOutputs: Array<OutputParameter> = this.run.outputs;
 
-        this.out = outPorts.map((port, index) => {
-            const match = stepOutputs.find(output => step.id + "." + output.id === port.id);
+        this.out = stepOutputs.map((output, index) => {
+            const match = outPorts.find(port => step.id + "." + port.id === output.id);
 
             if (match) {
                 return new SBDraft2WorkflowStepOutputModel({
-                    type: match.type,
-                    fileTypes: match["sbg:fileTypes"],
-                    description: match.description,
-                    label: match.label,
-                    ...port,
+                    type: output.type,
+                    fileTypes: output.fileTypes,
+                    description: output.description,
+                    label: output.label,
+                    ...match,
                 }, this, `${this.loc}.out[${index}]`);
             }
         }).filter(port => port !== undefined);

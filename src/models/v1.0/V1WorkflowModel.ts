@@ -19,6 +19,8 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
     public cwlVersion: CWLVersion =  "v1.0";
 
+    public class = "Workflow";
+
     public steps: V1StepModel[] = [];
 
     public inputs: V1WorkflowInputParameterModel[] = [];

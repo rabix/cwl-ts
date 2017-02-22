@@ -32,11 +32,17 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
     }
 
     deserialize(attr: WorkflowStepInput): void {
-        this.id        = attr.id;
-        this.default   = attr.default;
-        this.source    = ensureArray(attr.source);
-        this.type      = attr["type"];
+        this.id      = attr.id;
+        this.default = attr.default;
+        this.source  = ensureArray(attr.source);
+
+        // properties that will not be serialized on the step.in,
+        // but are necessary for internal functions
+        this.type    = attr["type"];
         if (!this.type) this.type = new ParameterTypeModel(null);
+
+        this.description = attr["description"];
+        this.label       = attr["label"];
 
         this.fileTypes = attr["fileTypes"];
     }

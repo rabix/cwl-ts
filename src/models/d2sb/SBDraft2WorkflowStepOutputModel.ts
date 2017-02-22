@@ -25,20 +25,23 @@ export class SBDraft2WorkflowStepOutputModel extends WorkflowStepOutputModel {
      * ID used for creating connections
      */
     get sourceId(): string {
-        return this.id;
+        return `#${this.parentStep.id}.${this._id}`;
     }
 
     serialize(): WorkflowStepOutput {
         return {
-            id: `${this.parentStep.id}.${this._id}`
+            id: `#${this.parentStep.id}.${this._id}`
         };
     }
 
     deserialize(attr: WorkflowStepOutput): void {
-        const serializedKeys = ["default", "id", "sbg:fileTypes"];
+        const serializedKeys = ["id", "sbg:fileTypes"];
 
         this._id         = attr.id.split(".")[1];
-        this.fileTypes   = attr["sbg:fileTypes"];
+
+        // properties that will not be serialized on the step.out,
+        // but are necessary for internal functions
+        this.fileTypes   = attr["fileTypes"];
         this.type        = attr["type"];
         this.description = attr["description"];
         this.label       = attr["label"];

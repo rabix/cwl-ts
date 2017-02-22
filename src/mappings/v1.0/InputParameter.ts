@@ -4,6 +4,7 @@ import {CWLType} from "./CWLType";
 import {InputRecordSchema} from "./InputRecordSchema";
 import {InputEnumSchema} from "./InputEnumSchema";
 import {InputArraySchema} from "./InputArraySchema";
+import {Expression} from "./Expression";
 
 
 export interface InputParameter extends Parameter {
@@ -37,4 +38,15 @@ export interface InputParameter extends Parameter {
      */
         type?: CWLType | InputRecordSchema | InputEnumSchema | InputArraySchema | string | Array<CWLType | InputRecordSchema | InputEnumSchema | InputArraySchema | string>;
 
+
+    /**
+     * Only valid when type: File or is an array of items: File.
+     * For input parameters, this must be one or more IRIs of concept nodes that represents file
+     * formats which are allowed as input to this parameter, preferably defined within an ontology.
+     * If no ontology is available, file formats may be tested by exact match.
+     *
+     * For output parameters, this is the file format that will be assigned to the output parameter.
+     */
+
+    format?: string | string[] | Expression;
 }

@@ -5,6 +5,7 @@ export interface SBGWorkflowInputParameter {
     type?: Datatype | WorkflowInputSchema | string | Array<Datatype | WorkflowInputSchema | string>
     id: string;
     'sbg:includeInPorts'?: boolean;
+    'sbg:fileTypes'?: string;
     'sbg:x'?: number;
     'sbg:y'?: number;
 }

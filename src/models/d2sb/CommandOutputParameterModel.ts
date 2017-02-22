@@ -5,7 +5,7 @@ import {Validation} from "../helpers/validation/Validation";
 import {CommandOutputRecordField} from "../../mappings/d2sb/CommandOutputRecordField";
 import {CommandOutputParameterModel as GenericCommandOutputParameterModel} from "../generic/CommandOutputParameterModel"
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
-import {spreadSelectProps} from "../helpers/utils";
+import {commaSeparatedToArray, spreadSelectProps} from "../helpers/utils";
 
 export class CommandOutputParameterModel extends GenericCommandOutputParameterModel implements Serializable<CommandOutputParameter | CommandOutputRecordField> {
 
@@ -49,7 +49,7 @@ export class CommandOutputParameterModel extends GenericCommandOutputParameterMo
 
         if (this.label) base.label = this.label;
         if (this.description) base.description = this.description;
-        if (this.fileTypes) base["sbg:fileTypes"] = this.fileTypes;
+        if (this.fileTypes.length) base["sbg:fileTypes"] = (this.fileTypes || []).join(", ");
 
         if (this.outputBinding) {
             base.outputBinding = this.outputBinding.serialize();
@@ -95,7 +95,7 @@ export class CommandOutputParameterModel extends GenericCommandOutputParameterMo
 
         this.label       = attr.label;
         this.description = attr.description;
-        this.fileTypes   = attr["sbg:fileTypes"];
+        this.fileTypes   = commaSeparatedToArray(attr["sbg:fileTypes"]);
 
         this.outputBinding = new CommandOutputBindingModel(attr.outputBinding);
         this.outputBinding.setValidationCallback(err => this.updateValidity(err));

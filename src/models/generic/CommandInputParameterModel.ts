@@ -6,6 +6,7 @@ export class CommandInputParameterModel extends ValidationBase implements InputP
 
     id: string;
     type: InputParameterTypeModel;
+    fileTypes?: string[];
 
     description: string;
 }

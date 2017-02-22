@@ -2,7 +2,7 @@ import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterMode
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
 import {RecordField} from "../../mappings/v1.0/RecordField";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
-import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {commaSeparatedToArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 
 export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
@@ -17,6 +17,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
         this.id = (<InputParameter> attr).id || (<RecordField> attr).name;
         this.isField = !!(<RecordField> attr).name;
         this.type = new ParameterTypeModel(attr.type, V1WorkflowInputParameterModel, `${this.loc}.type`);
+        this.fileTypes = commaSeparatedToArray(attr["format"]);
 
         spreadSelectProps(attr, this.customProps, serializedKeys);
     }
