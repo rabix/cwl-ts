@@ -73,7 +73,7 @@ export class SBDraft2StepModel extends StepModel {
         const stepOutputs: Array<OutputParameter> = this.run.outputs;
 
         this.out = stepOutputs.map((output, index) => {
-            const match = outPorts.find(port => step.id + "." + port.id === output.id);
+            const match = outPorts.find(port => step.id + "." + output.id === port.id) || {id: output.id};
 
             if (match) {
                 return new SBDraft2WorkflowStepOutputModel({

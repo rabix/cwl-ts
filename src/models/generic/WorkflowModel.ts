@@ -252,7 +252,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // we loop through them and create the appropriate type of connection
         destinations.forEach(dest => {
             // create destination EdgeNode
-            const destination = {
+            const destination: EdgeNode = {
                 id: dest.connectionId,
                 type: this.getNodeType(dest)
             };

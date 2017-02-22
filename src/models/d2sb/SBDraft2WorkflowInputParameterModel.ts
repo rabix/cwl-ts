@@ -37,6 +37,9 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
 
         this.fileTypes = commaSeparatedToArray(input["sbg:fileTypes"]);
 
+        // only show inputs which are type File or File[], or should be explicitly shown
+        this.isVisible = this.type.type === "File" || this.type.items === "File" || !!input["sbg:includeInPorts"];
+
         spreadSelectProps(input, this.customProps, serializedKeys);
     }
 
