@@ -105,6 +105,9 @@ export class CommandLineParsers {
 
         if (arg.valueFrom) {
             return CommandLinePrepare.prepare(arg.valueFrom, job, context.$job).then(res => {
+                if (res instanceof CommandLinePart) {
+                    return res;
+                }
                 return new CommandLinePart(prefix + separator + res, cmdType, loc);
             });
         }

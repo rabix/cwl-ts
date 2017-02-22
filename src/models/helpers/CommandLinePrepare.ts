@@ -13,7 +13,7 @@ export class CommandLinePrepare {
             inputType === "nullValue";
         }
 
-        if (input instanceof SBDraft2CommandInputParameterModel) {
+        if (input instanceof SBDraft2CommandInputParameterModel || input.type === "record") {
             const value = flatJobInputs[input.id] || null;
             cmdType = "input";
 

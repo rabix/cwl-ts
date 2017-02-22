@@ -226,6 +226,12 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.jobInputs[key] = value;
     }
 
+    public resetJobDefaults() {
+        this.jobInputs = JobHelper.getJob(this);
+        this.job = {inputs: this.jobInputs, allocatedResources: {mem: 1000, cpu: 1}};
+        this.updateCommandLine();
+    }
+
     validate(): Validation {
         const validation: Validation = {errors: [], warnings: []};
 
