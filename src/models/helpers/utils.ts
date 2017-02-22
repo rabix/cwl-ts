@@ -103,7 +103,7 @@ export const intersection = (arrA: Array<any> = [], arrB: Array<any> = []): Arra
     });
 };
 
-export const commaSeparatedToArray = (str: string): string[] => {
+export const commaSeparatedToArray = (str: string | string[]): string[] => {
     if (!str) return [];
     if (Array.isArray(str)) return str;
 
