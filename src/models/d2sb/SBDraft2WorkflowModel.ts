@@ -6,6 +6,7 @@ import {SBDraft2WorkflowOutputParameterModel} from "./SBDraft2WorkflowOutputPara
 import {Serializable} from "../interfaces/Serializable";
 import {ensureArray, spreadSelectProps} from "../helpers/utils";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
 
 export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -29,6 +30,9 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         console.log(Array.from(this.graph.edges).filter(function(edge) { return edge.isVisible;}));
     }
 
+    public exposePort(inPort: SBDraft2WorkflowStepInputModel) {
+        super._exposePort(inPort, SBDraft2WorkflowInputParameterModel);
+    }
 
     protected getSourceConnectionId(source: string): string {
         // source comes from a step

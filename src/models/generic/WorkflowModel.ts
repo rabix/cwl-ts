@@ -10,7 +10,8 @@ import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {CommandLineToolModel} from "./CommandLineToolModel";
 import {ExpressionToolModel} from "./ExpressionToolModel";
-import {intersection} from "../helpers/utils";
+import {incrementString, intersection} from "../helpers/utils";
+import {InputParameter} from "./InputParameter";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -45,16 +46,140 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         new UnimplementedMethodException("deserialize", "WorkflowModel");
     }
 
-    public exposePort(port: WorkflowStepInputModel) {
+    protected _exposePort(inPort: WorkflowStepInputModel, inputConstructor) {
+        // remove extraneous connections to this port and set it as invisible
+        this.clearPort(inPort);
+
+        // if the port has not been added to the graph yet
+        if (!this.graph.hasVertex(inPort.connectionId)) {
+            this.graph.addVertex(inPort.connectionId, inPort);
+            // connect in port to step
+            this.connect({
+                id: inPort.connectionId,
+                type: "StepInput"
+            }, {
+                id: inPort.parentStep.id,
+                type: "Step"
+            }, false);
+        }
+
+        // create new input on the workflow to connect with the port
+        const input = new inputConstructor(<InputParameter>{
+            id: this.getNextAvailableId(inPort.id), // might change later in case input is already taken
+            type: inPort.type ? inPort.type.serialize() : "null",
+            fileTypes: inPort.fileTypes
+        });
+
+        // add a reference to the new input on the inPort
+        inPort.source.push(input.id);
+
+        // add it to the workflow tree
+        input.setValidationCallback(err => this.updateValidity(err));
+        this.inputs.push(input);
+
+        // add input to graph
+        this.graph.addVertex(input.connectionId, input);
+        // connect input with inPort
+        this.connect({
+            id: input.connectionId,
+            type: "WorkflowInput"
+        }, {
+            id: inPort.connectionId,
+            type: "StepInput"
+        }, false);
+    }
+
+    /**
+     * Expose creates an input on the workflow level and connects it with the exposed port
+     * Sets inPort.isVisible to false
+     * Sets input.isVisible to false
+     */
+    public exposePort(inPort: WorkflowStepInputModel) {
         new UnimplementedMethodException("exposePort", "WorkflowModel");
+
     }
 
-    public includePort(port: WorkflowStepInputModel) {
-        new UnimplementedMethodException("includePort", "WorkflowModel");
+    /**
+     * Adds inPort to graph and makes a connection between it and its step
+     * sets inPort.isVisible to true
+     */
+    public includePort(inPort: WorkflowStepInputModel) {
+        // check if port was exposed before including it
+        if (inPort.status === "exposed") {
+            this.clearPort(inPort);
+        }
+
+        // add port to canvas
+        inPort.isVisible = true;
+        // if the port has not been added to the graph yet
+        if (!this.graph.hasVertex(inPort.connectionId)) {
+            this.graph.addVertex(inPort.connectionId, inPort);
+            this.graph.addEdge({
+                id: inPort.parentStep.id,
+                type: "StepInput"
+            }, {
+                id: inPort.connectionId,
+                type: "Step"
+            });
+        }
+    }
+    /**
+     * Removes connections to port to out/inputs, removes dangling inputs, sets port to invisible
+     */
+    public clearPort(inPort: WorkflowStepInputModel) {
+        // remove port from canvas
+        inPort.isVisible = false;
+
+        // loop through sources, removing their connections and clearing dangling inputs
+        while (inPort.source.length > 0) {
+
+            // pop each source so no connections lead back to port
+            let source = inPort.source.pop();
+
+            // source belongs to a step
+            const sourceConnectionId = this.getSourceConnectionId(source);
+            if (source.indexOf("/") !== -1) {
+                this.graph.removeEdge([sourceConnectionId, inPort.connectionId]);
+            } else {
+                // source is an input
+                this.graph.removeEdge([sourceConnectionId, inPort.connectionId]);
+                this.removeDanglingInput(sourceConnectionId);
+            }
+        }
     }
 
-    public clearPort(port: WorkflowStepInputModel) {
-        new UnimplementedMethodException("clearPort", "WorkflowModel");
+    /**
+     * Checks if a workflow input has been leftover after removing
+     */
+    private removeDanglingInput(source: string) {
+        // remove dangling input if it has been left over
+        if(!this.graph.hasOutgoing(source)) {
+            this.graph.removeVertex(source);
+            this.inputs = this.inputs.filter(input => input.connectionId !== source);
+        }
+    }
+
+    /**
+     * Connects two vertices which have already been added to the graph
+     */
+    public connect(source: EdgeNode, destination: EdgeNode, isVisible = true) {
+        this.graph.addEdge(source, destination, isVisible);
+    }
+
+    /**
+     * Checks for naming collisions in vertex ids, in case of collisions,
+     * it will increment the provided id, otherwise it returns the original id
+     */
+    private getNextAvailableId(id: string): string {
+        let hasId  = true;
+        let result = id;
+        while (hasId) {
+            if (hasId = this.graph.hasVertex(result)) {
+                result = incrementString(result);
+            }
+        }
+
+        return result;
     }
 
     public addStep(step: StepModel) {
