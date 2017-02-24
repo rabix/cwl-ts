@@ -1,6 +1,7 @@
 # cwl-ts
 
 [![Build Status](https://travis-ci.org/rabix/cwl-ts.svg?branch=master)](https://travis-ci.org/rabix/cwl-ts)
+[![npm version](https://img.shields.io/npm/v/cwlts.svg?style=flat)](https://img.shields.io/npm/v/cwlts.svg?style=flat)
 
 CWL-ts is a data model library for the [Common Workflow Language](http://www.commonwl.org/) made for use in TypeScript and JavaScript (primarily client-side) applications.
 
