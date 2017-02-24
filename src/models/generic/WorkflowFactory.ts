@@ -8,6 +8,9 @@ import {Process} from "../../mappings/v1.0/Process";
 
 export class WorkflowFactory {
     public static from(workflow?: V1Workflow | SBDraft2Workflow | Process, loc?: string): WorkflowModel {
+        // check if workflow passed has already been parsed to the model
+        if (workflow instanceof WorkflowModel) return workflow;
+
         if (workflow) {
             switch (workflow.cwlVersion) {
                 case "v1.0":

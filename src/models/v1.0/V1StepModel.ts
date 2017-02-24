@@ -13,8 +13,8 @@ import {OutputParameter} from "../generic/OutputParameter";
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
     public "in": V1WorkflowStepInputModel[] = [];
     public out: V1WorkflowStepOutputModel[] = [];
-    hasMultipleScatter: true;
-    hasScatterMethod: true;
+           hasMultipleScatter: true;
+           hasScatterMethod: true;
 
     constructor(step?, loc?: string) {
         super(loc);
@@ -42,9 +42,9 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             "out"
         ];
 
-        this.id    = step.id;
-        this.description   = step.doc;
-        this.label = step.label;
+        this.id          = step.id || "";
+        this.description = step.doc;
+        this.label       = step.label;
 
         if (typeof step.run === "string") {
             console.warn(`Expected to get json for step.run at ${this.loc}, reading in and out from step`);
@@ -63,6 +63,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
                     this.run = CommandLineToolFactory.from(step.run);
                     break;
             }
+
+            this.id = step.id || step.run.id || this.loc || "";
 
             this.compareInPorts(step);
             this.compareOutPorts(step);
@@ -124,18 +126,15 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         const stepOutputs: Array<OutputParameter> = this.run.outputs;
 
         this.out = stepOutputs.map((output, index) => {
-            const match = outPorts.find(port => port.id === output.id);
+            const match = outPorts.find(port => port.id === output.id) || {id: output.id};
 
-            if (match) {
-
-                return new V1WorkflowStepOutputModel({
-                    type: output.type,
-                    fileTypes: output.fileTypes || [],
-                    description: output.description,
-                    label: output.label,
-                    ...match
-                }, this, `${this.loc}.out[${index}]`);
-            }
+            return new V1WorkflowStepOutputModel({
+                type: output.type,
+                fileTypes: output.fileTypes || [],
+                description: output.description,
+                label: output.label,
+                ...match
+            }, this, `${this.loc}.out[${index}]`);
         }).filter(port => port !== undefined);
     }
 }

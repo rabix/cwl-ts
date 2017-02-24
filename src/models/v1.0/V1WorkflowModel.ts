@@ -6,13 +6,14 @@ import {Workflow} from "../../mappings/v1.0/Workflow";
 import {Serializable} from "../interfaces/Serializable";
 import {RequirementBaseModel} from "../d2sb/RequirementBaseModel";
 import {Validation} from "../helpers/validation/Validation";
-import {ensureArray, incrementString, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, spreadSelectProps} from "../helpers/utils";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
 import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
 import {EdgeNode} from "../helpers/Graph";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {Process} from "../generic/Process";
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -58,6 +59,20 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
     public loc: string;
     public customProps: any = {};
+
+    public addStepFromProcess(proc: Process): V1StepModel {
+        const loc = `${this.loc}.steps[${this.steps.length}]`;
+        const step = new V1StepModel({
+            in: [],
+            out: [],
+            run: proc
+        }, loc);
+        step.setValidationCallback(err => this.updateValidity(err));
+        this.steps.push(step);
+
+        this.addStepToGraph(step);
+        return step;
+    }
 
     /**
      * Adds Input, Output, or Step to workflow. Does not add them to the graph.

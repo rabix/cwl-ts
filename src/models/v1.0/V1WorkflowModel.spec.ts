@@ -139,4 +139,34 @@ describe("V1WorkflowModel", () => {
             expect(inPort.isVisible).to.be.false;
         });
     });
+
+    describe("addStepFromProcess", () => {
+       it("should add a new step with a workflow to existing workflow", () => {
+           const wf = WorkflowFactory.from(OneStepWf.default);
+           expect(wf.steps).to.have.length(1);
+
+           wf.addStepFromProcess(OneStepWf.default);
+           expect(wf.steps).to.have.length(2);
+       });
+
+       it("should populate in and out of new step", () => {
+           const wf = WorkflowFactory.from(OneStepWf.default);
+
+           wf.addStepFromProcess(OneStepWf.default);
+           expect(wf.steps[1].in).to.not.be.empty;
+           expect(wf.steps[1].in).to.have.length(1);
+           expect(wf.steps[1].out).to.not.be.empty;
+           expect(wf.steps[1].out).to.have.length(1);
+       });
+
+       it("should add step to graph", () => {
+           const wf = WorkflowFactory.from(OneStepWf.default);
+
+           expect(wf.nodes).to.have.length(6);
+
+           wf.addStepFromProcess(OneStepWf.default);
+
+           expect(wf.nodes).to.have.length(9);
+       })
+    });
 });

@@ -8,6 +8,9 @@ import {SBDraft2CommandLineToolModel} from "../d2sb/SBDraft2CommandLineToolModel
 
 export class CommandLineToolFactory {
     public static from(tool?: V1CommandLineTool | SBDraft2CommandLineTool | Process, loc?: string): CommandLineToolModel {
+        // check if tool passed has already been parsed to the model
+        if (tool instanceof CommandLineToolModel) return tool;
+
         if (tool) {
             switch (tool.cwlVersion) {
                 case "v1.0":

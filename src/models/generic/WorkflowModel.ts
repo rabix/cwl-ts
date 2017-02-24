@@ -12,6 +12,7 @@ import {CommandLineToolModel} from "./CommandLineToolModel";
 import {ExpressionToolModel} from "./ExpressionToolModel";
 import {incrementString, intersection} from "../helpers/utils";
 import {InputParameter} from "./InputParameter";
+import {Process} from "./Process";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -123,6 +124,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             });
         }
     }
+
     /**
      * Removes connections to port to out/inputs, removes dangling inputs, sets port to invisible
      */
@@ -153,7 +155,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      */
     private removeDanglingInput(source: string) {
         // remove dangling input if it has been left over
-        if(!this.graph.hasOutgoing(source)) {
+        if (!this.graph.hasOutgoing(source)) {
             this.graph.removeVertex(source);
             this.inputs = this.inputs.filter(input => input.connectionId !== source);
         }
@@ -164,6 +166,15 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      */
     public connect(source: EdgeNode, destination: EdgeNode, isVisible = true) {
         this.graph.addEdge(source, destination, isVisible);
+    }
+
+
+    public addStepFromProcess(proc: Process) {
+        new UnimplementedMethodException("addStepFromProcess", "WorkflowModel");
+    }
+
+    public updateStepRun(run: WorkflowModel | CommandLineToolModel | ExpressionToolModel) {
+        new UnimplementedMethodException("updateStepRun", "WorkflowModel");
     }
 
     /**
@@ -180,14 +191,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
 
         return result;
-    }
-
-    public addStep(step: StepModel) {
-        new UnimplementedMethodException("addStep", "WorkflowModel");
-    }
-
-    public updateStepRun(run: WorkflowModel | CommandLineToolModel | ExpressionToolModel) {
-        new UnimplementedMethodException("updateStepRun", "WorkflowModel");
     }
 
     public isConnected(): boolean {
@@ -288,6 +291,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return this.gatherValidPorts(dest, sources);
     }
 
+    /**
+     * Returns all possible sources on the graph
+     */
     public gatherSources(): Array<WorkflowInputParameterModel | WorkflowStepOutputModel> {
         const stepOut = this.steps.reduce((acc, curr) => {
             return acc.concat(curr.out);
@@ -296,6 +302,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return stepOut.concat(this.inputs);
     }
 
+    /**
+     * Returns all possible destinations on the graph
+     */
     public gatherDestinations(): Array<WorkflowOutputParameterModel | WorkflowStepInputModel> {
         const stepOut = this.steps.reduce((acc, curr) => {
             return acc.concat(curr.in);
@@ -304,39 +313,62 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return stepOut.concat(this.outputs);
     }
 
-    public constructGraph(): Graph {
-        const sources      = this.gatherSources();
-        const destinations = this.gatherDestinations();
-
-        // Gather all possible sources and destinations
-        const nodes: Iterable<any> = [].concat(sources)
-            .concat(destinations)
-            .concat(this.steps)
-            .map(item => {
-                return [item.connectionId, item];
-            });
-
-        // Construct a new Graph with nodes first, then add edges
-        const graph = new Graph(nodes);
+    protected addStepToGraph(step: StepModel, graph:Graph = this.graph) {
+        graph.addVertex(step.id, step);
 
         // Sources don't have information about their destinations,
         // so we don't look through them for connections
-        sources.forEach(source => {
-            // however, if the source comes from a step, we create an invisible connection between
-            // the step and its output
-            if (source instanceof WorkflowStepOutputModel) {
-                graph.addEdge({
-                        id: source.parentStep.id,
-                        type: "Step"
-                    },
-                    {
-                        id: source.connectionId,
-                        type: "StepOutput"
-                    },
-                    false
-                );
-            }
+        step.out.forEach(source => {
+            graph.addVertex(source.connectionId, source);
+            graph.addEdge({
+                    id: source.parentStep.id,
+                    type: "Step"
+                },
+                {
+                    id: source.connectionId,
+                    type: "StepOutput"
+                },
+                false
+            );
         });
+
+        step.in.forEach(dest => {
+            graph.addVertex(dest.connectionId, dest);
+            graph.addEdge({
+                    id: dest.connectionId,
+                    type: "StepInput"
+                },
+                {
+                    id: dest.parentStep.id,
+                    type: "Step"
+                },
+                false
+            );
+        })
+    }
+
+    protected addInputToGraph(input: WorkflowInputParameterModel, graph: Graph = this.graph) {
+        graph.addVertex(input.connectionId, input);
+    }
+
+    protected addOutputToGraph(output: WorkflowOutputParameterModel, graph:Graph = this.graph) {
+        graph.addVertex(output.connectionId, output);
+    }
+
+    public constructGraph(): Graph {
+        const destinations = this.gatherDestinations();
+
+        // Create a blank Graph
+        const graph = new Graph();
+
+        // Add inputs to graph
+        this.inputs.forEach(input => this.addInputToGraph(input, graph));
+
+        // Add outputs to graph
+        this.outputs.forEach(output => this.addOutputToGraph(output, graph));
+
+        // Adding steps to graph adds their step.in and step.out as well as connecting in/out to step
+        this.steps.forEach(step => this.addStepToGraph(step, graph));
 
         /**
          * Helper function to connect source to destination
@@ -393,16 +425,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 } else {
                     connectSource(dest.source, dest, destination);
                 }
-            }
-
-            // If the destination is a step input, regardless of its connections, it must
-            // be connected with its parent step, this connection is invisible
-            if (dest instanceof WorkflowStepInputModel) {
-                graph.addEdge(destination, {
-                        id: dest.parentStep.id,
-                        type: "Step"
-                    },
-                    false);
             }
         });
 
