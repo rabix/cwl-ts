@@ -8,6 +8,7 @@ export interface Process {
     cwlVersion: CWLVersion | string;
     inputs: InputParameter[];
     outputs: OutputParameter[];
+    class: "ExpressionTool" | "Workflow" | "CommandLineTool";
 
     requirements?: Array<ProcessRequirement>;
 

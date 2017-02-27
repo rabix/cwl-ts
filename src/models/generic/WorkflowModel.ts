@@ -13,6 +13,7 @@ import {ExpressionToolModel} from "./ExpressionToolModel";
 import {incrementString, intersection} from "../helpers/utils";
 import {InputParameter} from "./InputParameter";
 import {Process} from "./Process";
+import {Process as SBDraft2Process} from "../../mappings/d2sb/Process";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -168,8 +169,22 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.graph.addEdge(source, destination, isVisible);
     }
 
+    protected _addStepFromProcess(proc: Process | SBDraft2Process, constructor) {
+        const loc = `${this.loc}.steps[${this.steps.length}]`;
+        const step = new constructor({
+            inputs: [],
+            outputs: [],
+            run: proc
+        }, loc);
 
-    public addStepFromProcess(proc: Process) {
+        step.setValidationCallback(err => this.updateValidity(err));
+        this.steps.push(step);
+
+        this.addStepToGraph(step);
+        return step;
+    }
+
+    public addStepFromProcess(proc: Process | SBDraft2Process) {
         new UnimplementedMethodException("addStepFromProcess", "WorkflowModel");
     }
 

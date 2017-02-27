@@ -7,6 +7,7 @@ import {Serializable} from "../interfaces/Serializable";
 import {ensureArray, spreadSelectProps} from "../helpers/utils";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
+import {Process as SBDraft2Process} from "../../mappings/d2sb/Process";
 
 export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -22,7 +23,6 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     constructor(workflow: Workflow, loc: string) {
         super(loc || "document");
 
-        console.warn("sbg:draft-2 workflow isn't supported yet");
         if (workflow) this.deserialize(workflow);
 
         this.graph = this.constructGraph();
@@ -44,6 +44,10 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
             const s = source.charAt(0) === "#" ? source.substr(1) : source;
             return `${STEP_OUTPUT_CONNECTION_PREFIX}${s}/${s}`
         }
+    }
+
+    public addStepFromProcess(proc: SBDraft2Process): SBDraft2StepModel {
+        return this._addStepFromProcess(proc, SBDraft2StepModel);
     }
 
     serialize(): Workflow {

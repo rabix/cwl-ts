@@ -8,6 +8,7 @@ import {ScatterFeatureRequirement} from "./ScatterFeatureRequirement";
 import {SchemaDefRequirement} from "./SchemaDefRequirement";
 import {ExpressionEngineRequirement} from "./ExpressionEngineRequirement";
 import {SBGRevision} from "./SBGRevision";
+import {Expression} from "./Expression";
 
 export interface SBGLink {
     label: string;
@@ -17,6 +18,7 @@ export interface SBGLink {
 export interface Process {
     id?: string;
     cwlVersion?: string;
+    "class": "Workflow" | "CommandLineTool" | "ExpressionTool" | string;
     inputs: InputParameter[];
     outputs: OutputParameter[];
     requirements?: Array<DockerRequirement |
@@ -29,6 +31,7 @@ export interface Process {
     hints?: Array<any>;
     label?: string;
     description?: string;
+    expression?: Expression;
 
     'sbg:modifiedBy'?: string;
     'sbg:revisionInfo'?: SBGRevision[],

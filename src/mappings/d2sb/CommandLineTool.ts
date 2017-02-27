@@ -6,7 +6,6 @@ import {CommandOutputParameter} from "./CommandOutputParameter";
 import {SBGMemRequirement} from "./SBGMemRequirement";
 import {SBGCPURequirement} from "./SBGCPURequirement";
 import {DockerRequirement} from "./DockerRequirement";
-export type CommandLineToolClass = "CommandLineTool";
 
 export interface CommandLineTool extends Process {
     inputs: CommandInputParameter[];
@@ -17,7 +16,7 @@ export interface CommandLineTool extends Process {
         SBGCPURequirement |
         SBGMemRequirement>
 
-    class: CommandLineToolClass;
+    class: "CommandLineTool";
     baseCommand: string | Expression | Array<string | Expression>;
     arguments?: Array<string | CommandLineBinding>
 

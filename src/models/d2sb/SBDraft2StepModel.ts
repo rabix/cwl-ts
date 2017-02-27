@@ -5,11 +5,13 @@ import {ExpressionToolModel} from "../generic/ExpressionToolModel";
 import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
 import {SBDraft2WorkflowStepOutputModel} from "./SBDraft2WorkflowStepOutputModel";
 import {WorkflowStep} from "../../mappings/d2sb/WorkflowStep";
-import {ensureArray, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, snakeCase, spreadSelectProps} from "../helpers/utils";
 import {InputParameter} from "../generic/InputParameter";
 import {OutputParameter} from "../generic/OutputParameter";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {CommandLineToolFactory} from "../generic/CommandLineToolFactory";
+import {Workflow} from "../../mappings/d2sb/Workflow";
+import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 
 export class SBDraft2StepModel extends StepModel {
     description: string;
@@ -102,7 +104,7 @@ export class SBDraft2StepModel extends StepModel {
             "outputs"
         ];
 
-        this.id = step.id.charAt(0) === "#" ? step.id.substr(1) : step.id;
+        let id = step.id || "";
         this.description = step.description;
         this.label = step.label;
         this.scatter = step.scatter;
@@ -120,16 +122,21 @@ export class SBDraft2StepModel extends StepModel {
         } else if (step.run && step.run.class) {
             switch (step.run.class) {
                 case "Workflow":
-                    this.run = WorkflowFactory.from(step.run);
+                    this.run = WorkflowFactory.from(<Workflow> step.run);
                     break;
                 case "CommandLineTool":
-                    this.run = CommandLineToolFactory.from(step.run);
+                    this.run = CommandLineToolFactory.from(<CommandLineTool> step.run);
                     break;
             }
+
+            let id = step.id || step.run.id || snakeCase(step.run.label) || this.loc;
+
+
+            this.compareInPorts(step);
+            this.compareOutPorts(step);
         }
 
-        this.compareInPorts(step);
-        this.compareOutPorts(step);
+        this.id = id.charAt(0) === "#" ? id.substr(1) : id;
 
         this.in.forEach(i => {
             // if in type is a required file or required array of files, include it by default

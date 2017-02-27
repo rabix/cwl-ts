@@ -7,7 +7,7 @@ import * as BamtoolsIndex from "../../tests/apps/bamtools-index-sbg";
 import * as BamtoolsSplit from "../../tests/apps/bamtools-split-sbg";
 import * as BfctoolsAnnotate from "../../tests/apps/bfctools-annotate-sbg";
 import * as BindingTestTool from "../../tests/apps/binding-test-tool";
-import {CommandLineTool, CommandLineToolClass} from "../../mappings/d2sb/CommandLineTool";
+import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 import {ExpressionModel} from "./ExpressionModel";
 
 should();
@@ -557,7 +557,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 cwlVersion: "sbg:draft-2",
                 "inputs": [],
                 "outputs": [],
-                "class": <CommandLineToolClass> "CommandLineTool",
+                "class": "CommandLineTool",
                 "requirements": [
                     {
                         "fileDef": [
@@ -592,7 +592,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 cwlVersion: "sbg:draft-2",
                 "inputs": [],
                 "outputs": [],
-                "class": <CommandLineToolClass> "CommandLineTool",
+                "class": "CommandLineTool",
                 "hints": [
                     "value",
                     {

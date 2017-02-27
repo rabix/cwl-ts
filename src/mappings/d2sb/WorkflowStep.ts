@@ -7,10 +7,8 @@ import {EnvVarRequirement} from "./EnvVarRequirement";
 import {CreateFileRequirement} from "./CreateFileRequirement";
 import {SubworkflowFeatureRequirement} from "./SubworkflowFeatureRequirement";
 import {DockerRequirement} from "./DockerRequirement";
-import {Workflow} from "./Workflow";
-import {CommandLineTool} from "./CommandLineTool";
-import {ExpressionTool} from "./ExpressionTool";
 import {ScatterMethod} from "./ScatterMethod";
+import {Process} from "./Process";
 
 export interface WorkflowStep {
     id?: string;
@@ -29,7 +27,7 @@ export interface WorkflowStep {
     label?: string;
     description?: string;
 
-    run: CommandLineTool | ExpressionTool | Workflow | string; //for references
+    run: string | Process; //for references
     scatter?: string | string[];
     scatterMethod?: ScatterMethod
 

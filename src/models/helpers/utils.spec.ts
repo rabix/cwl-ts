@@ -1,5 +1,8 @@
 import {expect} from "chai";
-import {ensureArray, checkMapValueType, incrementString, spreadSelectProps} from "./utils";
+import {
+    ensureArray, checkMapValueType, incrementString, spreadSelectProps,
+    snakeCase
+} from "./utils";
 
 describe("ensureArray", () => {
     it("should return an array of mismatched objects", () => {
@@ -197,5 +200,20 @@ describe("spreadSelectProps", () => {
         expect(dest).to.not.haveOwnProperty("d");
 
         expect(dest.b).to.equal(2);
+    });
+});
+
+describe("snakeCase", () => {
+    it("should convert camelCase to snakeCase", () => {
+        expect(snakeCase("camelCasedString")).to.equal("camel_cased_string");
+    });
+
+    it("should convert words to snakeCase", () => {
+        expect(snakeCase("space separated String")).to.equal("space_separated__string");
+    });
+
+    it("should convert mixed camelCase and spaced words to snakeCase", () => {
+        const target = snakeCase("space separatedString");
+        expect(target).to.equal("space_separated_string");
     });
 });

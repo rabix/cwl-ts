@@ -1,4 +1,9 @@
-export const ensureArray = (map: { [key: string]: any } | any[] | string | number | boolean, key?: string, valueKey?: string): any[] => {
+export const ensureArray = (map:
+                                { [key: string]: any }
+                                | any[]
+                                | string
+                                | number
+                                | boolean, key?: string, valueKey?: string): any[] => {
     // object is not defined or is null, return an empty array
     if (map === undefined || map === null) return [];
 
@@ -43,7 +48,14 @@ export const ensureArray = (map: { [key: string]: any } | any[] | string | numbe
  * Checks the type of each property in a hashMap. Returns "mismatch" if property types are mixed,
  * otherwise returns type that corresponds to all properties.
  */
-export const checkMapValueType = (map: { [key: string]: any }): "string" | "number" | "undefined" | "object" | "array" | "null" | "mismatch" => {
+export const checkMapValueType = (map: { [key: string]: any }):
+    "string"
+    | "number"
+    | "undefined"
+    | "object"
+    | "array"
+    | "null"
+    | "mismatch" => {
     let type = null;
 
     Object.keys(map).forEach((key) => {
@@ -60,7 +72,13 @@ export const checkMapValueType = (map: { [key: string]: any }): "string" | "numb
     return type;
 };
 
-export const checkValueType = (value: any): "string" | "number" | "undefined" | "object" | "array" | "null" => {
+export const checkValueType = (value: any):
+    "string"
+    | "number"
+    | "undefined"
+    | "object"
+    | "array"
+    | "null" => {
     let valType;
 
     if (Array.isArray(value)) {
@@ -86,7 +104,7 @@ export const incrementString = (str: string): string => {
 };
 
 export const spreadAllProps = (sourceObj: Object, destObj: Object): any => {
-    return {... destObj, ...sourceObj};
+    return {...destObj, ...sourceObj};
 };
 
 export const spreadSelectProps = (sourceObj: Object, destObj: Object, keys: string[]): void => {
@@ -108,4 +126,8 @@ export const commaSeparatedToArray = (str: string | string[]): string[] => {
     if (Array.isArray(str)) return str;
 
     return str.replace(/\s/g, "").split(",");
+};
+
+export const snakeCase = (str: string = ""): string => {
+    return str.replace(/\s+/g, "_").replace(/([A-Z])/g, (match) => "_" + match.toLowerCase());
 };
