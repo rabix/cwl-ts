@@ -4,10 +4,10 @@ import {SBDraft2StepModel} from "./SBDraft2StepModel";
 import {SBDraft2WorkflowInputParameterModel} from "./SBDraft2WorkflowInputParameterModel";
 import {SBDraft2WorkflowOutputParameterModel} from "./SBDraft2WorkflowOutputParameterModel";
 import {Serializable} from "../interfaces/Serializable";
-import {ensureArray, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, snakeCase, spreadSelectProps} from "../helpers/utils";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
-import {Process as SBDraft2Process} from "../../mappings/d2sb/Process";
+import {Process} from "../../mappings/d2sb/Process";
 
 export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -46,8 +46,19 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         }
     }
 
-    public addStepFromProcess(proc: SBDraft2Process): SBDraft2StepModel {
-        return this._addStepFromProcess(proc, SBDraft2StepModel);
+    public addStepFromProcess(proc: Process): SBDraft2StepModel {
+        const loc = `${this.loc}.steps[${this.steps.length}]`;
+        const step = new SBDraft2StepModel({
+            inputs: [],
+            outputs: [],
+            run: proc
+        }, loc);
+
+        step.setValidationCallback(err => this.updateValidity(err));
+        this.steps.push(step);
+
+        this.addStepToGraph(step);
+        return step;
     }
 
     serialize(): Workflow {
@@ -57,7 +68,9 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     deserialize(workflow: Workflow): void {
         const serializedKeys = ["id", "class", "cwlVersion", "steps", "inputs", "outputs"];
 
-        this.id = workflow.id;
+        this.id = workflow["sbg:id"] && workflow["sbg:id"].split("/").length > 3 ?
+            workflow["sbg:id"].split("/")[2] :
+            snakeCase(workflow.id);
 
         this.steps = ensureArray(workflow.steps).map((step, index) => {
             const stepModel = new SBDraft2StepModel(step, `${this.loc}.steps[${index}]`);

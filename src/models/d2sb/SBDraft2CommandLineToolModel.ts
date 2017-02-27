@@ -24,7 +24,7 @@ import {ResourceRequirementModel} from "./ResourceRequirementModel";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
-import {spreadSelectProps} from "../helpers/utils";
+import {snakeCase, spreadSelectProps} from "../helpers/utils";
 
 export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
     public job: any;
@@ -347,7 +347,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             "cwlVersion"
         ];
 
-        this.id = tool.id;
+        this.id =  tool["sbg:id"] && tool["sbg:id"].split("/").length > 3 ?
+            tool["sbg:id"].split("/")[2] :
+            snakeCase(tool.id);
 
         this.label       = tool.label;
         this.description = tool.description;

@@ -146,5 +146,38 @@ export default JSON.parse(`
 	}],
 	"class": "Workflow",
 	"requirements": [],
-	"inputs": []
+	"inputs": [
+    {
+      "sbg:y": 59,
+      "label": "requiredFile",
+      "sbg:x": 89,
+      "id": "#requiredFile",
+      "type": [
+        "File"
+      ]
+    },
+    {
+      "sbg:y": 266,
+      "label": "fileArr",
+      "sbg:x": 91,
+      "id": "#fileArr",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": "File"
+        }
+      ]
+    },
+    {
+      "sbg:y": 432,
+      "label": "file",
+      "sbg:x": 174,
+      "id": "#file",
+      "type": [
+        "null",
+        "File"
+      ]
+    }
+  ]
 }`);

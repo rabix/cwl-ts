@@ -14,7 +14,7 @@ import {Workflow} from "../../mappings/d2sb/Workflow";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 
 export class SBDraft2StepModel extends StepModel {
-    description: string;
+    description?: string;
     label: string;
     run: WorkflowModel | CommandLineToolModel | ExpressionToolModel;
     "in": SBDraft2WorkflowStepInputModel[];
@@ -52,7 +52,7 @@ export class SBDraft2StepModel extends StepModel {
         // type and fileTypes from the app's inputs are spliced into the in ports.
         // Type validation is done for connections based on this information
         this.in = stepInputs.map((input, index) => {
-            const match = inPorts.find(port => step.id + "." + input.id === port.id) || {id: input.id};
+            const match = inPorts.find(port => step.id + "." + input.id === port.id) || {id: step.id + "." + input.id};
 
             // here will set source and default if they exist
             const newPort = new SBDraft2WorkflowStepInputModel({
@@ -75,7 +75,7 @@ export class SBDraft2StepModel extends StepModel {
         const stepOutputs: Array<OutputParameter> = this.run.outputs;
 
         this.out = stepOutputs.map((output, index) => {
-            const match = outPorts.find(port => step.id + "." + output.id === port.id) || {id: output.id};
+            const match = outPorts.find(port => step.id + "." + output.id === port.id) || {id: step.id + "." + output.id};
 
             if (match) {
                 return new SBDraft2WorkflowStepOutputModel({
@@ -129,8 +129,7 @@ export class SBDraft2StepModel extends StepModel {
                     break;
             }
 
-            let id = step.id || step.run.id || snakeCase(step.run.label) || this.loc;
-
+            id = step.id || step.run.id || snakeCase(step.run.label) || snakeCase(this.loc);
 
             this.compareInPorts(step);
             this.compareOutPorts(step);

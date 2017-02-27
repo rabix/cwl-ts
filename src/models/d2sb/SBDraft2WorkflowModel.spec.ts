@@ -17,7 +17,9 @@ describe("SBDraft2WorkflowModel", () => {
          const wf = WorkflowFactory.from(OneStepWf.default);
 
          wf.addStepFromProcess(OneStepWf.default);
-         expect(wf.steps[1].in).to.be.empty;
+         expect(wf.steps[1].id).to.not.be.empty;
+         expect(wf.steps[1].in).to.not.be.empty;
+         expect(wf.steps[1].in).to.have.length(3);
          expect(wf.steps[1].out).to.not.be.empty;
          expect(wf.steps[1].out).to.have.length(1);
       });

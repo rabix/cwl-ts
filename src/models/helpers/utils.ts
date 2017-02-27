@@ -129,5 +129,5 @@ export const commaSeparatedToArray = (str: string | string[]): string[] => {
 };
 
 export const snakeCase = (str: string = ""): string => {
-    return str.replace(/\s+/g, "_").replace(/([A-Z])/g, (match) => "_" + match.toLowerCase());
+    return str.replace(/[\s.\[\]-]+/g, "_").replace(/([A-Z])/g, (match) => "_" + match.toLowerCase());
 };
