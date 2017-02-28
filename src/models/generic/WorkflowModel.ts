@@ -23,6 +23,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     public inputs: WorkflowInputParameterModel[]   = [];
     public outputs: WorkflowOutputParameterModel[] = [];
 
+    public label?: string;
+    public description?: string;
+
     public customProps: any = {};
 
     public get connections(): Edge[] {
@@ -182,7 +185,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Checks for naming collisions in vertex ids, in case of collisions,
      * it will increment the provided id, otherwise it returns the original id
      */
-    private getNextAvailableId(id: string): string {
+    protected getNextAvailableId(id: string): string {
         let hasId  = true;
         let result = id;
         while (hasId) {

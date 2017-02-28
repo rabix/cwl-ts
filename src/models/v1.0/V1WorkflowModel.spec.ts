@@ -1,6 +1,7 @@
 import {expect} from "chai";
 import * as OneStepWf from "../../tests/apps/one-step-wf";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
+import {WorkflowModel} from "../generic/WorkflowModel";
 
 describe("V1WorkflowModel", () => {
     describe("exposePort", () => {
@@ -141,17 +142,19 @@ describe("V1WorkflowModel", () => {
     });
 
     describe("addStepFromProcess", () => {
-       it("should add a new step with a workflow to existing workflow", () => {
-           const wf = WorkflowFactory.from(OneStepWf.default);
-           expect(wf.steps).to.have.length(1);
+        let wf: WorkflowModel;
 
+        beforeEach(() => {
+            wf = WorkflowFactory.from(OneStepWf.default);
+        });
+
+       it("should add a new step with a workflow to existing workflow", () => {
+           expect(wf.steps).to.have.length(1);
            wf.addStepFromProcess(OneStepWf.default);
            expect(wf.steps).to.have.length(2);
        });
 
        it("should populate in and out of new step", () => {
-           const wf = WorkflowFactory.from(OneStepWf.default);
-
            wf.addStepFromProcess(OneStepWf.default);
            expect(wf.steps[1].in).to.not.be.empty;
            expect(wf.steps[1].in).to.have.length(1);
@@ -160,13 +163,22 @@ describe("V1WorkflowModel", () => {
        });
 
        it("should add step to graph", () => {
-           const wf = WorkflowFactory.from(OneStepWf.default);
-
            expect(wf.nodes).to.have.length(6);
 
            wf.addStepFromProcess(OneStepWf.default);
 
            expect(wf.nodes).to.have.length(9);
-       })
+       });
+
+       it("should add the same app twice without conflict", () => {
+           expect(wf.nodes).to.have.length(6);
+
+           wf.addStepFromProcess(OneStepWf.default);
+           expect(wf.nodes).to.have.length(9);
+
+           wf.addStepFromProcess(OneStepWf.default);
+           expect(wf.nodes).to.have.length(12);
+           expect(wf.steps).to.have.length(3);
+       });
     });
 });

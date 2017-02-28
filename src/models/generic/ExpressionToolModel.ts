@@ -1,10 +1,15 @@
 import {InputParameter} from "./InputParameter";
 import {Serializable} from "../interfaces/Serializable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
+import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 
 export abstract class ExpressionToolModel implements Serializable<any> {
     id: string;
     customProps: any = {};
+    cwlVersion: CWLVersion;
+
+    label?: string;
+    description?: string;
 
     serialize(): any {
         new UnimplementedMethodException("serialize");

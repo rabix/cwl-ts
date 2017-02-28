@@ -18,7 +18,7 @@ import {Process} from "../generic/Process";
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
 
-    public cwlVersion: CWLVersion =  "v1.0";
+    public cwlVersion: CWLVersion = "v1.0";
 
     public class = "Workflow";
 
@@ -61,7 +61,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     public customProps: any = {};
 
     public addStepFromProcess(proc: Process): V1StepModel {
-        const loc = `${this.loc}.steps[${this.steps.length}]`;
+        const loc  = `${this.loc}.steps[${this.steps.length}]`;
         const step = new V1StepModel({
             in: [],
             out: [],
@@ -71,6 +71,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         step.setValidationCallback(err => this.updateValidity(err));
         this.steps.push(step);
 
+        step.id = this.getNextAvailableId(step.id);
         this.addStepToGraph(step);
         return step;
     }
@@ -78,7 +79,10 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     /**
      * Adds Input, Output, or Step to workflow. Does not add them to the graph.
      */
-    public addEntry(entry: V1StepModel | V1WorkflowInputParameterModel | V1WorkflowOutputParameterModel, type: "inputs" | "outputs" | "steps") {
+    public addEntry(entry:
+                        V1StepModel
+                        | V1WorkflowInputParameterModel
+                        | V1WorkflowOutputParameterModel, type: "inputs" | "outputs" | "steps") {
         entry.loc = `${this.loc}.${type}[${this[type].length}]`;
 
         (this[type] as Array<any>).push(entry);
@@ -102,7 +106,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     }
 
     protected getSourceConnectionId(source: string): string {
-        if ( /[\/]+/.test(source) ) {
+        if (/[\/]+/.test(source)) {
             return STEP_OUTPUT_CONNECTION_PREFIX + source;
         } else {
             return `${STEP_OUTPUT_CONNECTION_PREFIX}${source}/${source}`;
@@ -145,6 +149,9 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         });
 
         ensureArray(workflow.steps, "id").forEach((step, i) => {
+            if (step.run && typeof step.run !== "string") {
+                step.run.cwlVersion = "v1.0";
+            }
             this.addEntry(new V1StepModel(step, `${this.loc}.steps[${i}]`), "steps");
         });
 

@@ -129,7 +129,7 @@ export class SBDraft2StepModel extends StepModel {
                     break;
             }
 
-            id = step.id || step.run.id || snakeCase(step.run.label) || snakeCase(this.loc);
+            id = step.id || snakeCase(this.run.id) || snakeCase(this.run.label) || snakeCase(this.loc);
 
             this.compareInPorts(step);
             this.compareOutPorts(step);

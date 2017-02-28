@@ -26,8 +26,6 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         if (workflow) this.deserialize(workflow);
 
         this.graph = this.constructGraph();
-        console.log(this.graph);
-        console.log(Array.from(this.graph.edges).filter(function(edge) { return edge.isVisible;}));
     }
 
     public exposePort(inPort: SBDraft2WorkflowStepInputModel) {
@@ -57,6 +55,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         step.setValidationCallback(err => this.updateValidity(err));
         this.steps.push(step);
 
+        step.id = this.getNextAvailableId(step.id);
         this.addStepToGraph(step);
         return step;
     }

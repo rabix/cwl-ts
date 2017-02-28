@@ -17,6 +17,9 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     inputs: CommandInputParameterModel[] = [];
     outputs: CommandOutputParameterModel[] = [];
 
+    label?: string;
+    description?: string;
+
     customProps: any = {};
 
     public validate(): void {
