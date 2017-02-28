@@ -19,7 +19,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     label: string;
     description: string;
 
-    'class': string = 'CommandLineTool';
     baseCommand: Array<V1ExpressionModel>;
 
     arguments: Array<CommandArgumentModel>;
@@ -31,7 +30,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     temporaryFailCodes: Array<number>;
     permanentFailCodes: Array<number>;
 
-    constructor(json: any, loc?: string) {
+    constructor(json: CommandLineTool, loc?: string) {
         super(loc);
 
         this.inputs      = ensureArray(json.inputs, "id", "type").map(input => new V1CommandInputParameterModel(input));
@@ -39,7 +38,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.baseCommand = ensureArray(json.baseCommand).map((cmd, index) => new V1ExpressionModel(cmd, `${this.loc}.baseCommand[${index}]`));
 
         this.id          = json.id;
-        this.description = json.description;
+        this.description = json.doc;
         this.label       = json.label;
 
         this.requirements = json.requirements;

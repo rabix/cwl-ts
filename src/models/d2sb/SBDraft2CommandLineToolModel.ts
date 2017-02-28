@@ -64,7 +64,6 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     constructor(loc: string, attr?: CommandLineTool) {
         super(loc || "document");
-        this.class = "CommandLineTool";
 
         if (attr) this.deserialize(attr);
         this.constructed = true;

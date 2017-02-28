@@ -18,6 +18,7 @@ import {Process as SBDraft2Process} from "../../mappings/d2sb/Process";
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
     public cwlVersion: string | CWLVersion;
+    public class = "Workflow";
 
     public steps: StepModel[]                      = [];
     public inputs: WorkflowInputParameterModel[]   = [];

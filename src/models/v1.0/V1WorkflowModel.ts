@@ -20,8 +20,6 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
     public cwlVersion: CWLVersion = "v1.0";
 
-    public class = "Workflow";
-
     public steps: V1StepModel[] = [];
 
     public inputs: V1WorkflowInputParameterModel[] = [];
@@ -135,10 +133,15 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
             "hints",
             "requirements",
             "steps",
-            "cwlVersion"
+            "cwlVersion",
+            "doc",
+            "label"
         ];
 
         this.id = workflow.id;
+
+        this.label = workflow.label;
+        this.description = workflow.doc;
 
         ensureArray(workflow.inputs, "id", "type").forEach((input, i) => {
             this.addEntry(new V1WorkflowInputParameterModel(input, `${this.loc}.inputs[${i}]`), "inputs");

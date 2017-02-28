@@ -36,7 +36,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         // source comes from a step
         if (/[.]+/.test(source)) {
             let [step, id] = source.split(".");
-            step = step.charAt(0) === "#" ? step.substr(1) : step;
+            step           = step.charAt(0) === "#" ? step.substr(1) : step;
             return `${STEP_OUTPUT_CONNECTION_PREFIX}${step}/${id}`;
         } else {
             const s = source.charAt(0) === "#" ? source.substr(1) : source;
@@ -45,7 +45,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     }
 
     public addStepFromProcess(proc: Process): SBDraft2StepModel {
-        const loc = `${this.loc}.steps[${this.steps.length}]`;
+        const loc  = `${this.loc}.steps[${this.steps.length}]`;
         const step = new SBDraft2StepModel({
             inputs: [],
             outputs: [],
@@ -65,7 +65,10 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     }
 
     deserialize(workflow: Workflow): void {
-        const serializedKeys = ["id", "class", "cwlVersion", "steps", "inputs", "outputs"];
+        const serializedKeys = ["id", "class", "cwlVersion", "steps", "inputs", "outputs", "label", "description"];
+
+        this.label       = workflow.label;
+        this.description = workflow.description;
 
         this.id = workflow["sbg:id"] && workflow["sbg:id"].split("/").length > 3 ?
             workflow["sbg:id"].split("/")[2] :

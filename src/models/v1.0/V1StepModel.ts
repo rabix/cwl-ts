@@ -64,7 +64,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
                     break;
             }
 
-            this.id = step.id || step.run.id || snakeCase(this.loc) || "";
+            this.id = step.id || snakeCase(this.run.id) || snakeCase(this.loc);
+            this.label = step.label || this.run.label || "";
 
             this.compareInPorts(step);
             this.compareOutPorts(step);
