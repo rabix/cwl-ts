@@ -16,7 +16,6 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
         return `${STEP_OUTPUT_CONNECTION_PREFIX}${this.id}/${this.id}`;
     }
 
-
     public get sourceId(): string {
         return `#${this.id}`;
     }

@@ -7,6 +7,7 @@ import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {spreadSelectProps} from "../helpers/utils";
+import {ID_REGEX} from "../helpers/constants";
 
 export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter | CommandInputRecordField> {
     /** unique identifier of input */
@@ -135,7 +136,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
                 loc: `${this.loc}.id`
             });
             // contains illegal characters
-        } else if (!/^[a-zA-Z0-9_]*$/.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
+        } else if (!ID_REGEX.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
             this.validation.errors.push({
                 message: "ID can only contain alphanumeric and underscore characters",
                 loc: `${this.loc}.id`

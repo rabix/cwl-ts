@@ -44,6 +44,23 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         }
     }
 
+    /**
+     * Checks if source contains stepId.
+     * If it does, returns id of step.out, else null;
+     * @param source
+     * @param stepId
+     */
+    protected isSourceFromStep(source: string, stepId: string): string {
+        if (/[.]+/.test(source)) {
+            const split = source.split('.');
+            if (split[0] === "#" + stepId) return split[1];
+
+            return null;
+        }
+
+        return null;
+    }
+
     public addStepFromProcess(proc: Process): SBDraft2StepModel {
         const loc  = `${this.loc}.steps[${this.steps.length}]`;
         const step = new SBDraft2StepModel({

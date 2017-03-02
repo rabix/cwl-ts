@@ -11,10 +11,14 @@ export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParamete
         if (attr) this.deserialize(attr);
     }
 
+    public get destinationId(): string {
+        return "#" + this.id;
+    }
+
     serialize(): WorkflowOutputParameter {
         const base: any = {};
 
-        base.id          = this.id;
+        base.id          = "#" + this.id;
         base.label       = this.label;
         base.description = this.description;
         base.source      = this.source;

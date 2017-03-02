@@ -1,7 +1,10 @@
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
 import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
-import {commaSeparatedToArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {
+    commaSeparatedToArray, ensureArray, spreadAllProps,
+    spreadSelectProps
+} from "../helpers/utils";
 
 export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel {
 
@@ -14,7 +17,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
         const serializedKeys = ["id", "source", "type"];
 
         this.id = output.id;
-        this.source = output.outputSource;
+        this.source = ensureArray(output.outputSource);
         this.type = new ParameterTypeModel(output.type, V1WorkflowOutputParameterModel, `${this.loc}.type`);
 
         this.fileTypes = commaSeparatedToArray(output["format"]);

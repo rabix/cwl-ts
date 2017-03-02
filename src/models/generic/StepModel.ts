@@ -19,8 +19,8 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
     public out: WorkflowStepOutputModel[];
     public isVisible = true;
 
-    public hasMultipleScatter;
-    public hasScatterMethod;
+    public hasMultipleScatter: boolean;
+    public hasScatterMethod: boolean;
 
     public get inAsMap(): {[key: string]: WorkflowStepInputModel} {
         return this.in.reduce((acc, curr) => {

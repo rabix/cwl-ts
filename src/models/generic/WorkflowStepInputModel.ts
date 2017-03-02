@@ -33,6 +33,14 @@ export class WorkflowStepInputModel extends ValidationBase implements Serializab
         return `${STEP_INPUT_CONNECTION_PREFIX}${this.parentStep.id}/${this.id}`;
     }
 
+    /**
+     * The input's ID for scatter
+     * @returns {string}
+     */
+    get destinationId(): string {
+        return `${this.parentStep.id}/${this.id}`;
+    }
+
     public get status(): "port" | "editable" | "exposed" {
         //  A port is displayed on canvas (if it has connections or
         // if it is required file, by default)

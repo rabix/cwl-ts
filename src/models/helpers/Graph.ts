@@ -2,8 +2,7 @@ export enum VertexMissing {CreateVertex, IgnoreEdge, AddEdge, Error}
 
 export interface EdgeNode {
     id: string,
-    type?: string,
-    topSortIndex?: number,
+    type?: string
 }
 
 export interface Edge {
@@ -15,7 +14,6 @@ export interface Edge {
 export class Graph {
 
     vertices: Map<string, any>;
-    // edges: Set<[string, string]>;
     edges: Set<Edge>;
 
     constructor(vertices?: Iterable<[string, any]>, edges?: Iterable<[string, string]>, missing = VertexMissing.Error) {
@@ -24,7 +22,6 @@ export class Graph {
         if (edges) {
             for (let item of Array.from(edges)) {
                 this.addEdge({id: item[0]}, {id: item[1]}, true, missing);
-                // this.addEdge(item[0], item[1], missing);
             }
         }
     }

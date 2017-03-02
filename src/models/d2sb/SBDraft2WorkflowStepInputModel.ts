@@ -20,6 +20,14 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
         return `${STEP_INPUT_CONNECTION_PREFIX}${this.parentStep.id}/${this._id}`;
     }
 
+    /**
+     * ID used for scatter
+     * @returns {string}
+     */
+    get destinationId(): string {
+        return `#${this.parentStep.id}.${this._id}`;
+    }
+
     serialize(): WorkflowStepInput {
         return {
             id: `#${this.parentStep.id}.${this._id}`,

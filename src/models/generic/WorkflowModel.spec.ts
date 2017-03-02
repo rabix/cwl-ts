@@ -21,10 +21,10 @@ describe("WorkflowModel", () => {
       });
    });
 
-   describe("gatherValidSources", () => {
+   describe("gatherValidConnectionPoints", () => {
        it("should return all sources if workflow defines no types", () => {
            const wf = WorkflowFactory.from(TypelessFirstWF.default);
-           const validSources = wf.gatherValidSources(wf.steps[0].in[0]);
+           const validSources = wf.gatherValidConnectionPoints(wf.steps[0].in[0]);
 
            expect(validSources).to.not.be.empty;
            expect(validSources).to.have.length(4);
@@ -33,7 +33,7 @@ describe("WorkflowModel", () => {
        it("should return only sources of the same type", () => {
            const wf = WorkflowFactory.from(EmbeddedFirstWF.default);
            // destination with type File
-           const validSourcesFile = wf.gatherValidSources(wf.steps[0].in[0]);
+           const validSourcesFile = wf.gatherValidConnectionPoints(wf.steps[0].in[0]);
 
            expect(validSourcesFile).to.not.be.empty;
            expect(validSourcesFile).to.have.length(2);
@@ -41,7 +41,7 @@ describe("WorkflowModel", () => {
            expect(validSourcesFile[1].type.type).to.equal("File");
 
            // destination with type string
-           const validSourcesString = wf.gatherValidSources(wf.steps[0].in[1]);
+           const validSourcesString = wf.gatherValidConnectionPoints(wf.steps[0].in[1]);
            expect(validSourcesString).to.not.be.empty;
            expect(validSourcesString).to.have.length(1);
            expect(validSourcesString[0].type.type).to.equal("string");
@@ -50,7 +50,7 @@ describe("WorkflowModel", () => {
 
        it("should return only sources with same fileTypes if destination is File", () => {
            const wf = WorkflowFactory.from(EmbeddedFileTypeFirstWF.default);
-           const validSourcesFile = wf.gatherValidSources(wf.steps[0].in[0]);
+           const validSourcesFile = wf.gatherValidConnectionPoints(wf.steps[0].in[0]);
 
            expect(validSourcesFile).to.not.be.empty;
            expect(validSourcesFile).to.have.length(1);

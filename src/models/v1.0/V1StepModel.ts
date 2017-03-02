@@ -13,8 +13,8 @@ import {OutputParameter} from "../generic/OutputParameter";
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
     public "in": V1WorkflowStepInputModel[] = [];
     public out: V1WorkflowStepOutputModel[] = [];
-    public hasMultipleScatter: true;
-    public hasScatterMethod: true;
+    public hasMultipleScatter = true;
+    public hasScatterMethod = true;
 
     constructor(step?, loc?: string) {
         super(loc);

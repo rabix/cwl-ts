@@ -14,11 +14,12 @@ import {incrementString, intersection} from "../helpers/utils";
 import {InputParameter} from "./InputParameter";
 import {Process} from "./Process";
 import {Process as SBDraft2Process} from "../../mappings/d2sb/Process";
+import {ID_REGEX} from "../helpers/constants";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
     public cwlVersion: string | CWLVersion;
-    public class = "Workflow";
+    public "class" = "Workflow";
 
     public steps: StepModel[]                      = [];
     public inputs: WorkflowInputParameterModel[]   = [];
@@ -167,13 +168,133 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     }
 
     /**
+     * Removes step from workflow and from graph
+     * removes all connections to step and cleans up dangling inputs
+     * @param step
+     */
+    public removeStep(step: StepModel) {
+        this.removeStepFromGraph(step);
+    }
+
+    private removeStepFromGraph(step: StepModel) {
+        // remove step from graph
+        this.graph.removeVertex(step.connectionId);
+
+        const stepIn  = step.in.map(i => i.connectionId);
+        const stepOut = step.out.map(o => o.connectionId);
+
+        // remove in ports and out ports from graph
+        stepIn.forEach(input => this.graph.removeVertex(input));
+        stepOut.forEach(output => this.graph.removeVertex(output));
+
+        // clean up connections
+        this.graph.edges.forEach(edge => {
+            if (stepIn.indexOf(edge.destination.id) !== -1 ||
+                stepOut.indexOf(edge.source.id) !== -1 ||
+                edge.destination.id === step.connectionId ||
+                edge.source.id === step.connectionId) {
+
+                this.graph.removeEdge(edge);
+            }
+        });
+    }
+
+    /**
+     * Removes input from workflow and from graph
+     * removes all connections
+     * @param input
+     */
+    public removeInput(input: WorkflowInputParameterModel) {
+
+    }
+
+    /**
+     * Removes output from workflow and from graph
+     * removes all connections
+     * @param output
+     */
+    public removeOutput(output: WorkflowOutputParameterModel) {
+
+    }
+
+    /**
+     * Checks if source contains stepId.
+     * If it does, returns id of step.out, else null;
+     * @param source
+     * @param stepId
+     */
+    protected isSourceFromStep(source: string, stepId: string): string {
+        throw new UnimplementedMethodException("isSourceFromStep", "WorkflowModel");
+    }
+
+    /**
+     * Changes ID of step, updates connections and nodes in graph
+     */
+    public changeStepId(step: StepModel, id: string) {
+        let next = this.getNextAvailableId(id);
+        if (next !== id) {
+            throw new Error(`ID already exists on graph, the next available id is "${next}"`);
+        }
+
+        if (!ID_REGEX.test(id)) {
+            throw new Error("ID contains illegal characters, only alphanumerics and _ are allowed");
+        }
+
+        const oldId = step.id;
+
+        // remove references of step from graph
+        this.removeStepFromGraph(step);
+
+        // change id on step and add it to the graph
+        step.id = id;
+        this.addStepToGraph(step);
+
+        // go through step inputs and re-add all connections
+        step.in.forEach(input => {
+            const destNode: EdgeNode = {
+                id: input.connectionId,
+                type: "StepInput"
+            };
+
+            input.source.forEach(source => {
+                this.connectSource(source, input, destNode);
+            });
+        });
+
+
+        // go through all destinations and reconnect step outputs
+        this.gatherDestinations().forEach(dest => {
+            for (let i = 0; i < dest.source.length; i++) {
+                let source = dest.source[i];
+
+                const stepOutput = this.isSourceFromStep(source, oldId);
+
+                if (stepOutput) {
+                    dest.source[i] = step.out.find(o => o.id === stepOutput).sourceId;
+
+                    const destination: EdgeNode = {
+                        id: dest.connectionId,
+                        type: this.getNodeType(dest)
+                    };
+
+                    this.connectSource(dest.source[i], dest, destination);
+                }
+            }
+        });
+    }
+
+    public changeIONodeId(node: { connectionId: string }, id: string) {
+        console.warn("changeIONodeId is not implemented yet")
+    }
+
+    /**
      * Connects two vertices which have already been added to the graph
      */
     public connect(source: EdgeNode, destination: EdgeNode, isVisible = true) {
         this.graph.addEdge(source, destination, isVisible);
     }
 
-    public addStepFromProcess(proc: Process | SBDraft2Process) : StepModel {
+    public addStepFromProcess(proc: Process | SBDraft2Process): StepModel {
         new UnimplementedMethodException("addStepFromProcess", "WorkflowModel");
         return undefined;
     }
@@ -278,22 +399,22 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     /**
      * Finds valid destination ports (workflow.outputs and step.in)
-     * for a given source port (workflow.inputs and step.out)
+     * for a given source port (workflow.inputs and step.out);
+     * @param port
+     * @returns {any[]}
      */
-    public gatherValidDestinations(source: WorkflowInputParameterModel | WorkflowStepOutputModel): Array<WorkflowOutputParameterModel | WorkflowStepInputModel> {
-        const destinations = this.gatherDestinations();
+    public gatherValidConnectionPoints(port: WorkflowInputParameterModel
+                                           | WorkflowStepOutputModel
+                                           | WorkflowOutputParameterModel
+                                           | WorkflowStepInputModel) {
 
-        return this.gatherValidPorts(source, destinations);
-    }
-
-    /**
-     * Finds valid destination ports (workflow.inputs and step.out)
-     * for a given source port (workflow.outputs and step.in)
-     */
-    public gatherValidSources(dest: WorkflowOutputParameterModel | WorkflowStepInputModel): Array<WorkflowInputParameterModel | WorkflowStepOutputModel> {
-        const sources = this.gatherSources();
-
-        return this.gatherValidPorts(dest, sources);
+        if (port instanceof WorkflowInputParameterModel || port instanceof WorkflowStepOutputModel) {
+            const destinations = this.gatherDestinations();
+            return this.gatherValidPorts(port, destinations);
+        } else {
+            const sources = this.gatherSources();
+            return this.gatherValidPorts(port, sources);
+        }
     }
 
     /**
@@ -318,7 +439,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return stepOut.concat(this.outputs);
     }
 
-    protected addStepToGraph(step: StepModel, graph:Graph = this.graph) {
+    protected addStepToGraph(step: StepModel, graph: Graph = this.graph) {
         graph.addVertex(step.id, step);
 
         // Sources don't have information about their destinations,
@@ -356,9 +477,45 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         graph.addVertex(input.connectionId, input);
     }
 
-    protected addOutputToGraph(output: WorkflowOutputParameterModel, graph:Graph = this.graph) {
+    protected addOutputToGraph(output: WorkflowOutputParameterModel, graph: Graph = this.graph) {
         graph.addVertex(output.connectionId, output);
     }
+
+    /**
+     * Helper function to connect source to destination
+     */
+    private connectSource(source: string, dest: WorkflowOutputParameterModel
+                              | WorkflowStepInputModel, destNode: EdgeNode, graph: Graph = this.graph) {
+        const sourceConnectionId = this.getSourceConnectionId(source);
+        // detect if source is a port of an input (has a step in its identifier),
+        // if it is a port then add the prefix to form the connectionId
+
+        // get source node by connectionId from graph's vertices
+        const sourceModel = graph.getVertexData(sourceConnectionId);
+
+        if (sourceModel === undefined) {
+            console.log("Could not find source node ", sourceConnectionId);
+            return;
+        }
+
+        // all workflow inputs are visible by default and should be shown
+        // except for those which are "exposed", these are explicitly hidden
+        const isVisible = !(sourceModel instanceof WorkflowInputParameterModel && !sourceModel.isVisible);
+
+        // if workflow input isn't visible, its destination and connection
+        // shouldn't be visible either
+        dest.isVisible = isVisible;
+
+        // add a connection between this destination and its source.
+        // visibility depends on both nodes, for ports that were "exposed" for example
+        // and are connected to nodes which are invisible
+        graph.addEdge({
+                id: sourceModel.connectionId,
+                type: this.getNodeType(sourceModel)
+            },
+            destNode,
+            isVisible);
+    };
 
     public constructGraph(): Graph {
         const destinations = this.gatherDestinations();
@@ -375,40 +532,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // Adding steps to graph adds their step.in and step.out as well as connecting in/out to step
         this.steps.forEach(step => this.addStepToGraph(step, graph));
 
-        /**
-         * Helper function to connect source to destination
-         */
-        const connectSource = (source: string, dest: WorkflowOutputParameterModel | WorkflowStepInputModel, destNode: EdgeNode) => {
-            const sourceConnectionId = this.getSourceConnectionId(source);
-            // detect if source is a port of an input (has a step in its identifier),
-            // if it is a port then add the prefix to form the connectionId
-
-            // get source node by connectionId from graph's vertices
-            const sourceModel = graph.getVertexData(sourceConnectionId);
-
-            if (sourceModel === undefined) {
-                console.log("Could not find source node ", sourceConnectionId);
-                return;
-            }
-
-            // all workflow inputs are visible by default and should be shown
-            // except for those which are "exposed", these are explicitly hidden
-            const isVisible = !(sourceModel instanceof WorkflowInputParameterModel && !sourceModel.isVisible);
-
-            // if workflow input isn't visible, its destination and connection
-            // shouldn't be visible either
-            dest.isVisible = isVisible;
-
-            // add a connection between this destination and its source.
-            // visibility depends on both nodes, for ports that were "exposed" for example
-            // and are connected to nodes which are invisible
-            graph.addEdge({
-                    id: sourceModel.connectionId,
-                    type: this.getNodeType(sourceModel)
-                },
-                destNode,
-                isVisible)
-        };
 
         // Destinations contain all information about connections in .source property,
         // we loop through them and create the appropriate type of connection
@@ -425,10 +548,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 // if source is an array, loop through all sources for this destination
                 if (Array.isArray(dest.source)) {
                     dest.source.forEach(s => {
-                        connectSource(s, dest, destination);
+                        this.connectSource(s, dest, destination, graph);
                     });
                 } else {
-                    connectSource(dest.source, dest, destination);
+                    this.connectSource(dest.source, dest, destination, graph);
                 }
             }
         });

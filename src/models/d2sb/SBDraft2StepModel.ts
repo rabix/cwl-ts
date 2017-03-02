@@ -14,13 +14,11 @@ import {Workflow} from "../../mappings/d2sb/Workflow";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 
 export class SBDraft2StepModel extends StepModel {
-    description?: string;
-    label: string;
     run: WorkflowModel | CommandLineToolModel | ExpressionToolModel;
     "in": SBDraft2WorkflowStepInputModel[];
     out: SBDraft2WorkflowStepOutputModel[];
-    hasMultipleScatter: false;
-    hasScatterMethod: false;
+    hasMultipleScatter = false;
+    hasScatterMethod = false;
 
     constructor(step?: WorkflowStep, loc?: string) {
         super(loc);
@@ -130,7 +128,7 @@ export class SBDraft2StepModel extends StepModel {
             }
 
             id = step.id || snakeCase(this.run.id) || snakeCase(this.run.label) || snakeCase(this.loc);
-            this.label = step.label || this.run.label;
+            this.label = step.label || this.run.label || "";
 
             this.compareInPorts(step);
             this.compareOutPorts(step);

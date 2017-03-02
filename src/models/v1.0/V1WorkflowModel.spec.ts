@@ -1,5 +1,6 @@
 import {expect} from "chai";
 import * as OneStepWf from "../../tests/apps/one-step-wf";
+import * as TwoStepWf from "../../tests/apps/first-workflow";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {WorkflowModel} from "../generic/WorkflowModel";
 
@@ -180,5 +181,45 @@ describe("V1WorkflowModel", () => {
            expect(wf.nodes).to.have.length(12);
            expect(wf.steps).to.have.length(3);
        });
+    });
+
+    describe("changeStepId", () => {
+        let wf: WorkflowModel;
+
+        beforeEach(() => {
+            wf = WorkflowFactory.from(OneStepWf.default);
+        });
+
+        it("should change id of step itself", () => {
+            const step = wf.steps[0];
+
+            wf.changeStepId(step, "new_id");
+
+            expect(step.id).to.equal("new_id");
+        });
+
+        it("should maintain the same number of connections and nodes after id change", () => {
+            const connectionsLen = wf.connections.length;
+            const nodesLen = wf.nodes.length;
+
+            wf.changeStepId(wf.steps[0], "new_id");
+
+            expect(wf.connections).to.have.length(connectionsLen);
+            expect(wf.nodes).to.have.length(nodesLen);
+        });
+
+        it("should change source for connected outputs", () => {
+            wf.changeStepId(wf.steps[0], "new_id");
+
+            expect(wf.outputs[0].source).to.deep.equal(["new_id/example_out"]);
+        });
+
+        it("should change source for connected step inputs", () => {
+            const wf = WorkflowFactory.from(TwoStepWf.default);
+
+            wf.changeStepId(wf.steps[0], "new_id");
+
+            expect(wf.steps[1].in[0].source).to.deep.equal(["new_id/example_out"]);
+        });
     });
 });

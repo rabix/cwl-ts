@@ -7,7 +7,7 @@ import {ParameterTypeModel} from "./ParameterTypeModel";
 
 export class WorkflowOutputParameterModel extends ValidationBase implements Serializable<any>, Plottable {
     public id: string;
-    public source: string | string[];
+    public source: string[];
     public type: ParameterTypeModel;
     public description: string;
     public label: string;
@@ -15,6 +15,10 @@ export class WorkflowOutputParameterModel extends ValidationBase implements Seri
     public fileTypes: string[] = [];
 
     public isVisible = true;
+
+    get destinationId(): string {
+        return this.id;
+    }
 
     get connectionId(): string {
         return `${STEP_INPUT_CONNECTION_PREFIX}${this.id}/${this.id}`;
