@@ -240,6 +240,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             throw new Error("ID contains illegal characters, only alphanumerics and _ are allowed");
         }
 
+        if (!id) {
+            throw new Error("ID must be set");
+        }
+
         const oldId = step.id;
 
         // remove references of step from graph
