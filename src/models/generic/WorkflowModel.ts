@@ -173,7 +173,24 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * @param input
      */
     public removeInput(input: WorkflowInputParameterModel) {
+        // remove input from list of inputs on workflow model
+        for (let i = 0; i < this.inputs.length; i++) {
+            if (this.inputs[i].id == input.id) {
+                this.inputs.splice(i, 1);
+            }
+        }
 
+        // remove input from graph and remove connections
+        this.removeIONodeFromGraph(input);
+        const dests = this.gatherDestinations();
+
+        // remove source from step.in ports
+        for (let i = 0; i < dests.length; i++) {
+            const indexOf = dests[i].source.indexOf(input.sourceId);
+            if (indexOf !== -1) {
+                dests[i].source.splice(indexOf, 1);
+            }
+        }
     }
 
     /**
@@ -182,7 +199,15 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * @param output
      */
     public removeOutput(output: WorkflowOutputParameterModel) {
+        // remove output from list of outputs on workflow model
+        for (let i = 0; i < this.outputs.length; i++) {
+            if (this.outputs[i].id == output.id) {
+                this.outputs.splice(i, 1);
+            }
+        }
 
+        // remove output from the graph and remove connections
+        this.removeIONodeFromGraph(output);
     }
 
     /**
@@ -580,7 +605,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     protected _createOutputFromPort(outPort: WorkflowStepOutputModel,
                                     outputConstructor: { new(...args: any[]): WorkflowOutputParameterModel },
                                     show: boolean   = true,
-                                    create: boolean = false) : WorkflowOutputParameterModel {
+                                    create: boolean = false): WorkflowOutputParameterModel {
 
         if (!this.graph.hasVertex(outPort.connectionId)) {
             if (!create) {

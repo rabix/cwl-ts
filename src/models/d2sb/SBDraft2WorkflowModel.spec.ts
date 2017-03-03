@@ -231,4 +231,58 @@ describe("SBDraft2WorkflowModel", () => {
         });
 
     });
+
+    describe("removeInput", () => {
+        let wf;
+        beforeEach(() => {
+            wf = WorkflowFactory.from(TwoStepWf.default);
+        });
+
+        it("should remove the input from wf.inputs", () => {
+            const inputs = wf.inputs.length;
+            wf.removeInput(wf.inputs[0]);
+
+            expect(wf.inputs).to.have.length(inputs - 1);
+        });
+
+        it("should remove node and connections", () => {
+            const connections = wf.connections.length;
+            const nodes = wf.nodes.length;
+            wf.removeInput(wf.inputs[0]);
+
+            expect(wf.connections).to.have.length(connections - 1);
+            expect(wf.nodes).to.have.length(nodes - 1);
+        });
+
+        it("should remove source from step.in", () => {
+            expect(wf.steps[0].in[0].source).to.contain(wf.inputs[0].sourceId);
+
+            wf.removeInput(wf.inputs[0]);
+
+            expect(wf.steps[0].in[0].source).to.be.empty;
+        });
+    });
+
+    describe("removeOutput", () => {
+        let wf;
+        beforeEach(() => {
+            wf = WorkflowFactory.from(TwoStepWf.default);
+        });
+
+        it("should remove the output from wf.outputs", () => {
+            const outputs = wf.outputs.length;
+            wf.removeOutput(wf.outputs[0]);
+
+            expect(wf.outputs.length).to.equal(outputs -1);
+        });
+
+        it("should remove node and connections", () => {
+            const connections = wf.connections.length;
+            const nodes = wf.nodes.length;
+            wf.removeOutput(wf.outputs[0]);
+
+            expect(wf.connections).to.have.length(connections - 1);
+            expect(wf.nodes).to.have.length(nodes - 1);
+        });
+    });
 });
