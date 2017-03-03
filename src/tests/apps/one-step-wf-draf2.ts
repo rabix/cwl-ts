@@ -134,11 +134,14 @@ export default JSON.parse(`
 		}, {
 			"id": "#basic_tool.stringArr"
 		}, {
-			"id": "#basic_tool.requiredFile"
+			"id": "#basic_tool.requiredFile",
+			"source": ["#requiredFile"]
 		}, {
-			"id": "#basic_tool.fileArr"
+			"id": "#basic_tool.fileArr",
+			"source": ["#fileArr"]
 		}, {
-			"id": "#basic_tool.file"
+			"id": "#basic_tool.file",
+			"source": ["#file"]
 		}, {
 			"id": "#basic_tool.default"
 		}],

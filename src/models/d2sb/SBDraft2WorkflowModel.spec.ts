@@ -78,4 +78,57 @@ describe("SBDraft2WorkflowModel", () => {
          expect(wf.steps[1].in[0].source).to.deep.equal(["#new_id.result"]);
       });
    });
+
+   describe("changeIONodeId", () => {
+
+      describe("changeIONodeId", () => {
+         let wf: WorkflowModel;
+
+         beforeEach(() => {
+            wf = WorkflowFactory.from(OneStepWf.default);
+         });
+
+         it("should change id for input", () => {
+            const input = wf.inputs[0];
+
+            wf.changeIONodeId(input, "new_id");
+
+            expect(input.id).to.equal("new_id");
+         });
+
+         it("should change id for output", () => {
+            const output = wf.outputs[0];
+
+            wf.changeIONodeId(output, "new_id");
+
+            expect(output.id).to.equal("new_id");
+         });
+
+         it("should maintain the same number of connections and nodes after output id change", () => {
+            const connectionsLen = wf.connections.length;
+            const nodesLen = wf.nodes.length;
+
+            wf.changeIONodeId(wf.outputs[0], "new_id");
+
+            expect(wf.connections).to.have.length(connectionsLen);
+            expect(wf.nodes).to.have.length(nodesLen);
+         });
+
+         it("should maintain the same number of connections and nodes after input id change", () => {
+            const connectionsLen = wf.connections.length;
+            const nodesLen = wf.nodes.length;
+
+            wf.changeIONodeId(wf.inputs[0], "new_id");
+
+            expect(wf.connections).to.have.length(connectionsLen);
+            expect(wf.nodes).to.have.length(nodesLen);
+         });
+
+         it("should change source for connected step.in", () => {
+            wf.changeIONodeId(wf.inputs[0], "new_id");
+
+            expect(wf.steps[0].in[3].source).to.deep.equal(["#new_id"]);
+         });
+      });
+   });
 });

@@ -228,21 +228,34 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     }
 
     /**
-     * Changes ID of step, updates connections and nodes in graph
+     * Checks if ID is valid and if it already exists on the graph
+     * @param id
      */
-    public changeStepId(step: StepModel, id: string) {
+    private checkIdValidity(id: string) {
         let next = this.getNextAvailableId(id);
-        if (next !== id) {
-            throw new Error(`ID already exists on graph, the next available id is "${next}"`);
+
+        if (!id) {
+            throw new Error("ID must be set");
         }
 
         if (!ID_REGEX.test(id)) {
             throw new Error("ID contains illegal characters, only alphanumerics and _ are allowed");
         }
 
-        if (!id) {
-            throw new Error("ID must be set");
+        if (next !== id) {
+            throw new Error(`ID already exists on graph, the next available id is "${next}"`);
         }
+    }
+
+    /**
+     * Changes ID of step, updates connections and nodes in graph
+     */
+    public changeStepId(step: StepModel, id: string) {
+        if (id === step.id) {
+            return;
+        }
+
+        this.checkIdValidity(id);
 
         const oldId = step.id;
 
@@ -287,8 +300,52 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         });
     }
 
-    public changeIONodeId(node: { connectionId: string }, id: string) {
-        console.warn("changeIONodeId is not implemented yet")
+    private removeIONodeFromGraph(node: WorkflowInputParameterModel | WorkflowOutputParameterModel) {
+        this.graph.removeVertex(node.connectionId);
+
+        this.graph.edges.forEach(edge => {
+           if (edge.destination.id === node.connectionId || edge.source.id === node.connectionId) {
+               this.graph.removeEdge(edge);
+           }
+        });
+    }
+
+    public changeIONodeId(node: WorkflowInputParameterModel | WorkflowOutputParameterModel, id: string) {
+        if (node.id === id) return;
+
+        this.checkIdValidity(id);
+
+        const oldConnectionId = node.connectionId;
+        const oldId = (node as WorkflowInputParameterModel).sourceId;
+        node.id = id;
+
+        this.graph.removeVertex(oldConnectionId);
+        this.graph.addVertex(node.connectionId, node);
+
+
+        // if node is output, just change id, remove from graph, and re-add to graph
+        if (node instanceof WorkflowOutputParameterModel) {
+            this.graph.edges.forEach(edge => {
+                if (edge.destination.id === oldConnectionId) {
+                    edge.destination.id = node.connectionId;
+                }
+            });
+        }
+
+        // if node is input, change id, remove from graph and re-add to graph, go through all destinations and change their source
+        if (node instanceof WorkflowInputParameterModel) {
+            this.graph.edges.forEach(edge => {
+               if(edge.source.id === oldConnectionId) {
+                   edge.source.id = node.connectionId;
+                   const destNode: WorkflowStepInputModel = this.graph.getVertexData(edge.destination.id);
+                   for(let i = 0; i < destNode.source.length; i++) {
+                       if (destNode.source[i] === oldId) {
+                           destNode.source[i] = node.sourceId;
+                       }
+                   }
+               }
+            });
+        }
     }
 
     /**
