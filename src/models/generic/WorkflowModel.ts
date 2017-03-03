@@ -140,12 +140,35 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * removes all connections to step and cleans up dangling inputs
      * @param step
      */
-    public removeStep(step: StepModel) {
+    public removeStep(step: StepModel | string) {
+        if (typeof step === "string") {
+            step = <StepModel> this.graph.getVertexData(step);
+        }
+
+        // remove step from wf.steps
+        for(let i = 0; i < this.steps.length; i++) {
+            if (this.steps[i].id === step.id) {
+                this.steps.splice(i, 1);
+                break;
+            }
+        }
+        // remove step from graph and remove all connections
         this.removeStepFromGraph(step);
+
+        const dests = this.gatherDestinations();
+
+        for (let j =0; j < dests.length; j++) {
+            for (let i = 0; i < step.out.length; i++ ) {
+                const indexOf = dests[j].source.indexOf(step.out[i].sourceId);
+                if (indexOf > -1) {
+                    dests[j].source.splice(indexOf, 1);
+                }
+            }
+        }
     }
 
     private removeStepFromGraph(step: StepModel) {
-        // remove step from graph
+        // remove step node from graph
         this.graph.removeVertex(step.connectionId);
 
         const stepIn  = step.in.map(i => i.connectionId);
@@ -155,7 +178,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         stepIn.forEach(input => this.graph.removeVertex(input));
         stepOut.forEach(output => this.graph.removeVertex(output));
 
-        // clean up connections
+        // clean up connections between in/out ports and other nodes
+        // and in/out ports and the step itself
         this.graph.edges.forEach(edge => {
             if (stepIn.indexOf(edge.destination.id) !== -1 ||
                 stepOut.indexOf(edge.source.id) !== -1 ||
@@ -172,11 +196,16 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * removes all connections
      * @param input
      */
-    public removeInput(input: WorkflowInputParameterModel) {
+    public removeInput(input: WorkflowInputParameterModel | string) {
+        if (typeof input === "string") {
+            input = <WorkflowInputParameterModel> this.graph.getVertexData(input);
+        }
+
         // remove input from list of inputs on workflow model
         for (let i = 0; i < this.inputs.length; i++) {
             if (this.inputs[i].id == input.id) {
                 this.inputs.splice(i, 1);
+                break;
             }
         }
 
@@ -198,11 +227,16 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * removes all connections
      * @param output
      */
-    public removeOutput(output: WorkflowOutputParameterModel) {
+    public removeOutput(output: WorkflowOutputParameterModel | string) {
+        if (typeof output === "string") {
+            output = <WorkflowOutputParameterModel> this.graph.getVertexData(output);
+        }
+
         // remove output from list of outputs on workflow model
         for (let i = 0; i < this.outputs.length; i++) {
             if (this.outputs[i].id == output.id) {
                 this.outputs.splice(i, 1);
+                break;
             }
         }
 
