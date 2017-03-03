@@ -14,6 +14,7 @@ import {EdgeNode} from "../helpers/Graph";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {Process} from "../generic/Process";
+import {V1WorkflowStepOutputModel} from "./V1WorkflowStepOutputModel";
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -77,8 +78,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     /**
      * Adds Input, Output, or Step to workflow. Does not add them to the graph.
      */
-    public addEntry(entry:
-                        V1StepModel
+    public addEntry(entry: V1StepModel
                         | V1WorkflowInputParameterModel
                         | V1WorkflowOutputParameterModel, type: "inputs" | "outputs" | "steps") {
         entry.loc = `${this.loc}.${type}[${this[type].length}]`;
@@ -98,6 +98,13 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         this.graph.addEdge(source, destination, isVisible);
     }
 
+    public createInputFromPort(inPort: V1WorkflowStepInputModel) : V1WorkflowInputParameterModel {
+        return super._createInputFromPort(inPort, V1WorkflowInputParameterModel);
+    }
+
+    public createOutputFromPort(outPort: V1WorkflowStepOutputModel) : V1WorkflowOutputParameterModel {
+        return super._createOutputFromPort(outPort, V1WorkflowOutputParameterModel);
+    }
 
     public exposePort(inPort: V1WorkflowStepInputModel) {
         super._exposePort(inPort, V1WorkflowInputParameterModel);
@@ -157,7 +164,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         this.id = workflow.id;
 
-        this.label = workflow.label;
+        this.label       = workflow.label;
         this.description = workflow.doc;
 
         ensureArray(workflow.inputs, "id", "type").forEach((input, i) => {

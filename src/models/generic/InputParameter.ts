@@ -7,4 +7,6 @@ export interface InputParameter {
     description?: string;
 
     fileTypes?: string[];
+
+    inputBinding?: any;
 }

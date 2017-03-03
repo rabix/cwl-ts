@@ -14,7 +14,11 @@ import {incrementString, intersection} from "../helpers/utils";
 import {InputParameter} from "./InputParameter";
 import {Process} from "./Process";
 import {Process as SBDraft2Process} from "../../mappings/d2sb/Process";
-import {ID_REGEX} from "../helpers/constants";
+import {
+    ID_REGEX, STEP_INPUT_CONNECTION_PREFIX,
+    STEP_OUTPUT_CONNECTION_PREFIX
+} from "../helpers/constants";
+import {OutputParameter} from "./OutputParameter";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -57,43 +61,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // remove extraneous connections to this port and set it as invisible
         this.clearPort(inPort);
 
-        // if the port has not been added to the graph yet
-        if (!this.graph.hasVertex(inPort.connectionId)) {
-            this.graph.addVertex(inPort.connectionId, inPort);
-            // connect in port to step
-            this.connect({
-                id: inPort.connectionId,
-                type: "StepInput"
-            }, {
-                id: inPort.parentStep.id,
-                type: "Step"
-            }, false);
-        }
-
-        // create new input on the workflow to connect with the port
-        const input = new inputConstructor(<InputParameter>{
-            id: this.getNextAvailableId(inPort.id), // might change later in case input is already taken
-            type: inPort.type ? inPort.type.serialize() : "null",
-            fileTypes: inPort.fileTypes
-        });
-
-        // add a reference to the new input on the inPort
-        inPort.source.push(input.id);
-
-        // add it to the workflow tree
-        input.setValidationCallback(err => this.updateValidity(err));
-        this.inputs.push(input);
-
-        // add input to graph
-        this.graph.addVertex(input.connectionId, input);
-        // connect input with inPort
-        this.connect({
-            id: input.connectionId,
-            type: "WorkflowInput"
-        }, {
-            id: inPort.connectionId,
-            type: "StepInput"
-        }, false);
+        this._createInputFromPort(inPort, inputConstructor, false, true);
     }
 
     /**
@@ -230,9 +198,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Checks if ID is valid and if it already exists on the graph
      * @param id
+     * @param connectionId
      */
-    private checkIdValidity(id: string) {
-        let next = this.getNextAvailableId(id);
+    private checkIdValidity(id: string, connectionId: string) {
+        let next = this.getNextAvailableId(connectionId);
 
         if (!id) {
             throw new Error("ID must be set");
@@ -255,7 +224,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             return;
         }
 
-        this.checkIdValidity(id);
+        this.checkIdValidity(id, id);
 
         const oldId = step.id;
 
@@ -300,24 +269,27 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         });
     }
 
-    private removeIONodeFromGraph(node: WorkflowInputParameterModel | WorkflowOutputParameterModel) {
+    private removeIONodeFromGraph(node: WorkflowInputParameterModel
+                                      | WorkflowOutputParameterModel) {
         this.graph.removeVertex(node.connectionId);
 
         this.graph.edges.forEach(edge => {
-           if (edge.destination.id === node.connectionId || edge.source.id === node.connectionId) {
-               this.graph.removeEdge(edge);
-           }
+            if (edge.destination.id === node.connectionId || edge.source.id === node.connectionId) {
+                this.graph.removeEdge(edge);
+            }
         });
     }
 
-    public changeIONodeId(node: WorkflowInputParameterModel | WorkflowOutputParameterModel, id: string) {
+    public changeIONodeId(node: WorkflowInputParameterModel
+                              | WorkflowOutputParameterModel, id: string) {
         if (node.id === id) return;
 
-        this.checkIdValidity(id);
+        const pref = node instanceof WorkflowInputParameterModel ? STEP_OUTPUT_CONNECTION_PREFIX : STEP_INPUT_CONNECTION_PREFIX;
+        this.checkIdValidity(id, `${pref}${id}/${id}`);
 
         const oldConnectionId = node.connectionId;
-        const oldId = (node as WorkflowInputParameterModel).sourceId;
-        node.id = id;
+        const oldId           = (node as WorkflowInputParameterModel).sourceId;
+        node.id               = id;
 
         this.graph.removeVertex(oldConnectionId);
         this.graph.addVertex(node.connectionId, node);
@@ -335,15 +307,15 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // if node is input, change id, remove from graph and re-add to graph, go through all destinations and change their source
         if (node instanceof WorkflowInputParameterModel) {
             this.graph.edges.forEach(edge => {
-               if(edge.source.id === oldConnectionId) {
-                   edge.source.id = node.connectionId;
-                   const destNode: WorkflowStepInputModel = this.graph.getVertexData(edge.destination.id);
-                   for(let i = 0; i < destNode.source.length; i++) {
-                       if (destNode.source[i] === oldId) {
-                           destNode.source[i] = node.sourceId;
-                       }
-                   }
-               }
+                if (edge.source.id === oldConnectionId) {
+                    edge.source.id                         = node.connectionId;
+                    const destNode: WorkflowStepInputModel = this.graph.getVertexData(edge.destination.id);
+                    for (let i = 0; i < destNode.source.length; i++) {
+                        if (destNode.source[i] === oldId) {
+                            destNode.source[i] = node.sourceId;
+                        }
+                    }
+                }
             });
         }
     }
@@ -368,15 +340,18 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Checks for naming collisions in vertex ids, in case of collisions,
      * it will increment the provided id, otherwise it returns the original id
      */
-    protected getNextAvailableId(id: string): string {
+    protected getNextAvailableId(connectionId: string): string {
         let hasId  = true;
-        let result = id;
+        let result = connectionId;
         while (hasId) {
             if (hasId = this.graph.hasVertex(result)) {
                 result = incrementString(result);
             }
         }
 
+        if (result.indexOf("/") !== -1) {
+            return result.split("/")[2];
+        }
         return result;
     }
 
@@ -532,6 +507,121 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 false
             );
         })
+    }
+
+    public createInputFromPort(inPort: WorkflowStepInputModel) {
+        new UnimplementedMethodException("createInputFromPort", "WorkflowStepInputModel");
+    }
+
+    /**
+     * @param inPort
+     * @param inputConstructor
+     * @param show
+     * @param create
+     * @private
+     */
+    protected _createInputFromPort(inPort: WorkflowStepInputModel,
+                                   inputConstructor: { new(...args: any[]): WorkflowInputParameterModel },
+                                   show: boolean   = true,
+                                   create: boolean = false): WorkflowInputParameterModel {
+        if (!this.graph.hasVertex(inPort.connectionId)) {
+            if (!create) {
+                throw new Error(`WorkflowStepInputModel ${inPort.destinationId} does not exist on the graph`);
+            } else {
+                this.graph.addVertex(inPort.connectionId, inPort);
+                // connect in port to step
+                this.connect({
+                    id: inPort.connectionId,
+                    type: "StepInput"
+                }, {
+                    id: inPort.parentStep.id,
+                    type: "Step"
+                }, false);
+            }
+        }
+
+        // create new input on the workflow to connect with the port
+        const input = new inputConstructor(<InputParameter>{
+            id: this.getNextAvailableId(`${STEP_OUTPUT_CONNECTION_PREFIX}${inPort.id}/${inPort.id}`), // might change later in case input is already taken
+            type: inPort.type ? inPort.type.serialize() : "null",
+            fileTypes: inPort.fileTypes,
+            inputBinding: inPort["inputBinding"]
+        });
+
+        // add a reference to the new input on the inPort
+        inPort.source.push(input.sourceId);
+
+        // add it to the workflow tree
+        input.setValidationCallback(err => this.updateValidity(err));
+        this.inputs.push(input);
+
+        // add input to graph
+        this.addInputToGraph(input);
+        // connect input with inPort
+        this.connect({
+            id: input.connectionId,
+            type: "WorkflowInput"
+        }, {
+            id: inPort.connectionId,
+            type: "StepInput"
+        }, show);
+
+        return input;
+    }
+
+    /**
+     * Creates a workflow output from a given step.out
+     * @param port
+     */
+    public createOutputFromPort(port: WorkflowStepOutputModel) {
+        new UnimplementedMethodException("createOutputFromPort", "WorkflowModel");
+    }
+
+    protected _createOutputFromPort(outPort: WorkflowStepOutputModel,
+                                    outputConstructor: { new(...args: any[]): WorkflowOutputParameterModel },
+                                    show: boolean   = true,
+                                    create: boolean = false) : WorkflowOutputParameterModel {
+
+        if (!this.graph.hasVertex(outPort.connectionId)) {
+            if (!create) {
+                throw new Error(`WorkflowStepInputModel ${outPort.sourceId} does not exist on the graph`);
+            } else {
+                this.graph.addVertex(outPort.connectionId, outPort);
+                // connect in port to step
+                this.connect({
+                    id: outPort.connectionId,
+                    type: "StepInput"
+                }, {
+                    id: outPort.parentStep.id,
+                    type: "Step"
+                }, false);
+            }
+        }
+
+        // create new input on the workflow to connect with the port
+        const output = new outputConstructor(<OutputParameter>{
+            id: this.getNextAvailableId(`${STEP_INPUT_CONNECTION_PREFIX}${outPort.id}/${outPort.id}`), // might change later in case output is already taken
+            type: outPort.type ? outPort.type.serialize() : "null",
+            fileTypes: outPort.fileTypes,
+            source: [outPort.sourceId]
+        });
+
+        // add it to the workflow tree
+        output.setValidationCallback(err => this.updateValidity(err));
+        this.outputs.push(output);
+
+        // add output to graph
+        this.addOutputToGraph(output);
+        // connect output with outPort
+        this.connect({
+            id: outPort.connectionId,
+            type: "StepOutput"
+        }, {
+            id: output.connectionId,
+            type: "WorkflowOutput"
+        }, show);
+
+        return output;
     }
 
     protected addInputToGraph(input: WorkflowInputParameterModel, graph: Graph = this.graph) {

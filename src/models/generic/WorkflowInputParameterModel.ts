@@ -11,6 +11,8 @@ export class WorkflowInputParameterModel extends ValidationBase implements Input
     type: InputParameterTypeModel;
     fileTypes: string[] = [];
 
+    inputBinding?: any;
+
     label?: string;
     description?: string;
 

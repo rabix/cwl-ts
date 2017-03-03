@@ -224,13 +224,9 @@ describe("V1WorkflowModel", () => {
     });
 
     describe("changeIONodeId", () => {
-        let wf: WorkflowModel;
-
-        beforeEach(() => {
-            wf = WorkflowFactory.from(OneStepWf.default);
-        });
-
         it("should change id for input", () => {
+            const wf = WorkflowFactory.from(OneStepWf.default);
+
             const input = wf.inputs[0];
 
             wf.changeIONodeId(input, "new_id");
@@ -239,6 +235,8 @@ describe("V1WorkflowModel", () => {
         });
 
         it("should change id for output", () => {
+            const wf = WorkflowFactory.from(OneStepWf.default);
+
             const output = wf.outputs[0];
 
             wf.changeIONodeId(output, "new_id");
@@ -247,6 +245,8 @@ describe("V1WorkflowModel", () => {
         });
 
         it("should maintain the same number of connections and nodes after output id change", () => {
+            const wf = WorkflowFactory.from(OneStepWf.default);
+
             const connectionsLen = wf.connections.length;
             const nodesLen = wf.nodes.length;
 
@@ -257,6 +257,8 @@ describe("V1WorkflowModel", () => {
         });
 
         it("should maintain the same number of connections and nodes after input id change", () => {
+            const wf = WorkflowFactory.from(OneStepWf.default);
+
             const connectionsLen = wf.connections.length;
             const nodesLen = wf.nodes.length;
 
@@ -267,9 +269,29 @@ describe("V1WorkflowModel", () => {
         });
 
         it("should change source for connected step.in", () => {
+            const wf = WorkflowFactory.from(OneStepWf.default);
+
             wf.changeIONodeId(wf.inputs[0], "new_id");
 
             expect(wf.steps[0].in[0].source).to.deep.equal(["new_id"]);
+        });
+
+        it("should throw exception if id exists", () => {
+            const wf = WorkflowFactory.from(TwoStepWf.default);
+
+            expect(() => {wf.changeIONodeId(wf.inputs[0], wf.inputs[1].id)}).to.throw(`ID already exists on graph`);
+        });
+
+        it("should throw exception if id is invalid", () => {
+            const wf = WorkflowFactory.from(OneStepWf.default);
+
+            expect(() => {wf.changeIONodeId(wf.inputs[0], "-char-problems!")}).to.throw(`illegal characters`);
+        });
+
+        it("should throw exception if id is blank", () => {
+            const wf = WorkflowFactory.from(OneStepWf.default);
+
+            expect(() => {wf.changeIONodeId(wf.inputs[0], "")}).to.throw(`must be set`);
         });
     });
 });

@@ -8,6 +8,7 @@ import {ensureArray, snakeCase, spreadSelectProps} from "../helpers/utils";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
 import {Process} from "../../mappings/d2sb/Process";
+import {SBDraft2WorkflowStepOutputModel} from "./SBDraft2WorkflowStepOutputModel";
 
 export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -26,6 +27,15 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         if (workflow) this.deserialize(workflow);
 
         this.graph = this.constructGraph();
+    }
+
+
+    public createInputFromPort(inPort: SBDraft2WorkflowStepInputModel): SBDraft2WorkflowInputParameterModel {
+        return super._createInputFromPort(inPort, SBDraft2WorkflowInputParameterModel);
+    }
+
+    public createOutputFromPort(outPort: SBDraft2WorkflowStepOutputModel): SBDraft2WorkflowOutputParameterModel {
+        return super._createOutputFromPort(outPort, SBDraft2WorkflowOutputParameterModel);
     }
 
     public exposePort(inPort: SBDraft2WorkflowStepInputModel) {

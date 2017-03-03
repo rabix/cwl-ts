@@ -10,7 +10,7 @@ export const ensureArray = (map:
     if (Array.isArray(map)) {
         // if the object is already an array of objects, we don't want to transform it
         if (typeof map[0] === "object" || key === undefined) {
-            return map;
+            return [...map];
         } else {
             // if it's an array of something else, transform each element into {key: <any>item}
             return map.map(item => ({[key]: item}));
