@@ -9,8 +9,8 @@ export class WorkflowOutputParameterModel extends ValidationBase implements Seri
     public id: string;
     public source: string[];
     public type: ParameterTypeModel;
-    public description: string;
-    public label: string;
+    public description?: string;
+    public label?: string;
     public secondaryFiles: string[];
     public fileTypes: string[] = [];
 

@@ -18,10 +18,12 @@ export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParamete
     serialize(): WorkflowOutputParameter {
         const base: any = {};
 
-        base.id          = "#" + this.id;
-        base.label       = this.label;
-        base.description = this.description;
-        base.source      = this.source;
+        base.id = "#" + this.id;
+
+        if (this.label) base.label = this.label;
+        if (this.description) base.description = this.description;
+
+        base.source = this.source;
         if (this.type) base.type = this.type.serialize();
 
         return spreadAllProps(base, this.customProps);

@@ -21,7 +21,7 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
     }
 
     deserialize(input: SBGWorkflowInputParameter | RecordField) {
-        const serializedKeys = ["name", "id", "type"];
+        const serializedKeys = ["name", "id", "type", "label", "description"];
 
         this.isField = !!(<RecordField> input).name;
 
@@ -45,6 +45,10 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
     serialize(): SBGWorkflowInputParameter | RecordField {
         const base: any = {};
         base.type = this.type.serialize();
+
+        if (this.label) base.label = this.label;
+        if (this.description) base.description = this.description;
+
         if (this.isField) {
             base.name = this.id;
         } else {

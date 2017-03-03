@@ -14,11 +14,13 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
     }
 
     deserialize(output: WorkflowOutputParameter) {
-        const serializedKeys = ["id", "source", "type"];
+        const serializedKeys = ["id", "source", "type", "label", "doc"];
 
         this.id = output.id;
         this.source = ensureArray(output.outputSource);
         this.type = new ParameterTypeModel(output.type, V1WorkflowOutputParameterModel, `${this.loc}.type`);
+        this.label = output.label;
+        this.description = ensureArray(output.doc).join("\n\n");
 
         this.fileTypes = commaSeparatedToArray(output["format"]);
         spreadSelectProps(output, this.customProps, serializedKeys);
