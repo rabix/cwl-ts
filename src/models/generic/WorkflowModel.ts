@@ -146,7 +146,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
 
         // remove step from wf.steps
-        for(let i = 0; i < this.steps.length; i++) {
+        for (let i = 0; i < this.steps.length; i++) {
             if (this.steps[i].id === step.id) {
                 this.steps.splice(i, 1);
                 break;
@@ -157,8 +157,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         const dests = this.gatherDestinations();
 
-        for (let j =0; j < dests.length; j++) {
-            for (let i = 0; i < step.out.length; i++ ) {
+        for (let j = 0; j < dests.length; j++) {
+            for (let i = 0; i < step.out.length; i++) {
                 const indexOf = dests[j].source.indexOf(step.out[i].sourceId);
                 if (indexOf > -1) {
                     dests[j].source.splice(indexOf, 1);
@@ -390,12 +390,16 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                    destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
         // fetch source if connectionId is provided
         if (typeof source === "string") {
-            source = <WorkflowInputParameterModel | WorkflowStepOutputModel> this.graph.getVertexData(source);
+            source = <
+                WorkflowInputParameterModel
+                | WorkflowStepOutputModel> this.graph.getVertexData(source);
         }
 
         // fetch destination if connectionId is provided
         if (typeof destination === "string") {
-            destination = <WorkflowOutputParameterModel | WorkflowStepInputModel> this.graph.getVertexData(destination);
+            destination = <
+                WorkflowOutputParameterModel
+                | WorkflowStepInputModel> this.graph.getVertexData(destination);
         }
 
         if (!source || !destination) {
@@ -410,6 +414,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // type check destination
         if (!(destination instanceof WorkflowOutputParameterModel) && !(destination instanceof WorkflowStepInputModel)) {
             throw new Error(`Expected destination to be instanceof WorkflowOutputParameterModel or WorkflowStepInputModel, instead got ${(destination as Function).constructor.name}`);
+        }
+
+        if ((destination as WorkflowStepInputModel).parentStep &&
+            (source as WorkflowStepOutputModel).parentStep &&
+            (destination as WorkflowStepInputModel).parentStep.id === (source as WorkflowStepOutputModel).parentStep.id) {
+            throw new Error(`Cannot connect ports that belong to the same step: ${(destination as WorkflowStepInputModel).parentStep.id}`);
         }
 
         // add edge to the graph
@@ -612,7 +622,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         })
     }
 
-    public createInputFromPort(inPort: WorkflowStepInputModel | string): WorkflowInputParameterModel {
+    public createInputFromPort(inPort:
+                                   WorkflowStepInputModel
+                                   | string): WorkflowInputParameterModel {
         new UnimplementedMethodException("createInputFromPort", "WorkflowStepInputModel");
         return undefined;
     }
@@ -681,7 +693,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Creates a workflow output from a given step.out
      * @param port
      */
-    public createOutputFromPort(port: WorkflowStepOutputModel | string) : WorkflowOutputParameterModel {
+    public createOutputFromPort(port:
+                                    WorkflowStepOutputModel
+                                    | string): WorkflowOutputParameterModel {
         new UnimplementedMethodException("createOutputFromPort", "WorkflowModel");
         return undefined;
     }
