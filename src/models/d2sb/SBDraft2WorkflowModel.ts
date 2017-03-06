@@ -30,11 +30,11 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     }
 
 
-    public createInputFromPort(inPort: SBDraft2WorkflowStepInputModel): SBDraft2WorkflowInputParameterModel {
+    public createInputFromPort(inPort: SBDraft2WorkflowStepInputModel | string): SBDraft2WorkflowInputParameterModel {
         return super._createInputFromPort(inPort, SBDraft2WorkflowInputParameterModel);
     }
 
-    public createOutputFromPort(outPort: SBDraft2WorkflowStepOutputModel): SBDraft2WorkflowOutputParameterModel {
+    public createOutputFromPort(outPort: SBDraft2WorkflowStepOutputModel | string): SBDraft2WorkflowOutputParameterModel {
         return super._createOutputFromPort(outPort, SBDraft2WorkflowOutputParameterModel);
     }
 

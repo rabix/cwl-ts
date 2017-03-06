@@ -382,8 +382,47 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Connects two vertices which have already been added to the graph
      */
-    public connect(source: EdgeNode, destination: EdgeNode, isVisible = true) {
+    private addEdge(source: EdgeNode, destination: EdgeNode, isVisible = true) {
         this.graph.addEdge(source, destination, isVisible);
+    }
+
+    public connect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
+                   destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
+        // fetch source if connectionId is provided
+        if (typeof source === "string") {
+            source = <WorkflowInputParameterModel | WorkflowStepOutputModel> this.graph.getVertexData(source);
+        }
+
+        // fetch destination if connectionId is provided
+        if (typeof destination === "string") {
+            destination = <WorkflowOutputParameterModel | WorkflowStepInputModel> this.graph.getVertexData(destination);
+        }
+
+        if (!source || !destination) {
+            throw new Error("Source and destination must be defined");
+        }
+
+        // type check source
+        if (!(source instanceof WorkflowInputParameterModel) && !(source instanceof WorkflowStepOutputModel)) {
+            throw new Error(`Expected source to be instanceof WorkflowInputParameterModel or WorkflowStepOutputModel, instead got ${(source as Function).constructor.name}`);
+        }
+
+        // type check destination
+        if (!(destination instanceof WorkflowOutputParameterModel) && !(destination instanceof WorkflowStepInputModel)) {
+            throw new Error(`Expected destination to be instanceof WorkflowOutputParameterModel or WorkflowStepInputModel, instead got ${(destination as Function).constructor.name}`);
+        }
+
+        // add edge to the graph
+        this.addEdge({
+            id: source.connectionId,
+            type: this.getNodeType(source)
+        }, {
+            id: destination.connectionId,
+            type: this.getNodeType(destination)
+        }, true);
+
+        // add source to destination
+        destination.source.push(source.sourceId);
     }
 
     public addStepFromProcess(proc: Process | SBDraft2Process): StepModel {
@@ -501,7 +540,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     public gatherValidConnectionPoints(port: WorkflowInputParameterModel
                                            | WorkflowStepOutputModel
                                            | WorkflowOutputParameterModel
-                                           | WorkflowStepInputModel) {
+                                           | WorkflowStepInputModel
+                                           | string) {
+
+        if (typeof port === "string") {
+            port = this.graph.getVertexData(port);
+        }
 
         if (port instanceof WorkflowInputParameterModel || port instanceof WorkflowStepOutputModel) {
             const destinations = this.gatherDestinations();
@@ -568,8 +612,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         })
     }
 
-    public createInputFromPort(inPort: WorkflowStepInputModel) {
+    public createInputFromPort(inPort: WorkflowStepInputModel | string): WorkflowInputParameterModel {
         new UnimplementedMethodException("createInputFromPort", "WorkflowStepInputModel");
+        return undefined;
     }
 
     /**
@@ -579,17 +624,21 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * @param create
      * @private
      */
-    protected _createInputFromPort(inPort: WorkflowStepInputModel,
+    protected _createInputFromPort(inPort: WorkflowStepInputModel | string,
                                    inputConstructor: { new(...args: any[]): WorkflowInputParameterModel },
                                    show: boolean   = true,
                                    create: boolean = false): WorkflowInputParameterModel {
-        if (!this.graph.hasVertex(inPort.connectionId)) {
+        if (typeof inPort === "string") {
+            inPort = <WorkflowStepInputModel> this.graph.getVertexData(inPort);
+        }
+
+        if (!inPort || !this.graph.hasVertex(inPort.connectionId)) {
             if (!create) {
                 throw new Error(`WorkflowStepInputModel ${inPort.destinationId} does not exist on the graph`);
             } else {
                 this.graph.addVertex(inPort.connectionId, inPort);
                 // connect in port to step
-                this.connect({
+                this.addEdge({
                     id: inPort.connectionId,
                     type: "StepInput"
                 }, {
@@ -617,7 +666,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // add input to graph
         this.addInputToGraph(input);
         // connect input with inPort
-        this.connect({
+        this.addEdge({
             id: input.connectionId,
             type: "WorkflowInput"
         }, {
@@ -632,22 +681,27 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Creates a workflow output from a given step.out
      * @param port
      */
-    public createOutputFromPort(port: WorkflowStepOutputModel) {
+    public createOutputFromPort(port: WorkflowStepOutputModel | string) : WorkflowOutputParameterModel {
         new UnimplementedMethodException("createOutputFromPort", "WorkflowModel");
+        return undefined;
     }
 
-    protected _createOutputFromPort(outPort: WorkflowStepOutputModel,
+    protected _createOutputFromPort(outPort: WorkflowStepOutputModel | string,
                                     outputConstructor: { new(...args: any[]): WorkflowOutputParameterModel },
                                     show: boolean   = true,
                                     create: boolean = false): WorkflowOutputParameterModel {
 
-        if (!this.graph.hasVertex(outPort.connectionId)) {
+        if (typeof outPort === "string") {
+            outPort = <WorkflowStepOutputModel> this.graph.getVertexData(outPort);
+        }
+
+        if (!outPort || !this.graph.hasVertex(outPort.connectionId)) {
             if (!create) {
                 throw new Error(`WorkflowStepInputModel ${outPort.sourceId} does not exist on the graph`);
             } else {
                 this.graph.addVertex(outPort.connectionId, outPort);
                 // connect in port to step
-                this.connect({
+                this.addEdge({
                     id: outPort.connectionId,
                     type: "StepInput"
                 }, {
@@ -661,9 +715,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const output = new outputConstructor(<OutputParameter>{
             id: this.getNextAvailableId(`${STEP_INPUT_CONNECTION_PREFIX}${outPort.id}/${outPort.id}`), // might change later in case output is already taken
             type: outPort.type ? outPort.type.serialize() : "null",
-            fileTypes: outPort.fileTypes,
-            source: [outPort.sourceId]
+            fileTypes: outPort.fileTypes
         });
+
+        output.source.push(outPort.sourceId);
 
         // add it to the workflow tree
         output.setValidationCallback(err => this.updateValidity(err));
@@ -672,7 +727,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // add output to graph
         this.addOutputToGraph(output);
         // connect output with outPort
-        this.connect({
+        this.addEdge({
             id: outPort.connectionId,
             type: "StepOutput"
         }, {

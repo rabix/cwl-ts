@@ -7,49 +7,50 @@ import {WorkflowModel} from "../generic/WorkflowModel";
 describe("V1WorkflowModel", () => {
     describe("exposePort", () => {
         it("should add a new input on the workflow and connect it to port", () => {
-            const wf = WorkflowFactory.from(OneStepWf.default);
+            const wf          = WorkflowFactory.from(OneStepWf.default);
+            const connections = wf.connections.length;
+            const inputs      = wf.inputs.length;
 
-            expect(wf.steps).to.have.length(1);
-            expect(wf.inputs).to.have.length(1);
-            expect(wf.connections).to.have.length(5);
             wf.exposePort(wf.steps[0].in[1]);
 
-            expect(wf.inputs).to.have.length(2);
-            expect(wf.inputs[1].id).to.equal(wf.steps[0].in[1].id);
-            expect(wf.connections).to.have.length(6);
+            expect(wf.inputs).to.have.length(inputs + 1);
+            expect(wf.inputs[inputs].id).to.equal(wf.steps[0].in[1].id);
+            expect(wf.connections).to.have.length(connections + 1);
         });
 
         it("should include in ports after being exposed", () => {
-            const wf = WorkflowFactory.from(OneStepWf.default);
+            const wf     = WorkflowFactory.from(OneStepWf.default);
+            const inputs = wf.inputs.length;
 
             const inPort = wf.steps[0].in[1];
             wf.exposePort(inPort);
-            expect(wf.inputs).to.have.length(2);
+            expect(wf.inputs).to.have.length(inputs + 1);
             expect(inPort.isVisible).to.be.false;
             expect(inPort.status).to.equal("exposed");
 
             wf.includePort(inPort);
-            expect(wf.inputs).to.have.length(1);
+            expect(wf.inputs).to.have.length(inputs);
             expect(inPort.isVisible).to.be.true;
             expect(inPort.status).to.equal("port");
 
 
             wf.exposePort(inPort);
-            expect(wf.inputs).to.have.length(2);
+            expect(wf.inputs).to.have.length(inputs + 1);
             expect(inPort.isVisible).to.be.false;
             expect(inPort.status).to.equal("exposed");
 
         });
 
         it("should expose connected port", () => {
-            const wf = WorkflowFactory.from(OneStepWf.default);
+            const wf     = WorkflowFactory.from(OneStepWf.default);
+            const inputs = wf.inputs.length;
 
             const inPort = wf.steps[0].in[0];
             expect(inPort.isVisible).to.be.true;
             expect(inPort.status).to.equal("port");
 
             wf.exposePort(inPort);
-            expect(wf.inputs).to.have.length(1); // will replace input that existed with new input
+            expect(wf.inputs).to.have.length(inputs); // will replace input that existed with new input
             expect(inPort.isVisible).to.be.false;
             expect(inPort.status).to.equal("exposed");
         });
@@ -148,38 +149,38 @@ describe("V1WorkflowModel", () => {
             wf = WorkflowFactory.from(OneStepWf.default);
         });
 
-       it("should add a new step with a workflow to existing workflow", () => {
-           expect(wf.steps).to.have.length(1);
-           wf.addStepFromProcess(OneStepWf.default);
-           expect(wf.steps).to.have.length(2);
-       });
+        it("should add a new step with a workflow to existing workflow", () => {
+            expect(wf.steps).to.have.length(1);
+            wf.addStepFromProcess(OneStepWf.default);
+            expect(wf.steps).to.have.length(2);
+        });
 
-       it("should populate in and out of new step", () => {
-           wf.addStepFromProcess(OneStepWf.default);
-           expect(wf.steps[1].in).to.not.be.empty;
-           expect(wf.steps[1].in).to.have.length(1);
-           expect(wf.steps[1].out).to.not.be.empty;
-           expect(wf.steps[1].out).to.have.length(1);
-       });
+        it("should populate in and out of new step", () => {
+            wf.addStepFromProcess(OneStepWf.default);
+            expect(wf.steps[1].in).to.not.be.empty;
+            expect(wf.steps[1].in).to.have.length(1);
+            expect(wf.steps[1].out).to.not.be.empty;
+            expect(wf.steps[1].out).to.have.length(1);
+        });
 
-       it("should add step to graph", () => {
-           expect(wf.nodes).to.have.length(6);
+        it("should add step to graph", () => {
+            expect(wf.nodes).to.have.length(6);
 
-           wf.addStepFromProcess(OneStepWf.default);
+            wf.addStepFromProcess(OneStepWf.default);
 
-           expect(wf.nodes).to.have.length(9);
-       });
+            expect(wf.nodes).to.have.length(9);
+        });
 
-       it("should add the same app twice without conflict", () => {
-           expect(wf.nodes).to.have.length(6);
+        it("should add the same app twice without conflict", () => {
+            expect(wf.nodes).to.have.length(6);
 
-           wf.addStepFromProcess(OneStepWf.default);
-           expect(wf.nodes).to.have.length(9);
+            wf.addStepFromProcess(OneStepWf.default);
+            expect(wf.nodes).to.have.length(9);
 
-           wf.addStepFromProcess(OneStepWf.default);
-           expect(wf.nodes).to.have.length(12);
-           expect(wf.steps).to.have.length(3);
-       });
+            wf.addStepFromProcess(OneStepWf.default);
+            expect(wf.nodes).to.have.length(12);
+            expect(wf.steps).to.have.length(3);
+        });
     });
 
     describe("changeStepId", () => {
@@ -199,7 +200,7 @@ describe("V1WorkflowModel", () => {
 
         it("should maintain the same number of connections and nodes after id change", () => {
             const connectionsLen = wf.connections.length;
-            const nodesLen = wf.nodes.length;
+            const nodesLen       = wf.nodes.length;
 
             wf.changeStepId(wf.steps[0], "new_id");
 
@@ -247,7 +248,7 @@ describe("V1WorkflowModel", () => {
             const wf = WorkflowFactory.from(OneStepWf.default);
 
             const connectionsLen = wf.connections.length;
-            const nodesLen = wf.nodes.length;
+            const nodesLen       = wf.nodes.length;
 
             wf.changeIONodeId(wf.outputs[0], "new_id");
 
@@ -259,7 +260,7 @@ describe("V1WorkflowModel", () => {
             const wf = WorkflowFactory.from(OneStepWf.default);
 
             const connectionsLen = wf.connections.length;
-            const nodesLen = wf.nodes.length;
+            const nodesLen       = wf.nodes.length;
 
             wf.changeIONodeId(wf.inputs[0], "new_id");
 
@@ -278,19 +279,25 @@ describe("V1WorkflowModel", () => {
         it("should throw exception if id exists", () => {
             const wf = WorkflowFactory.from(TwoStepWf.default);
 
-            expect(() => {wf.changeIONodeId(wf.inputs[0], wf.inputs[1].id)}).to.throw(`ID already exists on graph`);
+            expect(() => {
+                wf.changeIONodeId(wf.inputs[0], wf.inputs[1].id)
+            }).to.throw(`ID already exists on graph`);
         });
 
         it("should throw exception if id is invalid", () => {
             const wf = WorkflowFactory.from(OneStepWf.default);
 
-            expect(() => {wf.changeIONodeId(wf.inputs[0], "-char-problems!")}).to.throw(`illegal characters`);
+            expect(() => {
+                wf.changeIONodeId(wf.inputs[0], "-char-problems!")
+            }).to.throw(`illegal characters`);
         });
 
         it("should throw exception if id is blank", () => {
             const wf = WorkflowFactory.from(OneStepWf.default);
 
-            expect(() => {wf.changeIONodeId(wf.inputs[0], "")}).to.throw(`must be set`);
+            expect(() => {
+                wf.changeIONodeId(wf.inputs[0], "")
+            }).to.throw(`must be set`);
         });
     });
 
@@ -301,7 +308,7 @@ describe("V1WorkflowModel", () => {
         });
 
         it("should remove the input from wf.inputs by connectionId", () => {
-            const inputs = wf.inputs.length;
+            const inputs      = wf.inputs.length;
             const connections = wf.connections.length;
             expect(wf.steps[0].in[0].source).to.contain(wf.inputs[0].sourceId);
 
@@ -324,7 +331,7 @@ describe("V1WorkflowModel", () => {
 
         it("should remove node and connections", () => {
             const connections = wf.connections.length;
-            const nodes = wf.nodes.length;
+            const nodes       = wf.nodes.length;
             wf.removeInput(wf.inputs[0]);
 
             expect(wf.connections).to.have.length(connections - 1);
@@ -347,27 +354,27 @@ describe("V1WorkflowModel", () => {
         });
 
         it("should remove the output from wf.outputs by connectionId", () => {
-            const outputs = wf.outputs.length;
+            const outputs     = wf.outputs.length;
             const connections = wf.connections.length;
-            const nodes = wf.nodes.length;
+            const nodes       = wf.nodes.length;
 
             wf.removeOutput(wf.outputs[0].connectionId);
 
             expect(wf.connections).to.have.length(connections - 1);
             expect(wf.nodes).to.have.length(nodes - 1);
-            expect(wf.outputs.length).to.equal(outputs -1);
+            expect(wf.outputs.length).to.equal(outputs - 1);
         });
 
         it("should remove the output from wf.outputs", () => {
             const outputs = wf.outputs.length;
             wf.removeOutput(wf.outputs[0]);
 
-            expect(wf.outputs.length).to.equal(outputs -1);
+            expect(wf.outputs.length).to.equal(outputs - 1);
         });
 
         it("should remove node and connections", () => {
             const connections = wf.connections.length;
-            const nodes = wf.nodes.length;
+            const nodes       = wf.nodes.length;
             wf.removeOutput(wf.outputs[0]);
 
             expect(wf.connections).to.have.length(connections - 1);
@@ -376,58 +383,165 @@ describe("V1WorkflowModel", () => {
     });
 
     describe("removeStep", () => {
-       let wf: WorkflowModel;
-       beforeEach(() => {
-           wf = WorkflowFactory.from(TwoStepWf.default);
-       });
+        let wf: WorkflowModel;
+        beforeEach(() => {
+            wf = WorkflowFactory.from(TwoStepWf.default);
+        });
 
-       it("should remove step from wf.steps by connectionId", () => {
-           const steps = wf.steps.length;
-           const conn = wf.connections.length;
-           const nodes = wf.nodes.length;
+        it("should remove step from wf.steps by connectionId", () => {
+            const steps = wf.steps.length;
+            const conn  = wf.connections.length;
+            const nodes = wf.nodes.length;
 
-           wf.removeStep(wf.steps[0].connectionId);
-           expect(wf.steps).to.have.length(steps - 1);
+            wf.removeStep(wf.steps[0].connectionId);
+            expect(wf.steps).to.have.length(steps - 1);
 
-           expect(wf.connections).to.have.length(conn - 6);
-           expect(wf.nodes).to.have.length(nodes - 4);
+            expect(wf.connections).to.have.length(conn - 6);
+            expect(wf.nodes).to.have.length(nodes - 4);
 
-       });
+        });
 
-       it("should remove step from wf.steps", () => {
-           const steps = wf.steps.length;
-           wf.removeStep(wf.steps[0]);
-           expect(wf.steps).to.have.length(steps - 1);
-       });
+        it("should remove step from wf.steps", () => {
+            const steps = wf.steps.length;
+            wf.removeStep(wf.steps[0]);
+            expect(wf.steps).to.have.length(steps - 1);
+        });
 
-       it("should remove nodes and connections from graph", () => {
-           const conn = wf.connections.length;
-           const nodes = wf.nodes.length;
+        it("should remove nodes and connections from graph", () => {
+            const conn  = wf.connections.length;
+            const nodes = wf.nodes.length;
 
-           wf.removeStep(wf.steps[0]);
+            wf.removeStep(wf.steps[0]);
 
-           expect(wf.connections).to.have.length(conn - 6);
-           expect(wf.nodes).to.have.length(nodes - 4);
-       });
+            expect(wf.connections).to.have.length(conn - 6);
+            expect(wf.nodes).to.have.length(nodes - 4);
+        });
 
-       it("should remove sources from outputs", () => {
-           const step = wf.steps[1];
-           const out = step.out[0].sourceId;
+        it("should remove sources from outputs", () => {
+            const step = wf.steps[1];
+            const out  = step.out[0].sourceId;
 
-           expect(wf.outputs[0].source).to.contain(out);
-           wf.removeStep(step);
-           expect(wf.outputs[0].source).to.not.contain(out);
-       });
+            expect(wf.outputs[0].source).to.contain(out);
+            wf.removeStep(step);
+            expect(wf.outputs[0].source).to.not.contain(out);
+        });
 
         it("should remove sources from other steps", () => {
             const step = wf.steps[0];
-            const out = step.out[0].sourceId;
+            const out  = step.out[0].sourceId;
 
             const target = wf.steps[1].in[0].source;
 
             expect(target).to.contain(out);
             wf.removeStep(step);
             expect(target).to.not.contain(out);
+        });
+    });
+
+    describe("createInputFromPort", () => {
+        let wf;
+
+        beforeEach(() => {
+            wf = WorkflowFactory.from(OneStepWf.default);
+        });
+
+        it("should add a new input to WorkflowModel", () => {
+            const inputs = wf.inputs.length;
+            wf.createInputFromPort(wf.steps[0].in[0]);
+
+            expect(wf.inputs).to.have.length(inputs + 1);
+        });
+
+        it("should add a new node to graph", () => {
+            const nodes = wf.nodes.length;
+            wf.createInputFromPort(wf.steps[0].in[0]);
+
+            expect(wf.nodes).to.have.length(nodes + 1);
+        });
+
+        it("should add a connection between port and input", () => {
+            const conn = wf.connections.length;
+            wf.createInputFromPort(wf.steps[0].in[0]);
+
+            expect(wf.connections).to.have.length(conn + 1);
+        });
+
+        it("should set correct source on port", () => {
+            const inPort = wf.steps[0].in[0];
+            const input  = wf.createInputFromPort(inPort);
+
+            expect(inPort.source).to.contain(input.sourceId);
+        });
+
+    });
+
+    describe("createOutputFromPort", () => {
+        let wf: WorkflowModel;
+
+        beforeEach(() => {
+            wf = WorkflowFactory.from(OneStepWf.default);
+        });
+
+        it("should add a new input to WorkflowModel", () => {
+            const outputs = wf.outputs.length;
+            wf.createOutputFromPort(wf.steps[0].out[0]);
+
+            expect(wf.outputs).to.have.length(outputs + 1);
+        });
+
+        it("should add a new node to graph", () => {
+            const nodes = wf.nodes.length;
+            wf.createOutputFromPort(wf.steps[0].out[0]);
+
+            expect(wf.nodes).to.have.length(nodes + 1);
+        });
+
+        it("should add a connection between port and input", () => {
+            const conn = wf.connections.length;
+            wf.createOutputFromPort(wf.steps[0].out[0]);
+
+            expect(wf.connections).to.have.length(conn + 1);
+        });
+
+        it("should set correct source on port", () => {
+            const outPort = wf.steps[0].out[0];
+            const output  = wf.createOutputFromPort(outPort);
+
+            expect(output.source).to.contain(outPort.sourceId);
+        });
+
+    });
+
+    describe("connect", () => {
+        let wf: WorkflowModel;
+        beforeEach(() => {
+            wf = WorkflowFactory.from(TwoStepWf.default);
+        });
+
+        it("should add a new connection to the graph", () => {
+            const connections = wf.connections.length;
+            wf.connect(wf.inputs[0], wf.steps[1].in[0]);
+            expect(wf.connections).to.have.length(connections + 1);
+        });
+
+        it("should throw an error if source is not correct instance", () => {
+            expect(() => {
+                wf.connect("in/compile/src", "in/untar/tarfile")
+            }).to.throw("source to be instanceof");
+        });
+
+        it("should throw an error if destination is not correct instance", () => {
+            expect(() => {
+                wf.connect("out/inp/inp", "out/untar/example_out")
+            }).to.throw("destination to be instanceof");
+        });
+
+        it("should add source to destination", () => {
+            const source      = wf.inputs[0];
+            const destination = wf.steps[1].in[0];
+            wf.connect(source, destination);
+
+            expect(destination.source).to.contain(source.sourceId);
         });
     });
 });

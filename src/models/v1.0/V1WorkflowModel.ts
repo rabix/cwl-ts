@@ -10,7 +10,6 @@ import {ensureArray, spreadSelectProps} from "../helpers/utils";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
 import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
-import {EdgeNode} from "../helpers/Graph";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {Process} from "../generic/Process";
@@ -91,18 +90,11 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         return entry;
     }
 
-    /**
-     * Connects two vertices which have already been added to the graph
-     */
-    public connect(source: EdgeNode, destination: EdgeNode, isVisible = true) {
-        this.graph.addEdge(source, destination, isVisible);
-    }
-
-    public createInputFromPort(inPort: V1WorkflowStepInputModel) : V1WorkflowInputParameterModel {
+    public createInputFromPort(inPort: V1WorkflowStepInputModel | string) : V1WorkflowInputParameterModel {
         return super._createInputFromPort(inPort, V1WorkflowInputParameterModel);
     }
 
-    public createOutputFromPort(outPort: V1WorkflowStepOutputModel) : V1WorkflowOutputParameterModel {
+    public createOutputFromPort(outPort: V1WorkflowStepOutputModel | string) : V1WorkflowOutputParameterModel {
         return super._createOutputFromPort(outPort, V1WorkflowOutputParameterModel);
     }
 
