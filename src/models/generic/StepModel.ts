@@ -9,6 +9,7 @@ import {ProcessRequirementModel} from "../d2sb/ProcessRequirementModel";
 import {ScatterMethod} from "../../mappings/v1.0/ScatterMethod";
 import {Plottable} from "./Plottable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
+import {Process} from "./Process";
 
 export class StepModel extends ValidationBase implements Serializable<any>, Plottable {
     public id: string;
@@ -28,6 +29,10 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
         }, {});
     }
 
+    public setRunProcess(process: Process) {
+        new UnimplementedMethodException("setRunProcess", "StepModel");
+    }
+
     requirements?: ProcessRequirementModel[];
     hints?: any[];
     scatter?: string | string[];
@@ -38,6 +43,10 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
     }
 
     customProps: any = {};
+
+    protected compareInPorts() {}
+
+    protected compareOutPorts() {}
 
     serialize(): any {
         new UnimplementedMethodException("serialize");

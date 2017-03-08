@@ -57,6 +57,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         new UnimplementedMethodException("deserialize", "WorkflowModel");
     }
 
+    public findById(connectionId: string) {
+        return this.graph.getVertexData(connectionId);
+    }
+
     protected _exposePort(inPort: WorkflowStepInputModel, inputConstructor) {
         // remove extraneous connections to this port and set it as invisible
         this.clearPort(inPort);
@@ -127,11 +131,18 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Checks if a workflow input has been leftover after removing
      */
-    private removeDanglingInput(source: string) {
+    private removeDanglingInput(connectionId: string) {
         // remove dangling input if it has been left over
-        if (!this.graph.hasOutgoing(source)) {
-            this.graph.removeVertex(source);
-            this.inputs = this.inputs.filter(input => input.connectionId !== source);
+        if (!this.graph.hasOutgoing(connectionId)) {
+            this.graph.removeVertex(connectionId);
+            this.inputs = this.inputs.filter(input => input.connectionId !== connectionId);
+        }
+    }
+
+    private removeDanglingOutput(connectionId: string) {
+        if (!this.graph.hasIncoming(connectionId)) {
+            this.graph.removeVertex(connectionId);
+            this.outputs = this.outputs.filter(output => output.connectionId !== connectionId);
         }
     }
 
@@ -154,6 +165,16 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
         // remove step from graph and remove all connections
         this.removeStepFromGraph(step);
+
+        // removes inputs that were connected solely to step.in
+        for (let i = 0; i < this.inputs.length; i++) {
+            this.removeDanglingInput(this.inputs[i].connectionId);
+        }
+
+        // removes outputs that were connected solely to step.out
+        for (let i = 0; i < this.outputs.length; i++) {
+            this.removeDanglingOutput(this.outputs[i].connectionId);
+        }
 
         const dests = this.gatherDestinations();
 
@@ -386,19 +407,16 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.graph.addEdge(source, destination, isVisible);
     }
 
-    public connect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
-                   destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
+    private checkSrcAndDest(source, destination): [WorkflowInputParameterModel | WorkflowStepOutputModel, WorkflowOutputParameterModel | WorkflowStepInputModel] {
         // fetch source if connectionId is provided
         if (typeof source === "string") {
-            source = <
-                WorkflowInputParameterModel
+            source = <WorkflowInputParameterModel
                 | WorkflowStepOutputModel> this.graph.getVertexData(source);
         }
 
         // fetch destination if connectionId is provided
         if (typeof destination === "string") {
-            destination = <
-                WorkflowOutputParameterModel
+            destination = <WorkflowOutputParameterModel
                 | WorkflowStepInputModel> this.graph.getVertexData(destination);
         }
 
@@ -415,6 +433,44 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         if (!(destination instanceof WorkflowOutputParameterModel) && !(destination instanceof WorkflowStepInputModel)) {
             throw new Error(`Expected destination to be instanceof WorkflowOutputParameterModel or WorkflowStepInputModel, instead got ${(destination as Function).constructor.name}`);
         }
+
+        return [source, destination];
+    }
+
+    public disconnect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
+                      destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
+        [source, destination] = this.checkSrcAndDest(source, destination);
+
+        if (this.graph.removeEdge({
+            source: {
+                id: source.connectionId
+            },
+            destination: {
+                id: destination.connectionId
+            }
+        })) {
+            for (let i = 0; i < destination.source.length; i++) {
+                if (destination.source[i] = source.sourceId) {
+                    destination.source.splice(i, 1);
+                }
+            }
+
+            if (source instanceof WorkflowInputParameterModel) {
+                this.removeDanglingInput(source.connectionId);
+            }
+
+            if (destination instanceof WorkflowOutputParameterModel) {
+                this.removeDanglingOutput(destination.connectionId);
+            }
+        } else {
+            throw new Error(`Could not remove nonexistent connection between ${source.connectionId} and ${destination.connectionId}`);
+        }
+    }
+
+    public connect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
+                   destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
+
+        [source, destination] = this.checkSrcAndDest(source, destination);
 
         if ((destination as WorkflowStepInputModel).parentStep &&
             (source as WorkflowStepOutputModel).parentStep &&
@@ -448,12 +504,24 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Checks for naming collisions in vertex ids, in case of collisions,
      * it will increment the provided id, otherwise it returns the original id
      */
-    protected getNextAvailableId(connectionId: string): string {
+    protected getNextAvailableId(connectionId: string, isIO = false): string {
         let hasId  = true;
         let result = connectionId;
+        let arr    = [];
+        if (connectionId.indexOf("/") !== -1 && isIO) {
+            arr = result.split("/");
+        }
+
         while (hasId) {
-            if (hasId = this.graph.hasVertex(result)) {
-                result = incrementString(result);
+            if (isIO) {
+                if (hasId = (this.graph.hasVertex(["in", arr[1], arr[2]].join("/")) || this.graph.hasVertex(["out", arr[1], arr[2]].join("/")))) {
+                    arr    = [arr[0], incrementString(arr[1]), incrementString(arr[2])];
+                    result = arr.join("/");
+                }
+            } else {
+                if (hasId = this.graph.hasVertex(result)) {
+                    result = incrementString(result);
+                }
             }
         }
 
@@ -622,8 +690,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         })
     }
 
-    public createInputFromPort(inPort:
-                                   WorkflowStepInputModel
+    public createInputFromPort(inPort: WorkflowStepInputModel
                                    | string): WorkflowInputParameterModel {
         new UnimplementedMethodException("createInputFromPort", "WorkflowStepInputModel");
         return undefined;
@@ -662,7 +729,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         // create new input on the workflow to connect with the port
         const input = new inputConstructor(<InputParameter>{
-            id: this.getNextAvailableId(`${STEP_OUTPUT_CONNECTION_PREFIX}${inPort.id}/${inPort.id}`), // might change later in case input is already taken
+            id: this.getNextAvailableId(`${STEP_OUTPUT_CONNECTION_PREFIX}${inPort.id}/${inPort.id}`, true), // might change later in case input is already taken
             type: inPort.type ? inPort.type.serialize() : "null",
             fileTypes: inPort.fileTypes,
             inputBinding: inPort["inputBinding"]
@@ -693,8 +760,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Creates a workflow output from a given step.out
      * @param port
      */
-    public createOutputFromPort(port:
-                                    WorkflowStepOutputModel
+    public createOutputFromPort(port: WorkflowStepOutputModel
                                     | string): WorkflowOutputParameterModel {
         new UnimplementedMethodException("createOutputFromPort", "WorkflowModel");
         return undefined;
@@ -727,7 +793,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         // create new input on the workflow to connect with the port
         const output = new outputConstructor(<OutputParameter>{
-            id: this.getNextAvailableId(`${STEP_INPUT_CONNECTION_PREFIX}${outPort.id}/${outPort.id}`), // might change later in case output is already taken
+            id: this.getNextAvailableId(`${STEP_INPUT_CONNECTION_PREFIX}${outPort.id}/${outPort.id}`, true), // might change later in case output is already taken
             type: outPort.type ? outPort.type.serialize() : "null",
             fileTypes: outPort.fileTypes
         });

@@ -83,11 +83,15 @@ export class Graph {
 
     removeEdge(edge: Edge | [string, string]): boolean {
         if (Array.isArray(edge)) {
-            return this.edges.delete(Array.from(this.edges.values()).find(e => {
-                return e.source.id === edge[0] && e.destination.id === edge[1];
-            }));
+            edge = <Edge> {
+                source: {id: edge[0]},
+                destination: {id: edge[1]}
+            }
         }
-        return this.edges.delete(edge);
+
+        return this.edges.delete(Array.from(this.edges.values()).find(e => {
+            return e.source.id === (edge as Edge).source.id && e.destination.id === (edge as Edge).destination.id;
+        }));
     }
 
     topSort(): Array<string> {
@@ -105,10 +109,10 @@ export class Graph {
         }
 
         // initialize set of all nodes
-        let topNodesInit:Set<string> = new Set(this.vertices.keys());
+        let topNodesInit: Set<string> = new Set(this.vertices.keys());
         // initialize set of all edges
-        let unusedEdges:Set<Edge>  = new Set(this.edges.values());
-        let sorted       = [];
+        let unusedEdges: Set<Edge>    = new Set(this.edges.values());
+        let sorted                    = [];
 
         // go through edges, remove nodes which are destinations (meaning they have incoming connections)
         for (let e of Array.from(unusedEdges)) {
@@ -116,7 +120,7 @@ export class Graph {
         }
 
         // create an array of strings from first nodes
-        let topNodes:string[] = Array.from(topNodesInit);
+        let topNodes: string[] = Array.from(topNodesInit);
 
         // for each of the first nodes, go through tree
         while (topNodes.length > 0) {
@@ -184,7 +188,7 @@ export class Graph {
     }
 
     private connectedIter(unvisited: Set<string>, unusedEdges: Set<Edge>, toExpand: Array<string>): boolean {
-        let reached:Set<string> = new Set();
+        let reached: Set<string> = new Set();
 
         for (let node of toExpand) {
             for (let r of this.reached(unusedEdges, node)) {

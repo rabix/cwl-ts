@@ -391,8 +391,8 @@ describe("SBDraft2WorkflowModel", () => {
             wf.removeStep(wf.steps[0].connectionId);
             expect(wf.steps).to.have.length(steps - 1);
 
-            expect(wf.connections).to.have.length(conn - 5);
-            expect(wf.nodes).to.have.length(nodes - 4);
+            expect(wf.connections).to.have.length(conn - 6);
+            expect(wf.nodes).to.have.length(nodes - 3 /*ports on step*/ - 1 /*step*/ - 1 /*dangling input*/);
 
         });
 
@@ -408,8 +408,8 @@ describe("SBDraft2WorkflowModel", () => {
 
             wf.removeStep(wf.steps[0]);
 
-            expect(wf.connections).to.have.length(conn - 5);
-            expect(wf.nodes).to.have.length(nodes - 4);
+            expect(wf.connections).to.have.length(conn - 6);
+            expect(wf.nodes).to.have.length(nodes - 3 /*ports on step*/ - 1 /*step*/ - 1 /*dangling input*/);
         });
 
         it("should remove sources from outputs", () => {
@@ -466,6 +466,14 @@ describe("SBDraft2WorkflowModel", () => {
             const input  = wf.createInputFromPort(inPort);
 
             expect(inPort.source).to.contain(input.sourceId);
+        });
+
+        it("should create an input from an output", () => {
+            const output = wf.outputs[0];
+            const input  = wf.createInputFromPort(output as any);
+
+            expect(output.source).to.contain(input.sourceId);
+
         });
 
     });

@@ -65,7 +65,7 @@ describe("WorkflowModel", () => {
          const destinations = wf.gatherDestinations();
 
          expect(destinations).to.not.be.empty;
-         expect(destinations).to.have.length(4)
+         expect(destinations).to.have.length(5)
       });
    });
 
@@ -75,9 +75,9 @@ describe("WorkflowModel", () => {
            const g = wf.constructGraph();
 
            console.log("graph edges", Array.from(g.edges));
-           expect(g.edges.size).to.equal(10);
+           expect(g.edges.size).to.equal(12);
 
-           expect(g.vertices.size).to.equal(11);
+           expect(g.vertices.size).to.equal(12);
        });
    });
 

@@ -396,8 +396,8 @@ describe("V1WorkflowModel", () => {
             wf.removeStep(wf.steps[0].connectionId);
             expect(wf.steps).to.have.length(steps - 1);
 
-            expect(wf.connections).to.have.length(conn - 6);
-            expect(wf.nodes).to.have.length(nodes - 4);
+            expect(wf.connections).to.have.length(conn - 7);
+            expect(wf.nodes).to.have.length(nodes - 5);
 
         });
 
@@ -413,8 +413,8 @@ describe("V1WorkflowModel", () => {
 
             wf.removeStep(wf.steps[0]);
 
-            expect(wf.connections).to.have.length(conn - 6);
-            expect(wf.nodes).to.have.length(nodes - 4);
+            expect(wf.connections).to.have.length(conn - 7);
+            expect(wf.nodes).to.have.length(nodes - 5);
         });
 
         it("should remove sources from outputs", () => {
@@ -452,6 +452,15 @@ describe("V1WorkflowModel", () => {
             expect(wf.inputs).to.have.length(inputs + 1);
         });
 
+        it("should add an input without a conflicting id", () => {
+            const inputs = wf.inputs.length;
+            wf.createInputFromPort(wf.steps[0].in[0]);
+            wf.createInputFromPort(wf.steps[0].in[0]);
+            wf.createInputFromPort(wf.steps[0].in[0]);
+
+            expect(wf.inputs).to.have.length(inputs + 3);
+        });
+
         it("should add a new node to graph", () => {
             const nodes = wf.nodes.length;
             wf.createInputFromPort(wf.steps[0].in[0]);
@@ -482,11 +491,20 @@ describe("V1WorkflowModel", () => {
             wf = WorkflowFactory.from(OneStepWf.default);
         });
 
-        it("should add a new input to WorkflowModel", () => {
+        it("should add a new output to WorkflowModel", () => {
             const outputs = wf.outputs.length;
             wf.createOutputFromPort(wf.steps[0].out[0]);
 
             expect(wf.outputs).to.have.length(outputs + 1);
+        });
+
+        it("should add an output without a conflicting id", () => {
+            const outputs = wf.outputs.length;
+            wf.createOutputFromPort(wf.steps[0].out[0]);
+            wf.createOutputFromPort(wf.steps[0].out[0]);
+            wf.createOutputFromPort(wf.steps[0].out[0]);
+
+            expect(wf.outputs).to.have.length(outputs + 3);
         });
 
         it("should add a new node to graph", () => {
@@ -496,7 +514,7 @@ describe("V1WorkflowModel", () => {
             expect(wf.nodes).to.have.length(nodes + 1);
         });
 
-        it("should add a connection between port and input", () => {
+        it("should add a connection between port and output", () => {
             const conn = wf.connections.length;
             wf.createOutputFromPort(wf.steps[0].out[0]);
 
@@ -543,5 +561,62 @@ describe("V1WorkflowModel", () => {
 
             expect(destination.source).to.contain(source.sourceId);
         });
+    });
+
+    describe("disconnect", () => {
+        let wf: WorkflowModel;
+        beforeEach(() => {
+            wf = WorkflowFactory.from(TwoStepWf.default);
+        });
+
+        it("should remove an existing connection between two nodes", () => {
+           const connections = wf.connections.length;
+           const con = wf.connections.filter(c => c.isVisible)[0];
+
+           wf.disconnect(con.source.id, con.destination.id);
+
+           expect(wf.connections.length).to.equal(connections - 1);
+        });
+
+        it("should throw an error if trying to remove connection between step and port", () => {
+            expect(() => {
+                const con = wf.connections[0];
+                wf.disconnect(con.source.id, con.destination.id);
+            }).to.throw("instanceof ")
+        });
+
+        it("should remove source on destination for removed connection", () => {
+            const con = wf.connections.filter(c => c.isVisible)[0];
+            const dest = wf.findById(con.destination.id);
+            const src = wf.findById(con.source.id);
+
+            expect(dest.source).to.contain(src.sourceId);
+            wf.disconnect(con.source.id, con.destination.id);
+            expect(dest.source).to.not.contain(src.sourceId);
+        });
+
+        it("should remove input if it is left dangling", () => {
+            const inputs = wf.inputs.length;
+            wf.disconnect("out/inp/inp", "in/untar/tarfile");
+            expect(wf.inputs).to.have.length(inputs - 1);
+        });
+
+        it("should remove output if it is left dangling", () => {
+            const outputs = wf.outputs.length;
+            wf.disconnect("out/compile/classfile", "in/classout/classout");
+            expect(wf.outputs).to.have.length(outputs - 1);
+        });
+
+        it("should not remove io that isn't dangling", () => {
+            const outputs = wf.outputs.length;
+            wf.disconnect("out/compile/some_file", "in/other_output/other_output");
+            expect(wf.outputs).to.have.length(outputs);
+        });
+
+        it("should throw an exception if connection doesn't exist", () => {
+            expect(() => {
+                wf.disconnect(wf.inputs[0].connectionId, wf.outputs[0].connectionId);
+            }).to.throw("nonexistent connection");
+        })
     });
 });

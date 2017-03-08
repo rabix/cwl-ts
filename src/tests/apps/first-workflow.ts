@@ -9,6 +9,10 @@ export default JSON.parse(`{
     "classout": {
       "type": "File",
       "outputSource": "compile/classfile"
+    },
+    "other_output": {
+       "type": "File",
+       "outputSource": ["untar/example_out", "compile/some_file"]
     }
   },
   "steps": {

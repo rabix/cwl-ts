@@ -405,10 +405,6 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
         });
     });
 
-    describe("symbols", () => {
-        it("should add symbols")
-    });
-
     describe("setValueFrom", () => {
         it("Should set the valueFrom property in the inputBinding", () => {
             const input = new SBDraft2CommandInputParameterModel({

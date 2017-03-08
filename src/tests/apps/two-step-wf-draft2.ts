@@ -167,7 +167,8 @@ export default JSON.parse(`{
 			"File"
 		]
 	}],
-	"outputs": [{
+	"outputs": [
+	{
 		"label": "result",
 		"id": "#result",
 		"type": [
@@ -177,6 +178,11 @@ export default JSON.parse(`{
 		"source": [
 			"#io_tool_1.result"
 		]
+	},
+	{
+	    "id": "#result_1",
+	    "type": [ "null", "File"],
+	    "source": ["#io_tool_1.result", "#io_tool.result"]
 	}],
 	"id": "maya/test/two-step-wf/0",
 	"label": "two-step-wf",
