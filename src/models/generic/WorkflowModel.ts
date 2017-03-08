@@ -232,6 +232,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         // remove input from graph and remove connections
         this.removeIONodeFromGraph(input);
+
+        // remove dangling outputs, in case one was attached solely to the input being removed
+        for (let i = 0; i < this.outputs.length; i++) {
+            this.removeDanglingOutput(this.outputs[i].connectionId);
+        }
+
         const dests = this.gatherDestinations();
 
         // remove source from step.in ports
@@ -259,6 +265,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 this.outputs.splice(i, 1);
                 break;
             }
+        }
+
+        // removes dangling inputs in case one was attached solely to the output being removed
+        for (let i = 0; i < this.inputs.length; i++) {
+            this.removeDanglingInput(this.inputs[i].connectionId);
         }
 
         // remove output from the graph and remove connections
