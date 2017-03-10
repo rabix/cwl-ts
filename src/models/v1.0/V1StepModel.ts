@@ -131,7 +131,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             let match: any = inPorts.find(port => input.id === port.id);
 
 
-            if (match && match.type) {
+            if (match && match.type && match.type.type) {
                 if (match.type.type !== input.type.type || match.type.items !== input.type.items) {
                     errors.push({
                         message: `Schema mismatch between step input ${this.loc}.inputs[${index}] and step run input ${input.loc}. `
