@@ -1,34 +1,34 @@
 import {Serializable} from "../interfaces/Serializable";
 import {CommandOutputBinding} from "../../mappings/d2sb/CommandOutputBinding";
-import {ExpressionModel} from "./ExpressionModel";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {Validation} from "../helpers/validation/Validation";
 
 export class CommandOutputBindingModel extends ValidationBase implements Serializable<CommandOutputBinding> {
     public loadContents: boolean;
-    public metadata: {[key: string]: ExpressionModel} = {};
+    public metadata: {[key: string]: SBDraft2ExpressionModel} = {};
     public inheritMetadataFrom: string;
 
-    private _glob: ExpressionModel;
+    private _glob: SBDraft2ExpressionModel;
 
-    get glob(): ExpressionModel {
+    get glob(): SBDraft2ExpressionModel {
         return this._glob;
     }
 
-    set glob(value: ExpressionModel) {
+    set glob(value: SBDraft2ExpressionModel) {
         this._glob     = value;
         this._glob.loc = `${this.loc}.glob`;
         this._glob.setValidationCallback(err => this.updateValidity(err));
     }
 
-    private _secondaryFiles: ExpressionModel[] = [];
+    private _secondaryFiles: SBDraft2ExpressionModel[] = [];
 
-    get secondaryFiles(): ExpressionModel[] {
+    get secondaryFiles(): SBDraft2ExpressionModel[] {
         return this._secondaryFiles;
     }
 
-    set secondaryFiles(files: ExpressionModel[]) {
+    set secondaryFiles(files: SBDraft2ExpressionModel[]) {
         this._secondaryFiles = files;
 
         files.forEach((file, index) => {
@@ -37,13 +37,13 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
         });
     }
 
-    private _outputEval: ExpressionModel;
+    private _outputEval: SBDraft2ExpressionModel;
 
-    get outputEval(): ExpressionModel {
+    get outputEval(): SBDraft2ExpressionModel {
         return this._outputEval;
     }
 
-    set outputEval(value: ExpressionModel) {
+    set outputEval(value: SBDraft2ExpressionModel) {
         this._outputEval = value;
         this._outputEval.loc = `${this.loc}.outputEval`;
         this._outputEval.setValidationCallback(err => this.updateValidity(err));
@@ -57,7 +57,7 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
         }
     }
 
-    public updateOutputEval(expr: ExpressionModel) {
+    public updateOutputEval(expr: SBDraft2ExpressionModel) {
         this.outputEval = expr;
     }
 
@@ -67,7 +67,7 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
         this.deserialize(binding || {});
     }
 
-    public updateSecondaryFile(file: ExpressionModel, index: number) {
+    public updateSecondaryFile(file: SBDraft2ExpressionModel, index: number) {
         this._secondaryFiles[index] = file;
 
         file.loc = `${this.loc}.secondaryFiles[${index}]`;
@@ -84,7 +84,7 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
         }
     }
 
-    public addSecondaryFile(file: ExpressionModel) {
+    public addSecondaryFile(file: SBDraft2ExpressionModel) {
         this.updateSecondaryFile(file, this._secondaryFiles.length);
     }
 
@@ -146,7 +146,7 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
 
         if (binding && binding.constructor === Object) {
             if (!Array.isArray(binding.glob)) {
-                this._glob = new ExpressionModel(this.loc + '.glob', binding.glob);
+                this._glob = new SBDraft2ExpressionModel(this.loc + '.glob', binding.glob);
                 this._glob.setValidationCallback((err) => this.updateValidity(err));
             } else {
                 console.warn(`Not supporting glob which is string[] at ${this.loc}. Glob cannot be edited via model`);
@@ -162,20 +162,20 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
                     binding["sbg:inheritMetadataFrom"];
             }
 
-            this._outputEval = new ExpressionModel(`${this.loc}.outputEval`, binding.outputEval);
+            this._outputEval = new SBDraft2ExpressionModel(`${this.loc}.outputEval`, binding.outputEval);
 
             if (binding.secondaryFiles) {
                 if (Array.isArray(binding.secondaryFiles)) {
                     //noinspection TypeScriptUnresolvedFunction
                     this._secondaryFiles = binding.secondaryFiles
                         .map((file, index) => {
-                            const f = new ExpressionModel(`${this.loc}.secondaryFiles[${index}]`,
+                            const f = new SBDraft2ExpressionModel(`${this.loc}.secondaryFiles[${index}]`,
                                 file);
                             f.setValidationCallback((err) => this.updateValidity(err));
                             return f;
                         });
                 } else {
-                    const f = new ExpressionModel(`${this.loc}.secondaryFiles[0]`,
+                    const f = new SBDraft2ExpressionModel(`${this.loc}.secondaryFiles[0]`,
                         <string | Expression> binding.secondaryFiles);
                     f.setValidationCallback((err) => this.updateValidity(err));
 
@@ -185,7 +185,7 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
 
             if (binding["sbg:metadata"] && binding["sbg:metadata"].constructor === Object) {
                 Object.keys(binding["sbg:metadata"]).forEach(key => {
-                    this.metadata[key] = new ExpressionModel(`${this.loc}["sbg:metadata"].${key}`,
+                    this.metadata[key] = new SBDraft2ExpressionModel(`${this.loc}["sbg:metadata"].${key}`,
                         binding["sbg:metadata"][key]);
                     this.metadata[key].setValidationCallback(err => this.updateValidity(err));
                 });

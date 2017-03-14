@@ -547,4 +547,372 @@ describe("SBDraft2WorkflowModel", () => {
             expect(destination.source).to.contain(source.sourceId);
         });
     });
+
+    describe("serialize", () => {
+       it("should return the same basic workflow with all properties", () => {
+            const data = {
+                "class": "Workflow",
+                "cwlVersion": "sbg:draft-2",
+                "steps": [
+                    {
+                        "id": "#io_tool",
+                        "run": {
+                            "sbg:validationErrors": [],
+                            "requirements": [
+                                {
+                                    "id": "#cwl-js-engine",
+                                    "class": "ExpressionEngineRequirement",
+                                    "requirements": [
+                                        {
+                                            "dockerPull": "rabix/js-engine",
+                                            "class": "DockerRequirement"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "sbg:modifiedBy": "maya",
+                            "sbg:project": "maya/test",
+                            "stdout": "text.txt",
+                            "hints": [
+                                {
+                                    "value": 1,
+                                    "class": "sbg:CPURequirement"
+                                },
+                                {
+                                    "value": 1000,
+                                    "class": "sbg:MemRequirement"
+                                },
+                                {
+                                    "dockerPull": "ubuntu",
+                                    "class": "DockerRequirement"
+                                }
+                            ],
+                            "successCodes": [],
+                            "stdin": {
+                                "script": "$job.inputs.inFile.path",
+                                "engine": "#cwl-js-engine",
+                                "class": "Expression"
+                            },
+                            "baseCommand": [
+                                "grep"
+                            ],
+                            "sbg:revision": 1,
+                            "label": "io-tool",
+                            "sbg:createdBy": "maya",
+                            "sbg:job": {
+                                "allocatedResources": {
+                                    "mem": 1000,
+                                    "cpu": 1
+                                },
+                                "inputs": {
+                                    "search": "search-string-value",
+                                    "inFile": {
+                                        "size": 0,
+                                        "secondaryFiles": [],
+                                        "class": "File",
+                                        "path": "/path/to/inFile.ext"
+                                    }
+                                }
+                            },
+                            "id": "maya/test/io-tool/1",
+                            "sbg:cmdPreview": "grep  < /path/to/inFile.ext > text.txt",
+                            "sbg:sbgMaintained": false,
+                            "sbg:contributors": [
+                                "maya"
+                            ],
+                            "sbg:revisionsInfo": [
+                                {
+                                    "sbg:modifiedBy": "maya",
+                                    "sbg:revision": 0,
+                                    "sbg:revisionNotes": null,
+                                    "sbg:modifiedOn": 1488448012
+                                },
+                                {
+                                    "sbg:modifiedBy": "maya",
+                                    "sbg:revision": 1,
+                                    "sbg:revisionNotes": null,
+                                    "sbg:modifiedOn": 1488448278
+                                }
+                            ],
+                            "sbg:createdOn": 1488448012,
+                            "cwlVersion": "sbg:draft-2",
+                            "sbg:modifiedOn": 1488448278,
+                            "sbg:id": "maya/test/io-tool/1",
+                            "sbg:latestRevision": 1,
+                            "sbg:image_url": null,
+                            "inputs": [
+                                {
+                                    "id": "#search",
+                                    "type": [
+                                        "null",
+                                        "string"
+                                    ],
+                                    "inputBinding": {
+                                        "separate": true,
+                                        "sbg:cmdInclude": true
+                                    }
+                                },
+                                {
+                                    "type": [
+                                        "null",
+                                        "File"
+                                    ],
+                                    "id": "#inFile",
+                                    "required": false
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "type": [
+                                        "null",
+                                        "File"
+                                    ],
+                                    "outputBinding": {
+                                        "glob": "*.txt"
+                                    },
+                                    "id": "#result"
+                                }
+                            ],
+                            "temporaryFailCodes": [],
+                            "class": "CommandLineTool",
+                            "x": 450,
+                            "y": 385
+                        },
+                        "inputs": [
+                            {
+                                "id": "#io_tool.search"
+                            },
+                            {
+                                "id": "#io_tool.inFile",
+                                "source": [
+                                    "#inFile"
+                                ]
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "id": "#io_tool.result"
+                            }
+                        ],
+                        "label": "#io_tool",
+                        "sbg:x": 450,
+                        "sbg:y": 385
+                    },
+                    {
+                        "id": "#io_tool_1",
+                        "label": "#io_tool_1",
+                        "run": {
+                            "sbg:validationErrors": [],
+                            "requirements": [
+                                {
+                                    "id": "#cwl-js-engine",
+                                    "class": "ExpressionEngineRequirement",
+                                    "requirements": [
+                                        {
+                                            "dockerPull": "rabix/js-engine",
+                                            "class": "DockerRequirement"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "sbg:modifiedBy": "maya",
+                            "sbg:project": "maya/test",
+                            "stdout": "text.txt",
+                            "hints": [
+                                {
+                                    "value": 1,
+                                    "class": "sbg:CPURequirement"
+                                },
+                                {
+                                    "value": 1000,
+                                    "class": "sbg:MemRequirement"
+                                },
+                                {
+                                    "dockerPull": "ubuntu",
+                                    "class": "DockerRequirement"
+                                }
+                            ],
+                            "successCodes": [],
+                            "stdin": {
+                                "script": "$job.inputs.inFile.path",
+                                "engine": "#cwl-js-engine",
+                                "class": "Expression"
+                            },
+                            "baseCommand": [
+                                "grep"
+                            ],
+                            "sbg:revision": 1,
+                            "label": "io-tool",
+                            "sbg:createdBy": "maya",
+                            "sbg:job": {
+                                "allocatedResources": {
+                                    "mem": 1000,
+                                    "cpu": 1
+                                },
+                                "inputs": {
+                                    "search": "search-string-value",
+                                    "inFile": {
+                                        "size": 0,
+                                        "secondaryFiles": [],
+                                        "class": "File",
+                                        "path": "/path/to/inFile.ext"
+                                    }
+                                }
+                            },
+                            "id": "maya/test/io-tool/1",
+                            "sbg:cmdPreview": "grep  < /path/to/inFile.ext > text.txt",
+                            "sbg:sbgMaintained": false,
+                            "sbg:contributors": [
+                                "maya"
+                            ],
+                            "sbg:revisionsInfo": [
+                                {
+                                    "sbg:modifiedBy": "maya",
+                                    "sbg:revision": 0,
+                                    "sbg:revisionNotes": null,
+                                    "sbg:modifiedOn": 1488448012
+                                },
+                                {
+                                    "sbg:modifiedBy": "maya",
+                                    "sbg:revision": 1,
+                                    "sbg:revisionNotes": null,
+                                    "sbg:modifiedOn": 1488448278
+                                }
+                            ],
+                            "sbg:createdOn": 1488448012,
+                            "cwlVersion": "sbg:draft-2",
+                            "sbg:modifiedOn": 1488448278,
+                            "sbg:id": "maya/test/io-tool/1",
+                            "sbg:latestRevision": 1,
+                            "sbg:image_url": null,
+                            "inputs": [
+                                {
+                                    "id": "#search",
+                                    "type": [
+                                        "null",
+                                        "string"
+                                    ],
+                                    "inputBinding": {
+                                        "separate": true,
+                                        "sbg:cmdInclude": true
+                                    }
+                                },
+                                {
+                                    "type": [
+                                        "null",
+                                        "File"
+                                    ],
+                                    "id": "#inFile",
+                                    "required": false
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "type": [
+                                        "null",
+                                        "File"
+                                    ],
+                                    "outputBinding": {
+                                        "glob": "*.txt"
+                                    },
+                                    "id": "#result"
+                                }
+                            ],
+                            "temporaryFailCodes": [],
+                            "class": "CommandLineTool",
+                            "x": 793,
+                            "y": 368
+                        },
+                        "inputs": [
+                            {
+                                "id": "#io_tool_1.search"
+                            },
+                            {
+                                "id": "#io_tool_1.inFile",
+                                "source": [
+                                    "#io_tool.result"
+                                ]
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "id": "#io_tool_1.result"
+                            }
+                        ],
+                        "sbg:x": 793,
+                        "sbg:y": 368
+                    }
+                ],
+                "requirements": [],
+                "inputs": [
+                    {
+                        "sbg:x": 117,
+                        "label": "inFile",
+                        "sbg:y": 346,
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "id": "#inFile"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "sbg:y": 379,
+                        "type": [
+                            "null",
+                            "File"
+                        ],
+                        "sbg:includeInPorts": true,
+                        "sbg:x": 1070,
+                        "id": "#result",
+                        "label": "result",
+                        "required": false,
+                        "source": [
+                            "#io_tool_1.result"
+                        ]
+                    }
+                ],
+                "sbg:validationErrors": [],
+                "sbg:modifiedBy": "maya",
+                "sbg:latestRevision": 1,
+                "sbg:revision": 1,
+                "sbg:revisionNotes": "two greps",
+                "sbg:createdBy": "maya",
+                "sbg:canvas_x": 0,
+                "sbg:sbgMaintained": false,
+                "sbg:contributors": [
+                    "maya"
+                ],
+                "sbg:revisionsInfo": [
+                    {
+                        "sbg:modifiedBy": "maya",
+                        "sbg:revision": 0,
+                        "sbg:revisionNotes": null,
+                        "sbg:modifiedOn": 1488447993
+                    },
+                    {
+                        "sbg:modifiedBy": "maya",
+                        "sbg:revision": 1,
+                        "sbg:revisionNotes": "two greps",
+                        "sbg:modifiedOn": 1488448331
+                    }
+                ],
+                "sbg:createdOn": 1488447993,
+                "sbg:id": "maya/test/two-step-wf/1",
+                "sbg:canvas_zoom": 1,
+                "sbg:projectName": "test",
+                "sbg:image_url": "https://brood.sbgenomics.com/static/maya/test/two-step-wf/1.png",
+                "sbg:canvas_y": 0,
+                "sbg:modifiedOn": 1488448331,
+                "sbg:project": "maya/test",
+                "id": "maya/test/two-step-wf/1",
+                "label": "two-step-wf",
+                "hints": []
+            };
+            const wf = WorkflowFactory.from(data as any);
+
+            expect(wf.serialize()).to.deep.equal(data);
+       });
+    });
 });

@@ -1,11 +1,10 @@
 import {Expression} from "../../mappings/d2sb/Expression";
 import {Serializable} from "../interfaces/Serializable";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
-import {ValidationBase, Validation} from "../helpers/validation";
+import {Validation} from "../helpers/validation";
+import {ExpressionModel} from "../generic/ExpressionModel";
 
-export class ExpressionModel extends ValidationBase implements Serializable<number | string | Expression> {
-    customProps: any = {};
-
+export class SBDraft2ExpressionModel extends ExpressionModel implements Serializable<number | string | Expression> {
     validate(): Validation {
         return this.validation;
     }
@@ -19,7 +18,7 @@ export class ExpressionModel extends ValidationBase implements Serializable<numb
      * @param context
      * @returns {any}
      */
-    public evaluate(context: { $job?: any, $self?: any } = {}): Promise<any> {
+    public evaluate(context: { $job?: any, $self?: any } = this.cachedContext): Promise<any> {
         if (this.value !== undefined) {
             this.validation = {errors: [], warnings: []};
 
@@ -49,32 +48,6 @@ export class ExpressionModel extends ValidationBase implements Serializable<numb
                     }
                 })
             });
-            // return ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self).then(suc => {
-            //     this.result = suc;
-            //     return suc !== undefined ? suc : "";
-            // }, ex => {
-            //     const err = {loc: this.loc, message: ex.toString()};
-            //
-            //     if (ex.name === "SyntaxError") {
-            //         this.validation = {
-            //             errors: [err],
-            //             warnings: []
-            //         };
-            //
-            //         return new Promise((res, rej) => {
-            //             rej(Object.assign({type: "error"}, err));
-            //         });
-            //     } else {
-            //         this.validation = {
-            //             warnings: [err],
-            //             errors: []
-            //         };
-            //
-            //         return new Promise((res, rej) => {
-            //             rej(Object.assign({type: "warning"}, err));
-            //         });
-            //     }
-            // });
         }
 
         return undefined;
@@ -86,34 +59,12 @@ export class ExpressionModel extends ValidationBase implements Serializable<numb
     /** Internal CWL representation of Expression */
     private value: number | string | Expression;
 
-    //@todo add other primitive types (int, long, etc)
-    /** Internal type */
-    private _type: "string" | "expression" | "number" = "string";
-
-    /** Flag if model contains expression */
-    public get isExpression() {
-        return this.type === "expression";
-    };
-
-    /** Setter for model type. Model holds either expression or primitive like "string" */
-    public set type(type: "string" | "expression" | "number") {
-        if (type !== "string" && type !== "expression" && type !== "number") {
-            throw new TypeError(`Unknown ExpressionModel type. "${type}" does not exist or is not supported yet.`);
-        }
-        this._type = type;
-    }
-
-    /** Getter for model type. Returns internal representation */
-    public get type() {
-        return this._type;
-    }
-
     constructor(loc?: string, value?: number | string | Expression) {
         super(loc);
 
         // guard against passing something that is already wrapped
-        if (value instanceof ExpressionModel) {
-            value = (<ExpressionModel> value).serialize();
+        if (value instanceof SBDraft2ExpressionModel) {
+            value = (<SBDraft2ExpressionModel> value).serialize();
         }
 
         this.deserialize(value);

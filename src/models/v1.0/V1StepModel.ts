@@ -3,13 +3,11 @@ import {WorkflowStep} from "../../mappings/v1.0/WorkflowStep";
 import {Serializable} from "../interfaces/Serializable";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
 import {V1WorkflowStepOutputModel} from "./V1WorkflowStepOutputModel";
-import {ensureArray, snakeCase, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {Workflow} from "../../mappings/v1.0/Workflow";
 import {CommandLineToolFactory} from "../generic/CommandLineToolFactory";
-import {InputParameter} from "../generic/InputParameter";
 import {OutputParameter} from "../generic/OutputParameter";
-import {Process} from "../../mappings/d2sb/Process";
 import {InputParameterModel} from "../generic/InputParameterModel";
 
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
@@ -17,6 +15,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
     public out: V1WorkflowStepOutputModel[] = [];
     public hasMultipleScatter               = true;
     public hasScatterMethod                 = true;
+    public scatter;
 
     constructor(step?, loc?: string) {
         super(loc);
@@ -24,12 +23,18 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
     }
 
     serialize(): WorkflowStep {
-        return {
-            id: this.id,
-            "in": this.in.map(i => i.serialize()),
-            out: this.out.map(o => o.serialize()),
-            run: this.run.serialize()
-        };
+        let base: WorkflowStep = <WorkflowStep> {};
+        base.id                = this.id;
+        base.in                = this.in.map(i => i.serialize());
+        base.out               = this.out.map(o => o.serialize());
+        base.run               = this.run && typeof this.run.serialize === "function" ? this.run.serialize() : this.runPath;
+
+        if (this.label) base.label = this.label;
+        if (this.description) base.doc = this.description;
+        if (this.scatter.length) base.scatter = this.scatter;
+        if (this.scatterMethod) base.scatterMethod = this.scatterMethod;
+
+        return spreadAllProps(base, this.customProps);
     }
 
     deserialize(step: WorkflowStep): void {
@@ -51,6 +56,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
         if (typeof step.run === "string") {
             console.warn(`Expected to get json for step.run at ${this.loc}, reading in and out from step`);
+            this.runPath = step.run;
         } else if (hasRun) {
             this.createRun(step.run);
         }
@@ -76,7 +82,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         this.requirements = ensureArray(step.requirements, "class");
         this.hints        = ensureArray(step.hints, "class");
 
-        this.scatter       = step.scatter;
+        this.scatter       = ensureArray(step.scatter);
         this.scatterMethod = step.scatterMethod;
 
         spreadSelectProps(step, this.customProps, serializedKeys);

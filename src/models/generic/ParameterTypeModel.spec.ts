@@ -67,25 +67,25 @@ describe("ParameterTypeModel", () => {
         });
 
         it("should create nested records for V1WorkflowInputParameterModel", () => {
-            const data = [{
+            const data = {
                 type: "record",
                 name: "parent",
                 fields: [
                     {
                         name: "child",
-                        type: [{
+                        type: {
                             name: "child",
                             type: "record",
                             fields: [
                                 {
                                     name: "grandchild",
-                                    type: ["string"]
+                                    type: "string"
                                 }
                             ]
-                        }]
+                        }
                     }
                 ]
-            }];
+            };
             const type = new ParameterTypeModel(data, V1WorkflowInputParameterModel, "");
 
             expect(type.type).to.equal("record");
@@ -93,7 +93,7 @@ describe("ParameterTypeModel", () => {
             expect(type.fields[0].type.type).to.equal("record");
             expect(type.fields[0].type.fields[0].id).to.equal("grandchild");
 
-            expect(type.serialize()).to.deep.equal(data);
+            expect(type.serialize("v1.0")).to.deep.equal(data);
         });
     })
 });

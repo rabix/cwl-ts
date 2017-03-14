@@ -3,6 +3,8 @@ import * as OneStepWf from "../../tests/apps/one-step-wf";
 import * as TwoStepWf from "../../tests/apps/first-workflow";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {WorkflowModel} from "../generic/WorkflowModel";
+import {V1WorkflowModel} from "./V1WorkflowModel";
+import {Workflow} from "../../mappings/v1.0/Workflow";
 
 describe("V1WorkflowModel", () => {
     describe("exposePort", () => {
@@ -618,5 +620,37 @@ describe("V1WorkflowModel", () => {
                 wf.disconnect(wf.inputs[0].connectionId, wf.outputs[0].connectionId);
             }).to.throw("nonexistent connection");
         })
+    });
+
+    describe("serialize", () => {
+        let wf: V1WorkflowModel;
+        let serialize: Workflow;
+        beforeEach(() => {
+            wf = <V1WorkflowModel> WorkflowFactory.from(OneStepWf.default);
+            serialize = wf.serialize();
+        });
+
+        it("should serialize class and version", () => {
+            expect(serialize).to.haveOwnProperty("cwlVersion");
+            expect(serialize.cwlVersion).to.equal("v1.0");
+
+            expect(serialize).to.haveOwnProperty("class");
+            expect(serialize.class).to.equal("Workflow");
+        });
+
+        it("should serialize inputs array", () => {
+            expect(serialize).to.haveOwnProperty("inputs");
+            expect(serialize.inputs).to.have.length(1);
+        });
+
+        it("should serialize outputs array", () => {
+            expect(serialize).to.haveOwnProperty("outputs");
+            expect(serialize.outputs).to.have.length(1);
+        });
+
+        it("should serialize steps array", () => {
+            expect(serialize).to.haveOwnProperty("steps");
+            expect(serialize.steps).to.have.length(1);
+        });
     });
 });

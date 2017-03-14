@@ -10,6 +10,8 @@ import {ArraySchema} from "./ArraySchema";
 
 export interface RecordField {
 
+    label?: string;
+
 
     /**
      * The name of the field

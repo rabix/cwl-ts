@@ -20,6 +20,8 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
     public out: WorkflowStepOutputModel[];
     public isVisible = true;
     public hasUpdate: boolean;
+    public runPath: string = "";
+    public revisions: any[];
 
     public hasMultipleScatter: boolean;
     public hasScatterMethod: boolean;

@@ -1,10 +1,12 @@
 import {CommandLineTool, Expression, ProcessRequirement} from "../../mappings/v1.0/";
 import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
 import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
-import {CommandArgumentModel} from "./CommandArgumentModel";
+import {V1CommandArgumentModel} from "./V1CommandArgumentModel";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
-import {ensureArray} from "../helpers/utils";
+import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {V1ExpressionModel} from "./V1ExpressionModel";
+import {CommandInputParameter} from "../../mappings/v1.0/CommandInputParameter";
+import {CommandOutputParameter} from "../../mappings/v1.0/CommandOutputParameter";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
     public cwlVersion = "v1.0";
@@ -21,10 +23,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     baseCommand: Array<V1ExpressionModel>;
 
-    arguments: Array<CommandArgumentModel>;
-    stdin: string|Expression;
-    stdout: string|Expression;
-    stderr: string|Expression;
+    arguments: Array<V1CommandArgumentModel>;
+    stdin: string | Expression;
+    stdout: string | Expression;
+    stderr: string | Expression;
 
     successCodes: Array<number>;
     temporaryFailCodes: Array<number>;
@@ -33,45 +35,47 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     constructor(json: CommandLineTool, loc?: string) {
         super(loc);
 
-        this.inputs      = ensureArray(json.inputs, "id", "type").map(input => new V1CommandInputParameterModel(input));
-        this.outputs     = ensureArray(json.outputs, "id", "type").map(output => new V1CommandOutputParameterModel(output));
-        this.baseCommand = ensureArray(json.baseCommand).map((cmd, index) => new V1ExpressionModel(cmd, `${this.loc}.baseCommand[${index}]`));
-
-        this.id          = json.id;
-        this.description = json.doc;
-        this.label       = json.label;
-
-        this.requirements = json.requirements;
-        this.hints        = json.hints;
-        this.arguments    = ensureArray(json.arguments).map(arg => new CommandArgumentModel(arg));
-
-        this.stdin  = json.stdin;
-        this.stderr = json.stderr;
-        this.stdout = json.stdout;
-
-        this.successCodes       = json.successCodes;
-        this.temporaryFailCodes = json.temporaryFailCodes;
-        this.permanentFailCodes = json.permanentFailCodes;
+        if (json) this.deserialize(json);
     }
 
-    // generateCommandLine(): string {
-    //     let parts = this.generateCommandLineParts();
-    //
-    //     return (<string []> this.baseCommand).concat(parts.map(part => part.value)).join(' ');
-    // }
+    public deserialize(tool: CommandLineTool) {
+        const serializedKeys = ["inputs", "outputs", "id", "class", "cwlVersion", "doc", "label",
+            "arguments"];
 
-    // private generateCommandLineParts(job?: any): CommandLinePart[] {
-    //
-    //     if (!job) {
-    //         job = JobHelper.getJob(this);
-    //     }
-    //
-    //     let allParts: CommandLinePart[] = [];
-    //
-    //     allParts.concat(this.inputs.map(input => input.getCommandPart(job, job[input.id])));
-    //     allParts.concat(this.arguments.map(arg => arg.getCommandPart(job)));
-    //
-    //     //@todo(maya) add stdin and stdout
-    //     return allParts;
-    // }
+        this.inputs      = ensureArray(tool.inputs, "id", "type").map(input => new V1CommandInputParameterModel(input));
+        this.outputs     = ensureArray(tool.outputs, "id", "type").map(output => new V1CommandOutputParameterModel(output));
+        this.baseCommand = ensureArray(tool.baseCommand).map((cmd, index) => new V1ExpressionModel(cmd, `${this.loc}.baseCommand[${index}]`));
+
+        this.id          = tool.id;
+        this.description = tool.doc;
+        this.label       = tool.label;
+
+        // this.requirements = tool.requirements;
+        // this.hints        = tool.hints;
+        this.arguments    = ensureArray(tool.arguments).map(arg => new V1CommandArgumentModel(arg));
+
+        // this.stdin  = tool.stdin;
+        // this.stderr = tool.stderr;
+        // this.stdout = tool.stdout;
+        //
+        // this.successCodes       = tool.successCodes;
+        // this.temporaryFailCodes = tool.temporaryFailCodes;
+        // this.permanentFailCodes = tool.permanentFailCodes;
+
+        spreadSelectProps(tool, this.customProps, serializedKeys);
+    }
+
+    public serialize() {
+        let base: CommandLineTool = {
+            class: "CommandLineTool",
+            cwlVersion: "v1.0",
+            baseCommand: this.baseCommand.map(b => b.serialize()),
+            inputs: <CommandInputParameter[]> this.inputs.map(i => i.serialize()),
+            outputs: <CommandOutputParameter[]> this.outputs.map(o => o.serialize())
+        };
+
+        if (this.arguments.length) base.arguments = this.arguments.map(a => a.serialize());
+
+        return spreadAllProps(base, this.customProps);
+    }
 }

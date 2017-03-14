@@ -1,7 +1,7 @@
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {Serializable} from "../interfaces/Serializable";
-import {CommandLineBindingModel} from "./CommandLineBindingModel";
+import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
 import {Validation} from "../helpers/validation";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
@@ -24,7 +24,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
     public type: ParameterTypeModel;
 
     /** Binding for inclusion in command line */
-    public inputBinding: CommandLineBindingModel = null;
+    public inputBinding: SBDraft2CommandLineBindingModel = null;
 
     public job: any;
 
@@ -83,7 +83,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
 
         // if inputBinding isn't defined in input, it shouldn't exist as an object in model
         this.inputBinding = (input.inputBinding !== undefined || isNew) ?
-            new CommandLineBindingModel(input.inputBinding, `${this.loc}.inputBinding`) : undefined;
+            new SBDraft2CommandLineBindingModel(input.inputBinding, `${this.loc}.inputBinding`) : undefined;
 
         if (this.inputBinding) {
             this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
@@ -98,17 +98,17 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         spreadSelectProps(input, this.customProps, serializedAttr);
     }
 
-    public updateInputBinding(binding: CommandLineBindingModel|CommandLineBinding) {
-        if (binding instanceof CommandLineBindingModel) {
-            binding = (binding as CommandLineBindingModel).serialize();
+    public updateInputBinding(binding: SBDraft2CommandLineBindingModel|CommandLineBinding) {
+        if (binding instanceof SBDraft2CommandLineBindingModel) {
+            binding = (binding as SBDraft2CommandLineBindingModel).serialize();
         }
-        this.inputBinding = new CommandLineBindingModel(<CommandLineBinding> binding, `${this.loc}.inputBinding`);
+        this.inputBinding = new SBDraft2CommandLineBindingModel(<CommandLineBinding> binding, `${this.loc}.inputBinding`);
         this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
 
     }
 
     public createInputBinding() {
-        this.inputBinding = new CommandLineBindingModel({}, `${this.loc}.inputBinding`);
+        this.inputBinding = new SBDraft2CommandLineBindingModel({}, `${this.loc}.inputBinding`);
         this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
     }
 

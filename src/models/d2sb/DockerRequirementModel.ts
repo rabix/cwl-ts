@@ -43,7 +43,6 @@ export class DockerRequirementModel extends ProcessRequirementModel implements D
             this[key] = attr[key];
         });
 
-
         spreadSelectProps(attr, this.customProps, this.serializedKeys);
     }
 }

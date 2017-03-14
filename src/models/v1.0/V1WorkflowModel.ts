@@ -6,7 +6,7 @@ import {Workflow} from "../../mappings/v1.0/Workflow";
 import {Serializable} from "../interfaces/Serializable";
 import {RequirementBaseModel} from "../d2sb/RequirementBaseModel";
 import {Validation} from "../helpers/validation/Validation";
-import {ensureArray, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
 import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
@@ -90,11 +90,15 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         return entry;
     }
 
-    public createInputFromPort(inPort: V1WorkflowStepInputModel | string) : V1WorkflowInputParameterModel {
+    public createInputFromPort(inPort:
+                                   V1WorkflowStepInputModel
+                                   | string): V1WorkflowInputParameterModel {
         return super._createInputFromPort(inPort, V1WorkflowInputParameterModel);
     }
 
-    public createOutputFromPort(outPort: V1WorkflowStepOutputModel | string) : V1WorkflowOutputParameterModel {
+    public createOutputFromPort(outPort:
+                                    V1WorkflowStepOutputModel
+                                    | string): V1WorkflowOutputParameterModel {
         return super._createOutputFromPort(outPort, V1WorkflowOutputParameterModel);
     }
 
@@ -133,11 +137,18 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         base.class      = "Workflow";
         base.cwlVersion = "v1.0";
 
+        if (this.id) base.id = this.id;
+
+        if (this.description) base.doc = this.description;
+        if (this.label) base.label = this.label;
+
+        //@todo SERIALIZING HINTS AND REQUIREMENTS
+
         base.inputs  = <Array<InputParameter>> this.inputs.map(input => input.serialize());
         base.outputs = <Array<WorkflowOutputParameter>> this.outputs.map(output => output.serialize());
         base.steps   = this.steps.map(step => step.serialize());
 
-        return Object.assign({}, this.customProps, base);
+        return spreadAllProps(base, this.customProps);
     }
 
     deserialize(workflow: Workflow): void {
@@ -146,13 +157,13 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
             "id",
             "inputs",
             "outputs",
-            "hints",
-            "requirements",
             "steps",
             "cwlVersion",
             "doc",
             "label"
         ];
+
+        //@todo DESERIALIZING HINTS AND REQUIREMENTS
 
         this.id = workflow.id;
 
@@ -176,6 +187,5 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         // populates object with all custom attributes not covered in model
         spreadSelectProps(workflow, this.customProps, serializedKeys);
-
     }
 }

@@ -34,7 +34,9 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
 
         this.type = new ParameterTypeModel(input.type, SBDraft2WorkflowInputParameterModel, `${this.loc}.type`);
 
-        this.fileTypes = commaSeparatedToArray(input["sbg:fileTypes"]);
+        this.fileTypes   = commaSeparatedToArray(input["sbg:fileTypes"]);
+        this.label       = (input as SBGWorkflowInputParameter).label;
+        this.description = (input as SBGWorkflowInputParameter).description;
 
         // only show inputs which are type File or File[], or should be explicitly shown
         this.isVisible = this.type.type === "File" || this.type.items === "File" || !!input["sbg:includeInPorts"];
@@ -44,7 +46,7 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
 
     serialize(): SBGWorkflowInputParameter | RecordField {
         const base: any = {};
-        base.type = this.type.serialize();
+        base.type       = this.type.serialize();
 
         if (this.label) base.label = this.label;
         if (this.description) base.description = this.description;

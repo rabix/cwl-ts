@@ -28,7 +28,7 @@ export interface WorkflowStep {
     description?: string;
 
     run: string | Process; //for references
-    scatter?: string | string[];
+    scatter?: string;
     scatterMethod?: ScatterMethod
 
 }

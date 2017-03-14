@@ -8,7 +8,7 @@ import * as BamtoolsSplit from "../../tests/apps/bamtools-split-sbg";
 import * as BfctoolsAnnotate from "../../tests/apps/bfctools-annotate-sbg";
 import * as BindingTestTool from "../../tests/apps/binding-test-tool";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
-import {ExpressionModel} from "./ExpressionModel";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 
 should();
 
@@ -630,7 +630,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 outputs: [],
                 baseCommand: []
             });
-            const expr = new ExpressionModel("", {
+            const expr = new SBDraft2ExpressionModel("", {
                 "class": "Expression",
                 script: "---",
                 engine: "#cwl-js-engine"
@@ -640,7 +640,7 @@ describe("SBDraft2CommandLineToolModel", () => {
             tool.addBaseCommand(expr);
             expect(tool.validation.errors).to.be.empty;
 
-            const expr2 = new ExpressionModel("", {
+            const expr2 = new SBDraft2ExpressionModel("", {
                 "class": "Expression",
                 script: "abb",
                 engine: "#cwl-js-engine"

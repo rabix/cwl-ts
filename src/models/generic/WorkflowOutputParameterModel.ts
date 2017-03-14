@@ -4,6 +4,8 @@ import {Plottable} from "./Plottable";
 import {STEP_INPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {ParameterTypeModel} from "./ParameterTypeModel";
+import {LinkMergeMethod as SBDraft2LinkMergeMethod} from "../../mappings/v1.0/LinkMergeMethod";
+import {LinkMergeMethod as V1LinkMergeMethod} from "../../mappings/d2sb/LinkMergeMethod";
 
 export class WorkflowOutputParameterModel extends ValidationBase implements Serializable<any>, Plottable {
     public id: string;
@@ -11,8 +13,9 @@ export class WorkflowOutputParameterModel extends ValidationBase implements Seri
     public type: ParameterTypeModel;
     public description?: string;
     public label?: string;
-    public secondaryFiles: string[];
     public fileTypes: string[] = [];
+
+    public linkMerge: SBDraft2LinkMergeMethod | V1LinkMergeMethod;
 
     public isVisible = true;
 

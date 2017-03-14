@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
-import {ExpressionModel} from "./ExpressionModel";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 
 describe("CommandOutputBindingModel d2sb", () => {
     describe("constructor", () => {
@@ -91,7 +91,7 @@ describe("CommandOutputBindingModel d2sb", () => {
             const bind = new CommandOutputBindingModel(obj, "binding");
             expect(bind.secondaryFiles[1].serialize()).to.equal(".bti");
 
-            bind.updateSecondaryFile(new ExpressionModel("", ".txt"), 1);
+            bind.updateSecondaryFile(new SBDraft2ExpressionModel("", ".txt"), 1);
 
             expect(bind.secondaryFiles[1].serialize()).to.equal(".txt");
             expect(bind.secondaryFiles[1].loc).to.equal("binding.secondaryFiles[1]");
@@ -126,7 +126,7 @@ describe("CommandOutputBindingModel d2sb", () => {
 
             const bind = new CommandOutputBindingModel(obj, "binding");
 
-            bind.addSecondaryFile(new ExpressionModel("", ".txt"));
+            bind.addSecondaryFile(new SBDraft2ExpressionModel("", ".txt"));
 
 
             expect(bind.secondaryFiles).to.have.length(3);
@@ -140,7 +140,7 @@ describe("CommandOutputBindingModel d2sb", () => {
         it("should display error if outputEval is not an expression", () => {
             const bind = new CommandOutputBindingModel({}, "binding");
 
-            bind.updateOutputEval(new ExpressionModel("", "string value"));
+            bind.updateOutputEval(new SBDraft2ExpressionModel("", "string value"));
             expect(bind.validation.errors).to.not.be.empty;
             expect(bind.validation.errors[0].loc).to.equal("binding.outputEval");
         });
@@ -153,7 +153,7 @@ describe("CommandOutputBindingModel d2sb", () => {
                 script: "3 + 3"
             };
 
-            bind.updateOutputEval(new ExpressionModel("", expr));
+            bind.updateOutputEval(new SBDraft2ExpressionModel("", expr));
             expect(bind.validation.errors).to.be.empty;
 
             expect(bind.serialize()).to.deep.equal({
@@ -169,7 +169,7 @@ describe("CommandOutputBindingModel d2sb", () => {
                 script: ""
             };
 
-            bind.updateOutputEval(new ExpressionModel("", expr));
+            bind.updateOutputEval(new SBDraft2ExpressionModel("", expr));
 
             expect(bind.serialize()).to.deep.equal({});
         })

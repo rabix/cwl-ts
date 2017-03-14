@@ -5,7 +5,7 @@ import {ExpressionToolModel} from "../generic/ExpressionToolModel";
 import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
 import {SBDraft2WorkflowStepOutputModel} from "./SBDraft2WorkflowStepOutputModel";
 import {WorkflowStep} from "../../mappings/d2sb/WorkflowStep";
-import {ensureArray, snakeCase, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {OutputParameter} from "../generic/OutputParameter";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {CommandLineToolFactory} from "../generic/CommandLineToolFactory";
@@ -60,8 +60,8 @@ export class SBDraft2StepModel extends StepModel {
         this.in = stepInputs.map((input, index) => {
             let match: any = inPorts.find(port => input.id === port.id);
 
-            if (match && match.type) {
-                if (match.type.type !== input.type.type || match.type.items !== input.type.items) {
+            if (match && match.type && match.type.type) {
+                if (match.type.type !== input.type.type || (match.type.items && match.type.items !== input.type.items)) {
                     errors.push({
                         message: `Schema mismatch between step input ${this.loc}.inputs[${index}] and step run input ${input.loc}. `
                     });
@@ -124,7 +124,20 @@ export class SBDraft2StepModel extends StepModel {
     }
 
     serialize(): WorkflowStep {
-        return super.serialize();
+        let base: WorkflowStep = <WorkflowStep> {};
+
+        base.id = "#" + this.id;
+        base.inputs = this.in.map(i => i.serialize());
+        base.outputs = this.out.map(o => o.serialize());
+
+        base.run = this.runPath ? this.runPath : this.run.serialize();
+
+        if (this.label) base.label = this.label;
+        if (this.description) base.description = this.description;
+
+        if (this.scatter) base.scatter = this.in.filter(i => this.scatter === i.id)[0].destinationId;
+
+        return spreadAllProps(base, this.customProps);
     }
 
     deserialize(step: WorkflowStep): void {
@@ -141,9 +154,11 @@ export class SBDraft2StepModel extends StepModel {
         this.id          = step.id || "";
         this.description = step.description;
         this.label       = step.label;
-        this.scatter     = step.scatter;
+        this.scatter     = step.scatter ? step.scatter.split(".")[1] : null;
 
-        if (step.run && typeof step.run !== "string" && step.run.class) {
+        if (step.run && typeof step.run === "string") {
+            this.runPath = step.run;
+        } else if (step.run &&  typeof step.run !== "string" && step.run.class) {
             this.createRun(step.run);
         }
 

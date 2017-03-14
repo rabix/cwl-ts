@@ -1,13 +1,13 @@
 import {expect} from "chai";
 import {CommandLineParsers} from "./CommandLineParsers";
-import {ExpressionModel} from "../d2sb/ExpressionModel";
+import {SBDraft2ExpressionModel} from "../d2sb/SBDraft2ExpressionModel";
 import {SBDraft2CommandInputParameterModel} from "../d2sb/SBDraft2CommandInputParameterModel";
 
 describe("CommandLineParsers", () => {
     describe("streams", () => {
 
         it("should show a warning if stdout expression is invalid", (done) => {
-            const stdout = new ExpressionModel("", {
+            const stdout = new SBDraft2ExpressionModel("", {
                 script: "job",
                 engine: "",
                 "class": "Expression"

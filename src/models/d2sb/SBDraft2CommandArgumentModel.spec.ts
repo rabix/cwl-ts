@@ -1,27 +1,27 @@
 import {expect} from "chai";
-import {CommandArgumentModel} from "./CommandArgumentModel";
-import {ExpressionModel} from "./ExpressionModel";
+import {SBDraft2CommandArgumentModel} from "./SBDraft2CommandArgumentModel";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 
-describe("CommandArgumentModel d2sb", () => {
+describe("SBDraft2CommandArgumentModel", () => {
     describe("constructor", () => {
         it("Should initialize if constructor has no parameters", () => {
-            const arg = new CommandArgumentModel();
+            const arg = new SBDraft2CommandArgumentModel();
             expect(arg).to.not.be.undefined;
         });
 
         it("Should have properties if constructor has no parameters", () => {
-            const arg = new CommandArgumentModel();
+            const arg = new SBDraft2CommandArgumentModel();
             expect(arg).to.not.be.undefined;
 
             expect(arg.valueFrom).to.not.be.undefined;
-            expect(arg.valueFrom).to.be.instanceOf(ExpressionModel);
+            expect(arg.valueFrom).to.be.instanceOf(SBDraft2ExpressionModel);
         });
 
     });
 
     describe("toString", () => {
         it("Should correctly encode toString of valueFrom script", () => {
-            const arg = new CommandArgumentModel({
+            const arg = new SBDraft2CommandArgumentModel({
                 "separate": true,
                 "prefix": "--seqType",
                 "valueFrom": {
@@ -34,7 +34,7 @@ describe("CommandArgumentModel d2sb", () => {
         });
 
         it("Should correctly encode toString of string value", () => {
-            const arg = new CommandArgumentModel("argument");
+            const arg = new SBDraft2CommandArgumentModel("argument");
 
             expect(arg.toString()).to.equal("argument");
         });
@@ -42,25 +42,25 @@ describe("CommandArgumentModel d2sb", () => {
 
     // describe("getCommandPart", () => {
     //     it("Should handle arg with just a prefix", () => {
-    //         let arg  = new CommandArgumentModel({prefix: "--p"});
+    //         let arg  = new SBDraft2CommandArgumentModel({prefix: "--p"});
     //         let part = arg.getCommandPart();
     //         expect(part.value).to.equal("--p");
     //     });
     //
     //     it("Should handle arg with a prefix and value from", () => {
-    //         let arg  = new CommandArgumentModel({prefix: "--p", valueFrom: "value"});
+    //         let arg  = new SBDraft2CommandArgumentModel({prefix: "--p", valueFrom: "value"});
     //         let part = arg.getCommandPart();
     //         expect(part.value).to.equal("--p value")
     //     });
     //
     //     it("Should handle arg that is a string", () => {
-    //         let arg  = new CommandArgumentModel("--prefix");
+    //         let arg  = new SBDraft2CommandArgumentModel("--prefix");
     //         let part = arg.getCommandPart();
     //         expect(part.value).to.equal("--prefix");
     //     });
     //
     //     it("Should handle arg that has expression", () => {
-    //         let arg  = new CommandArgumentModel({
+    //         let arg  = new SBDraft2CommandArgumentModel({
     //             prefix: "--prefix", valueFrom: {
     //                 "class": "Expression",
     //                 script: "3 + 3",
@@ -72,7 +72,7 @@ describe("CommandArgumentModel d2sb", () => {
     //     });
     //
     //     it("Should handle arg that has expression with inputs", () => {
-    //         const arg  = new CommandArgumentModel({
+    //         const arg  = new SBDraft2CommandArgumentModel({
     //             valueFrom: {
     //                 "class": "Expression",
     //                 script: "$job.file.path",

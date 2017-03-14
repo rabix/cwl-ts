@@ -1,24 +1,20 @@
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {Serializable} from "../interfaces/Serializable";
-import {ExpressionModel} from "./ExpressionModel";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
-import {ValidationBase, Validation} from "../helpers/validation";
-import {spreadSelectProps} from "../helpers/utils";
+import {Validation} from "../helpers/validation";
+import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {CommandLineBindingModel} from "../generic/CommandLineBindingModel";
 
-export class CommandLineBindingModel extends ValidationBase implements Serializable<CommandLineBinding> {
-    public position: number;
-    public prefix: string;
-    public separate: boolean;
-    public itemSeparator: string;
-    public valueFrom: ExpressionModel;
+export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
+    public valueFrom: SBDraft2ExpressionModel;
+    public hasSecondaryFiles = true;
 
-    public loadContents: boolean;
-
-    get secondaryFiles(): ExpressionModel[] {
+    get secondaryFiles(): SBDraft2ExpressionModel[] {
         return this._secondaryFiles;
     }
 
-    set secondaryFiles(files: ExpressionModel[]) {
+    set secondaryFiles(files: SBDraft2ExpressionModel[]) {
         this._secondaryFiles = files;
 
         files.forEach((file, index) => {
@@ -27,9 +23,8 @@ export class CommandLineBindingModel extends ValidationBase implements Serializa
         });
     }
 
-    private _secondaryFiles: ExpressionModel[] = [];
+    private _secondaryFiles: SBDraft2ExpressionModel[] = [];
 
-    public customProps: any          = {};
     private serializedKeys: string[] = [
         "position",
         "prefix",
@@ -46,13 +41,13 @@ export class CommandLineBindingModel extends ValidationBase implements Serializa
     }
 
     setValueFrom(val: string | Expression) {
-        this.valueFrom = new ExpressionModel(`${this.loc}.valueFrom`, val);
+        this.valueFrom = new SBDraft2ExpressionModel(`${this.loc}.valueFrom`, val);
         this.valueFrom.setValidationCallback((err: Validation) => {
             this.updateValidity(err);
         });
     }
 
-    public updateSecondaryFile(file: ExpressionModel, index: number) {
+    public updateSecondaryFile(file: SBDraft2ExpressionModel, index: number) {
         this._secondaryFiles[index] = file;
 
         file.loc = `${this.loc}.secondaryFiles[${index}]`;
@@ -69,33 +64,33 @@ export class CommandLineBindingModel extends ValidationBase implements Serializa
         }
     }
 
-    public addSecondaryFile(file: ExpressionModel) {
+    public addSecondaryFile(file: SBDraft2ExpressionModel) {
         this.updateSecondaryFile(file, this._secondaryFiles.length);
     }
 
 
     serialize(): CommandLineBinding {
-        const serialized: CommandLineBinding = <CommandLineBinding> {};
+        const base: CommandLineBinding = <CommandLineBinding> {};
 
         this.serializedKeys.forEach(key => {
             if (this[key] !== undefined && key !== "valueFrom" && key !== "secondaryFiles") {
-                serialized[key] = this[key];
+                base[key] = this[key];
             }
         });
 
         if (this._secondaryFiles.length) {
-            serialized.secondaryFiles = <Array<string | Expression>> this._secondaryFiles
+            base.secondaryFiles = <Array<string | Expression>> this._secondaryFiles
                 .map(file => file.serialize())
                 .filter(file => !!file);
         }
 
-        if (!serialized.loadContents) delete serialized.loadContents;
+        if (!base.loadContents) delete base.loadContents;
 
         if (this.valueFrom.serialize() !== undefined) {
-            serialized.valueFrom = <string | Expression> this.valueFrom.serialize();
+            base.valueFrom = <string | Expression> this.valueFrom.serialize();
         }
 
-        return Object.assign(serialized, this.customProps);
+        return spreadAllProps(base, this.customProps);
     }
 
     deserialize(binding: CommandLineBinding): void {
@@ -106,21 +101,21 @@ export class CommandLineBindingModel extends ValidationBase implements Serializa
             this.itemSeparator = binding.itemSeparator;
             this.loadContents  = binding.loadContents === true;
 
-            this.valueFrom = new ExpressionModel(`${this.loc}.valueFrom`, binding.valueFrom);
-            this.valueFrom.setValidationCallback((err: Validation) => this.updateValidity(err));
+            this.valueFrom = new SBDraft2ExpressionModel(`${this.loc}.valueFrom`, binding.valueFrom);
+            this.valueFrom.setValidationCallback(err => this.updateValidity(err));
 
             if (binding.secondaryFiles) {
                 if (Array.isArray(binding.secondaryFiles)) {
                     //noinspection TypeScriptUnresolvedFunction
                     this._secondaryFiles = binding.secondaryFiles
                         .map((file, index) => {
-                            const f = new ExpressionModel(`${this.loc}.secondaryFiles[${index}]`,
+                            const f = new SBDraft2ExpressionModel(`${this.loc}.secondaryFiles[${index}]`,
                                 file);
                             f.setValidationCallback((err) => this.updateValidity(err));
                             return f;
                         });
                 } else {
-                    const f = new ExpressionModel(`${this.loc}.secondaryFiles[0]`,
+                    const f = new SBDraft2ExpressionModel(`${this.loc}.secondaryFiles[0]`,
                         <string | Expression> binding.secondaryFiles);
                     f.setValidationCallback((err) => this.updateValidity(err));
 

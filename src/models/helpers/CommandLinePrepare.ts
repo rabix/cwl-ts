@@ -1,8 +1,8 @@
 import {SBDraft2CommandInputParameterModel} from "../d2sb/SBDraft2CommandInputParameterModel";
 import {CommandLinePart, CommandType} from "./CommandLinePart";
 import {CommandLineParsers} from "./CommandLineParsers";
-import {CommandArgumentModel} from "../d2sb/CommandArgumentModel";
-import {ExpressionModel} from "../d2sb/ExpressionModel";
+import {SBDraft2CommandArgumentModel} from "../d2sb/SBDraft2CommandArgumentModel";
+import {SBDraft2ExpressionModel} from "../d2sb/SBDraft2ExpressionModel";
 
 export class CommandLinePrepare {
 
@@ -28,12 +28,12 @@ export class CommandLinePrepare {
             }
         }
 
-        if (input instanceof CommandArgumentModel) {
+        if (input instanceof SBDraft2CommandArgumentModel) {
             inputType = "argument";
             cmdType = "argument";
         }
 
-        if (input instanceof ExpressionModel) {
+        if (input instanceof SBDraft2ExpressionModel) {
             inputType = "expression";
         }
 
@@ -47,7 +47,7 @@ export class CommandLinePrepare {
         }, cmdType, loc);
     };
 
-    static flattenInputsAndArgs(inputs: Array<SBDraft2CommandInputParameterModel | CommandArgumentModel>): Array<SBDraft2CommandInputParameterModel | CommandArgumentModel> {
+    static flattenInputsAndArgs(inputs: Array<SBDraft2CommandInputParameterModel | SBDraft2CommandArgumentModel>): Array<SBDraft2CommandInputParameterModel | SBDraft2CommandArgumentModel> {
         return inputs.filter(input => {
             if (input instanceof SBDraft2CommandInputParameterModel) {
                 return !!input.inputBinding;
@@ -57,7 +57,7 @@ export class CommandLinePrepare {
             const sortFn = (a, b) => {
                 let c1, c2;
                 [c1, c2] = [a, b].map(a => {
-                    return a instanceof CommandArgumentModel ?
+                    return a instanceof SBDraft2CommandArgumentModel ?
                         {pos: ~~a.position, id: index.toString()} :
                         {pos: ~~a.inputBinding.position, id: a.id};
                 });

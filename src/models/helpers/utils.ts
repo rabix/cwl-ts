@@ -103,8 +103,8 @@ export const incrementString = (str: string): string => {
     return replaced;
 };
 
-export const spreadAllProps = (sourceObj: Object, destObj: Object): any => {
-    return {...destObj, ...sourceObj};
+export const spreadAllProps = (destObj: Object, sourceObj: Object): any => {
+    return {...{}, ...destObj, ...sourceObj};
 };
 
 export const spreadSelectProps = (sourceObj: Object, destObj: Object, keys: string[]): void => {

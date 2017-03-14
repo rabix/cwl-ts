@@ -174,10 +174,10 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         return val;
     }
 
-    serialize(): any {
-        let type = TypeResolver.serializeType(this);
+    serialize(version?: "v1.0" | "draft-2"): any {
+        let type = TypeResolver.serializeType(this, version);
 
-        if (typeof type === "object" && !Array.isArray(type)) {
+        if (typeof type === "object" && !Array.isArray(type) && version !== "v1.0") {
             type = { ...{}, ...type, ...this.customProps};
         }
 
@@ -190,7 +190,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         TypeResolver.resolveType(attr, this);
 
         // populates object with all custom attributes not covered in model
-        if (typeof attr === "object" && attr !== null) {
+        if (typeof attr === "object" && attr !== null && !Array.isArray(attr)) {
             spreadSelectProps(attr, this.customProps, serializedKeys);
         }
 

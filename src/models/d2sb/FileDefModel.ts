@@ -1,13 +1,13 @@
 import {FileDef} from "../../mappings/d2sb/FileDef";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
-import {ExpressionModel} from "./ExpressionModel";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {spreadSelectProps} from "../helpers/utils";
 
 export class FileDefModel extends ValidationBase implements Serializable<FileDef>{
-    public filename = new ExpressionModel(`${this.loc}.filename`);
-    public fileContent = new ExpressionModel(`${this.loc}.fileContent`);
+    public filename = new SBDraft2ExpressionModel(`${this.loc}.filename`);
+    public fileContent = new SBDraft2ExpressionModel(`${this.loc}.fileContent`);
 
     constructor(fileDef?: FileDef, loc?: string) {
         super(loc);
@@ -32,10 +32,10 @@ export class FileDefModel extends ValidationBase implements Serializable<FileDef
 
     deserialize(attr: FileDef): void {
         if (attr) {
-            this.filename = new ExpressionModel(`${this.loc}.filename`, attr.filename);
+            this.filename = new SBDraft2ExpressionModel(`${this.loc}.filename`, attr.filename);
             this.filename.setValidationCallback(err => this.updateValidity(err));
 
-            this.fileContent = new ExpressionModel(`${this.loc}.fileContent`, attr.fileContent);
+            this.fileContent = new SBDraft2ExpressionModel(`${this.loc}.fileContent`, attr.fileContent);
             this.fileContent.setValidationCallback(err => this.updateValidity(err));
         }
 

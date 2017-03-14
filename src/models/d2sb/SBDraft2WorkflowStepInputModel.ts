@@ -1,7 +1,7 @@
 import {WorkflowStepInputModel} from "../generic/WorkflowStepInputModel";
 import {WorkflowStepInput} from "../../mappings/d2sb/WorkflowStepInput";
 import {SBDraft2StepModel} from "./SBDraft2StepModel";
-import {ensureArray, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {StepModel} from "../generic/StepModel";
 import {STEP_INPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
@@ -29,20 +29,21 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
     }
 
     serialize(): WorkflowStepInput {
-        return {
-            id: `#${this.parentStep.id}.${this._id}`,
-            source: this.source,
-            linkMerge: this.linkMerge,
-            default: this.default
-        };
+        let base: WorkflowStepInput = <WorkflowStepInput>{};
+
+        base.id = `#${this.parentStep.id}.${this._id}`;
+        if (this.source.length) base.source = this.source;
+        if (this.linkMerge) base.linkMerge = this.linkMerge;
+        if (this.default !== undefined) base.default = this.default;
+
+        return spreadAllProps(base, this.customProps);
     }
 
     deserialize(attr: WorkflowStepInput): void {
-        const serializedKeys = ["default", "id", "fileTypes"];
+        const serializedKeys = ["default", "id", "fileTypes", "type", "description", "label"];
 
         this.default     = attr.default;
         this._id         = attr.id.split(".")[1];
-
 
         // properties that will not be serialized on the step.in,
         // but are necessary for internal functions

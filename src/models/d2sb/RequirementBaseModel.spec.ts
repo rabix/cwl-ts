@@ -1,6 +1,6 @@
 import {expect} from "chai";
 import {RequirementBaseModel} from "./RequirementBaseModel";
-import {ExpressionModel} from "./ExpressionModel";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
 
 describe("RequirementBaseModel", () => {
@@ -27,7 +27,7 @@ describe("RequirementBaseModel", () => {
             };
             const req = new RequirementBaseModel(obj);
 
-            expect(req.value).to.be.instanceof(ExpressionModel);
+            expect(req.value).to.be.instanceof(SBDraft2ExpressionModel);
             expect(req.serialize()).to.deep.equal(obj);
         });
 
@@ -38,7 +38,7 @@ describe("RequirementBaseModel", () => {
             };
             const req = new RequirementBaseModel(obj);
 
-            expect(req.value).to.be.instanceof(ExpressionModel);
+            expect(req.value).to.be.instanceof(SBDraft2ExpressionModel);
             expect(req.serialize()).to.deep.equal(obj);
         });
     });
@@ -51,14 +51,14 @@ describe("RequirementBaseModel", () => {
             };
             const req = new RequirementBaseModel(obj);
 
-            req.updateValue(new ExpressionModel("", {
+            req.updateValue(new SBDraft2ExpressionModel("", {
                     "class": "Expression",
                     engine: "",
                     script: "hello"
                 }
             ));
 
-            expect(req.value).to.be.instanceof(ExpressionModel);
+            expect(req.value).to.be.instanceof(SBDraft2ExpressionModel);
             expect(req.serialize()).to.deep.equal({
                 "class": "helloWorld",
                 value: {
@@ -81,7 +81,7 @@ describe("RequirementBaseModel", () => {
                 and: "random values"
             });
 
-            expect(req.value).to.not.be.instanceof(ExpressionModel);
+            expect(req.value).to.not.be.instanceof(SBDraft2ExpressionModel);
             expect(req.serialize()).to.deep.equal({
                 "class": "helloWorld",
                 value: {

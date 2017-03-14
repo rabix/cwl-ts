@@ -4,11 +4,13 @@ import {SBDraft2StepModel} from "./SBDraft2StepModel";
 import {SBDraft2WorkflowInputParameterModel} from "./SBDraft2WorkflowInputParameterModel";
 import {SBDraft2WorkflowOutputParameterModel} from "./SBDraft2WorkflowOutputParameterModel";
 import {Serializable} from "../interfaces/Serializable";
-import {ensureArray, snakeCase, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
 import {Process} from "../../mappings/d2sb/Process";
 import {SBDraft2WorkflowStepOutputModel} from "./SBDraft2WorkflowStepOutputModel";
+import {SBGWorkflowInputParameter} from "../../mappings/d2sb/SBGWorkflowInputParameter";
+import {WorkflowOutputParameter} from "../../mappings/d2sb/WorkflowOutputParameter";
 
 export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -21,6 +23,8 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
     public outputs: SBDraft2WorkflowOutputParameterModel[] = [];
 
+    private sbgId: string;
+
     constructor(workflow: Workflow, loc: string) {
         super(loc || "document");
 
@@ -30,11 +34,13 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     }
 
 
-    public createInputFromPort(inPort: SBDraft2WorkflowStepInputModel | string): SBDraft2WorkflowInputParameterModel {
+    public createInputFromPort(inPort: SBDraft2WorkflowStepInputModel
+                                   | string): SBDraft2WorkflowInputParameterModel {
         return super._createInputFromPort(inPort, SBDraft2WorkflowInputParameterModel);
     }
 
-    public createOutputFromPort(outPort: SBDraft2WorkflowStepOutputModel | string): SBDraft2WorkflowOutputParameterModel {
+    public createOutputFromPort(outPort: SBDraft2WorkflowStepOutputModel
+                                    | string): SBDraft2WorkflowOutputParameterModel {
         return super._createOutputFromPort(outPort, SBDraft2WorkflowOutputParameterModel);
     }
 
@@ -88,7 +94,23 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     }
 
     serialize(): Workflow {
-        return super.serialize();
+        const base: Workflow = <Workflow>{};
+
+        base.class = "Workflow";
+        base.cwlVersion = "sbg:draft-2";
+
+        if (this.sbgId || this.id) {
+            base.id = this.sbgId || this.id;
+        }
+
+        if (this.label) base.label = this.label;
+        if (this.description) base.description = this.description;
+
+        base.inputs = <SBGWorkflowInputParameter[]> this.inputs.map(i => i.serialize());
+        base.outputs = <WorkflowOutputParameter[]>this.outputs.map(o => o.serialize());
+        base.steps = this.steps.map(s => s.serialize());
+
+        return spreadAllProps(base, this.customProps);
     }
 
     deserialize(workflow: Workflow): void {
@@ -100,6 +122,8 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         this.id = workflow["sbg:id"] && workflow["sbg:id"].split("/").length > 3 ?
             workflow["sbg:id"].split("/")[2] :
             snakeCase(workflow.id);
+
+        this.sbgId = workflow["sbg:id"];
 
         this.steps = ensureArray(workflow.steps).map((step, index) => {
             const stepModel = new SBDraft2StepModel(step, `${this.loc}.steps[${index}]`);

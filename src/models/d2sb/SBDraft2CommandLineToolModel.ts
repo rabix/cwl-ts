@@ -1,4 +1,4 @@
-import {CommandArgumentModel} from "./CommandArgumentModel";
+import {SBDraft2CommandArgumentModel} from "./SBDraft2CommandArgumentModel";
 import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParameterModel";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
@@ -6,7 +6,7 @@ import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {JobHelper} from "../helpers/JobHelper";
 import {Serializable} from "../interfaces/Serializable";
-import {ExpressionModel} from "./ExpressionModel";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {Validation} from "../helpers/validation";
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
@@ -35,9 +35,11 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     public cwlVersion = "sbg:draft-2";
 
-    public baseCommand: Array<ExpressionModel>               = [];
+    public baseCommand: Array<SBDraft2ExpressionModel>       = [];
     public inputs: Array<SBDraft2CommandInputParameterModel> = [];
     public outputs: Array<CommandOutputParameterModel>       = [];
+
+    private sbgId: string;
 
     public resources: { cpu?: ResourceRequirementModel, mem?: ResourceRequirementModel } = {};
 
@@ -49,10 +51,10 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     public hints: Array<ProcessRequirementModel> = [];
 
-    public arguments: Array<CommandArgumentModel> = [];
+    public arguments: Array<SBDraft2CommandArgumentModel> = [];
 
-    public stdin: ExpressionModel;
-    public stdout: ExpressionModel;
+    public stdin: SBDraft2ExpressionModel;
+    public stdout: SBDraft2ExpressionModel;
 
     public successCodes: number[];
     public temporaryFailCodes: number[];
@@ -69,9 +71,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.constructed = true;
     }
 
-    public addBaseCommand(cmd?: ExpressionModel): ExpressionModel {
+    public addBaseCommand(cmd?: SBDraft2ExpressionModel): SBDraft2ExpressionModel {
         if (!cmd) {
-            cmd = new ExpressionModel(`${this.loc}.baseCommand[${this.baseCommand.length}]`);
+            cmd = new SBDraft2ExpressionModel(`${this.loc}.baseCommand[${this.baseCommand.length}]`);
         } else {
             cmd.loc = `${this.loc}.baseCommand[${this.baseCommand.length}]`;
         }
@@ -83,8 +85,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         return cmd;
     }
 
-    public addArgument(argument: CommandArgumentModel) {
-        argument     = argument || new CommandArgumentModel("");
+    public addArgument(argument: SBDraft2CommandArgumentModel) {
+        argument     = argument || new SBDraft2CommandArgumentModel("");
         argument.loc = `${this.loc}.arguments[${this.arguments.length}]`;
 
         this.arguments.push(argument);
@@ -96,7 +98,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         return argument;
     }
 
-    public removeArgument(arg: CommandArgumentModel | number) {
+    public removeArgument(arg: SBDraft2CommandArgumentModel | number) {
         if (typeof arg === "number") {
             this.arguments.splice(arg, 1);
         } else {
@@ -153,7 +155,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.createReq(req, `${this.loc}.${prop}[${this[prop].length}]`, hint);
     }
 
-    public updateStream(stream: ExpressionModel, type: "stdin" | "stdout") {
+    public updateStream(stream: SBDraft2ExpressionModel, type: "stdin" | "stdout") {
         this[type] = stream;
         stream.loc = `${this.loc}.${type}`;
         stream.setValidationCallback((err) => this.updateValidity(err));
@@ -251,12 +253,13 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     serialize(): CommandLineTool | any {
         let base: CommandLineTool = <CommandLineTool>{};
-        if (this.id) {
-            base.id = this.id;
-        }
 
         base.cwlVersion = "sbg:draft-2";
         base.class      = "CommandLineTool";
+
+        if (this.sbgId || this.id) {
+            base.id = this.sbgId || this.id;
+        }
 
         if (this.label) base.label = this.label;
         if (this.description) base.description = this.description;
@@ -350,6 +353,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             tool["sbg:id"].split("/")[2] :
             snakeCase(tool.id);
 
+        this.sbgId = tool["sbg:id"];
+
         this.label       = tool.label;
         this.description = tool.description;
 
@@ -362,7 +367,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         if (tool.arguments) {
             tool.arguments.forEach((arg, index) => {
-                this.addArgument(new CommandArgumentModel(arg, `${this.loc}.arguments[${index}]`));
+                this.addArgument(new SBDraft2CommandArgumentModel(arg, `${this.loc}.arguments[${index}]`));
             });
         }
 
@@ -378,8 +383,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             });
         }
 
-        this.updateStream(new ExpressionModel(`${this.loc}.stdin`, tool.stdin), "stdin");
-        this.updateStream(new ExpressionModel(`${this.loc}.stdout`, tool.stdout), "stdout");
+        this.updateStream(new SBDraft2ExpressionModel(`${this.loc}.stdin`, tool.stdin), "stdin");
+        this.updateStream(new SBDraft2ExpressionModel(`${this.loc}.stdout`, tool.stdout), "stdout");
 
         this.successCodes       = tool.successCodes || [];
         this.temporaryFailCodes = tool.temporaryFailCodes || [];
@@ -405,7 +410,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
                 return acc.concat([curr]);
             }
         }, []).forEach((cmd, index) => {
-            this.addBaseCommand(new ExpressionModel(`baseCommand[${index}]`, cmd))
+            this.addBaseCommand(new SBDraft2ExpressionModel(`baseCommand[${index}]`, cmd))
         });
 
         this.job = tool['sbg:job']

@@ -11,3 +11,4 @@ export * from "./CommandOutputParameterModel";
 export * from "./CommandLineToolFactory";
 export * from "./InputParameterTypeModel";
 export * from "./OutputParameterTypeModel";
+export * from "./ExpressionModel";
