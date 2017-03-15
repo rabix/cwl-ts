@@ -38,7 +38,8 @@ describe("WorkflowModel", () => {
            expect(validSourcesFile).to.not.be.empty;
            expect(validSourcesFile).to.have.length(2);
            expect(validSourcesFile[0].type.type).to.equal("File");
-           expect(validSourcesFile[1].type.type).to.equal("File");
+           expect(validSourcesFile[1].type.type).to.equal("array");
+           expect(validSourcesFile[1].type.items).to.equal("File");
 
            // destination with type string
            const validSourcesString = wf.gatherValidConnectionPoints(wf.steps[0].in[1]);

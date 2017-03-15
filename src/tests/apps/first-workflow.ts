@@ -11,7 +11,7 @@ export default JSON.parse(`{
       "outputSource": "compile/classfile"
     },
     "other_output": {
-       "type": "File",
+       "type": "File[]",
        "outputSource": ["untar/example_out", "compile/some_file"]
     }
   },

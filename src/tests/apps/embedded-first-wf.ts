@@ -4,7 +4,7 @@ export default JSON.parse(`{
   "inputs": [
     {
       "id": "inp",
-      "type": "File"
+      "type": "File[]"
     },
     {
       "id": "ex",

@@ -291,7 +291,15 @@ describe("V1WorkflowModel", () => {
 
             expect(() => {
                 wf.changeIONodeId(wf.inputs[0], "-char-problems!")
-            }).to.throw(`illegal characters`);
+            }).to.throw(`invalid`);
+        });
+
+        it("should throw exception if id starts with  number", () => {
+            const wf = WorkflowFactory.from(OneStepWf.default);
+
+            expect(() => {
+                wf.changeIONodeId(wf.inputs[0], "3")
+            }).to.throw(`invalid`);
         });
 
         it("should throw exception if id is blank", () => {

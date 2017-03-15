@@ -167,13 +167,15 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.removeStepFromGraph(step);
 
         // removes inputs that were connected solely to step.in
-        for (let i = 0; i < this.inputs.length; i++) {
-            this.removeDanglingInput(this.inputs[i].connectionId);
+        let inp = this.inputs.length;
+        while (inp--) {
+            this.removeDanglingInput(this.inputs[inp].connectionId);
         }
 
         // removes outputs that were connected solely to step.out
-        for (let i = 0; i < this.outputs.length; i++) {
-            this.removeDanglingOutput(this.outputs[i].connectionId);
+        let out = this.outputs.length;
+        while(out--) {
+            this.removeDanglingOutput(this.outputs[out].connectionId);
         }
 
         const dests = this.gatherDestinations();
@@ -299,7 +301,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
 
         if (!ID_REGEX.test(id)) {
-            throw new Error("ID contains illegal characters, only alphanumerics and _ are allowed");
+            throw new Error("ID is invalid, ID must start with a letter and only alphanumerics and _ are allowed");
         }
 
         if (next !== id) {
@@ -418,7 +420,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.graph.addEdge(source, destination, isVisible);
     }
 
-    private checkSrcAndDest(source, destination): [WorkflowInputParameterModel | WorkflowStepOutputModel, WorkflowOutputParameterModel | WorkflowStepInputModel] {
+    private checkSrcAndDest(source, destination): [
+        WorkflowInputParameterModel
+        | WorkflowStepOutputModel, WorkflowOutputParameterModel | WorkflowStepInputModel] {
         // fetch source if connectionId is provided
         if (typeof source === "string") {
             source = <WorkflowInputParameterModel
@@ -453,13 +457,13 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         [source, destination] = this.checkSrcAndDest(source, destination);
 
         if (this.graph.removeEdge({
-            source: {
-                id: source.connectionId
-            },
-            destination: {
-                id: destination.connectionId
-            }
-        })) {
+                source: {
+                    id: source.connectionId
+                },
+                destination: {
+                    id: destination.connectionId
+                }
+            })) {
             for (let i = 0; i < destination.source.length; i++) {
                 if (destination.source[i] = source.sourceId) {
                     destination.source.splice(i, 1);
@@ -600,11 +604,23 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             }
 
             // fetch type
-            const pointBType = pointB.type.type;
-            const pointAType = pointA.type.type;
+            const pointBType  = pointB.type.type;
+            const pointAType  = pointA.type.type;
+            const pointBItems = pointB.type.items;
+            const pointAItems = pointA.type.items;
+
 
             // match types, defined types can be matched with undefined types
-            if (pointAType === pointBType || pointAType === "null" || pointBType === "null") {
+            if (pointAType === pointBType // match exact type
+                || pointAItems === pointBType //match File[] to File
+                || pointBItems === pointAType // match File to File[]
+                || pointAType === "null"
+                || pointBType === "null") {
+
+                // if both are arrays but not of the same type
+                if (pointAItems && pointBItems && pointAItems !== pointBItems) {
+                    return false;
+                }
                 // if type match is file, and fileTypes are defined on both ports,
                 // match only if fileTypes match
                 if (pointAType === "File" && pointB.fileTypes.length && pointA.fileTypes.length) {

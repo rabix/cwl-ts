@@ -40,7 +40,15 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
     }
 
     deserialize(attr: WorkflowStepInput): void {
-        const serializedKeys = ["default", "id", "fileTypes", "type", "description", "label"];
+        const serializedKeys = [
+            "default",
+            "id",
+            "fileTypes",
+            "type",
+            "description",
+            "label",
+            "source"
+        ];
 
         this.default     = attr.default;
         this._id         = attr.id.split(".")[1];

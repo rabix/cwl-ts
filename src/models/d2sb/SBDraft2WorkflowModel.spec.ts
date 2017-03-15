@@ -281,7 +281,15 @@ describe("SBDraft2WorkflowModel", () => {
 
             expect(() => {
                 wf.changeIONodeId(wf.inputs[0], "-char-problems!")
-            }).to.throw(`illegal characters`);
+            }).to.throw(`invalid`);
+        });
+
+        it("should throw exception if id starts with a number", () => {
+            const wf = WorkflowFactory.from(OneStepWf.default);
+
+            expect(() => {
+                wf.changeIONodeId(wf.inputs[0], "3");
+            }).to.throw(`invalid`);
         });
 
         it("should throw exception if id is blank", () => {
