@@ -10,11 +10,12 @@ import {ScatterMethod} from "../../mappings/v1.0/ScatterMethod";
 import {Plottable} from "./Plottable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {Process} from "./Process";
+import {EventHub} from "../helpers/EventHub";
 
 export class StepModel extends ValidationBase implements Serializable<any>, Plottable {
+
     public id: string;
     public description?: string;
-    public label?: string;
     public run: WorkflowModel | CommandLineToolModel | ExpressionToolModel;
     public "in": WorkflowStepInputModel[];
     public out: WorkflowStepOutputModel[];
@@ -23,8 +24,26 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
     public runPath: string = "";
     public revisions: any[];
 
+    protected _label?: string;
+
+    get label(): string {
+        return this._label;
+    }
+
+    set label(value: string) {
+        this._label = value;
+        this.eventHub.emit("step.change", this);
+    }
+
+    protected readonly eventHub: EventHub;
+
     public hasMultipleScatter: boolean;
     public hasScatterMethod: boolean;
+
+    constructor(loc?, eventHub?) {
+        super(loc);
+        this.eventHub = eventHub;
+    }
 
     public get inAsMap(): {[key: string]: WorkflowStepInputModel} {
         return this.in.reduce((acc, curr) => {

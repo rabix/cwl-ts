@@ -12,6 +12,7 @@ import {CommandLineToolFactory} from "../generic/CommandLineToolFactory";
 import {Workflow} from "../../mappings/d2sb/Workflow";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 import {InputParameterModel} from "../generic/InputParameterModel";
+import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2StepModel extends StepModel {
     run: WorkflowModel | CommandLineToolModel | ExpressionToolModel;
@@ -20,8 +21,8 @@ export class SBDraft2StepModel extends StepModel {
     hasMultipleScatter = false;
     hasScatterMethod   = false;
 
-    constructor(step?: WorkflowStep, loc?: string) {
-        super(loc);
+    constructor(step?: WorkflowStep, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
 
         if (step) this.deserialize(step);
     }
@@ -120,7 +121,7 @@ export class SBDraft2StepModel extends StepModel {
         this.id = this.id || snakeCase(this.run.id) || snakeCase(this.run.label) || snakeCase(this.loc);
         this.id = this.id.charAt(0) === "#" ? this.id.substr(1) : this.id;
 
-        this.label = this.label || this.run.label || "";
+        this._label = this._label || this.run.label || "";
     }
 
     serialize(): WorkflowStep {
@@ -132,7 +133,7 @@ export class SBDraft2StepModel extends StepModel {
 
         base.run = this.runPath ? this.runPath : this.run.serialize();
 
-        if (this.label) base.label = this.label;
+        if (this._label) base.label = this._label;
         if (this.description) base.description = this.description;
 
         if (this.scatter) base.scatter = this.in.filter(i => this.scatter === i.id)[0].destinationId;
@@ -153,7 +154,7 @@ export class SBDraft2StepModel extends StepModel {
 
         this.id          = step.id || "";
         this.description = step.description;
-        this.label       = step.label;
+        this._label       = step.label;
         this.scatter     = step.scatter ? step.scatter.split(".")[1] : null;
 
         if (step.run && typeof step.run === "string") {

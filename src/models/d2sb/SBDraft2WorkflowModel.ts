@@ -90,6 +90,8 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
         step.id = this.getNextAvailableId(step.id);
         this.addStepToGraph(step);
+
+        this.eventHub.emit("step.create", step);
         return step;
     }
 
@@ -126,7 +128,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         this.sbgId = workflow["sbg:id"];
 
         this.steps = ensureArray(workflow.steps).map((step, index) => {
-            const stepModel = new SBDraft2StepModel(step, `${this.loc}.steps[${index}]`);
+            const stepModel = new SBDraft2StepModel(step, `${this.loc}.steps[${index}]`, this.eventHub);
             stepModel.setValidationCallback(err => {
                 this.updateValidity(err)
             });
@@ -134,7 +136,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         });
 
         this.inputs = ensureArray(workflow.inputs).map((input, index) => {
-            const inputParameterModel = new SBDraft2WorkflowInputParameterModel(input, `${this.loc}.inputs[${index}]`);
+            const inputParameterModel = new SBDraft2WorkflowInputParameterModel(input, `${this.loc}.inputs[${index}]`, this.eventHub);
             inputParameterModel.setValidationCallback(err => {
                 this.updateValidity(err)
             });
@@ -142,7 +144,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         });
 
         this.outputs = ensureArray(workflow.outputs).map((output, index) => {
-            const outputParameterModel = new SBDraft2WorkflowOutputParameterModel(output, `${this.loc}.outputs[${index}]`);
+            const outputParameterModel = new SBDraft2WorkflowOutputParameterModel(output, `${this.loc}.outputs[${index}]`, this.eventHub);
             outputParameterModel.setValidationCallback(err => {
                 this.updateValidity(err)
             });

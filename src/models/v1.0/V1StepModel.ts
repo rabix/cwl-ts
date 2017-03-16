@@ -9,6 +9,7 @@ import {Workflow} from "../../mappings/v1.0/Workflow";
 import {CommandLineToolFactory} from "../generic/CommandLineToolFactory";
 import {OutputParameter} from "../generic/OutputParameter";
 import {InputParameterModel} from "../generic/InputParameterModel";
+import {EventHub} from "../helpers/EventHub";
 
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
     public "in": V1WorkflowStepInputModel[] = [];
@@ -17,8 +18,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
     public hasScatterMethod                 = true;
     public scatter;
 
-    constructor(step?, loc?: string) {
-        super(loc);
+    constructor(step?, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         if (step) this.deserialize(step);
     }
 
@@ -29,7 +30,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         base.out               = this.out.map(o => o.serialize());
         base.run               = this.run && typeof this.run.serialize === "function" ? this.run.serialize() : this.runPath;
 
-        if (this.label) base.label = this.label;
+        if (this._label) base.label = this.label;
         if (this.description) base.doc = this.description;
         if (this.scatter.length) base.scatter = this.scatter;
         if (this.scatterMethod) base.scatterMethod = this.scatterMethod;
@@ -51,7 +52,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
         this.id          = step.id || "";
         this.description = step.doc;
-        this.label       = step.label;
+        this._label       = step.label;
         const hasRun     = step.run && (step.run as any).class;
 
         if (typeof step.run === "string") {
@@ -108,7 +109,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         }
 
         this.id    = this.id || snakeCase(this.run.id) || snakeCase(this.loc);
-        this.label = this.label || this.run.label || "";
+        this._label = this._label || this.run.label || "";
     }
 
     protected compareInPorts() {

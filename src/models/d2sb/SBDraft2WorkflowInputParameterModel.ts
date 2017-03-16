@@ -4,11 +4,12 @@ import {RecordField} from "../../mappings/draft-3/RecordField";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {commaSeparatedToArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
-    constructor(input?: SBGWorkflowInputParameter, loc?: string) {
-        super(loc);
+    constructor(input?: SBGWorkflowInputParameter, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         if (input) this.deserialize(input);
     }
 
@@ -35,7 +36,7 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
         this.type = new ParameterTypeModel(input.type, SBDraft2WorkflowInputParameterModel, `${this.loc}.type`);
 
         this.fileTypes   = commaSeparatedToArray(input["sbg:fileTypes"]);
-        this.label       = (input as SBGWorkflowInputParameter).label;
+        this._label       = (input as SBGWorkflowInputParameter).label;
         this.description = (input as SBGWorkflowInputParameter).description;
 
         // only show inputs which are type File or File[], or should be explicitly shown
@@ -48,7 +49,7 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
         const base: any = {};
         base.type       = this.type.serialize();
 
-        if (this.label) base.label = this.label;
+        if (this._label) base.label = this._label;
         if (this.description) base.description = this.description;
 
         if (this.isField) {

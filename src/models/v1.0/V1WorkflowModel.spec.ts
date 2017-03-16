@@ -406,8 +406,8 @@ describe("V1WorkflowModel", () => {
             wf.removeStep(wf.steps[0].connectionId);
             expect(wf.steps).to.have.length(steps - 1);
 
-            expect(wf.connections).to.have.length(conn - 7);
-            expect(wf.nodes).to.have.length(nodes - 5);
+            expect(wf.connections).to.have.length(conn - 7, "connections");
+            expect(wf.nodes).to.have.length(nodes - 6, "nodes");
 
         });
 
@@ -423,8 +423,8 @@ describe("V1WorkflowModel", () => {
 
             wf.removeStep(wf.steps[0]);
 
-            expect(wf.connections).to.have.length(conn - 7);
-            expect(wf.nodes).to.have.length(nodes - 5);
+            expect(wf.connections).to.have.length(conn - 7, "connections");
+            expect(wf.nodes).to.have.length(nodes - 6, "nodes");
         });
 
         it("should remove sources from outputs", () => {

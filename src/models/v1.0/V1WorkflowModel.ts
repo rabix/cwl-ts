@@ -71,6 +71,8 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         step.id = this.getNextAvailableId(step.id);
         this.addStepToGraph(step);
+
+        this.eventHub.emit("step.create", step);
         return step;
     }
 
@@ -171,18 +173,18 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         this.description = workflow.doc;
 
         ensureArray(workflow.inputs, "id", "type").forEach((input, i) => {
-            this.addEntry(new V1WorkflowInputParameterModel(input, `${this.loc}.inputs[${i}]`), "inputs");
+            this.addEntry(new V1WorkflowInputParameterModel(input, `${this.loc}.inputs[${i}]`, this.eventHub), "inputs");
         });
 
         ensureArray(workflow.outputs, "id", "type").forEach((output, i) => {
-            this.addEntry(new V1WorkflowOutputParameterModel(output, `${this.loc}.outputs[${i}]`), "outputs");
+            this.addEntry(new V1WorkflowOutputParameterModel(output, `${this.loc}.outputs[${i}]`, this.eventHub), "outputs");
         });
 
         ensureArray(workflow.steps, "id").forEach((step, i) => {
             if (step.run && typeof step.run !== "string") {
                 step.run.cwlVersion = "v1.0";
             }
-            this.addEntry(new V1StepModel(step, `${this.loc}.steps[${i}]`), "steps");
+            this.addEntry(new V1StepModel(step, `${this.loc}.steps[${i}]`, this.eventHub), "steps");
         });
 
         // populates object with all custom attributes not covered in model

@@ -2,11 +2,12 @@ import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterMo
 import {WorkflowOutputParameter} from "../../mappings/d2sb/WorkflowOutputParameter";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParameterModel {
 
-    constructor(attr: WorkflowOutputParameter, loc?: string) {
-        super(loc);
+    constructor(attr: WorkflowOutputParameter, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
 
         if (attr) this.deserialize(attr);
     }
@@ -20,7 +21,7 @@ export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParamete
 
         base.id = "#" + this.id;
 
-        if (this.label) base.label = this.label;
+        if (this._label) base.label = this._label;
         if (this.description) base.description = this.description;
 
         base.source = this.source;
@@ -40,7 +41,7 @@ export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParamete
 
         this.source      = ensureArray(output.source);
         this.type        = new ParameterTypeModel(output.type, SBDraft2WorkflowOutputParameterModel, `${this.loc}.type`);
-        this.label       = output.label;
+        this._label       = output.label;
         this.description = output.description;
 
         spreadSelectProps(output, this.customProps, serializedKeys);

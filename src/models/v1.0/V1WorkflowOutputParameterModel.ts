@@ -8,6 +8,7 @@ import {
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 import {LinkMergeMethod} from "../../mappings/v1.0/LinkMergeMethod";
+import {EventHub} from "../helpers/EventHub";
 
 export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel {
     secondaryFiles?: V1ExpressionModel[];
@@ -15,8 +16,8 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
     streamable?: boolean;
     outputBinding?: V1CommandOutputBindingModel;
 
-    constructor(output?: WorkflowOutputParameter, loc?: string) {
-        super(loc);
+    constructor(output?: WorkflowOutputParameter, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         if (output) this.deserialize(output);
     }
 
@@ -28,7 +29,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
         this.id = output.id;
         this.source = ensureArray(output.outputSource);
         this.type = new ParameterTypeModel(output.type, V1WorkflowOutputParameterModel, `${this.loc}.type`);
-        this.label = output.label;
+        this._label = output.label;
         this.description = ensureArray(output.doc).join("\n\n");
 
         this.fileTypes = commaSeparatedToArray(output.format);
@@ -41,7 +42,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
 
         if (this.source.length) base.outputSource = this.source;
         if (this.type) base.type = this.type.serialize("v1.0");
-        if (this.label) base.label = this.label;
+        if (this._label) base.label = this._label;
         if (this.description) base.doc = this.description;
 
         return spreadAllProps(base, this.customProps);

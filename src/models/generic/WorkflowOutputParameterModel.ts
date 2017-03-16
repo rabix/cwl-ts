@@ -6,18 +6,36 @@ import {UnimplementedMethodException} from "../helpers/UnimplementedMethodExcept
 import {ParameterTypeModel} from "./ParameterTypeModel";
 import {LinkMergeMethod as SBDraft2LinkMergeMethod} from "../../mappings/v1.0/LinkMergeMethod";
 import {LinkMergeMethod as V1LinkMergeMethod} from "../../mappings/d2sb/LinkMergeMethod";
+import {EventHub} from "../helpers/EventHub";
 
 export class WorkflowOutputParameterModel extends ValidationBase implements Serializable<any>, Plottable {
     public id: string;
     public source: string[];
     public type: ParameterTypeModel;
     public description?: string;
-    public label?: string;
     public fileTypes: string[] = [];
+
+    protected _label?: string;
+
+    get label(): string {
+        return this._label;
+    }
+
+    set label(value: string) {
+        this._label = value;
+        this.eventHub.emit("io.change", this);
+    }
 
     public linkMerge: SBDraft2LinkMergeMethod | V1LinkMergeMethod;
 
     public isVisible = true;
+
+    protected eventHub: EventHub;
+
+    constructor(loc?, eventHub?) {
+        super(loc);
+        this.eventHub = eventHub;
+    }
 
     get destinationId(): string {
         return this.id;

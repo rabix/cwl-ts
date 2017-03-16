@@ -10,14 +10,15 @@ import {
 } from "../helpers/utils";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
+import {EventHub} from "../helpers/EventHub";
 
 export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
     public secondaryFiles?: Array<V1ExpressionModel>;
     public streamable?: boolean;
     public inputBinding?: V1CommandLineBindingModel;
 
-    constructor(input?: InputParameter | RecordField, loc?: string) {
-        super(loc);
+    constructor(input?: InputParameter | RecordField, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         if (input) this.deserialize(input);
     }
 
@@ -26,7 +27,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
         // @todo serialization of secondaryFiles, streamable, inputBinding
 
-        this.label = attr.label;
+        this._label = attr.label;
         this.description = ensureArray(attr.doc).join("\n\n");
 
         this.id = (<InputParameter> attr).id || (<RecordField> attr).name;
@@ -51,7 +52,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
         if (this.type.type) base.type = this.type.serialize("v1.0");
 
-        if (this.label) base.label = this.label;
+        if (this._label) base.label = this._label;
         if (this.description) base.doc = this.description;
 
         return spreadAllProps(base, this.customProps);
