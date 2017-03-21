@@ -116,6 +116,11 @@ export class SBDraft2StepModel extends StepModel {
             case "CommandLineTool":
                 this.run = CommandLineToolFactory.from(<CommandLineTool> process, `${this.loc}.run`);
                 break;
+            case "ExpressionTool":
+                this.run = new ExpressionToolModel(process);
+                break;
+            default:
+                throw new Error(`Unknown process class "${process.class}" at ${this.loc}.step. Expected "CommandLineTool", "Workflow", or "ExpressionTool"`);
         }
 
         this.id = this.id || snakeCase(this.run.id) || snakeCase(this.run.label) || snakeCase(this.loc);

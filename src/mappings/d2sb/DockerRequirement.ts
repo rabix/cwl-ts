@@ -1,8 +1,7 @@
 import {ProcessRequirement} from "./ProcessRequirement";
-export type DockerRequirementClass = "DockerRequirement";
 
 export interface DockerRequirement  extends ProcessRequirement {
-    class: DockerRequirementClass;
+    class: string;
     dockerPull?: string;
     dockerLoad?: string; //todo not used by sbg
     dockerFile?: string; //todo not used by sbg

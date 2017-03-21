@@ -10,6 +10,7 @@ import {CommandLineToolFactory} from "../generic/CommandLineToolFactory";
 import {OutputParameter} from "../generic/OutputParameter";
 import {InputParameterModel} from "../generic/InputParameterModel";
 import {EventHub} from "../helpers/EventHub";
+import {ExpressionToolModel} from "../generic/ExpressionToolModel";
 
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
     public "in": V1WorkflowStepInputModel[] = [];
@@ -118,6 +119,11 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             case "CommandLineTool":
                 this.run = CommandLineToolFactory.from(process as any, `${this.loc}.run`);
                 break;
+            case "ExpressionTool":
+                this.run = new ExpressionToolModel(process);
+                break;
+            default:
+                throw new Error(`Unknown process class "${process.class}" at ${this.loc}.step. Expected "CommandLineTool", "Workflow", or "ExpressionTool"`);
         }
 
         this.id    = this.id || snakeCase(this.run.id) || snakeCase(this.loc);
