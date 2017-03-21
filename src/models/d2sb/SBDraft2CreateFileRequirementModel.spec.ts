@@ -1,5 +1,5 @@
 import {expect} from "chai";
-import {CreateFileRequirementModel} from "./CreateFileRequirementModel";
+import {SBDraft2CreateFileRequirementModel} from "./SBDraft2CreateFileRequirementModel";
 import {CreateFileRequirementClass} from "../../mappings/d2sb/CreateFileRequirement";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
 import {FileDefModel} from "./FileDefModel";
@@ -25,7 +25,7 @@ describe("CreateFileRequirementModel", () => {
                 ]
             };
 
-            const req = new CreateFileRequirementModel(data);
+            const req = new SBDraft2CreateFileRequirementModel(data);
             expect(req.serialize()).to.deep.equal(data);
         });
 
@@ -40,7 +40,7 @@ describe("CreateFileRequirementModel", () => {
                 ]
             };
 
-            const req = new CreateFileRequirementModel(data);
+            const req = new SBDraft2CreateFileRequirementModel(data);
             expect(req.serialize()).to.deep.equal(data);
         });
 
@@ -59,7 +59,7 @@ describe("CreateFileRequirementModel", () => {
                 ]
             };
 
-            const req = new CreateFileRequirementModel(data);
+            const req = new SBDraft2CreateFileRequirementModel(data);
             expect(req.serialize()).to.deep.equal(data);
         });
     });
@@ -80,7 +80,7 @@ describe("CreateFileRequirementModel", () => {
                 ]
             };
 
-            const req = new CreateFileRequirementModel(data);
+            const req = new SBDraft2CreateFileRequirementModel(data);
 
             req.fileDef = [
                 new FileDefModel({

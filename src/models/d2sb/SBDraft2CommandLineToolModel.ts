@@ -2,22 +2,20 @@ import {SBDraft2CommandArgumentModel} from "./SBDraft2CommandArgumentModel";
 import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParameterModel";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
-import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
+import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParameterModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {JobHelper} from "../helpers/JobHelper";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {Validation} from "../helpers/validation";
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
-import {ProcessRequirementModel} from "./ProcessRequirementModel";
-import {DockerRequirementModel} from "./DockerRequirementModel";
+import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
+import {DockerRequirementModel} from "../generic/DockerRequirementModel";
 import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
-import {ExpressionEngineRequirementModel} from "./ExpressionEngineRequirementModel";
 import {DockerRequirement} from "../../mappings/d2sb/DockerRequirement";
-import {ExpressionEngineRequirement} from "../../mappings/d2sb/ExpressionEngineRequirement";
-import {RequirementBaseModel} from "./RequirementBaseModel";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {CreateFileRequirement} from "../../mappings/d2sb/CreateFileRequirement";
-import {CreateFileRequirementModel} from "./CreateFileRequirementModel";
+import {SBDraft2CreateFileRequirementModel} from "./SBDraft2CreateFileRequirementModel";
 import {SBGCPURequirement} from "../../mappings/d2sb/SBGCPURequirement";
 import {SBGMemRequirement} from "../../mappings/d2sb/SBGMemRequirement";
 import {ResourceRequirementModel} from "./ResourceRequirementModel";
@@ -25,6 +23,7 @@ import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
 import {snakeCase, spreadSelectProps} from "../helpers/utils";
+import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 
 export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
     public job: any;
@@ -35,9 +34,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     public cwlVersion = "sbg:draft-2";
 
-    public baseCommand: Array<SBDraft2ExpressionModel>       = [];
-    public inputs: Array<SBDraft2CommandInputParameterModel> = [];
-    public outputs: Array<CommandOutputParameterModel>       = [];
+    public baseCommand: Array<SBDraft2ExpressionModel>         = [];
+    public inputs: Array<SBDraft2CommandInputParameterModel>   = [];
+    public outputs: Array<SBDraft2CommandOutputParameterModel> = [];
 
     private sbgId: string;
 
@@ -47,7 +46,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     public requirements: Array<ProcessRequirementModel> = [];
 
-    public createFileRequirement: CreateFileRequirementModel;
+    public createFileRequirement: SBDraft2CreateFileRequirementModel;
 
     public hints: Array<ProcessRequirementModel> = [];
 
@@ -55,6 +54,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     public stdin: SBDraft2ExpressionModel;
     public stdout: SBDraft2ExpressionModel;
+    public hasStdErr = false;
 
     public successCodes: number[];
     public temporaryFailCodes: number[];
@@ -85,10 +85,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         return cmd;
     }
 
-    public addArgument(argument: SBDraft2CommandArgumentModel) {
-        argument     = argument || new SBDraft2CommandArgumentModel("");
-        argument.loc = `${this.loc}.arguments[${this.arguments.length}]`;
-
+    public addArgument(arg?: string | CommandLineBinding): SBDraft2CommandArgumentModel {
+        const argument     = new SBDraft2CommandArgumentModel(arg, `${this.loc}.arguments[${this.arguments.length}]`);
         this.arguments.push(argument);
 
         argument.setValidationCallback((err: Validation) => {
@@ -106,19 +104,18 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         }
     }
 
-    public addInput(input?: SBDraft2CommandInputParameterModel) {
-        input      = input || new SBDraft2CommandInputParameterModel();
-        input.loc  = `${this.loc}.inputs[${this.inputs.length}]`;
-        input.job  = this.job;
-        input.self = JobHelper.generateMockJobData(input);
+    public addInput(input?: CommandInputParameter): SBDraft2CommandInputParameterModel {
+        const i = new SBDraft2CommandInputParameterModel(input, `${this.loc}.inputs[${this.inputs.length}]`);
+        i.job   = this.job;
+        i.self  = JobHelper.generateMockJobData(i);
 
-        this.inputs.push(input);
+        this.inputs.push(i);
 
-        input.setValidationCallback((err: Validation) => {
+        i.setValidationCallback((err: Validation) => {
             this.updateValidity(err);
         });
 
-        return input;
+        return i;
     }
 
     public removeInput(input: SBDraft2CommandInputParameterModel | number) {
@@ -129,20 +126,18 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         }
     }
 
-    public addOutput(output: CommandOutputParameterModel) {
-        output     = output || new CommandOutputParameterModel();
-        output.loc = `${this.loc}.outputs[${this.outputs.length}]`;
+    public addOutput(output: CommandOutputParameter): SBDraft2CommandOutputParameterModel {
+        const o = new SBDraft2CommandOutputParameterModel(output, `${this.loc}.outputs[${this.outputs.length}]`);
+        this.outputs.push(o);
 
-        this.outputs.push(output);
-
-        output.setValidationCallback((err: Validation) => {
+        o.setValidationCallback((err: Validation) => {
             this.updateValidity(err);
         });
 
-        return output;
+        return o;
     }
 
-    public removeOutput(output: CommandOutputParameterModel | number) {
+    public removeOutput(output: SBDraft2CommandOutputParameterModel | number) {
         if (typeof output === "number") {
             this.outputs.splice(output, 1);
         } else {
@@ -229,7 +224,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     public resetJobDefaults() {
         this.jobInputs = JobHelper.getJob(this);
-        this.job = {inputs: this.jobInputs, allocatedResources: {mem: 1000, cpu: 1}};
+        this.job       = {inputs: this.jobInputs, allocatedResources: {mem: 1000, cpu: 1}};
         this.updateCommandLine();
     }
 
@@ -349,7 +344,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             "cwlVersion"
         ];
 
-        this.id =  tool["sbg:id"] && tool["sbg:id"].split("/").length > 3 ?
+        this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 3 ?
             tool["sbg:id"].split("/")[2] :
             snakeCase(tool.id);
 
@@ -358,16 +353,13 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.label       = tool.label;
         this.description = tool.description;
 
-        tool.inputs.forEach((input, index) => {
-            this.addInput(new SBDraft2CommandInputParameterModel(input, `${this.loc}.inputs[${index}]`));
-        });
-        tool.outputs.forEach((output, index) => {
-            this.addOutput(new CommandOutputParameterModel(output, `${this.loc}.outputs[${index}]`))
-        });
+        tool.inputs.forEach(i => this.addInput(i));
+
+        tool.outputs.forEach(o => this.addOutput(o));
 
         if (tool.arguments) {
             tool.arguments.forEach((arg, index) => {
-                this.addArgument(new SBDraft2CommandArgumentModel(arg, `${this.loc}.arguments[${index}]`));
+                this.addArgument(arg);
             });
         }
 
@@ -429,23 +421,25 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         switch (req.class) {
             case "DockerRequirement":
-                this.docker = new DockerRequirementModel(<DockerRequirement>req, loc);
+                this.docker = new DockerRequirementModel(req, loc);
+                this.docker.setValidationCallback(err => this.updateValidity(err));
                 return;
-            case "ExpressionEngineRequirement":
-                reqModel = new ExpressionEngineRequirementModel(<ExpressionEngineRequirement>req, loc);
-                break;
             case "CreateFileRequirement":
-                reqModel                   = new CreateFileRequirementModel(<CreateFileRequirement>req, loc);
-                this.createFileRequirement = <CreateFileRequirementModel> reqModel;
+                reqModel                   = new SBDraft2CreateFileRequirementModel(<CreateFileRequirement>req, loc);
+                this.createFileRequirement = <SBDraft2CreateFileRequirementModel> reqModel;
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:CPURequirement":
-                reqModel           = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                reqModel           = new ResourceRequirementModel(<
+                    SBGCPURequirement
+                    | SBGMemRequirement>req, loc);
                 this.resources.cpu = <ResourceRequirementModel>reqModel;
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:MemRequirement":
-                reqModel           = new ResourceRequirementModel(<SBGCPURequirement | SBGMemRequirement>req, loc);
+                reqModel           = new ResourceRequirementModel(<
+                    SBGCPURequirement
+                    | SBGMemRequirement>req, loc);
                 this.resources.mem = <ResourceRequirementModel>reqModel;
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
@@ -454,9 +448,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         }
         if (reqModel) {
             this[property].push(reqModel);
-            reqModel.setValidationCallback((err: Validation) => {
-                this.updateValidity(err);
-            });
+            reqModel.setValidationCallback((err) => this.updateValidity(err));
         }
     }
 }

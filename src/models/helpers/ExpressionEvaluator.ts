@@ -1,28 +1,58 @@
 import {JSExecutor} from "./JSExecutor";
 import {Expression as ExpressionD2} from "../../mappings/d2sb/Expression";
-import {Expression as ExpressionV1} from "../../mappings/v1.0/Expression";
 
 export class ExpressionEvaluator {
-    public static evaluate(expr: string | ExpressionV1, job?: any, self?: any): Promise<any> {
-        let results: Promise<any>[] = ExpressionEvaluator.grabExpressions(expr).map(token => {
-            switch (token.type) {
-                case "func":
-                    return JSExecutor.evaluate("v1.0", "(function() {" + token.value + "})()", job, self);
-                case "expr":
-                    return JSExecutor.evaluate("v1.0", token.value, job, self);
-                case "literal":
-                    return new Promise(res => res(token.value));
-            }
-        });
+    public static evaluate(expr: number | string | ExpressionD2, context: any = {}, version:
+                               "v1.0"
+                               | "draft-2"): Promise<any> {
 
-        if (results.length === 1) {
-            return results[0];
-        } else {
-            return Promise.all(results).then(res => res.join(""));
+        if (version === "v1.0") {
+            if (typeof expr === "number") {
+                expr = expr.toString();
+            } else if (typeof expr === "object") {
+                return new Promise((res, rej) => {
+                    rej(`Unexpected object type when evaluating v1.0 Expression: ${expr}`)
+                });
+            }
+
+            try {
+                let results: Promise<any>[] = ExpressionEvaluator.grabExpressions(expr).map(token => {
+                    switch (token.type) {
+                        case "func":
+                            return JSExecutor.evaluate("(function() {" + token.value + "})()", context);
+                        case "expr":
+                            return JSExecutor.evaluate(token.value, context);
+                        case "literal":
+                            return new Promise(res => res(token.value));
+                    }
+                });
+
+                if (results.length === 1) {
+                    return results[0];
+                } else {
+                    return Promise.all(results).then(res => res.join(""));
+                }
+            } catch (ex) {
+                return new Promise((res, rej) => {
+                    rej(ex);
+                });
+            }
+
+        } else if (version === "draft-2") {
+            if (typeof expr === "string" || typeof expr === "number") {
+                return new Promise(res => res(expr));
+            } else {
+                let script = expr.script.trim().charAt(0) === '{'
+                    ? "(function()" + expr.script + ")()"
+                    : expr.script;
+
+                return JSExecutor.evaluate(script, context);
+            }
         }
+
     }
 
-    public static evaluateD2(expr: number | string | ExpressionD2, job?: any, self?: any): Promise<any> {
+    public static evaluateD2(expr: number | string | ExpressionD2, context?: any): Promise<any> {
         if (typeof expr === "string" || typeof expr === "number") {
             return new Promise(res => res(expr));
         } else {
@@ -30,12 +60,12 @@ export class ExpressionEvaluator {
                 ? "(function()" + expr.script + ")()"
                 : expr.script;
 
-            return JSExecutor.evaluate("draft-2", script, job, self);
+            return JSExecutor.evaluate(script, context);
         }
     }
 
-    public static grabExpressions(exprStr: string): exprObj[] {
-        let tokens: exprObj[] = [];
+    public static grabExpressions(exprStr: string): ExprObj[] {
+        let tokens: ExprObj[] = [];
         let i                 = 0;
         let state             = State.LITERAL;
         let literal           = "";
@@ -127,14 +157,15 @@ export class ExpressionEvaluator {
         }
 
         if (state === State.EXPR || state === State.FUNC) {
-            throw("Invalid expression");
+            // if expression is invalid, treat the whole thing as a literal
+            tokens = [{value: exprStr, type: "literal"}];
         }
         return tokens;
     }
 }
 
-export interface exprObj {
-    type: string;
+export interface ExprObj {
+    type: "func" | "literal" | "expr";
     value: string;
 }
 

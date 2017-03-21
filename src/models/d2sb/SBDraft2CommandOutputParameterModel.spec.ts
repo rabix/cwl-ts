@@ -1,17 +1,17 @@
 import {expect} from "chai";
-import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
+import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParameterModel";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
-import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
+import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
 
-describe("CommandOutputParameterModel d2sb", () => {
+describe("SBDraft2CommandOutputParameterModel", () => {
     describe("constructor", () => {
         it("Should initialize with an empty constructor", () => {
-            const out = new CommandOutputParameterModel();
+            const out = new SBDraft2CommandOutputParameterModel();
             expect(out).to.not.be.undefined;
         });
 
         it("Should have a glob object if instantiated without params", () => {
-            const out = new CommandOutputParameterModel();
+            const out = new SBDraft2CommandOutputParameterModel();
             expect(out).to.not.be.undefined;
             expect(out.outputBinding.glob).to.not.be.undefined;
             expect(out.outputBinding.glob.serialize()).to.be.undefined;
@@ -37,7 +37,7 @@ describe("CommandOutputParameterModel d2sb", () => {
                 "sbg:fileTypes": "CTX"
             };
 
-            const out = new CommandOutputParameterModel(obj);
+            const out = new SBDraft2CommandOutputParameterModel(obj);
             expect(out.serialize()).to.deep.equal(obj);
         });
 
@@ -50,7 +50,7 @@ describe("CommandOutputParameterModel d2sb", () => {
                 "id": "#result"
             };
 
-            const out = new CommandOutputParameterModel(obj);
+            const out = new SBDraft2CommandOutputParameterModel(obj);
             expect(out.serialize()).to.deep.equal(obj);
         });
 
@@ -69,12 +69,12 @@ describe("CommandOutputParameterModel d2sb", () => {
                 }
             };
 
-            const out = new CommandOutputParameterModel(obj);
+            const out = new SBDraft2CommandOutputParameterModel(obj);
             expect(out.serialize()).to.deep.equal(obj);
         });
 
         it("Should remove secondaryFiles if type is not file", () => {
-            const out = new CommandOutputParameterModel({
+            const out = new SBDraft2CommandOutputParameterModel({
                 "type": [
                     "null",
                     "string"
@@ -117,13 +117,13 @@ describe("CommandOutputParameterModel d2sb", () => {
                 "sbg:fileTypes": "CTX"
             };
 
-            const out = new CommandOutputParameterModel(obj);
+            const out = new SBDraft2CommandOutputParameterModel(obj);
             const binding = {
                 secondaryFiles: [".txt", ".bai"],
                 glob: "*.txt"
             };
 
-            out.updateOutputBinding(new CommandOutputBindingModel(binding));
+            out.updateOutputBinding(new SBDraft2CommandOutputBindingModel(binding));
             expect(out.serialize()).to.deep.equal({
                 "type": [
                     "null",
@@ -154,7 +154,7 @@ describe("CommandOutputParameterModel d2sb", () => {
                 "sbg:fileTypes": "CTX"
             };
 
-            const out = new CommandOutputParameterModel(obj);
+            const out = new SBDraft2CommandOutputParameterModel(obj);
 
             out.updateOutputBinding(null);
             expect(out.serialize()).to.deep.equal({

@@ -7,7 +7,9 @@ import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
 export class V1CommandArgumentModel extends CommandArgumentModel implements Serializable<
     CommandLineBinding
     | string> {
-    private primitiveVal: V1ExpressionModel;
+    protected binding: V1CommandLineBindingModel;
+              primitive: V1ExpressionModel;
+              hasExprPrimitive = true;
 
     constructor(arg?: CommandLineBinding | string, loc?: string) {
         super(loc);
@@ -16,11 +18,38 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
     }
 
     get arg(): string | CommandLineBinding | V1CommandLineBindingModel {
-        return this.primitiveVal ? this.primitiveVal.serialize() : this.binding;
+        return this.primitive || this.binding;
     }
 
     set arg(value: string | CommandLineBinding | V1CommandLineBindingModel) {
         this.deserialize(value);
+    }
+
+    toggleBinding(state: boolean): void {
+        if (state) {
+            this.binding = new V1CommandLineBindingModel({}, this.loc);
+            this.primitive = undefined;
+        } else {
+            this.primitive = new V1ExpressionModel("", this.loc);
+            this.binding = undefined;
+        }
+
+        this.hasBinding = state;
+    }
+
+    updatePrimitive(str: string): any {
+        this.hasBinding = false;
+        this.binding    = undefined;
+
+        this.primitive.setValue(str);
+    }
+
+    updateBinding(binding: CommandLineBinding) {
+        this.primitive  = undefined;
+        this.hasBinding = true;
+
+        this.binding = new V1CommandLineBindingModel(binding, this.loc);
+        this.binding.setValidationCallback(err => this.updateValidity(err));
     }
 
     serialize(): CommandLineBinding | string {
@@ -28,22 +57,33 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
             return this.binding.serialize();
         }
 
-        if (this.primitiveVal) {
-            return this.primitiveVal.serialize();
+        if (this.primitive) {
+            return this.primitive.serialize();
         }
 
         return "";
     }
 
+    toString(): string {
+        if (this.primitive) return this.primitive.serialize();
+
+        if (this.binding) {
+            return this.binding.valueFrom.toString();
+        }
+    }
+
     deserialize(attr: string | CommandLineBinding | V1CommandLineBindingModel): void {
         if (typeof attr === 'string') {
-            this.primitiveVal = new V1ExpressionModel(attr, this.loc);
-            this.primitiveVal.setValidationCallback(err => this.updateValidity(err));
+            this.hasBinding = false;
+            this.primitive  = new V1ExpressionModel(attr, this.loc);
+            this.primitive.setValidationCallback(err => this.updateValidity(err));
         } else if (attr instanceof V1CommandLineBindingModel) {
-            this.binding = new V1CommandLineBindingModel(attr.serialize());
+            this.hasBinding = true;
+            this.binding    = new V1CommandLineBindingModel(attr.serialize());
             this.binding.setValidationCallback(err => this.updateValidity(err));
         } else if (typeof attr === 'object') {
-            this.binding = new V1CommandLineBindingModel(attr, this.loc);
+            this.hasBinding = true;
+            this.binding    = new V1CommandLineBindingModel(attr, this.loc);
             this.binding.setValidationCallback(err => this.updateValidity(err));
         }
     }

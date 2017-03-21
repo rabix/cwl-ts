@@ -3,10 +3,10 @@ import {Serializable} from "../interfaces/Serializable";
 import {Expression} from "../../mappings/v1.0/Expression";
 import {LinkMergeMethod} from "../../mappings/v1.0/LinkMergeMethod";
 import {StepModel} from "./StepModel";
-import {InputParameterTypeModel} from "./InputParameterTypeModel";
 import {Plottable} from "./Plottable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {STEP_INPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {ParameterTypeModel} from "./ParameterTypeModel";
 
 export class WorkflowStepInputModel extends ValidationBase implements Serializable<any>, Plottable {
     id: string;
@@ -17,7 +17,7 @@ export class WorkflowStepInputModel extends ValidationBase implements Serializab
     label: string;
     description: string;
 
-    type?: InputParameterTypeModel;
+    type?: ParameterTypeModel;
     fileTypes: string[] = [];
 
     constructor(loc?: string){

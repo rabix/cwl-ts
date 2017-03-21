@@ -90,8 +90,11 @@ describe("ExpressionEvaluator", () => {
             expect(tokens[0].type).to.equal("expr");
         });
 
-        it("should thrown an exception for improperly written expression", () => {
-            expect(ExpressionEvaluator.grabExpressions.bind(null, "$(function() {if (true) {return false;}}")).to.throw("Invalid expression");
+        it("should return literal if expression is incomplete or invalid", () => {
+            const tokens = ExpressionEvaluator.grabExpressions("$(function() {if (true) {return false;}}");
+
+            expect(tokens).to.have.length(1);
+            expect(tokens[0].type).to.equal("literal");
         });
 
         it("should allow for dollar signs if they're escaped", () => {
@@ -105,37 +108,37 @@ describe("ExpressionEvaluator", () => {
 
     describe("evaluate", () => {
         it("should evaluate a string", (done) => {
-            ExpressionEvaluator.evaluate("hello world").then(res => {
+            ExpressionEvaluator.evaluate("hello world", null, "v1.0").then(res => {
                  expect(res).to.equal("hello world");
             }).then(done, done)
         });
 
         it("should evaluate 3 + 3 expression", (done) => {
-            ExpressionEvaluator.evaluate("$(3 + 3)").then(res => {
+            ExpressionEvaluator.evaluate("$(3 + 3)", null, "v1.0").then(res => {
                 expect(res).to.equal(6);
             }).then(done, done);
         });
 
         it("should evaluate 3 + 7 function", (done) => {
-            ExpressionEvaluator.evaluate("${return 3 + 7;}").then(res => {
+            ExpressionEvaluator.evaluate("${return 3 + 7;}", null, "v1.0").then(res => {
                 expect(res).to.equal(10);
             }).then(done, done);
         });
 
         it("should concat values of two expressions", (done) => {
-            ExpressionEvaluator.evaluate("$(3 + 3)$(9 + 1)").then(res => {
+            ExpressionEvaluator.evaluate("$(3 + 3)$(9 + 1)", null, "v1.0").then(res => {
                 expect(res).to.equal("610");
             }).then(done, done);
         });
 
         it("should concat value of expression and literal", (done) => {
-            ExpressionEvaluator.evaluate("$(3 + 3) + 3").then(res => {
+            ExpressionEvaluator.evaluate("$(3 + 3) + 3", null, "v1.0").then(res => {
                 expect(res).to.equal("6 + 3");
             }).then(done, done);
         });
 
         it("should concat value of function and literal", (done) => {
-            ExpressionEvaluator.evaluate("$(3 + 3) + ${ return 5}").then(res => {
+            ExpressionEvaluator.evaluate("$(3 + 3) + ${ return 5}", null, "v1.0").then(res => {
                 expect(res).to.equal("6 + 5");
             }).then(done, done);
         });
@@ -143,7 +146,8 @@ describe("ExpressionEvaluator", () => {
         it("should evaluate an expression with an inputs reference", (done) => {
             ExpressionEvaluator.evaluate(
                 "${ return inputs.text }",
-                {text: "hello"}
+                {inputs: {text: "hello"}},
+                "v1.0"
             ).then(res => {
                 expect(res).to.equal("hello");
             }).then(done, done);
@@ -152,8 +156,8 @@ describe("ExpressionEvaluator", () => {
         it("should evaluate an expression with a self reference", (done) => {
             ExpressionEvaluator.evaluate(
                 "${ return self.prop }",
-                null,
-                {prop: "baz"}
+                {self: {prop: "baz"}},
+                "v1.0"
             ).then(res => {
                 expect(res).to.equal("baz");
             }).then(done, done);

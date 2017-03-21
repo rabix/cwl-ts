@@ -1,9 +1,9 @@
 import {ValidationBase} from "../helpers/validation/ValidationBase";
-import {InputParameterTypeModel} from "./InputParameterTypeModel";
+import {ParameterTypeModel} from "./ParameterTypeModel";
 
 export abstract class InputParameterModel extends ValidationBase {
     id: string;
-    type: InputParameterTypeModel;
+    type: ParameterTypeModel;
     label?: string;
     description?: string;
 

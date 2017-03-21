@@ -3,6 +3,7 @@ import {Serializable} from "../interfaces/Serializable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 
 export abstract class ExpressionModel extends ValidationBase implements Serializable<any> {
     public customProps = {};
@@ -74,8 +75,7 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
     /**
      * Sets value of expression.script or primitive based on type parameter.
      */
-    public setValue(val: number | string | SBDraft2Expression | V1Expression, type:
-                        "expression"
+    public setValue(val: number | string | SBDraft2Expression | V1Expression, type: "expression"
                         | "string"
                         | "number") {
         new UnimplementedMethodException("setValue", "ExpressionModel");
@@ -90,13 +90,33 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
         return null;
     }
 
-    /**
-     * Wraps expression.script (if set) for execution. If not set, returns undefined.
-     *
-     * @returns {string|undefined}
-     */
-    public getScriptForExec(): string {
-        new UnimplementedMethodException("getScriptForExec", "ExpressionModel");
-        return null;
+    protected _evaluate(value: number | string | SBDraft2Expression, context: any, version: "v1.0" | "draft-2"): Promise<any> {
+
+        return new Promise((res, rej) => {
+            ExpressionEvaluator.evaluate(value, context, version).then(suc => {
+                this.result = suc;
+                res(suc !== undefined ? suc : "");
+            }, ex => {
+                const err = {loc: this.loc, message: ex.toString()};
+
+                if (ex.name === "SyntaxError") {
+                    this.validation = {
+                        errors: [err],
+                        warnings: []
+                    };
+
+                    rej(Object.assign({type: "error"}, err));
+                } else {
+                    this.validation = {
+                        warnings: [err],
+                        errors: []
+                    };
+
+                    rej(Object.assign({type: "warning"}, err));
+                }
+            });
+        });
+
     }
+
 }

@@ -1,5 +1,5 @@
 import {expect} from "chai";
-import {RequirementBaseModel} from "./RequirementBaseModel";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
 

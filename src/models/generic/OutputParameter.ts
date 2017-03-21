@@ -1,8 +1,8 @@
-import {OutputParameterTypeModel} from "./OutputParameterTypeModel";
+import {ParameterTypeModel} from "./ParameterTypeModel";
 
 export interface OutputParameter {
     id: string;
-    type: OutputParameterTypeModel;
+    type: ParameterTypeModel;
     label?: string;
     description?: string;
 

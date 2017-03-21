@@ -1,9 +1,45 @@
-import {OutputParameterTypeModel} from "./OutputParameterTypeModel";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
+import {ParameterTypeModel} from "./ParameterTypeModel";
+import {Serializable} from "../interfaces/Serializable";
+import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
+import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
+import {ExpressionModel} from "./ExpressionModel";
 
-export class CommandOutputParameterModel extends ValidationBase {
-    id: string;
-    type: OutputParameterTypeModel;
+export class CommandOutputParameterModel extends ValidationBase implements Serializable<any>{
+    /** Unique identifier of output */
+    public id: string;
+    /** Human readable short name */
+    public label: string;
+    /** Human readable description */
+    public description: string;
+    /** Description of file types expected for output to be */
+    public fileTypes: string[];
 
-    fileTypes?: string[];
+    public secondaryFiles: ExpressionModel[];
+
+    public hasSecondaryFiles: boolean;
+
+    /** Complex object that holds logic and information about output's type property */
+    public type: ParameterTypeModel;
+
+    /** Flag if output is field of a parent record. Derived from type */
+    public isField: boolean;
+
+    /** Binding for connecting output files and CWL output description */
+    public outputBinding: CommandOutputBindingModel;
+
+    public customProps: any = {};
+
+    public updateOutputBinding(binding?: CommandOutputBindingModel) {
+        new UnimplementedMethodException("updateOutputBinding", "CommandOutputParameterModel");
+    }
+
+    serialize(): any {
+        new UnimplementedMethodException("serialize", "CommandOutputParameterModel");
+        return null;
+    }
+
+    deserialize(attr: any): void {
+        new UnimplementedMethodException("deserialize", "CommandOutputParameterModel");
+    }
 }

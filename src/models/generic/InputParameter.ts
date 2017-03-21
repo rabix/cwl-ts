@@ -1,8 +1,7 @@
-import {InputParameterTypeModel} from "./InputParameterTypeModel";
-
+import {ParameterTypeModel} from "./ParameterTypeModel";
 export interface InputParameter {
     id: string;
-    type: InputParameterTypeModel;
+    type: ParameterTypeModel;
     label?: string;
     description?: string;
 

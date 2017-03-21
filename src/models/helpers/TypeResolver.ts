@@ -224,7 +224,7 @@ export class TypeResolver {
         }
 
         if (type.isNullable) {
-            t = version === "v1.0" ? `${t}?` : ["null", t];
+            t = version === "v1.0" && typeof t === "string" ? `${t}?` : ["null", t];
         } else if (version !== "v1.0") {
             t = [t];
         }

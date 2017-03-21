@@ -1,11 +1,11 @@
-import {ProcessRequirementModel} from "./ProcessRequirementModel";
+import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {CreateFileRequirementClass} from "../../mappings/d2sb/CreateFileRequirement";
 import {CreateFileRequirement} from "../../mappings/d2sb/CreateFileRequirement";
 import {FileDef} from "../../mappings/d2sb/FileDef";
 import {Serializable} from "../interfaces/Serializable";
 import {FileDefModel} from "./FileDefModel";
 
-export class CreateFileRequirementModel extends ProcessRequirementModel implements Serializable<CreateFileRequirement> {
+export class SBDraft2CreateFileRequirementModel extends ProcessRequirementModel implements Serializable<CreateFileRequirement> {
     public 'class': CreateFileRequirementClass = "CreateFileRequirement";
     private _fileDef: FileDefModel[];
 

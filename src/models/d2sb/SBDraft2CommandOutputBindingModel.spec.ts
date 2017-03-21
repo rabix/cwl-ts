@@ -1,12 +1,12 @@
 import {expect} from "chai";
-import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
+import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 
-describe("CommandOutputBindingModel d2sb", () => {
+describe("SBDraft2CommandOutputBindingModel", () => {
     describe("constructor", () => {
         it("should create model from blank object", () => {
-            const bind = new CommandOutputBindingModel();
+            const bind = new SBDraft2CommandOutputBindingModel();
 
             expect(bind).to.have.property("glob");
             expect(bind).to.have.property("loadContents");
@@ -23,7 +23,7 @@ describe("CommandOutputBindingModel d2sb", () => {
                 glob: "*.bowtie.csorted.bam",
                 "sbg:inheritMetadataFrom": "#reads"
             };
-            const bind = new CommandOutputBindingModel(obj);
+            const bind = new SBDraft2CommandOutputBindingModel(obj);
             expect(bind.serialize()).to.deep.equal(obj);
         });
 
@@ -41,7 +41,7 @@ describe("CommandOutputBindingModel d2sb", () => {
                 "sbg:inheritMetadataFrom": "#input_bam_file"
             };
 
-            const bind = new CommandOutputBindingModel(obj);
+            const bind = new SBDraft2CommandOutputBindingModel(obj);
             expect(bind.serialize()).to.deep.equal(obj);
         });
 
@@ -63,7 +63,7 @@ describe("CommandOutputBindingModel d2sb", () => {
                 "sbg:inheritMetadataFrom": "#input_bam_file"
             };
 
-            const bind = new CommandOutputBindingModel(obj);
+            const bind = new SBDraft2CommandOutputBindingModel(obj);
             expect(bind.serialize()).to.deep.equal(obj);
         });
     });
@@ -74,7 +74,7 @@ describe("CommandOutputBindingModel d2sb", () => {
                 glob: "*.txt"
             };
 
-            const bind = new CommandOutputBindingModel(obj, "binding");
+            const bind = new SBDraft2CommandOutputBindingModel(obj, "binding");
 
             expect(bind.serialize().secondaryFiles).to.be.undefined;
             expect(bind.serialize()).to.not.haveOwnProperty("secondaryFiles");
@@ -88,7 +88,7 @@ describe("CommandOutputBindingModel d2sb", () => {
                 ]
             };
 
-            const bind = new CommandOutputBindingModel(obj, "binding");
+            const bind = new SBDraft2CommandOutputBindingModel(obj, "binding");
             expect(bind.secondaryFiles[1].serialize()).to.equal(".bti");
 
             bind.updateSecondaryFile(new SBDraft2ExpressionModel("", ".txt"), 1);
@@ -105,7 +105,7 @@ describe("CommandOutputBindingModel d2sb", () => {
                 ]
             };
 
-            const bind = new CommandOutputBindingModel(obj, "binding");
+            const bind = new SBDraft2CommandOutputBindingModel(obj, "binding");
             expect(bind.secondaryFiles).to.have.length(2);
 
             bind.removeSecondaryFile(0);
@@ -124,7 +124,7 @@ describe("CommandOutputBindingModel d2sb", () => {
                 ]
             };
 
-            const bind = new CommandOutputBindingModel(obj, "binding");
+            const bind = new SBDraft2CommandOutputBindingModel(obj, "binding");
 
             bind.addSecondaryFile(new SBDraft2ExpressionModel("", ".txt"));
 
@@ -138,7 +138,7 @@ describe("CommandOutputBindingModel d2sb", () => {
 
     describe("outputEval", () => {
         it("should display error if outputEval is not an expression", () => {
-            const bind = new CommandOutputBindingModel({}, "binding");
+            const bind = new SBDraft2CommandOutputBindingModel({}, "binding");
 
             bind.updateOutputEval(new SBDraft2ExpressionModel("", "string value"));
             expect(bind.validation.errors).to.not.be.empty;
@@ -146,7 +146,7 @@ describe("CommandOutputBindingModel d2sb", () => {
         });
 
         it("should set outputEval that is an expression", () => {
-            const bind = new CommandOutputBindingModel({}, "binding");
+            const bind = new SBDraft2CommandOutputBindingModel({}, "binding");
             const expr = {
                 "class": <ExpressionClass> "Expression",
                 engine: "",
@@ -162,7 +162,7 @@ describe("CommandOutputBindingModel d2sb", () => {
         });
 
         it("should not serialize blank outputEval", () => {
-            const bind = new CommandOutputBindingModel({}, "binding");
+            const bind = new SBDraft2CommandOutputBindingModel({}, "binding");
             const expr = {
                 "class": <ExpressionClass> "Expression",
                 engine: "",

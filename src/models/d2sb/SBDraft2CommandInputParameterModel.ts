@@ -9,28 +9,18 @@ import {CommandInputParameterModel} from "../generic/CommandInputParameterModel"
 import {spreadSelectProps} from "../helpers/utils";
 import {ID_REGEX} from "../helpers/constants";
 
-export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter | CommandInputRecordField> {
-    /** unique identifier of input */
-    public id: string;
-    /** Human readable short name */
-    public label: string;
-    /** Human readable description */
-    public description: string;
-
-    /** Flag if input is field of a parent record. Derived from type field */
-    public isField: boolean = false;
-
-    /** Complex object that holds logic and information about input's type property */
-    public type: ParameterTypeModel;
-
+export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<
+    CommandInputParameter
+    | CommandInputRecordField> {
     /** Binding for inclusion in command line */
     public inputBinding: SBDraft2CommandLineBindingModel = null;
+
+    public hasSecondaryFiles = false;
+    public hasStageInput = true;
 
     public job: any;
 
     public self: any;
-
-    public customProps: any = {};
 
     constructor(input?: CommandInputParameter | CommandInputRecordField, loc?: string) {
         super(loc);
@@ -38,7 +28,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
     }
 
     serialize(): CommandInputParameter | CommandInputRecordField {
-        let base: any = {... this.customProps};
+        let base: any = {...this.customProps};
 
         base.type = this.type.serialize();
 
@@ -65,7 +55,6 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
     deserialize(input: CommandInputParameter | CommandInputRecordField): void {
         const serializedAttr = ["label", "description", "inputBinding", "type"];
 
-        const isNew = input === undefined;
         input = input || <CommandInputParameter | CommandInputRecordField>{};
 
         this.isField = !!(<CommandInputRecordField> input).name; // record fields don't have ids
@@ -82,10 +71,8 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         this.description = input.description;
 
         // if inputBinding isn't defined in input, it shouldn't exist as an object in model
-        this.inputBinding = (input.inputBinding !== undefined || isNew) ?
-            new SBDraft2CommandLineBindingModel(input.inputBinding, `${this.loc}.inputBinding`) : undefined;
-
-        if (this.inputBinding) {
+        if (input.inputBinding !== undefined) {
+            this.inputBinding = new SBDraft2CommandLineBindingModel(input.inputBinding, `${this.loc}.inputBinding`);
             this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
         }
 
@@ -98,26 +85,19 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         spreadSelectProps(input, this.customProps, serializedAttr);
     }
 
-    public updateInputBinding(binding: SBDraft2CommandLineBindingModel|CommandLineBinding) {
+    public updateInputBinding(binding: SBDraft2CommandLineBindingModel | CommandLineBinding) {
         if (binding instanceof SBDraft2CommandLineBindingModel) {
             binding = (binding as SBDraft2CommandLineBindingModel).serialize();
         }
         this.inputBinding = new SBDraft2CommandLineBindingModel(<CommandLineBinding> binding, `${this.loc}.inputBinding`);
-        this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
+        this.inputBinding.setValidationCallback(err => this.updateValidity(err));
 
     }
 
-    public createInputBinding() {
+    public createInputBinding(): SBDraft2CommandLineBindingModel {
         this.inputBinding = new SBDraft2CommandLineBindingModel({}, `${this.loc}.inputBinding`);
-        this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
-    }
-
-    public removeInputBinding(): void {
-        this.inputBinding = null;
-    }
-
-    public get isBound(): boolean {
-        return this.inputBinding !== undefined && this.inputBinding !== null;
+        this.inputBinding.setValidationCallback(err => this.updateValidity(err));
+        return this.inputBinding;
     }
 
     //@todo(maya) implement validation

@@ -38,7 +38,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
         this.itemSeparator = binding.itemSeparator;
         this.loadContents  = binding.loadContents === true;
 
-        this.valueFrom = new V1ExpressionModel(`${this.loc}.valueFrom`, binding.valueFrom);
+        this.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`);
         this.valueFrom.setValidationCallback(err => this.updateValidity(err));
 
         spreadSelectProps(binding, this.customProps, this.serializedKeys);

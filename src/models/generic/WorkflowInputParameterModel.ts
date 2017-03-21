@@ -1,15 +1,15 @@
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
-import {InputParameterTypeModel} from "./InputParameterTypeModel";
 import {InputParameter} from "./InputParameter";
 import {Plottable} from "./Plottable";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {EventHub} from "../helpers/EventHub";
+import {ParameterTypeModel} from "./ParameterTypeModel";
 
 export class WorkflowInputParameterModel extends ValidationBase implements InputParameter, Serializable<any>, Plottable {
     public id: string;
-    public type: InputParameterTypeModel;
+    public type: ParameterTypeModel;
     public fileTypes: string[] = [];
 
     public inputBinding?: any;

@@ -1,9 +1,8 @@
-import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 declare function require(name: string);
 const vm = require('vm');
 
 export class JSExecutor {
-    static evaluate(version: CWLVersion, expr: string, job?: any, self?: any): Promise<any> {
+    static evaluate(expr: string, context?: any): Promise<any> {
         const options = {
             displayErrors: true,
             timeout: 1000
@@ -20,22 +19,7 @@ export class JSExecutor {
             })
         }
 
-        let context = {};
-
-        switch (version) {
-            case "draft-2":
-                context = {
-                    $job: job,
-                    $self: self
-                };
-                break;
-            case "v1.0":
-                context = {
-                    inputs: job,
-                    self: self
-                };
-                break;
-        }
+        context = context || {};
 
         return new Promise((res, rej) => {
             try {

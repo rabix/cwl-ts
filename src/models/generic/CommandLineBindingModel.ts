@@ -17,6 +17,8 @@ export abstract class CommandLineBindingModel extends ValidationBase implements 
 
     public hasSecondaryFiles: boolean;
 
+    public secondaryFiles?: ExpressionModel[];
+
     setValueFrom(val: string | SBDraft2Expression | V1Expression) {
         new UnimplementedMethodException("setValueFrom", "CommandLineBindingModel");
     }

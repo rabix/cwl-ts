@@ -225,7 +225,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         }
     }
 
-    addField(field: any) {
+    addField(field?: any): any {
         if (this.type !== "record" && this.items !== "record") {
             throw(`Fields can only be added to type or items record: type is ${this.type}, items is ${this.items}.`);
         } else {
@@ -248,6 +248,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 });
 
                 this.fields.push(field);
+                return field;
             } else {
                 const f = new this.fieldConstructor(field, `${this.loc}.fields[${this.fields.length}]`);
                 f.setValidationCallback((err: Validation) => {
@@ -255,6 +256,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 });
 
                 this.fields.push(f);
+                return f;
             }
         }
     }

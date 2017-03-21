@@ -43,16 +43,16 @@ describe("ParameterTypeModel", () => {
                 fields: [
                     {
                         name: "child",
-                        type: [{
+                        type: {
                             name: "child",
                             type: "record",
                             fields: [
                                 {
                                     name: "grandchild",
-                                    type: ["string"]
+                                    type: "string"
                                 }
                             ]
-                        }]
+                        }
                     }
                 ]
             }];
@@ -93,6 +93,21 @@ describe("ParameterTypeModel", () => {
             expect(type.fields[0].type.type).to.equal("record");
             expect(type.fields[0].type.fields[0].id).to.equal("grandchild");
 
+            expect(type.serialize("v1.0")).to.deep.equal(data);
+        });
+
+        it("should create optional enum", () => {
+            const data = ["null", {
+                type: "enum",
+                symbols: ["one", "two", "three"],
+                name: "enum"
+
+            }];
+
+            const type = new ParameterTypeModel(data, V1CommandInputParameterModel);
+
+            expect(type.type).to.equal("enum");
+            expect(type.symbols).to.deep.equal(["one", "two", "three"]);
             expect(type.serialize("v1.0")).to.deep.equal(data);
         });
     })

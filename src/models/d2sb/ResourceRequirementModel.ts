@@ -1,4 +1,4 @@
-import {ProcessRequirementModel} from "./ProcessRequirementModel";
+import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {SBGCPURequirementClass} from "../../mappings/d2sb/SBGCPURequirement";
 import {SBGMemRequirementClass, SBGMemRequirement} from "../../mappings/d2sb/SBGMemRequirement";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";

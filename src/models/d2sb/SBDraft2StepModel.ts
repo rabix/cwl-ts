@@ -128,10 +128,21 @@ export class SBDraft2StepModel extends StepModel {
         let base: WorkflowStep = <WorkflowStep> {};
 
         base.id = "#" + this.id;
-        base.inputs = this.in.map(i => i.serialize());
+        base.inputs = this.in.map(i => i.serialize()).filter(i => {
+            const keys = Object.keys(i);
+            return !(keys.length === 1 && keys[0] === "id");
+        });
         base.outputs = this.out.map(o => o.serialize());
 
-        base.run = this.runPath ? this.runPath : this.run.serialize();
+        if (this.customProps["sbg:rdfId"]) {
+            base.run = this.customProps["sbg:rdfId"];
+            delete this.customProps["sbg:rdfId"];
+            delete this.customProps["sbg:rdfSource"];
+        } else if (this.run && typeof this.run.serialize === "function") {
+            base.run = this.run.serialize();
+        } else {
+            base.run = this.runPath;
+        }
 
         if (this._label) base.label = this._label;
         if (this.description) base.description = this.description;

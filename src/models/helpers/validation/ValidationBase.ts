@@ -35,4 +35,6 @@ export abstract class ValidationBase implements Validatable {
         if (this.validation === err) return;
         this.validation = ValidationUpdater.interchangeErrors(this.validation, err);
     }
+
+    public validate() {}
 }

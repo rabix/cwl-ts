@@ -4,7 +4,7 @@ import {V1WorkflowInputParameterModel} from "./V1WorkflowInputParameterModel";
 import {V1WorkflowOutputParameterModel} from "./V1WorkflowOutputParameterModel";
 import {Workflow} from "../../mappings/v1.0/Workflow";
 import {Serializable} from "../interfaces/Serializable";
-import {RequirementBaseModel} from "../d2sb/RequirementBaseModel";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {Validation} from "../helpers/validation/Validation";
 import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";

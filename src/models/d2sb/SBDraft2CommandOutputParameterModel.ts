@@ -1,49 +1,35 @@
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 import {Serializable} from "../interfaces/Serializable";
-import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
+import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
 import {Validation} from "../helpers/validation/Validation";
 import {CommandOutputRecordField} from "../../mappings/d2sb/CommandOutputRecordField";
-import {CommandOutputParameterModel as GenericCommandOutputParameterModel} from "../generic/CommandOutputParameterModel"
+import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel"
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
-import {commaSeparatedToArray, spreadSelectProps} from "../helpers/utils";
+import {commaSeparatedToArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 
-export class CommandOutputParameterModel extends GenericCommandOutputParameterModel implements Serializable<CommandOutputParameter | CommandOutputRecordField> {
-
-    /** Unique identifier of output */
-    public id: string;
-    /** Human readable short name */
-    public label: string;
-    /** Human readable description */
-    public description: string;
+export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterModel implements Serializable<CommandOutputParameter | CommandOutputRecordField> {
 
     /** Flag if output is field of a parent record. Derived from type */
     public isField: boolean;
 
-    /** Complex object that holds logic and information about output's type property */
-    public type: ParameterTypeModel;
-
     /** Binding for connecting output files and CWL output description */
-    public outputBinding: CommandOutputBindingModel;
+    public outputBinding: SBDraft2CommandOutputBindingModel;
 
-    /** Description of file types expected for output to be */
-    public fileTypes: string[];
-
-    customProps: any = {};
+    public hasSecondaryFiles = false;
 
     constructor(output?: CommandOutputParameter | CommandOutputRecordField, loc?: string) {
         super(loc);
         this.deserialize(output || <CommandOutputParameter>{});
     }
 
-    updateOutputBinding(binding?: CommandOutputBindingModel) {
-        this.outputBinding     = binding || new CommandOutputBindingModel();
+    public updateOutputBinding(binding?: SBDraft2CommandOutputBindingModel) {
+        this.outputBinding     = binding || new SBDraft2CommandOutputBindingModel();
         this.outputBinding.loc = `${this.loc}.outputBinding`;
         this.outputBinding.setValidationCallback((err) => this.updateValidity(err));
     }
 
     serialize(): CommandOutputParameter | CommandOutputRecordField {
         let base: any = {};
-        base          = Object.assign({}, base, this.customProps);
 
         base.type = this.type.serialize();
 
@@ -70,7 +56,7 @@ export class CommandOutputParameterModel extends GenericCommandOutputParameterMo
             base.name = this.id || "";
         } else { base.id = this.id ? "#" + this.id : ""; }
 
-        return base;
+        return spreadAllProps(base, this.customProps);
     }
 
     deserialize(attr: CommandOutputParameter | CommandOutputRecordField): void {
@@ -97,10 +83,10 @@ export class CommandOutputParameterModel extends GenericCommandOutputParameterMo
         this.description = attr.description;
         this.fileTypes   = commaSeparatedToArray(attr["sbg:fileTypes"]);
 
-        this.outputBinding = new CommandOutputBindingModel(attr.outputBinding);
+        this.outputBinding = new SBDraft2CommandOutputBindingModel(attr.outputBinding);
         this.outputBinding.setValidationCallback(err => this.updateValidity(err));
 
-        this.type = new ParameterTypeModel(attr.type, CommandOutputParameterModel, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(attr.type, SBDraft2CommandOutputParameterModel, `${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));
 
         spreadSelectProps(attr, this.customProps, serializedAttr);

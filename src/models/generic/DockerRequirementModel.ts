@@ -1,11 +1,10 @@
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
-import { DockerRequirementClass} from "../../mappings/d2sb/DockerRequirement";
 import {Serializable} from "../interfaces/Serializable";
-import {DockerRequirement} from "../../mappings/d2sb/DockerRequirement";
+import {DockerRequirement} from "../../mappings/v1.0/DockerRequirement";
 import {spreadSelectProps} from "../helpers/utils";
 
 export class DockerRequirementModel extends ProcessRequirementModel implements DockerRequirement, Serializable<DockerRequirement> {
-    public class: DockerRequirementClass = "DockerRequirement";
+    public class = "DockerRequirement";
     public dockerPull: string;
     public dockerLoad: string;
     public dockerFile: string;

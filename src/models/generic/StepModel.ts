@@ -5,7 +5,7 @@ import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
 import {WorkflowModel} from "./WorkflowModel";
 import {CommandLineToolModel} from "./CommandLineToolModel";
 import {ExpressionToolModel} from "./ExpressionToolModel";
-import {ProcessRequirementModel} from "../d2sb/ProcessRequirementModel";
+import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {ScatterMethod} from "../../mappings/v1.0/ScatterMethod";
 import {Plottable} from "./Plottable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";

@@ -94,9 +94,9 @@ export class CommandLineParsers {
     }
 
     static argument(arg, job, value, context, cmdType, loc): Promise<CommandLinePart> {
-        if (arg.stringVal) {
+        if (arg.primitive) {
             return new Promise(res => {
-                res(new CommandLinePart(arg.stringVal, "argument", loc));
+                res(new CommandLinePart(arg.primitive, "argument", loc));
             });
         }
 

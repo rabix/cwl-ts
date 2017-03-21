@@ -20,37 +20,10 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
      */
     public evaluate(context: { $job?: any, $self?: any } = this.cachedContext): Promise<any> {
         if (this.value !== undefined) {
-            this.validation = {errors: [], warnings: []};
-
-
-            return new Promise((res, rej) => {
-                ExpressionEvaluator.evaluateD2(this.value, context.$job, context.$self).then(suc => {
-                    this.result = suc;
-                    res(suc !== undefined ? suc : "");
-
-                }, ex => {
-                    const err = {loc: this.loc, message: ex.toString()};
-
-                    if (ex.name === "SyntaxError") {
-                        this.validation = {
-                            errors: [err],
-                            warnings: []
-                        };
-
-                        rej(Object.assign({type: "error"}, err));
-                    } else {
-                        this.validation = {
-                            warnings: [err],
-                            errors: []
-                        };
-
-                        rej(Object.assign({type: "warning"}, err));
-                    }
-                })
-            });
+            return this._evaluate(this.value, context, "draft-2")
         }
 
-        return undefined;
+        return new Promise((res) => {res(undefined)});
     }
 
     /** Cached result of expression last time it was evaluated */
@@ -138,19 +111,4 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
             undefined;
     }
 
-    /**
-     * Wraps expression.script (if set) for execution. If not set, returns undefined.
-     *
-     * @returns {string|undefined}
-     */
-    public getScriptForExec(): string {
-        if (this.type !== "expression") return undefined;
-
-        const val = <Expression> this.value;
-        if (val.script.charAt(0) === '{') {
-            return "(function()" + val.script + ")()";
-        }
-
-        return val.script;
-    }
 }

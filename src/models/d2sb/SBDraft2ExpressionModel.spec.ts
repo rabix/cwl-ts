@@ -3,7 +3,7 @@ import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
 
-describe("SBDraft2ExpressionModel d2sb", () => {
+describe("SBDraft2ExpressionModel", () => {
 
     describe("constructor", () => {
 

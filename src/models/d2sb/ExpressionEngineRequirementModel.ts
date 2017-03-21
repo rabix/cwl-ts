@@ -1,11 +1,11 @@
-import {ProcessRequirementModel} from "./ProcessRequirementModel";
+import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {
     ExpressionEngineRequirement,
     ExpressionEngineRequirementClass
 } from "../../mappings/d2sb/ExpressionEngineRequirement";
 import {Serializable} from "../interfaces/Serializable";
 import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
-import {RequirementBaseModel} from "./RequirementBaseModel";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {spreadSelectProps} from "../helpers/utils";
 
 export class ExpressionEngineRequirementModel extends ProcessRequirementModel implements Serializable<ExpressionEngineRequirement> {

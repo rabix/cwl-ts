@@ -1,14 +1,18 @@
 import {Serializable} from "../interfaces/Serializable";
 import {CommandOutputBinding} from "../../mappings/d2sb/CommandOutputBinding";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
-import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {Validation} from "../helpers/validation/Validation";
+import {CommandOutputBindingModel} from "../generic/CommandOutputBindingModel";
 
-export class CommandOutputBindingModel extends ValidationBase implements Serializable<CommandOutputBinding> {
+export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel implements Serializable<CommandOutputBinding> {
     public loadContents: boolean;
     public metadata: {[key: string]: SBDraft2ExpressionModel} = {};
     public inheritMetadataFrom: string;
+
+    public hasSecondaryFiles = true;
+    public hasMetadata = true;
+    public hasInheritMetadata = true;
 
     private _glob: SBDraft2ExpressionModel;
 
@@ -60,7 +64,6 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
     public updateOutputEval(expr: SBDraft2ExpressionModel) {
         this.outputEval = expr;
     }
-
 
     constructor(binding?: CommandOutputBinding, loc?: string) {
         super(loc);

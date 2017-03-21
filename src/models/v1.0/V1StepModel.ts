@@ -26,9 +26,21 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
     serialize(): WorkflowStep {
         let base: WorkflowStep = <WorkflowStep> {};
         base.id                = this.id;
-        base.in                = this.in.map(i => i.serialize());
+        base.in                = this.in.map(i => i.serialize()).filter(i => {
+            const keys = Object.keys(i);
+            return !(keys.length === 1 && keys[0] === "id");
+        });
         base.out               = this.out.map(o => o.serialize());
-        base.run               = this.run && typeof this.run.serialize === "function" ? this.run.serialize() : this.runPath;
+
+        if (this.customProps["sbg:rdfId"]) {
+            base.run = this.customProps["sbg:rdfId"];
+            delete this.customProps["sbg:rdfId"];
+            delete this.customProps["sbg:rdfSource"];
+        } else if (this.run && typeof this.run.serialize === "function") {
+            base.run = this.run.serialize();
+        } else {
+            base.run = this.runPath;
+        }
 
         if (this._label) base.label = this.label;
         if (this.description) base.doc = this.description;
