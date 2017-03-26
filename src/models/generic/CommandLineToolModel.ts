@@ -1,15 +1,16 @@
+import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
+import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
+import {Serializable} from "../interfaces/Serializable";
+import {CommandArgumentModel} from "./CommandArgumentModel";
 import {CommandInputParameterModel} from "./CommandInputParameterModel";
 import {CommandOutputParameterModel} from "./CommandOutputParameterModel";
-import {ExpressionModel} from "./ExpressionModel";
-import {Serializable} from "../interfaces/Serializable";
-import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
-import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
-import {CommandArgumentModel} from "./CommandArgumentModel";
-import {ProcessRequirement} from "./ProcessRequirement";
-import {DockerRequirementModel} from "./DockerRequirementModel";
 import {CreateFileRequirementModel} from "./CreateFileRequirementModel";
+import {DockerRequirementModel} from "./DockerRequirementModel";
+import {ExpressionModel} from "./ExpressionModel";
+import {ProcessRequirement} from "./ProcessRequirement";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
+import {RequirementBaseModel} from "./RequirementBaseModel";
 
 export abstract class CommandLineToolModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -44,6 +45,11 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     public description?: string;
 
     public customProps: any = {};
+
+    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+        new UnimplementedMethodException("addHint", "CommandLineToolModel");
+        return null;
+    }
 
     public updateStream(stream: ExpressionModel, type: "stderr" | "stdin" | "stdout") {
         new UnimplementedMethodException("updateStream", "CommandLineToolModel");

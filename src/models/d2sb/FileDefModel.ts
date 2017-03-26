@@ -6,8 +6,8 @@ import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 
 export class SBDraft2FileDefModel extends DirentModel implements Serializable<FileDef>{
-    public entryName = new SBDraft2ExpressionModel(`${this.loc}.filename`);
-    public entry     = new SBDraft2ExpressionModel(`${this.loc}.fileContent`);
+    public entryName = new SBDraft2ExpressionModel("", `${this.loc}.filename`);
+    public entry     = new SBDraft2ExpressionModel("", `${this.loc}.fileContent`);
 
     constructor(fileDef?: FileDef, loc?: string) {
         super(loc);
@@ -32,10 +32,10 @@ export class SBDraft2FileDefModel extends DirentModel implements Serializable<Fi
 
     deserialize(attr: FileDef): void {
         if (attr) {
-            this.entryName = new SBDraft2ExpressionModel(`${this.loc}.filename`, attr.filename);
+            this.entryName = new SBDraft2ExpressionModel(attr.filename, `${this.loc}.filename`);
             this.entryName.setValidationCallback(err => this.updateValidity(err));
 
-            this.entry = new SBDraft2ExpressionModel(`${this.loc}.fileContent`, attr.fileContent);
+            this.entry = new SBDraft2ExpressionModel(attr.fileContent, `${this.loc}.fileContent`);
             this.entry.setValidationCallback(err => this.updateValidity(err));
         }
 

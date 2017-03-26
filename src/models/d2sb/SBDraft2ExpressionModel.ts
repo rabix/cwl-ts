@@ -32,7 +32,7 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
     /** Internal CWL representation of Expression */
     private value: number | string | Expression;
 
-    constructor(loc?: string, value?: number | string | Expression) {
+    constructor(value?: number | string | Expression, loc?: string) {
         super(loc);
 
         // guard against passing something that is already wrapped

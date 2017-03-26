@@ -91,7 +91,7 @@ describe("SBDraft2CommandOutputBindingModel", () => {
             const bind = new SBDraft2CommandOutputBindingModel(obj, "binding");
             expect(bind.secondaryFiles[1].serialize()).to.equal(".bti");
 
-            bind.updateSecondaryFile(new SBDraft2ExpressionModel("", ".txt"), 1);
+            bind.updateSecondaryFile(new SBDraft2ExpressionModel(".txt"), 1);
 
             expect(bind.secondaryFiles[1].serialize()).to.equal(".txt");
             expect(bind.secondaryFiles[1].loc).to.equal("binding.secondaryFiles[1]");
@@ -126,7 +126,7 @@ describe("SBDraft2CommandOutputBindingModel", () => {
 
             const bind = new SBDraft2CommandOutputBindingModel(obj, "binding");
 
-            bind.addSecondaryFile(new SBDraft2ExpressionModel("", ".txt"));
+            bind.addSecondaryFile(new SBDraft2ExpressionModel(".txt"));
 
 
             expect(bind.secondaryFiles).to.have.length(3);
@@ -140,7 +140,7 @@ describe("SBDraft2CommandOutputBindingModel", () => {
         it("should display error if outputEval is not an expression", () => {
             const bind = new SBDraft2CommandOutputBindingModel({}, "binding");
 
-            bind.updateOutputEval(new SBDraft2ExpressionModel("", "string value"));
+            bind.updateOutputEval(new SBDraft2ExpressionModel("string value"));
             expect(bind.validation.errors).to.not.be.empty;
             expect(bind.validation.errors[0].loc).to.equal("binding.outputEval");
         });
@@ -153,7 +153,7 @@ describe("SBDraft2CommandOutputBindingModel", () => {
                 script: "3 + 3"
             };
 
-            bind.updateOutputEval(new SBDraft2ExpressionModel("", expr));
+            bind.updateOutputEval(new SBDraft2ExpressionModel(expr));
             expect(bind.validation.errors).to.be.empty;
 
             expect(bind.serialize()).to.deep.equal({
@@ -169,7 +169,7 @@ describe("SBDraft2CommandOutputBindingModel", () => {
                 script: ""
             };
 
-            bind.updateOutputEval(new SBDraft2ExpressionModel("", expr));
+            bind.updateOutputEval(new SBDraft2ExpressionModel(expr));
 
             expect(bind.serialize()).to.deep.equal({});
         })

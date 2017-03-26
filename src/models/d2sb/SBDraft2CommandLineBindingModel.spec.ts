@@ -104,7 +104,7 @@ describe("SBDraft2CommandLineBindingModel d2sb", () => {
             const bind = new SBDraft2CommandLineBindingModel(obj, "binding");
             expect(bind.secondaryFiles[1].serialize()).to.equal(".bti");
 
-            bind.updateSecondaryFile(new SBDraft2ExpressionModel("", ".txt"), 1);
+            bind.updateSecondaryFile(new SBDraft2ExpressionModel(".txt"), 1);
 
             expect(bind.secondaryFiles[1].serialize()).to.equal(".txt");
             expect(bind.secondaryFiles[1].loc).to.equal("binding.secondaryFiles[1]");
@@ -139,7 +139,7 @@ describe("SBDraft2CommandLineBindingModel d2sb", () => {
 
             const bind = new SBDraft2CommandLineBindingModel(obj, "binding");
 
-            bind.addSecondaryFile(new SBDraft2ExpressionModel("", ".txt"));
+            bind.addSecondaryFile(new SBDraft2ExpressionModel(".txt"));
 
 
             expect(bind.secondaryFiles).to.have.length(3);

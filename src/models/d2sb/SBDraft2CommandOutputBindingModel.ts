@@ -7,11 +7,11 @@ import {CommandOutputBindingModel} from "../generic/CommandOutputBindingModel";
 
 export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel implements Serializable<CommandOutputBinding> {
     public loadContents: boolean;
-    public metadata: {[key: string]: SBDraft2ExpressionModel} = {};
+    public metadata: { [key: string]: SBDraft2ExpressionModel } = {};
     public inheritMetadataFrom: string;
 
-    public hasSecondaryFiles = true;
-    public hasMetadata = true;
+    public hasSecondaryFiles  = true;
+    public hasMetadata        = true;
     public hasInheritMetadata = true;
 
     private _glob: SBDraft2ExpressionModel;
@@ -48,7 +48,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     }
 
     set outputEval(value: SBDraft2ExpressionModel) {
-        this._outputEval = value;
+        this._outputEval     = value;
         this._outputEval.loc = `${this.loc}.outputEval`;
         this._outputEval.setValidationCallback(err => this.updateValidity(err));
 
@@ -56,8 +56,10 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
             this._outputEval.validation = {
                 errors: [{
                     loc: `${this.loc}.outputEval`,
-                    message: `outputEval must be an expression, instead got ${value.type}`}],
-                warnings: []};
+                    message: `outputEval must be an expression, instead got ${value.type}`
+                }],
+                warnings: []
+            };
         }
     }
 
@@ -101,7 +103,9 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
             });
         }
 
-        if (this._outputEval) {this._outputEval.validate()}
+        if (this._outputEval) {
+            this._outputEval.validate()
+        }
 
         return this.validation;
     }
@@ -119,7 +123,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
                 .filter(file => !!file);
         }
 
-        if(Object.keys(this.metadata).length) {
+        if (Object.keys(this.metadata).length) {
             base["sbg:metadata"] = {};
             Object.keys(this.metadata).forEach(key => {
                 base["sbg:metadata"][key] = <string | Expression> this.metadata[key].serialize();
@@ -149,14 +153,14 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
 
         if (binding && binding.constructor === Object) {
             if (!Array.isArray(binding.glob)) {
-                this._glob = new SBDraft2ExpressionModel(this.loc + '.glob', binding.glob);
+                this._glob = new SBDraft2ExpressionModel(binding.glob, this.loc + '.glob');
                 this._glob.setValidationCallback((err) => this.updateValidity(err));
             } else {
                 console.warn(`Not supporting glob which is string[] at ${this.loc}. Glob cannot be edited via model`);
                 serializedKeys.splice(1, 0);
             }
 
-            this.loadContents        = binding.loadContents === true;
+            this.loadContents = binding.loadContents === true;
 
             this.inheritMetadataFrom = null;
             if (binding["sbg:inheritMetadataFrom"]) {
@@ -165,21 +169,21 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
                     binding["sbg:inheritMetadataFrom"];
             }
 
-            this._outputEval = new SBDraft2ExpressionModel(`${this.loc}.outputEval`, binding.outputEval);
+            this._outputEval = new SBDraft2ExpressionModel(binding.outputEval, `${this.loc}.outputEval`);
 
             if (binding.secondaryFiles) {
                 if (Array.isArray(binding.secondaryFiles)) {
                     //noinspection TypeScriptUnresolvedFunction
                     this._secondaryFiles = binding.secondaryFiles
                         .map((file, index) => {
-                            const f = new SBDraft2ExpressionModel(`${this.loc}.secondaryFiles[${index}]`,
-                                file);
+                            const f = new SBDraft2ExpressionModel(file, `${this.loc}.secondaryFiles[${index}]`);
                             f.setValidationCallback((err) => this.updateValidity(err));
                             return f;
                         });
                 } else {
-                    const f = new SBDraft2ExpressionModel(`${this.loc}.secondaryFiles[0]`,
-                        <string | Expression> binding.secondaryFiles);
+                    const f = new SBDraft2ExpressionModel(
+                        <string | Expression> binding.secondaryFiles,
+                        `${this.loc}.secondaryFiles[0]`);
                     f.setValidationCallback((err) => this.updateValidity(err));
 
                     this._secondaryFiles = [f];
@@ -188,8 +192,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
 
             if (binding["sbg:metadata"] && binding["sbg:metadata"].constructor === Object) {
                 Object.keys(binding["sbg:metadata"]).forEach(key => {
-                    this.metadata[key] = new SBDraft2ExpressionModel(`${this.loc}["sbg:metadata"].${key}`,
-                        binding["sbg:metadata"][key]);
+                    this.metadata[key] = new SBDraft2ExpressionModel(binding["sbg:metadata"][key], `${this.loc}["sbg:metadata"].${key}`);
                     this.metadata[key].setValidationCallback(err => this.updateValidity(err));
                 });
             }

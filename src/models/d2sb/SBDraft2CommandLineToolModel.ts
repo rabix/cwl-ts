@@ -71,9 +71,18 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.constructed = true;
     }
 
+
+    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+        const h = new RequirementBaseModel(hint, SBDraft2ExpressionModel, `${this.loc}.hints[${this.hints.length}]`);
+        h.setValidationCallback(err => this.updateValidity(err));
+        this.hints.push(h);
+
+        return h;
+    }
+
     public addBaseCommand(cmd?: SBDraft2ExpressionModel): SBDraft2ExpressionModel {
         if (!cmd) {
-            cmd = new SBDraft2ExpressionModel(`${this.loc}.baseCommand[${this.baseCommand.length}]`);
+            cmd = new SBDraft2ExpressionModel("", `${this.loc}.baseCommand[${this.baseCommand.length}]`);
         } else {
             cmd.loc = `${this.loc}.baseCommand[${this.baseCommand.length}]`;
         }
@@ -380,8 +389,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
 
-        this.updateStream(new SBDraft2ExpressionModel(`${this.loc}.stdin`, tool.stdin), "stdin");
-        this.updateStream(new SBDraft2ExpressionModel(`${this.loc}.stdout`, tool.stdout), "stdout");
+        this.updateStream(new SBDraft2ExpressionModel(tool.stdin, `${this.loc}.stdin`), "stdin");
+        this.updateStream(new SBDraft2ExpressionModel(tool.stdout, `${this.loc}.stdout`), "stdout");
 
         this.successCodes       = tool.successCodes || [];
         this.temporaryFailCodes = tool.temporaryFailCodes || [];
@@ -406,8 +415,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             } else {
                 return acc.concat([curr]);
             }
-        }, []).forEach((cmd, index) => {
-            this.addBaseCommand(new SBDraft2ExpressionModel(`baseCommand[${index}]`, cmd))
+        }, []).forEach((cmd) => {
+            this.addBaseCommand(new SBDraft2ExpressionModel(cmd))
         });
 
         this.job = tool['sbg:job']
@@ -449,7 +458,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             default:
-                reqModel = new RequirementBaseModel(req, loc);
+                reqModel = new RequirementBaseModel(req, SBDraft2ExpressionModel, loc);
         }
         if (reqModel) {
             this[property].push(reqModel);

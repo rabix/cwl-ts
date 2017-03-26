@@ -49,6 +49,14 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (json) this.deserialize(json);
     }
 
+    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+        const h = new RequirementBaseModel(hint, V1ExpressionModel,`${this.loc}.hints[${this.hints.length}]`);
+        h.setValidationCallback(err => this.updateValidity(err));
+        this.hints.push(h);
+
+        return h;
+    }
+
     public addOutput(output?: CommandOutputParameter): V1CommandOutputParameterModel {
         const o = new V1CommandOutputParameterModel(output, `${this.loc}.outputs[${this.outputs.length}]`);
         this.outputs.push(o);
@@ -104,7 +112,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
                 this.fileRequirement.isHint = hint;
                 return;
             default:
-                reqModel = new RequirementBaseModel(req, loc);
+                reqModel = new RequirementBaseModel(req, V1ExpressionModel, loc);
                 reqModel.isHint = hint;
         }
 

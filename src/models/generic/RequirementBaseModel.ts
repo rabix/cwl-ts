@@ -3,24 +3,27 @@ import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "../d2sb/SBDraft2ExpressionModel";
 import {spreadSelectProps} from "../helpers/utils";
+import {ExpressionModel} from "./ExpressionModel";
 
 export class RequirementBaseModel extends ProcessRequirementModel implements Serializable<ProcessRequirement> {
     'class': string;
-    value?: any | SBDraft2ExpressionModel;
+    value?: any | ExpressionModel;
 
-    constructor(req?: ProcessRequirement | any, loc?: string) {
+    constructor(req?: ProcessRequirement | any,
+                private exprConstructor?: new (...args: any[]) => ExpressionModel,
+                loc?: string) {
         super(loc);
         this.deserialize(req);
     }
 
     customProps: any = {};
 
-    public updateValue(value: any | SBDraft2ExpressionModel) {
+    public updateValue(value: any | ExpressionModel) {
         this.value = value;
 
-        if (value instanceof SBDraft2ExpressionModel) {
-            (<SBDraft2ExpressionModel> this.value).setValidationCallback(err => this.updateValidity(err));
-            (<SBDraft2ExpressionModel> this.value).loc = `${this.loc}.value`;
+        if (value instanceof ExpressionModel) {
+            (<ExpressionModel> this.value).setValidationCallback(err => this.updateValidity(err));
+            (<ExpressionModel> this.value).loc = `${this.loc}.value`;
         }
     }
 
@@ -33,8 +36,8 @@ export class RequirementBaseModel extends ProcessRequirementModel implements Ser
         let base = <ProcessRequirement>{};
         if (this.class) base.class = this.class;
         if (this.value) {
-            base["value"] = this.value instanceof SBDraft2ExpressionModel ?
-                (<SBDraft2ExpressionModel> this.value).serialize() :
+            base["value"] = this.value instanceof ExpressionModel ?
+                (<ExpressionModel> this.value).serialize() :
                 this.value;
         }
 
@@ -50,11 +53,11 @@ export class RequirementBaseModel extends ProcessRequirementModel implements Ser
 
         this.class = attr.class;
 
-        if (attr["value"]) {
+        if (attr["value"] !== undefined) {
             this.value = attr["value"];
             if (typeof this.value === "string" || this.value["script"]) {
-                this.value = new SBDraft2ExpressionModel(`${this.loc}.value`, attr["value"]);
-                (<SBDraft2ExpressionModel> this.value).setValidationCallback(err => this.updateValidity(err));
+                this.value = new this.exprConstructor(attr["value"], `${this.loc}.value`);
+                (<ExpressionModel> this.value).setValidationCallback(err => this.updateValidity(err));
             }
         }
 

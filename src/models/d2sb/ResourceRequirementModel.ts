@@ -16,7 +16,7 @@ export class ResourceRequirementModel extends ProcessRequirementModel {
 
     deserialize(req: SBGCPURequirement | SBGMemRequirement) {
         this.class = req.class;
-        this.value = new SBDraft2ExpressionModel(`${this.loc}.value`, req.value);
+        this.value = new SBDraft2ExpressionModel(req.value, `${this.loc}.value`);
         this.value.setValidationCallback((err: Validation) => {this.updateValidity(err)});
     }
 

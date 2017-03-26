@@ -7,11 +7,11 @@ describe("CommandLineParsers", () => {
     describe("streams", () => {
 
         it("should show a warning if stdout expression is invalid", (done) => {
-            const stdout = new SBDraft2ExpressionModel("", {
+            const stdout = new SBDraft2ExpressionModel({
                 script: "job",
                 engine: "",
                 "class": "Expression"
-            });
+            }, "");
 
             CommandLineParsers.stream(stdout, {}, null, {}, "stdout", "stdout").then(function (res) {
                 expect(res.type).to.equal("warning");
