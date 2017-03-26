@@ -2,7 +2,6 @@ import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "../d2sb/SBDraft2ExpressionModel";
-import {V1ExpressionModel} from "../v1.0/V1ExpressionModel";
 import {spreadSelectProps} from "../helpers/utils";
 
 export class RequirementBaseModel extends ProcessRequirementModel implements Serializable<ProcessRequirement> {
@@ -10,7 +9,7 @@ export class RequirementBaseModel extends ProcessRequirementModel implements Ser
     value?: any | SBDraft2ExpressionModel;
 
     constructor(req?: ProcessRequirement | any, loc?: string) {
-        super(req, loc);
+        super(loc);
         this.deserialize(req);
     }
 

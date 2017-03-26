@@ -10,7 +10,7 @@ export class ResourceRequirementModel extends ProcessRequirementModel {
     public value: SBDraft2ExpressionModel;
 
     constructor(req: SBGCPURequirement | SBGMemRequirement, loc: string) {
-        super(req, loc);
+        super(loc);
         this.deserialize(req);
     }
 

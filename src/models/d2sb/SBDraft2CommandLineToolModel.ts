@@ -46,7 +46,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     public requirements: Array<ProcessRequirementModel> = [];
 
-    public createFileRequirement: SBDraft2CreateFileRequirementModel;
+    public fileRequirement: SBDraft2CreateFileRequirementModel;
 
     public hints: Array<ProcessRequirementModel> = [];
 
@@ -286,7 +286,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             base.requirements = this.requirements.map(req => req.serialize());
         }
 
-        if (this.createFileRequirement) base.requirements.push(this.createFileRequirement.serialize());
+        if (this.fileRequirement.serialize()) base.requirements.push(this.fileRequirement.serialize());
 
         if (!base.requirements.length) delete base.requirements;
 
@@ -299,7 +299,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         if (this.resources.cpu) base.hints.push(this.resources.cpu.serialize());
         if (this.resources.mem) base.hints.push(this.resources.mem.serialize());
-        if (this.docker) base.hints.push(this.docker.serialize());
+        if (this.docker.serialize()) base.hints.push(this.docker.serialize());
 
         if (!base.hints.length) delete base.hints;
 
@@ -375,6 +375,11 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             });
         }
 
+        this.docker = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.hints[${this.hints.length}]`);
+        this.docker.isHint = true;
+
+        this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+
         this.updateStream(new SBDraft2ExpressionModel(`${this.loc}.stdin`, tool.stdin), "stdin");
         this.updateStream(new SBDraft2ExpressionModel(`${this.loc}.stdout`, tool.stdout), "stdout");
 
@@ -425,8 +430,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
                 this.docker.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "CreateFileRequirement":
-                reqModel                   = new SBDraft2CreateFileRequirementModel(<CreateFileRequirement>req, loc);
-                this.createFileRequirement = <SBDraft2CreateFileRequirementModel> reqModel;
+                reqModel             = new SBDraft2CreateFileRequirementModel(<CreateFileRequirement>req, loc);
+                this.fileRequirement = <SBDraft2CreateFileRequirementModel> reqModel;
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:CPURequirement":

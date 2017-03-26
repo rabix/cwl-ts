@@ -688,9 +688,6 @@ describe("SBDraft2WorkflowModel", () => {
                         },
                         "inputs": [
                             {
-                                "id": "#io_tool.search"
-                            },
-                            {
                                 "id": "#io_tool.inFile",
                                 "source": [
                                     "#inFile"
@@ -832,9 +829,6 @@ describe("SBDraft2WorkflowModel", () => {
                             "y": 368
                         },
                         "inputs": [
-                            {
-                                "id": "#io_tool_1.search"
-                            },
                             {
                                 "id": "#io_tool_1.inFile",
                                 "source": [

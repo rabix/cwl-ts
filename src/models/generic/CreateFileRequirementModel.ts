@@ -1,7 +1,16 @@
+import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
+import {Serializable} from "../interfaces/Serializable";
+import {DirentModel} from "./DirentModel";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
-import {FileDefModel} from "../d2sb/FileDefModel";
 
-export abstract class CreateFileRequirementModel extends ProcessRequirementModel {
+export abstract class CreateFileRequirementModel extends ProcessRequirementModel implements Serializable<any> {
     class: string;
-    fileDef: FileDefModel[];
+    listing: DirentModel[];
+
+    public addDirent(def?: any): DirentModel {
+        new UnimplementedMethodException("addDirent", "CreateFileRequirementModel");
+        return null;
+    }
+
+
 }

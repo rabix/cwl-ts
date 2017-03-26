@@ -13,7 +13,7 @@ export class ExpressionEngineRequirementModel extends ProcessRequirementModel im
     public requirements?: {[id: string]: ProcessRequirementModel} = {};
 
     constructor(req?: ExpressionEngineRequirement, loc?: string) {
-        super(req, loc);
+        super(loc);
         this.deserialize(req);
     }
 

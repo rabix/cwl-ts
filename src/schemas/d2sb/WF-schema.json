@@ -122,7 +122,7 @@
             "type": "number"
         },
         "sbg:revisionNotes": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "sbg:toolkit": {
             "type": "string"
@@ -3083,7 +3083,7 @@
                     "type": "string"
                 },
                 "sbg:revisionNotes": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "sbg:modifiedOn": {
                     "type": "number"
@@ -3216,7 +3216,7 @@
                     "type": "number"
                 },
                 "sbg:revisionNotes": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "sbg:toolkit": {
                     "type": "string"
@@ -4050,7 +4050,7 @@
                     "type": "number"
                 },
                 "sbg:revisionNotes": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "sbg:toolkit": {
                     "type": "string"

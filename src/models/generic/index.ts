@@ -22,3 +22,5 @@ export * from "./ParameterTypeModel";
 export * from "./DockerRequirementModel";
 export * from "./ProcessRequirementModel";
 export * from "./RequirementBaseModel";
+export * from "./CreateFileRequirementModel";
+export * from "./DirentModel";

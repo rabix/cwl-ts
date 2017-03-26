@@ -2,7 +2,7 @@ import {expect} from "chai";
 import {SBDraft2CreateFileRequirementModel} from "./SBDraft2CreateFileRequirementModel";
 import {CreateFileRequirementClass} from "../../mappings/d2sb/CreateFileRequirement";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
-import {FileDefModel} from "./FileDefModel";
+import {SBDraft2FileDefModel} from "./FileDefModel";
 
 describe("CreateFileRequirementModel", () => {
     describe("serialize", () => {
@@ -64,7 +64,7 @@ describe("CreateFileRequirementModel", () => {
         });
     });
 
-    describe("set fileDef", () => {
+    describe("add new fileDef", () => {
         it("should set new list of fileDef", () => {
             const data = {
                 "class": <CreateFileRequirementClass> "CreateFileRequirement",
@@ -82,15 +82,13 @@ describe("CreateFileRequirementModel", () => {
 
             const req = new SBDraft2CreateFileRequirementModel(data);
 
-            req.fileDef = [
-                new FileDefModel({
-                    filename: "foo",
-                    fileContent: "bar"
-                })
-            ];
+            req.addDirent({
+                filename: "foo",
+                fileContent: "bar"
+            });
 
-            expect(req.fileDef[0].filename.serialize()).to.equal("foo");
-            expect(req.fileDef[0].fileContent.serialize()).to.equal("bar");
+            expect(req.listing[1].entryName.serialize()).to.equal("foo");
+            expect(req.listing[1].entry.serialize()).to.equal("bar");
         })
     })
 });
