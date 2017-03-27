@@ -1,7 +1,7 @@
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {Serializable} from "../interfaces/Serializable";
 import {DockerRequirement} from "../../mappings/v1.0/DockerRequirement";
-import {spreadSelectProps} from "../helpers/utils";
+import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
 
 export class DockerRequirementModel extends ProcessRequirementModel implements DockerRequirement, Serializable<DockerRequirement> {
     public class = "DockerRequirement";
@@ -23,7 +23,7 @@ export class DockerRequirementModel extends ProcessRequirementModel implements D
     ];
 
     constructor(req?: DockerRequirement, loc?: string) {
-        super(req, loc);
+        super(loc);
         if (req) this.deserialize(req);
     }
 
@@ -34,13 +34,22 @@ export class DockerRequirementModel extends ProcessRequirementModel implements D
             if (this[key]) base[key] = this[key];
         });
 
-        return Object.assign({}, base, this.customProps);
+        // don't serialize if the only property that is being serialized is the class
+        const keys = Object.keys(base);
+        const customPropsKeys = Object.keys(this.customProps);
+        if (keys.length === 1 && keys[0] === "class" && customPropsKeys.length === 0) {
+            return undefined;
+        }
+
+        return spreadAllProps(base, this.customProps);
     }
 
     deserialize(attr: DockerRequirement): void {
         this.serializedKeys.forEach(key => {
             this[key] = attr[key];
         });
+
+        this.class = "DockerRequirement";
 
         spreadSelectProps(attr, this.customProps, this.serializedKeys);
     }

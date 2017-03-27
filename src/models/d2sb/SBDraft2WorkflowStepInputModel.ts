@@ -32,7 +32,7 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
         let base: WorkflowStepInput = <WorkflowStepInput>{};
 
         base.id = `#${this.parentStep.id}.${this._id}`;
-        if (this.source.length) base.source = this.source;
+        if (this.source.length) base.source = this.source.slice();
         if (this.linkMerge) base.linkMerge = this.linkMerge;
         if (this.default !== undefined) base.default = this.default;
 

@@ -25,7 +25,7 @@ describe("RequirementBaseModel", () => {
                     script: "44"
                 }
             };
-            const req = new RequirementBaseModel(obj);
+            const req = new RequirementBaseModel(obj, SBDraft2ExpressionModel);
 
             expect(req.value).to.be.instanceof(SBDraft2ExpressionModel);
             expect(req.serialize()).to.deep.equal(obj);
@@ -36,7 +36,7 @@ describe("RequirementBaseModel", () => {
                 "class": "helloWorld",
                 value: "Some string value"
             };
-            const req = new RequirementBaseModel(obj);
+            const req = new RequirementBaseModel(obj, SBDraft2ExpressionModel);
 
             expect(req.value).to.be.instanceof(SBDraft2ExpressionModel);
             expect(req.serialize()).to.deep.equal(obj);
@@ -49,9 +49,9 @@ describe("RequirementBaseModel", () => {
                 "class": "helloWorld",
                 value: "Some string value"
             };
-            const req = new RequirementBaseModel(obj);
+            const req = new RequirementBaseModel(obj, SBDraft2ExpressionModel);
 
-            req.updateValue(new SBDraft2ExpressionModel("", {
+            req.updateValue(new SBDraft2ExpressionModel({
                     "class": "Expression",
                     engine: "",
                     script: "hello"
@@ -74,7 +74,7 @@ describe("RequirementBaseModel", () => {
                 "class": "helloWorld",
                 value: "Some string value"
             };
-            const req = new RequirementBaseModel(obj);
+            const req = new RequirementBaseModel(obj, SBDraft2ExpressionModel);
 
             req.updateValue({
                 random: "Object",

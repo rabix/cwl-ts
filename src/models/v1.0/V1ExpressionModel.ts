@@ -27,8 +27,7 @@ export class V1ExpressionModel extends ExpressionModel {
 
     private tokenizeAndSetType(str: string): ExprObj[] {
         // parse expression
-        this.tokens = ExpressionEvaluator.grabExpressions(str);
-
+        this.tokens = ExpressionEvaluator.grabExpressions(str || "") || [];
 
         // if expression is literal, type is string, otherwise it's complex (expression or function)
         this.type = this.tokens.length === 1 && this.tokens[0].type === "literal" ? "string" : "expression"

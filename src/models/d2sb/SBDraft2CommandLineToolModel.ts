@@ -46,7 +46,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     public requirements: Array<ProcessRequirementModel> = [];
 
-    public createFileRequirement: SBDraft2CreateFileRequirementModel;
+    public fileRequirement: SBDraft2CreateFileRequirementModel;
 
     public hints: Array<ProcessRequirementModel> = [];
 
@@ -71,9 +71,18 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.constructed = true;
     }
 
+
+    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+        const h = new RequirementBaseModel(hint, SBDraft2ExpressionModel, `${this.loc}.hints[${this.hints.length}]`);
+        h.setValidationCallback(err => this.updateValidity(err));
+        this.hints.push(h);
+
+        return h;
+    }
+
     public addBaseCommand(cmd?: SBDraft2ExpressionModel): SBDraft2ExpressionModel {
         if (!cmd) {
-            cmd = new SBDraft2ExpressionModel(`${this.loc}.baseCommand[${this.baseCommand.length}]`);
+            cmd = new SBDraft2ExpressionModel("", `${this.loc}.baseCommand[${this.baseCommand.length}]`);
         } else {
             cmd.loc = `${this.loc}.baseCommand[${this.baseCommand.length}]`;
         }
@@ -286,7 +295,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             base.requirements = this.requirements.map(req => req.serialize());
         }
 
-        if (this.createFileRequirement) base.requirements.push(this.createFileRequirement.serialize());
+        if (this.fileRequirement.serialize()) base.requirements.push(this.fileRequirement.serialize());
 
         if (!base.requirements.length) delete base.requirements;
 
@@ -299,7 +308,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         if (this.resources.cpu) base.hints.push(this.resources.cpu.serialize());
         if (this.resources.mem) base.hints.push(this.resources.mem.serialize());
-        if (this.docker) base.hints.push(this.docker.serialize());
+        if (this.docker.serialize()) base.hints.push(this.docker.serialize());
 
         if (!base.hints.length) delete base.hints;
 
@@ -375,8 +384,13 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             });
         }
 
-        this.updateStream(new SBDraft2ExpressionModel(`${this.loc}.stdin`, tool.stdin), "stdin");
-        this.updateStream(new SBDraft2ExpressionModel(`${this.loc}.stdout`, tool.stdout), "stdout");
+        this.docker = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.hints[${this.hints.length}]`);
+        this.docker.isHint = true;
+
+        this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+
+        this.updateStream(new SBDraft2ExpressionModel(tool.stdin, `${this.loc}.stdin`), "stdin");
+        this.updateStream(new SBDraft2ExpressionModel(tool.stdout, `${this.loc}.stdout`), "stdout");
 
         this.successCodes       = tool.successCodes || [];
         this.temporaryFailCodes = tool.temporaryFailCodes || [];
@@ -401,8 +415,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             } else {
                 return acc.concat([curr]);
             }
-        }, []).forEach((cmd, index) => {
-            this.addBaseCommand(new SBDraft2ExpressionModel(`baseCommand[${index}]`, cmd))
+        }, []).forEach((cmd) => {
+            this.addBaseCommand(new SBDraft2ExpressionModel(cmd))
         });
 
         this.job = tool['sbg:job']
@@ -425,8 +439,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
                 this.docker.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "CreateFileRequirement":
-                reqModel                   = new SBDraft2CreateFileRequirementModel(<CreateFileRequirement>req, loc);
-                this.createFileRequirement = <SBDraft2CreateFileRequirementModel> reqModel;
+                reqModel             = new SBDraft2CreateFileRequirementModel(<CreateFileRequirement>req, loc);
+                this.fileRequirement = <SBDraft2CreateFileRequirementModel> reqModel;
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:CPURequirement":
@@ -444,7 +458,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             default:
-                reqModel = new RequirementBaseModel(req, loc);
+                reqModel = new RequirementBaseModel(req, SBDraft2ExpressionModel, loc);
         }
         if (reqModel) {
             this[property].push(reqModel);

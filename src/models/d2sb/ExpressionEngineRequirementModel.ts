@@ -8,12 +8,13 @@ import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {spreadSelectProps} from "../helpers/utils";
 
+/** @deprecated (or rather not used anywhere) **/
 export class ExpressionEngineRequirementModel extends ProcessRequirementModel implements Serializable<ExpressionEngineRequirement> {
     public class: ExpressionEngineRequirementClass                = "ExpressionEngineRequirement";
     public requirements?: {[id: string]: ProcessRequirementModel} = {};
 
     constructor(req?: ExpressionEngineRequirement, loc?: string) {
-        super(req, loc);
+        super(loc);
         this.deserialize(req);
     }
 
@@ -36,7 +37,7 @@ export class ExpressionEngineRequirementModel extends ProcessRequirementModel im
 
         if (attr.requirements) {
             attr.requirements.forEach((req: ProcessRequirement, index) => {
-                this.requirements[req.class] = new RequirementBaseModel(req, `${this.loc}.requirements[${index}]`);
+                // this.requirements[req.class] = new RequirementBaseModel(req, `${this.loc}.requirements[${index}]`);
             });
         }
 

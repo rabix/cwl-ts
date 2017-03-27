@@ -630,7 +630,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 outputs: [],
                 baseCommand: []
             });
-            const expr = new SBDraft2ExpressionModel("", {
+            const expr = new SBDraft2ExpressionModel({
                 "class": "Expression",
                 script: "---",
                 engine: "#cwl-js-engine"
@@ -640,7 +640,7 @@ describe("SBDraft2CommandLineToolModel", () => {
             tool.addBaseCommand(expr);
             expect(tool.validation.errors).to.be.empty;
 
-            const expr2 = new SBDraft2ExpressionModel("", {
+            const expr2 = new SBDraft2ExpressionModel({
                 "class": "Expression",
                 script: "abb",
                 engine: "#cwl-js-engine"

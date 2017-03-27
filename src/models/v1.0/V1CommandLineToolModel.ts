@@ -14,6 +14,9 @@ import {DockerRequirement} from "../../mappings/v1.0/DockerRequirement";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {JobHelper} from "../helpers/JobHelper";
+import {V1InitialWorkDirRequirementModel} from "./V1InitialWorkDirRequirementModel";
+import {InitialWorkDirRequirement} from "../../mappings/v1.0/InitialWorkDirRequirement";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
 
@@ -43,12 +46,21 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     private constructed = false;
     public job: any;
+    public fileRequirement: V1InitialWorkDirRequirementModel;
 
     constructor(json: CommandLineTool, loc?: string) {
         super(loc);
 
         if (json) this.deserialize(json);
         this.constructed = true;
+    }
+
+    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+        const h = new RequirementBaseModel(hint, V1ExpressionModel,`${this.loc}.hints[${this.hints.length}]`);
+        h.setValidationCallback(err => this.updateValidity(err));
+        this.hints.push(h);
+
+        return h;
     }
 
     public addOutput(output?: CommandOutputParameter): V1CommandOutputParameterModel {
@@ -87,7 +99,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.createReq(req, null, hint);
     }
 
-    private createReq(req: ProcessRequirement, loc?: string, hint?: boolean): ProcessRequirementModel {
+    private createReq(req: ProcessRequirement, loc?: string, hint = false): ProcessRequirementModel {
         let reqModel: ProcessRequirementModel;
         const property = hint ? "hints" : "requirements";
         loc            = loc || `${this.loc}.${property}[${this[property].length}]`;
@@ -95,8 +107,19 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         switch (req.class) {
             case "DockerRequirement":
                 this.docker = new DockerRequirementModel(req, this.docker ? this.docker.loc : loc);
+                this.docker.isHint = hint;
                 this.docker.setValidationCallback(err => this.updateValidity(err));
                 return;
+            case "InitialWorkDirRequirement":
+                loc                  = this.fileRequirement ? this.fileRequirement.loc : loc;
+                this.fileRequirement = new V1InitialWorkDirRequirementModel(
+                    <InitialWorkDirRequirement> req, loc);
+                this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
+                this.fileRequirement.isHint = hint;
+                return;
+            default:
+                reqModel = new RequirementBaseModel(req, V1ExpressionModel, loc);
+                reqModel.isHint = hint;
         }
 
         if (reqModel) {
@@ -113,8 +136,22 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public deserialize(tool: CommandLineTool) {
-        const serializedKeys = ["baseCommand", "stdout", "stdin", "stderr", "inputs", "outputs", "id", "class", "cwlVersion", "doc", "label",
-            "arguments", "hints"];
+        const serializedKeys = [
+            "baseCommand",
+            "stdout",
+            "stdin",
+            "stderr",
+            "inputs",
+            "outputs",
+            "id",
+            "class",
+            "cwlVersion",
+            "doc",
+            "label",
+            "arguments",
+            "hints",
+            "requirements"
+        ];
 
         this.id          = tool.id;
         this.description = tool.doc;
@@ -125,8 +162,15 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         ensureArray(tool.baseCommand).map(cmd => this.addBaseCommand(cmd));
 
         ensureArray(tool.hints, "class", "value").map((h, i) => this.createReq(h, null, true));
+        ensureArray(tool.requirements, "class", "value").map((r, i) => this.createReq(r));
 
-        // this.requirements = tool.requirements;
+        // create DockerRequirement for manipulation
+        this.docker = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+
+        // create InitialWorkDirRequirement for manipulation
+        this.fileRequirement = this.fileRequirement || new V1InitialWorkDirRequirementModel(<InitialWorkDirRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+
+
         this.arguments = ensureArray(tool.arguments).map(arg => this.addArgument(arg));
 
         this.stdin = new V1ExpressionModel(tool.stdin, `${this.loc}.stdin`);
@@ -155,16 +199,33 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             outputs: <CommandOutputParameter[]> this.outputs.map(o => o.serialize())
         };
 
-        // HINTS
+
+        // REQUIREMENTS && HINTS
+        base.requirements = [];
         base.hints = [];
+
+
+        if (this.requirements.length) {
+            this.requirements.forEach(r => base.requirements.push(r.serialize()));
+        }
 
         if (this.hints.length) {
             this.hints.forEach(h => base.hints.push(h.serialize()));
         }
 
-        if (this.docker) base.hints.push(this.docker.serialize());
+        if (this.docker.serialize()) {
+            const dest = this.docker.isHint ? "hints" : "requirements";
+            (base[dest] as Array<ProcessRequirement>).push(this.docker.serialize());
+        }
 
+        if (this.fileRequirement.serialize()) {
+            const dest = this.docker.isHint ? "hints" : "requirements";
+            (base[dest] as Array<ProcessRequirement>).push(this.fileRequirement.serialize());
+        }
+
+        if (!base.requirements.length) delete base.requirements;
         if (!base.hints.length) delete base.hints;
+
 
         if (this.stdin.serialize() !== undefined) base.stdin = this.stdin.serialize();
         if (this.stdout.serialize() !== undefined) base.stdout = this.stdout.serialize();

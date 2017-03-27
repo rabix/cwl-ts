@@ -8,12 +8,12 @@ describe("SBDraft2ExpressionModel", () => {
     describe("constructor", () => {
 
         it("Should instantiate create a model with the given properties", () => {
-            const expressionModel1 = new SBDraft2ExpressionModel("", "123");
+            const expressionModel1 = new SBDraft2ExpressionModel("123");
 
             expect(expressionModel1.serialize()).to.equal("123");
             expect(expressionModel1.toString()).to.equal("123");
 
-            const expressionModel2 = new SBDraft2ExpressionModel("", {
+            const expressionModel2 = new SBDraft2ExpressionModel({
                 "class": "Expression",
                 engine: "cwl-js-engine",
                 script: "1 + 2"
@@ -52,7 +52,7 @@ describe("SBDraft2ExpressionModel", () => {
 
     describe("evaluate", () => {
         it("should return value if model is string, not expression", (done) => {
-            const expr = new SBDraft2ExpressionModel("", "value");
+            const expr = new SBDraft2ExpressionModel("value");
             expr.evaluate().then(res => {
                 expect(res).to.equal("value");
             }).then(done, done);
@@ -98,7 +98,7 @@ describe("SBDraft2ExpressionModel", () => {
     describe("serialize", () => {
         it("Should serialize a simple string", () => {
             const data = "simple string";
-            const expr = new SBDraft2ExpressionModel("", data);
+            const expr = new SBDraft2ExpressionModel(data);
             expect(expr.serialize()).to.equal(data);
         });
 
@@ -108,7 +108,7 @@ describe("SBDraft2ExpressionModel", () => {
                 engine: "#cwl-js-engine",
                 script: "{ return 3 + 3 }"
             };
-            const expr = new SBDraft2ExpressionModel("", <Expression> data);
+            const expr = new SBDraft2ExpressionModel(<Expression> data);
             expect(expr.serialize()).to.equal(data);
         });
 
@@ -119,7 +119,7 @@ describe("SBDraft2ExpressionModel", () => {
                 script: "{ return 3 + 3 }",
                 "pref:custom": "some value"
             };
-            const expr = new SBDraft2ExpressionModel("", <Expression> data);
+            const expr = new SBDraft2ExpressionModel(<Expression> data);
             expect(expr.serialize()).to.equal(data);
         });
     });

@@ -41,7 +41,7 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
     }
 
     setValueFrom(val: string | Expression) {
-        this.valueFrom = new SBDraft2ExpressionModel(`${this.loc}.valueFrom`, val);
+        this.valueFrom = new SBDraft2ExpressionModel(val, `${this.loc}.valueFrom`);
         this.valueFrom.setValidationCallback((err: Validation) => {
             this.updateValidity(err);
         });
@@ -101,7 +101,7 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
             this.itemSeparator = binding.itemSeparator;
             this.loadContents  = binding.loadContents === true;
 
-            this.valueFrom = new SBDraft2ExpressionModel(`${this.loc}.valueFrom`, binding.valueFrom);
+            this.valueFrom = new SBDraft2ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`);
             this.valueFrom.setValidationCallback(err => this.updateValidity(err));
 
             if (binding.secondaryFiles) {
@@ -109,14 +109,14 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
                     //noinspection TypeScriptUnresolvedFunction
                     this._secondaryFiles = binding.secondaryFiles
                         .map((file, index) => {
-                            const f = new SBDraft2ExpressionModel(`${this.loc}.secondaryFiles[${index}]`,
-                                file);
+                            const f = new SBDraft2ExpressionModel(file, `${this.loc}.secondaryFiles[${index}]`);
                             f.setValidationCallback((err) => this.updateValidity(err));
                             return f;
                         });
                 } else {
-                    const f = new SBDraft2ExpressionModel(`${this.loc}.secondaryFiles[0]`,
-                        <string | Expression> binding.secondaryFiles);
+                    const f = new SBDraft2ExpressionModel(
+                        <string | Expression> binding.secondaryFiles,
+                        `${this.loc}.secondaryFiles[0]`);
                     f.setValidationCallback((err) => this.updateValidity(err));
 
                     this._secondaryFiles = [f];
