@@ -60,6 +60,10 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public temporaryFailCodes: number[];
     public permanentFailCodes: number[];
 
+    public get context(): any {
+        return {$job: this.job}
+    }
+
     private constructed = false;
 
     public customProps: any = {};

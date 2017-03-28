@@ -22,6 +22,8 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public context: any;
 
+    public job: any;
+
     public baseCommand: ExpressionModel[]         = [];
     public inputs: CommandInputParameterModel[]   = [];
     public outputs: CommandOutputParameterModel[] = [];

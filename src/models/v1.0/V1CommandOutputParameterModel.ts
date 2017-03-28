@@ -67,6 +67,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
 
         this.type = new ParameterTypeModel(attr.type, V1CommandOutputParameterModel, `${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));
+        this.type.hasDirectoryType = true;
 
         this.outputBinding = new V1CommandOutputBindingModel(attr.outputBinding, `${this.loc}.outputBinding`);
         this.outputBinding.setValidationCallback(err => this.updateValidity(err));

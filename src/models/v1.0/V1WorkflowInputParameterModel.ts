@@ -27,13 +27,14 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
         // @todo serialization of secondaryFiles, streamable, inputBinding
 
-        this._label = attr.label;
+        this._label      = attr.label;
         this.description = ensureArray(attr.doc).join("\n\n");
 
-        this.id = (<InputParameter> attr).id || (<RecordField> attr).name;
+        this.id      = (<InputParameter> attr).id || (<RecordField> attr).name;
         this.isField = !!(<RecordField> attr).name;
-        this.type = new ParameterTypeModel(attr.type, V1WorkflowInputParameterModel, `${this.loc}.type`);
+        this.type    = new ParameterTypeModel(attr.type, V1WorkflowInputParameterModel, `${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));
+        this.type.hasDirectoryType = true;
 
         this.fileTypes = commaSeparatedToArray((attr as InputParameter).format);
 
