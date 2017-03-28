@@ -18,7 +18,7 @@ import {CreateFileRequirement} from "../../mappings/d2sb/CreateFileRequirement";
 import {SBDraft2CreateFileRequirementModel} from "./SBDraft2CreateFileRequirementModel";
 import {SBGCPURequirement} from "../../mappings/d2sb/SBGCPURequirement";
 import {SBGMemRequirement} from "../../mappings/d2sb/SBGMemRequirement";
-import {ResourceRequirementModel} from "./ResourceRequirementModel";
+import {SBDraft2ResourceRequirementModel} from "./SBDraft2ResourceRequirementModel";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
@@ -40,7 +40,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     private sbgId: string;
 
-    public resources: { cpu?: ResourceRequirementModel, mem?: ResourceRequirementModel } = {};
+    public resources = new SBDraft2ResourceRequirementModel();
 
     public docker: DockerRequirementModel;
 
@@ -306,8 +306,20 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             base.hints = this.hints.map(hint => hint.serialize());
         }
 
-        if (this.resources.cpu) base.hints.push(this.resources.cpu.serialize());
-        if (this.resources.mem) base.hints.push(this.resources.mem.serialize());
+        if (this.resources.cores.serialize() !== undefined) {
+            base.hints.push({
+                "class": "sbg:CPURequirement",
+                value: this.resources.cores.serialize()
+            })
+        }
+
+        if (this.resources.mem.serialize() !== undefined) {
+            base.hints.push({
+                "class": "sbg:MemRequirement",
+                value: this.resources.mem.serialize()
+            })
+        }
+
         if (this.docker.serialize()) base.hints.push(this.docker.serialize());
 
         if (!base.hints.length) delete base.hints;
@@ -444,18 +456,12 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:CPURequirement":
-                reqModel           = new ResourceRequirementModel(<
-                    SBGCPURequirement
-                    | SBGMemRequirement>req, loc);
-                this.resources.cpu = <ResourceRequirementModel>reqModel;
-                reqModel.setValidationCallback(err => this.updateValidity(err));
+                this.resources.cores = new SBDraft2ExpressionModel((<SBGCPURequirement>req).value, `${loc}.value`);
+                this.resources.cores.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:MemRequirement":
-                reqModel           = new ResourceRequirementModel(<
-                    SBGCPURequirement
-                    | SBGMemRequirement>req, loc);
-                this.resources.mem = <ResourceRequirementModel>reqModel;
-                reqModel.setValidationCallback(err => this.updateValidity(err));
+                this.resources.mem = new SBDraft2ExpressionModel((<SBGMemRequirement>req).value, `${loc}.value`);
+                this.resources.mem.setValidationCallback(err => this.updateValidity(err));
                 return;
             default:
                 reqModel = new RequirementBaseModel(req, SBDraft2ExpressionModel, loc);

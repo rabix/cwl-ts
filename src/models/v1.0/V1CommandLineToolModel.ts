@@ -14,6 +14,8 @@ import {DockerRequirement} from "../../mappings/v1.0/DockerRequirement";
 import {V1InitialWorkDirRequirementModel} from "./V1InitialWorkDirRequirementModel";
 import {InitialWorkDirRequirement} from "../../mappings/v1.0/InitialWorkDirRequirement";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
+import {V1ResourceRequirementModel} from "./V1ResourceRequirementModel";
+import {ResourceRequirement} from "../../mappings/v1.0/ResourceRequirement";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
 
@@ -42,6 +44,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public docker: DockerRequirementModel;
 
     public fileRequirement: V1InitialWorkDirRequirementModel;
+
+    public resources: V1ResourceRequirementModel;
 
     constructor(json: CommandLineTool, loc?: string) {
         super(loc);
@@ -100,17 +104,24 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         switch (req.class) {
             case "DockerRequirement":
-                this.docker = new DockerRequirementModel(req, this.docker ? this.docker.loc : loc);
+                this.docker = new DockerRequirementModel(req, this.docker ? this.docker.loc || loc : loc);
                 this.docker.isHint = hint;
                 this.docker.setValidationCallback(err => this.updateValidity(err));
                 return;
+
             case "InitialWorkDirRequirement":
-                loc                  = this.fileRequirement ? this.fileRequirement.loc : loc;
+                loc                  = this.fileRequirement ? this.fileRequirement.loc || loc : loc;
                 this.fileRequirement = new V1InitialWorkDirRequirementModel(
                     <InitialWorkDirRequirement> req, loc);
                 this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
                 this.fileRequirement.isHint = hint;
                 return;
+
+            case "ResourceRequirement":
+                loc = this.resources ? this.resources.loc || loc : loc;
+                this.resources = new V1ResourceRequirementModel(req, loc);
+                return;
+
             default:
                 reqModel = new RequirementBaseModel(req, V1ExpressionModel, loc);
                 reqModel.isHint = hint;
@@ -164,8 +175,12 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         // create InitialWorkDirRequirement for manipulation
         this.fileRequirement = this.fileRequirement || new V1InitialWorkDirRequirementModel(<InitialWorkDirRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
 
+        // create ResourceRequirement for manipulation
+        this.resources = this.resources || new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+
 
         this.arguments = ensureArray(tool.arguments).map(arg => this.addArgument(arg));
+
 
         this.stdin = new V1ExpressionModel(tool.stdin, `${this.loc}.stdin`);
         this.stdin.setValidationCallback(err => this.updateValidity(err));
@@ -205,6 +220,11 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         if (this.hints.length) {
             this.hints.forEach(h => base.hints.push(h.serialize()));
+        }
+
+        if(this.resources.serialize()) {
+            const dest = this.resources.isHint ? "hints": "requirements";
+            (base[dest] as Array<ProcessRequirement>).push(this.resources.serialize());
         }
 
         if (this.docker.serialize()) {

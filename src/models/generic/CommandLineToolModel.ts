@@ -11,6 +11,7 @@ import {ExpressionModel} from "./ExpressionModel";
 import {ProcessRequirement} from "./ProcessRequirement";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {RequirementBaseModel} from "./RequirementBaseModel";
+import {ResourceRequirementModel} from "./ResourceRequirementModel";
 
 export abstract class CommandLineToolModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -39,7 +40,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public fileRequirement: CreateFileRequirementModel;
 
-    public resources: any;
+    public resources: ResourceRequirementModel;
 
     public label?: string;
     public description?: string;
