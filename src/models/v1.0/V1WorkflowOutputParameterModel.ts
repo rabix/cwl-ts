@@ -43,7 +43,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
         const base: WorkflowOutputParameter = <WorkflowOutputParameter>{};
         base.id = this.id;
 
-        if (this.source.length) base.outputSource = this.source;
+        if (this.source.length) base.outputSource = this.source.slice();
         if (this.type) base.type = this.type.serialize("v1.0");
         if (this._label) base.label = this._label;
         if (this.description) base.doc = this.description;

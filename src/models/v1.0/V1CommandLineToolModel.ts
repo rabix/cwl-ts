@@ -47,6 +47,13 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public resources: V1ResourceRequirementModel;
 
+    public get context(): any {
+        return {
+            runtime: {},
+            inputs: {}
+        };
+    };
+
     constructor(json: CommandLineTool, loc?: string) {
         super(loc);
 
@@ -54,7 +61,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
-        const h = new RequirementBaseModel(hint, V1ExpressionModel,`${this.loc}.hints[${this.hints.length}]`);
+        const h = new RequirementBaseModel(hint, V1ExpressionModel, `${this.loc}.hints[${this.hints.length}]`);
         h.setValidationCallback(err => this.updateValidity(err));
         this.hints.push(h);
 
@@ -104,7 +111,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         switch (req.class) {
             case "DockerRequirement":
-                this.docker = new DockerRequirementModel(req, this.docker ? this.docker.loc || loc : loc);
+                this.docker        = new DockerRequirementModel(req, this.docker ? this.docker.loc || loc : loc);
                 this.docker.isHint = hint;
                 this.docker.setValidationCallback(err => this.updateValidity(err));
                 return;
@@ -118,12 +125,12 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
                 return;
 
             case "ResourceRequirement":
-                loc = this.resources ? this.resources.loc || loc : loc;
+                loc            = this.resources ? this.resources.loc || loc : loc;
                 this.resources = new V1ResourceRequirementModel(req, loc);
                 return;
 
             default:
-                reqModel = new RequirementBaseModel(req, V1ExpressionModel, loc);
+                reqModel        = new RequirementBaseModel(req, V1ExpressionModel, loc);
                 reqModel.isHint = hint;
         }
 
@@ -211,7 +218,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         // REQUIREMENTS && HINTS
         base.requirements = [];
-        base.hints = [];
+        base.hints        = [];
 
 
         if (this.requirements.length) {
@@ -222,8 +229,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             this.hints.forEach(h => base.hints.push(h.serialize()));
         }
 
-        if(this.resources.serialize()) {
-            const dest = this.resources.isHint ? "hints": "requirements";
+        if (this.resources.serialize()) {
+            const dest = this.resources.isHint ? "hints" : "requirements";
             (base[dest] as Array<ProcessRequirement>).push(this.resources.serialize());
         }
 
