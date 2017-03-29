@@ -40,10 +40,19 @@ export class CommandLinePrepare {
             inputType = "stream";
         }
 
-        return CommandLineParsers[inputType](input, flatJobInputs, flatJobInputs[input.id || null], {
+        let parser = CommandLineParsers[inputType];
+
+        let result = parser(input, flatJobInputs, flatJobInputs[input.id || null], {
             $job: job,
             $self: flatJobInputs[input.id || ""] || null
         }, cmdType, loc);
+
+        if (!result) {
+            console.log("inputType: " + inputType);
+            console.log("input: " + input);
+        }
+
+        return result;
     };
 
     static flattenInputsAndArgs(inputs: Array<CommandInputParameterModel | CommandArgumentModel>): Array<CommandInputParameterModel | CommandArgumentModel> {

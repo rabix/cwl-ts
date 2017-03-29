@@ -123,10 +123,20 @@ export class CommandLineParsers {
                 if (res instanceof CommandLinePart) {
                     return res;
                 } else {
-                    const prefix = res ? (cmdType === "stdin" ? "< " : "> ") : "";
+                    if (res === null || res === "") {
+                        return null;
+                    }
+                    const prefix = cmdType === "stdin" ? "< " : "> ";
                     return new CommandLinePart(prefix + res, cmdType, loc);
                 }
             });
+        } else {
+            if (stream === null || stream === "") {
+                return null;
+            }
+            const prefix = cmdType === "stdin" ? "< " : "> ";
+            let part = new CommandLinePart(prefix + stream, cmdType, loc);
+            return Promise.resolve(stream);
         }
     }
 

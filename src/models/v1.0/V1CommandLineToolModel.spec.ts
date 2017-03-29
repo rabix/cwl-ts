@@ -23,8 +23,8 @@ function makeTests(specPath: string) {
     
     for (let test of tests) {
         it("should pass " + test["doc"], (done) => {
-            let tool = YAML.safeLoad(path.join(testsRoot, test["tool"]));
-            let job = YAML.safeLoad(path.join(testsRoot, test["job"]));
+            let tool = YAML.safeLoad(fs.readFileSync(path.join(testsRoot, test["tool"])));
+            let job = YAML.safeLoad(fs.readFileSync(path.join(testsRoot, test["job"])));
             runTest(tool, job, test["output"], done);
         });
     }
