@@ -253,10 +253,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public setJob(job: any) {
-        this.job       = job;
+        this.job = job;
     }
 
-    private generateCommandLineParts(): Promise<CommandLinePart[]> {
+    public generateCommandLineParts(): Promise<CommandLinePart[]> {
         const flatInputs = CommandLinePrepare.flattenInputsAndArgs([].concat(this.arguments).concat(this.inputs));
 
         const job = this.job.inputs ?
