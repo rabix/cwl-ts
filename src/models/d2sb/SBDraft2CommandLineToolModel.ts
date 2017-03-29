@@ -60,10 +60,6 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public temporaryFailCodes: number[];
     public permanentFailCodes: number[];
 
-    public get context(): any {
-        return {$job: this.job}
-    }
-
     private constructed = false;
 
     public customProps: any = {};
@@ -225,10 +221,27 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         });
     }
 
-    public setJob(job: any) {
-        this.job       = job;
-        this.jobInputs = this.job.inputs || this.job;
+    public setJobInputs(inputs: any) {
+        this.job.inputs = inputs;
+        this.jobInputs = inputs;
     }
+
+    public setRuntime(runtime: any): void {
+        this.job.allocatedResources = runtime;
+    }
+
+    public getContext(id?: string) {
+        const context: any = {
+            $job: this.job
+        };
+
+        if (id) {
+            context.$self = this.job.inputs[id];
+        }
+
+        return context;
+    }
+
 
     public setJobProperty(key: string, value: any) {
         this.updateCommandLine();

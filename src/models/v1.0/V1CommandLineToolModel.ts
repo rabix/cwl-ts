@@ -16,6 +16,7 @@ import {InitialWorkDirRequirement} from "../../mappings/v1.0/InitialWorkDirRequi
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {V1ResourceRequirementModel} from "./V1ResourceRequirementModel";
 import {ResourceRequirement} from "../../mappings/v1.0/ResourceRequirement";
+import {JobHelper} from "../helpers/JobHelper";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
 
@@ -47,12 +48,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public resources: V1ResourceRequirementModel;
 
-    public get context(): any {
-        return {
-            runtime: {},
-            inputs: {}
-        };
-    };
+    public jobInputs: any = {};
+
+    public runtime: {ram?: number, cores?: number} = {};
 
     constructor(json: CommandLineTool, loc?: string) {
         super(loc);
@@ -104,6 +102,21 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.createReq(req, null, hint);
     }
 
+
+    public setJobInputs(inputs: any): void {
+        this.jobInputs = inputs;
+    }
+
+    public setRuntime(runtime: any): void {
+        this.runtime.cores = runtime.cores || runtime.cpu;
+        this.runtime.ram = runtime.ram || runtime.mem;
+    }
+
+
+    public resetJobDefaults(): void {
+        this.jobInputs = JobHelper.getJob(this);
+    }
+
     private createReq(req: ProcessRequirement, loc?: string, hint = false): ProcessRequirementModel {
         let reqModel: ProcessRequirementModel;
         const property = hint ? "hints" : "requirements";
@@ -146,6 +159,19 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         stream.loc = `${this.loc}.${type}`;
         stream.setValidationCallback(err => this.updateValidity(err));
     }
+
+    public getContext(id?: string): any {
+        const context: any = {
+            runtime: this.runtime,
+            inputs: this.jobInputs
+        };
+
+        if (id) {
+            context.self = this.jobInputs[id];
+        }
+
+        return context;
+    };
 
     public deserialize(tool: CommandLineTool) {
         const serializedKeys = [
@@ -199,6 +225,11 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.stderr.setValidationCallback(err => this.updateValidity(err));
 
 
+        if (tool["sbg:job"]) {
+            this.runtime = tool["sbg:job"].runtime;
+            this.jobInputs = tool["sbg:job"].inputs;
+        }
+
         // this.successCodes       = tool.successCodes;
         // this.temporaryFailCodes = tool.temporaryFailCodes;
         // this.permanentFailCodes = tool.permanentFailCodes;
@@ -247,13 +278,18 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (!base.requirements.length) delete base.requirements;
         if (!base.hints.length) delete base.hints;
 
-
         if (this.stdin.serialize() !== undefined) base.stdin = this.stdin.serialize();
         if (this.stdout.serialize() !== undefined) base.stdout = this.stdout.serialize();
         if (this.stderr.serialize() !== undefined) base.stderr = this.stderr.serialize();
 
-
         if (this.arguments.length) base.arguments = this.arguments.map(a => a.serialize());
+
+        if (this.runtime && this.jobInputs) {
+            base["sbg:job"] = {
+                inputs: this.jobInputs,
+                runtime: this.runtime
+            }
+        }
 
         return spreadAllProps(base, this.customProps);
     }

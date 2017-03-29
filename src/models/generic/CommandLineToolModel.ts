@@ -20,7 +20,6 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public "class" = "CommandLineTool";
 
-    public context: any;
 
     public job: any;
 
@@ -86,9 +85,17 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         new UnimplementedMethodException("updateCommandLine", "CommandLineToolModel");
     }
 
-    public setJob(job: any): void {
+    public setJobInputs(inputs: any): void {
         new UnimplementedMethodException("setJob", "CommandLineToolModel");
     }
+
+    public setRuntime(runtime: any): void {
+        new UnimplementedMethodException("setRuntime", "CommandLineToolModel");
+    }
+
+    public getContext(id?: string): any {
+        new UnimplementedMethodException("getContext", "CommandLineToolModel");
+    };
 
     public resetJobDefaults(): void {
         new UnimplementedMethodException("resetJob", "CommandLineToolModel");
