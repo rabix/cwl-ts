@@ -261,6 +261,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         const job = this.job.inputs ?
             Object.assign({inputs: JobHelper.getJob(this)}, this.job || {}) : this.job || {};
+        
+        job.resources = {};
 
         const flatJobInputs = CommandLinePrepare.flattenJob(job.inputs || job, {});
 

@@ -16,6 +16,23 @@ export class ExpressionEvaluator {
             }
 
             try {
+                if (typeof(context) === "object" && context !== null) {
+                    if ("$job" in context) {
+                        let job = context["$job"];
+                        if (!("inputs" in context) && "inputs" in job) {
+                            context["inputs"] = job["inputs"];
+                        }
+
+                        if (!("resources" in context) && "resources" in job) {
+                            context["resources"] = job["resources"];
+                        }
+                        delete context["$job"];
+                    }
+                    if ("$self" in context) {
+                        context["self"] = context["$self"];
+                        delete context["$self"];
+                    }
+                }
                 let results: Promise<any>[] = ExpressionEvaluator.grabExpressions(expr).map(token => {
                     switch (token.type) {
                         case "func":

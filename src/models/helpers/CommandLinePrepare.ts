@@ -47,11 +47,6 @@ export class CommandLinePrepare {
             $self: flatJobInputs[input.id || ""] || null
         }, cmdType, loc);
 
-        if (!result) {
-            console.log("inputType: " + inputType);
-            console.log("input: " + input);
-        }
-
         return result;
     };
 
