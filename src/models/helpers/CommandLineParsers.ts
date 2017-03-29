@@ -1,7 +1,7 @@
+import { ExpressionModel } from '../../../lib/models/generic';
 import {CommandLinePart} from "./CommandLinePart";
 import {TypeResolver} from "./TypeResolver";
 import {CommandLinePrepare} from "./CommandLinePrepare";
-import {SBDraft2ExpressionModel} from "../d2sb/SBDraft2ExpressionModel";
 export class CommandLineParsers {
 
     static primitive(input, job, value, context, cmdType, loc): Promise<CommandLinePart> {
@@ -85,7 +85,7 @@ export class CommandLineParsers {
 
     }
 
-    static expression(expr: SBDraft2ExpressionModel, job, value, context, cmdType, loc): Promise<any> {
+    static expression(expr: ExpressionModel, job, value, context, cmdType, loc): Promise<any> {
         return expr.evaluate(context).then(res => {
             return res;
         }, err => {
@@ -118,7 +118,7 @@ export class CommandLineParsers {
     }
 
     static stream(stream, job, value, context, cmdType, loc): Promise<CommandLinePart> {
-        if (stream instanceof SBDraft2ExpressionModel) {
+        if (stream instanceof ExpressionModel) {
             return CommandLineParsers.expression(stream, job, value, context, cmdType, loc).then(res => {
                 if (res instanceof CommandLinePart) {
                     return res;

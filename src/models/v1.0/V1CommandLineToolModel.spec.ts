@@ -7,7 +7,9 @@ function runTest(app: CommandLineTool, job: any, expected: CommandLinePart[], do
     let model = new V1CommandLineToolModel(app);
     model.setJob(job);
     model.generateCommandLineParts().then((result) => {
-        expect(result).to.equals(expected);
+        let resStr = result.map((part) => {return part.value})
+        console.log(resStr);
+        expect(resStr).to.equals(expected);
     }).then(done, done);
 }
 

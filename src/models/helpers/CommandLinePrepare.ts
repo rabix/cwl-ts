@@ -1,8 +1,7 @@
-import {SBDraft2CommandInputParameterModel} from "../d2sb/SBDraft2CommandInputParameterModel";
+import { CommandArgumentModel, CommandInputParameterModel, ExpressionModel } from '../generic';
+
 import {CommandLinePart, CommandType} from "./CommandLinePart";
 import {CommandLineParsers} from "./CommandLineParsers";
-import {SBDraft2CommandArgumentModel} from "../d2sb/SBDraft2CommandArgumentModel";
-import {SBDraft2ExpressionModel} from "../d2sb/SBDraft2ExpressionModel";
 
 export class CommandLinePrepare {
 
@@ -13,7 +12,7 @@ export class CommandLinePrepare {
             inputType === "nullValue";
         }
 
-        if (input instanceof SBDraft2CommandInputParameterModel || input.type === "record") {
+        if (input instanceof CommandInputParameterModel || input.type === "record") {
             const value = flatJobInputs[input.id] || null;
             cmdType = "input";
 
@@ -28,12 +27,12 @@ export class CommandLinePrepare {
             }
         }
 
-        if (input instanceof SBDraft2CommandArgumentModel) {
+        if (input instanceof CommandArgumentModel) {
             inputType = "argument";
             cmdType = "argument";
         }
 
-        if (input instanceof SBDraft2ExpressionModel) {
+        if (input instanceof ExpressionModel) {
             inputType = "expression";
         }
 
@@ -47,9 +46,9 @@ export class CommandLinePrepare {
         }, cmdType, loc);
     };
 
-    static flattenInputsAndArgs(inputs: Array<SBDraft2CommandInputParameterModel | SBDraft2CommandArgumentModel>): Array<SBDraft2CommandInputParameterModel | SBDraft2CommandArgumentModel> {
+    static flattenInputsAndArgs(inputs: Array<CommandInputParameterModel | CommandArgumentModel>): Array<CommandInputParameterModel | CommandArgumentModel> {
         return inputs.filter(input => {
-            if (input instanceof SBDraft2CommandInputParameterModel) {
+            if (input instanceof CommandInputParameterModel) {
                 return !!input.inputBinding;
             }
             return true;
@@ -57,7 +56,7 @@ export class CommandLinePrepare {
             const sortFn = (a, b) => {
                 let c1, c2;
                 [c1, c2] = [a, b].map(a => {
-                    return a instanceof SBDraft2CommandArgumentModel ?
+                    return a instanceof CommandArgumentModel ?
                         {pos: ~~a.position, id: index.toString()} :
                         {pos: ~~a.inputBinding.position, id: a.id};
                 });
@@ -65,7 +64,7 @@ export class CommandLinePrepare {
                 return ~~c1.pos - ~~c2.pos || c1.id.localeCompare(c2.id);
             };
 
-            if (input instanceof SBDraft2CommandInputParameterModel) {
+            if (input instanceof CommandInputParameterModel) {
                 if (input.type.fields) {
                     return acc.concat(input, ...CommandLinePrepare.flattenInputsAndArgs(input.type.fields).sort(sortFn));
                 }
