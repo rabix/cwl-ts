@@ -11,12 +11,14 @@ import {CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {DockerRequirementModel} from "../generic/DockerRequirementModel";
 import {DockerRequirement} from "../../mappings/v1.0/DockerRequirement";
+import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
+import {CommandLinePart} from "../helpers/CommandLinePart";
+import {JobHelper} from "../helpers/JobHelper";
 import {V1InitialWorkDirRequirementModel} from "./V1InitialWorkDirRequirementModel";
 import {InitialWorkDirRequirement} from "../../mappings/v1.0/InitialWorkDirRequirement";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {V1ResourceRequirementModel} from "./V1ResourceRequirementModel";
 import {ResourceRequirement} from "../../mappings/v1.0/ResourceRequirement";
-import {JobHelper} from "../helpers/JobHelper";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
 
@@ -44,6 +46,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public docker: DockerRequirementModel;
 
+    private constructed = false;
+    public job: any;
     public fileRequirement: V1InitialWorkDirRequirementModel;
 
     public resources: V1ResourceRequirementModel;
@@ -56,6 +60,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         super(loc);
 
         if (json) this.deserialize(json);
+        this.constructed = true;
     }
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
@@ -297,5 +302,57 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         }
 
         return spreadAllProps(base, this.customProps);
+    }
+
+    private commandLineWatcher: Function = () => {
+    };
+
+    public onCommandLineResult(fn: Function): void {
+        this.commandLineWatcher = fn;
+    }
+
+    public updateCommandLine(): void {
+        if (this.constructed) {
+            this.generateCommandLineParts().then(res => {
+                this.commandLineWatcher(res);
+            })
+        }
+    }
+
+    public setJob(job: any) {
+        this.job = job;
+    }
+
+    public generateCommandLineParts(): Promise<CommandLinePart[]> {
+        const flatInputs = CommandLinePrepare.flattenInputsAndArgs([].concat(this.arguments).concat(this.inputs));
+
+        const job = this.job.inputs ?
+            Object.assign({inputs: JobHelper.getJob(this)}, this.job || {}) : this.job || {};
+        
+        const flatJobInputs = CommandLinePrepare.flattenJob(job.inputs || job, {});
+
+        const baseCmdPromise = this.baseCommand.map(cmd => {
+            return CommandLinePrepare.prepare(cmd, flatJobInputs, this.getContext(), cmd.loc, "baseCommand").then(suc => {
+                if (suc instanceof CommandLinePart) return suc;
+                return new CommandLinePart(<string>suc, "baseCommand", cmd.loc);
+            }, err => {
+                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, cmd.loc);
+            });
+        });
+
+        const inputPromise = flatInputs.map(input => {
+            return CommandLinePrepare.prepare(input, flatJobInputs, this.getContext(input["id"]), input.loc)
+        }).filter(i => i instanceof Promise).map(promise => {
+            return promise.then(succ => succ, err => {
+                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type);
+            });
+        });
+
+        const stdOutPromise = CommandLinePrepare.prepare(this.stdout, flatJobInputs, this.getContext(), this.stdout.loc, "stdout");
+        const stdInPromise  = CommandLinePrepare.prepare(this.stdin, flatJobInputs, this.getContext(), this.stdin.loc, "stdin");
+
+        return Promise.all([].concat(baseCmdPromise, inputPromise, stdOutPromise, stdInPromise)).then(parts => {
+            return parts.filter(part => part !== null);
+        });
     }
 }

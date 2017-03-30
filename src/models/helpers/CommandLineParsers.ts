@@ -1,7 +1,7 @@
+import {ExpressionModel} from '../generic';
 import {CommandLinePart} from "./CommandLinePart";
 import {TypeResolver} from "./TypeResolver";
 import {CommandLinePrepare} from "./CommandLinePrepare";
-import {SBDraft2ExpressionModel} from "../d2sb/SBDraft2ExpressionModel";
 export class CommandLineParsers {
 
     static primitive(input, job, value, context, cmdType, loc): Promise<CommandLinePart> {
@@ -10,6 +10,7 @@ export class CommandLineParsers {
         const separator = input.inputBinding.separate !== false ? " " : "";
         value           = value || job[input.id];
         value           = value.hasOwnProperty("path") ? value.path : value;
+        value           = value.hasOwnProperty("location") ? value.location : value;
 
         // if (input.inputBinding.valueFrom &&  input.inputBinding.valueFrom) {
         //     return CommandLinePrepare.prepare(input.inputBinding.valueFrom, job, context.$job, cmdType).then(suc => {
@@ -34,7 +35,7 @@ export class CommandLineParsers {
             prefix = input.type.items === "boolean" ? itemsPrefix : prefix;
 
             if (input.inputBinding.valueFrom) {
-                return input.inputBinding.valueFrom.evaluate({$job: job, $self: job[input.id]})
+                return input.inputBinding.valueFrom.evaluate(context)
                     .then(res => {
                         return new CommandLinePart(prefix + separator + res, type, loc);
                     }, err => {
@@ -85,7 +86,7 @@ export class CommandLineParsers {
 
     }
 
-    static expression(expr: SBDraft2ExpressionModel, job, value, context, cmdType, loc): Promise<any> {
+    static expression(expr: ExpressionModel, job, value, context, cmdType, loc): Promise<any> {
         return expr.evaluate(context).then(res => {
             return res;
         }, err => {
@@ -104,7 +105,7 @@ export class CommandLineParsers {
         const separator = arg.separate !== false ? " " : "";
 
         if (arg.valueFrom) {
-            return CommandLinePrepare.prepare(arg.valueFrom, job, context.$job).then(res => {
+            return CommandLinePrepare.prepare(arg.valueFrom, job, context).then(res => {
                 if (res instanceof CommandLinePart) {
                     return res;
                 }
@@ -118,7 +119,7 @@ export class CommandLineParsers {
     }
 
     static stream(stream, job, value, context, cmdType, loc): Promise<CommandLinePart> {
-        if (stream instanceof SBDraft2ExpressionModel) {
+        if (stream instanceof ExpressionModel) {
             return CommandLineParsers.expression(stream, job, value, context, cmdType, loc).then(res => {
                 if (res instanceof CommandLinePart) {
                     return res;

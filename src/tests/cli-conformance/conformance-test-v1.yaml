@@ -1,0 +1,34 @@
+- job: v1.0/bwa-mem-job.json
+  tool: v1.0/bwa-mem-tool.cwl
+  output: [python, bwa, mem, -t, '4', -I, '1,2,3,4', -m, '3',
+      chr20.fa,
+      example_human_Illumina.pe_1.fastq,
+      example_human_Illumina.pe_2.fastq,
+      "> output.sam"]
+  doc: General test of command line generation
+
+- output: [python, bwa, mem, chr20.fa,
+      "-XXX",
+      "-YYY", example_human_Illumina.pe_1.fastq,
+      "-YYY", example_human_Illumina.pe_2.fastq]
+  job: v1.0/bwa-mem-job.json
+  tool: v1.0/binding-test.cwl
+  doc: Test nested prefixes with arrays
+
+# - output: [python, tmap, mapall, stage1, map1, --min-seq-length, '20', map2, --min-seq-length,
+#     '20', stage2, map1, --max-seq-length, '20', --min-seq-length, '10', --seed-length,
+#     '16', map2, --max-seed-hits, '-1', --max-seq-length, '20', --min-seq-length, '10']
+#   job: v1.0/tmap-job.json
+#   tool: v1.0/tmap-tool.cwl
+#   doc: Test nested command line bindings
+
+- output: [python, cat, hello.txt]
+  job: v1.0/cat-job.json
+  tool: v1.0/cat1-testcli.cwl
+  doc: Test command line with optional input (missing)
+
+- output: [python, cat, -n, hello.txt]
+  job: v1.0/cat-n-job.json
+  tool: v1.0/cat1-testcli.cwl
+  doc: Test command line with optional input (provided)
+  
