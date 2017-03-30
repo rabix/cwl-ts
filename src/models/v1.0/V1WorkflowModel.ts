@@ -64,7 +64,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
             in: [],
             out: [],
             run: proc
-        }, loc);
+        }, loc, this.eventHub);
 
         step.setValidationCallback(err => this.updateValidity(err));
         this.steps.push(step);

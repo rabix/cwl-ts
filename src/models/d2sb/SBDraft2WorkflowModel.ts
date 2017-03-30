@@ -81,7 +81,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
             inputs: [],
             outputs: [],
             run: proc
-        }, loc);
+        }, loc, this.eventHub);
 
         step.setValidationCallback(err => this.updateValidity(err));
         this.steps.push(step);
