@@ -1,4 +1,4 @@
-import { ExpressionModel } from '../../../lib/models/generic';
+import {ExpressionModel} from '../generic';
 import {CommandLinePart} from "./CommandLinePart";
 import {TypeResolver} from "./TypeResolver";
 import {CommandLinePrepare} from "./CommandLinePrepare";
@@ -124,20 +124,10 @@ export class CommandLineParsers {
                 if (res instanceof CommandLinePart) {
                     return res;
                 } else {
-                    if (res === null || res === "") {
-                        return null;
-                    }
-                    const prefix = cmdType === "stdin" ? "< " : "> ";
+                    const prefix = res ? (cmdType === "stdin" ? "< " : "> ") : "";
                     return new CommandLinePart(prefix + res, cmdType, loc);
                 }
             });
-        } else {
-            if (stream === null || stream === "") {
-                return null;
-            }
-            const prefix = cmdType === "stdin" ? "< " : "> ";
-            let part = new CommandLinePart(prefix + stream, cmdType, loc);
-            return Promise.resolve(stream);
         }
     }
 

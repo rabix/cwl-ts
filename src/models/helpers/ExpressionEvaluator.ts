@@ -5,7 +5,6 @@ export class ExpressionEvaluator {
     public static evaluate(expr: number | string | ExpressionD2, context: any = {}, version:
                                "v1.0"
                                | "draft-2"): Promise<any> {
-        console.log("version: " + version);
         if (version === "v1.0") {
             if (typeof expr === "number") {
                 expr = expr.toString();
@@ -28,7 +27,7 @@ export class ExpressionEvaluator {
                         }
                         delete context["$job"];
                     }
-                    if ("$self" in context) {
+                    if ("$self" in context && !("self" in context)) {
                         context["self"] = context["$self"];
                         delete context["$self"];
                     }
