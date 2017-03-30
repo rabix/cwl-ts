@@ -26,6 +26,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     public cwlVersion: string | CWLVersion;
     public "class" = "Workflow";
 
+    public sbgId: string;
+
     public steps: StepModel[]                      = [];
     public inputs: WorkflowInputParameterModel[]   = [];
     public outputs: WorkflowOutputParameterModel[] = [];

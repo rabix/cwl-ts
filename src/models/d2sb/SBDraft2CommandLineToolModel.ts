@@ -38,8 +38,6 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public inputs: Array<SBDraft2CommandInputParameterModel>   = [];
     public outputs: Array<SBDraft2CommandOutputParameterModel> = [];
 
-    private sbgId: string;
-
     public resources = new SBDraft2ResourceRequirementModel();
 
     public docker: DockerRequirementModel;

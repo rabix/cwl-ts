@@ -23,8 +23,6 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
     public outputs: SBDraft2WorkflowOutputParameterModel[] = [];
 
-    private sbgId: string;
-
     constructor(workflow: Workflow, loc: string) {
         super(loc || "document");
 

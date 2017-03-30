@@ -230,6 +230,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             this.jobInputs = tool["sbg:job"].inputs;
         }
 
+        this.sbgId = tool["sbg:id"];
+
         // this.successCodes       = tool.successCodes;
         // this.temporaryFailCodes = tool.temporaryFailCodes;
         // this.permanentFailCodes = tool.permanentFailCodes;
@@ -246,6 +248,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             outputs: <CommandOutputParameter[]> this.outputs.map(o => o.serialize())
         };
 
+        if (this.sbgId || this.id) {
+            base.id = this.sbgId || this.id;
+        }
 
         // REQUIREMENTS && HINTS
         base.requirements = [];

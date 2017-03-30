@@ -148,7 +148,9 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         base.class      = "Workflow";
         base.cwlVersion = "v1.0";
 
-        if (this.id) base.id = this.id;
+        if (this.sbgId || this.id) {
+            base.id = this.sbgId || this.id;
+        }
 
         if (this.description) base.doc = this.description;
         if (this.label) base.label = this.label;
@@ -183,6 +185,8 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         //@todo DESERIALIZING HINTS AND REQUIREMENTS
 
         this.id = workflow.id;
+
+        this.sbgId = workflow["sbg:id"];
 
         this.label       = workflow.label;
         this.description = workflow.doc;

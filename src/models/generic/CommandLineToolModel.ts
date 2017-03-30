@@ -20,7 +20,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public "class" = "CommandLineTool";
 
-
+    public sbgId: string;
     public job: any;
 
     public baseCommand: ExpressionModel[]         = [];
