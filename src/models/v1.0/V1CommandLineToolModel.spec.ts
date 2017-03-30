@@ -6,6 +6,7 @@ import { CommandLinePart } from "../helpers/CommandLinePart";
 function runTest(app: CommandLineTool, job: any, expected: CommandLinePart[], done) {
     let model = new V1CommandLineToolModel(app);
     model.setJob(job);
+    model.setRuntime({"cores": 4})
     model.generateCommandLineParts().then((result) => {
         let resStr = result.map(
             (part) => {return part.value}
