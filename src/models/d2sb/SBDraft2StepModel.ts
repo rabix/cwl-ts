@@ -130,6 +130,14 @@ export class SBDraft2StepModel extends StepModel {
     }
 
     serialize(): WorkflowStep {
+        return this._serialize(false);
+    }
+
+    serializeEmbedded(): WorkflowStep {
+        return this._serialize(true);
+    }
+
+    _serialize(embed: boolean): WorkflowStep {
         let base: WorkflowStep = <WorkflowStep> {};
 
         base.id = "#" + this.id;
@@ -139,15 +147,16 @@ export class SBDraft2StepModel extends StepModel {
         });
         base.outputs = this.out.map(o => o.serialize());
 
-        if (this.customProps["sbg:rdfId"]) {
+        if (this.customProps["sbg:rdfId"] && !embed) {
             base.run = this.customProps["sbg:rdfId"];
-            delete this.customProps["sbg:rdfId"];
-            delete this.customProps["sbg:rdfSource"];
         } else if (this.run && typeof this.run.serialize === "function") {
             base.run = this.run.serialize();
         } else {
             base.run = this.runPath;
         }
+
+        delete this.customProps["sbg:rdfId"];
+        delete this.customProps["sbg:rdfSource"];
 
         if (this._label) base.label = this._label;
         if (this.description) base.description = this.description;

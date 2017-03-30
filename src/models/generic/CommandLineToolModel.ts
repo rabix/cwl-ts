@@ -11,6 +11,7 @@ import {ExpressionModel} from "./ExpressionModel";
 import {ProcessRequirement} from "./ProcessRequirement";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {RequirementBaseModel} from "./RequirementBaseModel";
+import {ResourceRequirementModel} from "./ResourceRequirementModel";
 
 export abstract class CommandLineToolModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -19,7 +20,8 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public "class" = "CommandLineTool";
 
-    public context: any;
+
+    public job: any;
 
     public baseCommand: ExpressionModel[]         = [];
     public inputs: CommandInputParameterModel[]   = [];
@@ -39,7 +41,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public fileRequirement: CreateFileRequirementModel;
 
-    public resources: any;
+    public resources: ResourceRequirementModel;
 
     public label?: string;
     public description?: string;
@@ -83,9 +85,17 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         new UnimplementedMethodException("updateCommandLine", "CommandLineToolModel");
     }
 
-    public setJob(job: any): void {
+    public setJobInputs(inputs: any): void {
         new UnimplementedMethodException("setJob", "CommandLineToolModel");
     }
+
+    public setRuntime(runtime: any): void {
+        new UnimplementedMethodException("setRuntime", "CommandLineToolModel");
+    }
+
+    public getContext(id?: string): any {
+        new UnimplementedMethodException("getContext", "CommandLineToolModel");
+    };
 
     public resetJobDefaults(): void {
         new UnimplementedMethodException("resetJob", "CommandLineToolModel");

@@ -40,6 +40,7 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
         // but are necessary for internal functions
         this.type    = attr["type"];
         if (!this.type) this.type = new ParameterTypeModel(null);
+        this.type.hasDirectoryType = true;
 
         this.description = attr["description"];
         this.label       = attr["label"];

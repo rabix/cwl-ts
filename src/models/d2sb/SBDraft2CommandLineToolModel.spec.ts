@@ -208,7 +208,8 @@ describe("SBDraft2CommandLineToolModel", () => {
 
         it("Should evaluate BWA mem tool: General test of command line generation", (done) => {
             let tool = new SBDraft2CommandLineToolModel("", BWAMemTool.default);
-            tool.setJob(BWAMemJob.default);
+            tool.setJobInputs(BWAMemJob.default);
+            tool.setRuntime(BWAMemJob.default.allocatedResources);
 
             tool.getCommandLine().then(cmd => {
                 expect(cmd).to.equal(`python bwa mem -t 4 -I 1,2,3,4 -m 3 chr20.fa example_human_Illumina.pe_1.fastq example_human_Illumina.pe_2.fastq > output.sam`);
@@ -226,7 +227,8 @@ describe("SBDraft2CommandLineToolModel", () => {
 
         it("Should evaluate BWM mem tool: Test nested prefixes with arrays", (done) => {
             let tool = new SBDraft2CommandLineToolModel("", BindingTestTool.default);
-            tool.setJob(BWAMemJob.default);
+            tool.setJobInputs(BWAMemJob.default);
+            tool.setRuntime(BWAMemJob.default.allocatedResources);
 
             tool.getCommandLine().then(cmd => {
                 expect(cmd).to.equal(`python bwa mem chr20.fa -XXX -YYY example_human_Illumina.pe_1.fastq -YYY example_human_Illumina.pe_2.fastq`);

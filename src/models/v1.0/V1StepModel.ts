@@ -24,7 +24,15 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         if (step) this.deserialize(step);
     }
 
+    serializeEmbedded(): WorkflowStep {
+        return this._serialize(true);
+    }
+
     serialize(): WorkflowStep {
+        return this._serialize(false);
+    }
+
+    _serialize(embed: boolean): WorkflowStep {
         let base: WorkflowStep = <WorkflowStep> {};
         base.id                = this.id;
         base.in                = this.in.map(i => i.serialize()).filter(i => {
@@ -33,15 +41,16 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         });
         base.out               = this.out.map(o => o.serialize());
 
-        if (this.customProps["sbg:rdfId"]) {
+        if (this.customProps["sbg:rdfId"] && !embed) {
             base.run = this.customProps["sbg:rdfId"];
-            delete this.customProps["sbg:rdfId"];
-            delete this.customProps["sbg:rdfSource"];
         } else if (this.run && typeof this.run.serialize === "function") {
             base.run = this.run.serialize();
         } else {
             base.run = this.runPath;
         }
+
+        delete this.customProps["sbg:rdfId"];
+        delete this.customProps["sbg:rdfSource"];
 
         if (this._label) base.label = this.label;
         if (this.description) base.doc = this.description;

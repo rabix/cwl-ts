@@ -70,11 +70,15 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
 
     protected compareOutPorts() {}
 
+    public serializeEmbedded(): any {
+        new UnimplementedMethodException("serializeEmbedded", "StepModel");
+    }
+
     serialize(): any {
-        new UnimplementedMethodException("serialize");
+        new UnimplementedMethodException("serialize", "StepModel");
     }
 
     deserialize(attr: any): void {
-        new UnimplementedMethodException("deserialize");
+        new UnimplementedMethodException("deserialize", "StepModel");
     }
 }
