@@ -109,7 +109,7 @@ export const spreadAllProps = (destObj: Object, sourceObj: Object): any => {
 
 export const spreadSelectProps = (sourceObj: Object, destObj: Object, keys: string[]): void => {
     Object.keys(sourceObj).forEach(key => {
-        if (keys.indexOf(key) === -1) {
+        if (keys.indexOf(key) === -1 && sourceObj[key] !== undefined) {
             destObj[key] = sourceObj[key];
         }
     });

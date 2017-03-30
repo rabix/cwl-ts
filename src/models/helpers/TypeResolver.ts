@@ -38,8 +38,15 @@ export class TypeResolver {
             tmp = originalType.serialize();
         }
 
+        let type;
+
         // clone type object because it will be sliced and modified later
-        const type = JSON.parse(JSON.stringify(tmp));
+        try {
+            type = JSON.parse(JSON.stringify(tmp));
+        } catch (err) {
+            type = {...tmp};
+            console.error(err);
+        }
 
         if (typeof type === 'string') {
             let matches = /(\w+)([\[\]?]+)/g.exec(<string> type);
@@ -189,7 +196,7 @@ export class TypeResolver {
                         type: "array",
                         items: type.items
                     };
-                    if (type.typeBinding) t.inputBinding = t;
+                    if (type.typeBinding) t.inputBinding = type.typeBinding;
                 }
 
                 break;
@@ -206,7 +213,7 @@ export class TypeResolver {
                     }),
                     name: type.name
                 };
-                if (type.typeBinding) t.inputBinding = t;
+                if (type.typeBinding) t.inputBinding = type.typeBinding;
                 break;
 
             case "enum":
@@ -216,7 +223,7 @@ export class TypeResolver {
                     name: type.name
                 };
 
-                if (type.typeBinding) t.inputBinding = t;
+                if (type.typeBinding) t.inputBinding = type.typeBinding;
                 break;
 
             default:
