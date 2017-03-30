@@ -10,6 +10,7 @@ export class CommandLineParsers {
         const separator = input.inputBinding.separate !== false ? " " : "";
         value           = value || job[input.id];
         value           = value.hasOwnProperty("path") ? value.path : value;
+        value           = value.hasOwnProperty("location") ? value.location : value;
 
         // if (input.inputBinding.valueFrom &&  input.inputBinding.valueFrom) {
         //     return CommandLinePrepare.prepare(input.inputBinding.valueFrom, job, context.$job, cmdType).then(suc => {
@@ -34,7 +35,7 @@ export class CommandLineParsers {
             prefix = input.type.items === "boolean" ? itemsPrefix : prefix;
 
             if (input.inputBinding.valueFrom) {
-                return input.inputBinding.valueFrom.evaluate({$job: job, $self: job[input.id]})
+                return input.inputBinding.valueFrom.evaluate(context)
                     .then(res => {
                         return new CommandLinePart(prefix + separator + res, type, loc);
                     }, err => {
@@ -104,7 +105,7 @@ export class CommandLineParsers {
         const separator = arg.separate !== false ? " " : "";
 
         if (arg.valueFrom) {
-            return CommandLinePrepare.prepare(arg.valueFrom, job, context.$job).then(res => {
+            return CommandLinePrepare.prepare(arg.valueFrom, job, context).then(res => {
                 if (res instanceof CommandLinePart) {
                     return res;
                 }

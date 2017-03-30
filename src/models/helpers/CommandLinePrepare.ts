@@ -5,7 +5,7 @@ import {CommandLineParsers} from "./CommandLineParsers";
 
 export class CommandLinePrepare {
 
-    static prepare(input, flatJobInputs, job, loc?: string, cmdType?: CommandType): Promise<CommandLinePart | string> {
+    static prepare(input, flatJobInputs, context, loc?: string, cmdType?: CommandType): Promise<CommandLinePart | string> {
         let inputType = "primitive";
 
         if (!input) {
@@ -42,10 +42,7 @@ export class CommandLinePrepare {
 
         let parser = CommandLineParsers[inputType];
 
-        let result = parser(input, flatJobInputs, flatJobInputs[input.id || null], {
-            $job: job,
-            $self: flatJobInputs[input.id || ""] || null
-        }, cmdType, loc);
+        let result = parser(input, flatJobInputs, flatJobInputs[input.id || null], context, cmdType, loc);
 
         return result;
     };

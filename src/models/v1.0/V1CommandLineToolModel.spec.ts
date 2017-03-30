@@ -10,8 +10,8 @@ function runTest(app: CommandLineTool, job: any, expected: CommandLinePart[], do
         let resStr = result.map(
             (part) => {return part.value}
         ).filter( (part) => {return part !== ""});
-        console.log(resStr);
-        expect(resStr).to.equals(expected);
+
+        expect(resStr.join(" ")).to.equals(expected.join(" "));
     }).then(done, done);
 }
 
