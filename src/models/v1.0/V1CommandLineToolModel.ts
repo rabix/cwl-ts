@@ -47,7 +47,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public docker: DockerRequirementModel;
 
     private constructed = false;
-    public job: any;
+    public job: any = {};
     public fileRequirement: V1InitialWorkDirRequirementModel;
 
     public resources: V1ResourceRequirementModel;
@@ -109,6 +109,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
 
     public setJobInputs(inputs: any): void {
+        this.job.inputs = inputs;
         this.jobInputs = inputs;
     }
 
@@ -120,6 +121,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public resetJobDefaults(): void {
         this.jobInputs = JobHelper.getJob(this);
+        this.job.inputs = this.jobInputs;
     }
 
     private createReq(req: ProcessRequirement, loc?: string, hint = false): ProcessRequirementModel {
@@ -216,7 +218,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         // create ResourceRequirement for manipulation
         this.resources = this.resources || new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
 
-
         this.arguments = ensureArray(tool.arguments).map(arg => this.addArgument(arg));
 
 
@@ -229,8 +230,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.stderr = new V1ExpressionModel(tool.stderr, `${this.loc}.stderr`);
         this.stderr.setValidationCallback(err => this.updateValidity(err));
 
-
         if (tool["sbg:job"]) {
+            this.job = tool["sbg:job"];
             this.runtime = tool["sbg:job"].runtime;
             this.jobInputs = tool["sbg:job"].inputs;
         }
@@ -281,7 +282,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         }
 
         if (this.fileRequirement.serialize()) {
-            const dest = this.docker.isHint ? "hints" : "requirements";
+            const dest = this.fileRequirement.isHint ? "hints" : "requirements";
             (base[dest] as Array<ProcessRequirement>).push(this.fileRequirement.serialize());
         }
 
