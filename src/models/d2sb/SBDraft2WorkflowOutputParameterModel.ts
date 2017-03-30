@@ -24,7 +24,7 @@ export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParamete
         if (this._label) base.label = this._label;
         if (this.description) base.description = this.description;
 
-        base.source = this.source;
+        base.source = ensureArray(this.source);
         if (this.type) base.type = this.type.serialize();
 
         return spreadAllProps(base, this.customProps);

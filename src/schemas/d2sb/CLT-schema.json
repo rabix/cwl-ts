@@ -208,8 +208,7 @@
     "required": [
         "inputs",
         "outputs",
-        "class",
-        "baseCommand"
+        "class"
     ],
     "definitions": {
         "CommandInputParameter": {

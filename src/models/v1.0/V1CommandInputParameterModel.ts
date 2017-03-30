@@ -81,6 +81,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
 
         this.type = new ParameterTypeModel(attr.type, V1CommandInputParameterModel, `${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));
+        this.type.hasDirectoryType = true;
 
         if (attr.inputBinding) {
             this.inputBinding = new V1CommandLineBindingModel(attr.inputBinding, `${this.loc}.inputBinding`);

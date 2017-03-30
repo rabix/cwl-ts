@@ -30,6 +30,7 @@ export class V1WorkflowStepOutputModel extends WorkflowStepOutputModel implement
         // but are necessary for internal functions
         this.type = output["type"];
         if (!this.type) this.type = new ParameterTypeModel(null);
+        this.type.hasDirectoryType = true;
 
         this.description = output["description"];
         this.label = output["label"];

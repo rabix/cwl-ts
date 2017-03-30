@@ -24,3 +24,4 @@ export * from "./ProcessRequirementModel";
 export * from "./RequirementBaseModel";
 export * from "./CreateFileRequirementModel";
 export * from "./DirentModel";
+export * from "./ResourceRequirementModel";

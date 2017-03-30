@@ -95,7 +95,16 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         return step;
     }
 
+    public serializeEmbedded(): Workflow {
+        return this._serialize(false);
+    }
+
+
     serialize(): Workflow {
+        return this._serialize(false);
+    }
+
+    _serialize(embed: boolean): Workflow {
         const base: Workflow = <Workflow>{};
 
         base.class = "Workflow";
@@ -110,7 +119,13 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
         base.inputs = <SBGWorkflowInputParameter[]> this.inputs.map(i => i.serialize());
         base.outputs = <WorkflowOutputParameter[]>this.outputs.map(o => o.serialize());
-        base.steps = this.steps.map(s => s.serialize());
+        base.steps = this.steps.map(s => {
+            if (embed) {
+                return s.serializeEmbedded();
+            } else {
+                return s.serialize();
+            }
+        });
 
         return spreadAllProps(base, this.customProps);
     }

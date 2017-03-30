@@ -17,6 +17,9 @@ import {JobHelper} from "../helpers/JobHelper";
 import {V1InitialWorkDirRequirementModel} from "./V1InitialWorkDirRequirementModel";
 import {InitialWorkDirRequirement} from "../../mappings/v1.0/InitialWorkDirRequirement";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
+import {V1ResourceRequirementModel} from "./V1ResourceRequirementModel";
+import {ResourceRequirement} from "../../mappings/v1.0/ResourceRequirement";
+import {JobHelper} from "../helpers/JobHelper";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
 
@@ -48,6 +51,12 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public job: any;
     public fileRequirement: V1InitialWorkDirRequirementModel;
 
+    public resources: V1ResourceRequirementModel;
+
+    public jobInputs: any = {};
+
+    public runtime: {ram?: number, cores?: number} = {};
+
     constructor(json: CommandLineTool, loc?: string) {
         super(loc);
 
@@ -56,7 +65,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
-        const h = new RequirementBaseModel(hint, V1ExpressionModel,`${this.loc}.hints[${this.hints.length}]`);
+        const h = new RequirementBaseModel(hint, V1ExpressionModel, `${this.loc}.hints[${this.hints.length}]`);
         h.setValidationCallback(err => this.updateValidity(err));
         this.hints.push(h);
 
@@ -99,6 +108,21 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.createReq(req, null, hint);
     }
 
+
+    public setJobInputs(inputs: any): void {
+        this.jobInputs = inputs;
+    }
+
+    public setRuntime(runtime: any): void {
+        this.runtime.cores = runtime.cores || runtime.cpu;
+        this.runtime.ram = runtime.ram || runtime.mem;
+    }
+
+
+    public resetJobDefaults(): void {
+        this.jobInputs = JobHelper.getJob(this);
+    }
+
     private createReq(req: ProcessRequirement, loc?: string, hint = false): ProcessRequirementModel {
         let reqModel: ProcessRequirementModel;
         const property = hint ? "hints" : "requirements";
@@ -106,19 +130,26 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         switch (req.class) {
             case "DockerRequirement":
-                this.docker = new DockerRequirementModel(req, this.docker ? this.docker.loc : loc);
+                this.docker        = new DockerRequirementModel(req, this.docker ? this.docker.loc || loc : loc);
                 this.docker.isHint = hint;
                 this.docker.setValidationCallback(err => this.updateValidity(err));
                 return;
+
             case "InitialWorkDirRequirement":
-                loc                  = this.fileRequirement ? this.fileRequirement.loc : loc;
+                loc                  = this.fileRequirement ? this.fileRequirement.loc || loc : loc;
                 this.fileRequirement = new V1InitialWorkDirRequirementModel(
                     <InitialWorkDirRequirement> req, loc);
                 this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
                 this.fileRequirement.isHint = hint;
                 return;
+
+            case "ResourceRequirement":
+                loc            = this.resources ? this.resources.loc || loc : loc;
+                this.resources = new V1ResourceRequirementModel(req, loc);
+                return;
+
             default:
-                reqModel = new RequirementBaseModel(req, V1ExpressionModel, loc);
+                reqModel        = new RequirementBaseModel(req, V1ExpressionModel, loc);
                 reqModel.isHint = hint;
         }
 
@@ -134,6 +165,19 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         stream.loc = `${this.loc}.${type}`;
         stream.setValidationCallback(err => this.updateValidity(err));
     }
+
+    public getContext(id?: string): any {
+        const context: any = {
+            runtime: this.runtime,
+            inputs: this.jobInputs
+        };
+
+        if (id) {
+            context.self = this.jobInputs[id];
+        }
+
+        return context;
+    };
 
     public deserialize(tool: CommandLineTool) {
         const serializedKeys = [
@@ -170,8 +214,12 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         // create InitialWorkDirRequirement for manipulation
         this.fileRequirement = this.fileRequirement || new V1InitialWorkDirRequirementModel(<InitialWorkDirRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
 
+        // create ResourceRequirement for manipulation
+        this.resources = this.resources || new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+
 
         this.arguments = ensureArray(tool.arguments).map(arg => this.addArgument(arg));
+
 
         this.stdin = new V1ExpressionModel(tool.stdin, `${this.loc}.stdin`);
         this.stdin.setValidationCallback(err => this.updateValidity(err));
@@ -182,6 +230,11 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.stderr = new V1ExpressionModel(tool.stderr, `${this.loc}.stderr`);
         this.stderr.setValidationCallback(err => this.updateValidity(err));
 
+
+        if (tool["sbg:job"]) {
+            this.runtime = tool["sbg:job"].runtime;
+            this.jobInputs = tool["sbg:job"].inputs;
+        }
 
         // this.successCodes       = tool.successCodes;
         // this.temporaryFailCodes = tool.temporaryFailCodes;
@@ -202,7 +255,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         // REQUIREMENTS && HINTS
         base.requirements = [];
-        base.hints = [];
+        base.hints        = [];
 
 
         if (this.requirements.length) {
@@ -211,6 +264,11 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         if (this.hints.length) {
             this.hints.forEach(h => base.hints.push(h.serialize()));
+        }
+
+        if (this.resources.serialize()) {
+            const dest = this.resources.isHint ? "hints" : "requirements";
+            (base[dest] as Array<ProcessRequirement>).push(this.resources.serialize());
         }
 
         if (this.docker.serialize()) {
@@ -226,13 +284,18 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (!base.requirements.length) delete base.requirements;
         if (!base.hints.length) delete base.hints;
 
-
         if (this.stdin.serialize() !== undefined) base.stdin = this.stdin.serialize();
         if (this.stdout.serialize() !== undefined) base.stdout = this.stdout.serialize();
         if (this.stderr.serialize() !== undefined) base.stderr = this.stderr.serialize();
 
-
         if (this.arguments.length) base.arguments = this.arguments.map(a => a.serialize());
+
+        if (this.runtime && this.jobInputs) {
+            base["sbg:job"] = {
+                inputs: this.jobInputs,
+                runtime: this.runtime
+            }
+        }
 
         return spreadAllProps(base, this.customProps);
     }

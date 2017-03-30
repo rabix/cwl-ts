@@ -16,6 +16,8 @@ export type PrimitiveParameterType = "array" | "enum" | "record" | "File" | "str
 export class ParameterTypeModel extends ValidationBase implements Serializable<any>, TypeResolution {
     public customProps: any = {};
 
+    public hasDirectoryType = false;
+
     private _items: PrimitiveParameterType = null;
 
     get items(): PrimitiveParameterType {
