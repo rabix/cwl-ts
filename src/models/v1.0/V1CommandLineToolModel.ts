@@ -3,7 +3,7 @@ import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
 import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
 import {V1CommandArgumentModel} from "./V1CommandArgumentModel";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
-import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {CommandInputParameter} from "../../mappings/v1.0/CommandInputParameter";
 import {CommandOutputParameter} from "../../mappings/v1.0/CommandOutputParameter";
@@ -47,14 +47,14 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public docker: DockerRequirementModel;
 
     private constructed = false;
-    public job: any = {};
+    public job: any     = {};
     public fileRequirement: V1InitialWorkDirRequirementModel;
 
     public resources: V1ResourceRequirementModel;
 
     public jobInputs: any = {};
 
-    public runtime: {ram?: number, cores?: number} = {};
+    public runtime: { ram?: number, cores?: number } = {};
 
     constructor(json: CommandLineTool, loc?: string) {
         super(loc);
@@ -110,17 +110,17 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public setJobInputs(inputs: any): void {
         this.job.inputs = inputs;
-        this.jobInputs = inputs;
+        this.jobInputs  = inputs;
     }
 
     public setRuntime(runtime: any): void {
         this.runtime.cores = runtime.cores || runtime.cpu;
-        this.runtime.ram = runtime.ram || runtime.mem;
+        this.runtime.ram   = runtime.ram || runtime.mem;
     }
 
 
     public resetJobDefaults(): void {
-        this.jobInputs = JobHelper.getJob(this);
+        this.jobInputs  = JobHelper.getJob(this);
         this.job.inputs = this.jobInputs;
     }
 
@@ -198,7 +198,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             "requirements"
         ];
 
-        this.id          = tool.id;
+        this.id = this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 2 ?
+            tool["sbg:id"].split("/")[2] :
+            snakeCase(tool.id);
+
         this.description = tool.doc;
         this.label       = tool.label;
 
@@ -231,8 +234,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.stderr.setValidationCallback(err => this.updateValidity(err));
 
         if (tool["sbg:job"]) {
-            this.job = tool["sbg:job"];
-            this.runtime = tool["sbg:job"].runtime;
+            this.job       = tool["sbg:job"];
+            this.runtime   = tool["sbg:job"].runtime;
             this.jobInputs = tool["sbg:job"].inputs;
         }
 
@@ -329,7 +332,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         const job = this.job.inputs ?
             Object.assign({inputs: JobHelper.getJob(this)}, this.job || {}) : this.job || {};
-        
+
         const flatJobInputs = CommandLinePrepare.flattenJob(job.inputs || job, {});
 
         const baseCmdPromise = this.baseCommand.map(cmd => {

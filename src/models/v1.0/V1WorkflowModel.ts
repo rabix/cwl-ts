@@ -6,7 +6,7 @@ import {Workflow} from "../../mappings/v1.0/Workflow";
 import {Serializable} from "../interfaces/Serializable";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {Validation} from "../helpers/validation/Validation";
-import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
 import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
@@ -92,14 +92,12 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         return entry;
     }
 
-    public createInputFromPort(inPort:
-                                   V1WorkflowStepInputModel
+    public createInputFromPort(inPort: V1WorkflowStepInputModel
                                    | string): V1WorkflowInputParameterModel {
         return super._createInputFromPort(inPort, V1WorkflowInputParameterModel);
     }
 
-    public createOutputFromPort(outPort:
-                                    V1WorkflowStepOutputModel
+    public createOutputFromPort(outPort: V1WorkflowStepOutputModel
                                     | string): V1WorkflowOutputParameterModel {
         return super._createOutputFromPort(outPort, V1WorkflowOutputParameterModel);
     }
@@ -184,7 +182,9 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         //@todo DESERIALIZING HINTS AND REQUIREMENTS
 
-        this.id = workflow.id;
+        this.id = this.id = workflow["sbg:id"] && workflow["sbg:id"].split("/").length > 2 ?
+            workflow["sbg:id"].split("/")[2] :
+            snakeCase(workflow.id);
 
         this.sbgId = workflow["sbg:id"];
 

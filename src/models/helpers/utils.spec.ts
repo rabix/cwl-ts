@@ -216,4 +216,9 @@ describe("snakeCase", () => {
         const target = snakeCase("space separatedString");
         expect(target).to.equal("space_separated_string");
     });
+
+    it("should convert illegal characters to underscore", () => {
+        const target = snakeCase("string/with-illegal.chars");
+        expect(target).to.equal("string_with_illegal_chars");
+    })
 });

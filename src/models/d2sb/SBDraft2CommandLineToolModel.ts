@@ -380,7 +380,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             "cwlVersion"
         ];
 
-        this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 3 ?
+        this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 2 ?
             tool["sbg:id"].split("/")[2] :
             snakeCase(tool.id);
 

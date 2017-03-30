@@ -134,7 +134,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         this.label       = workflow.label;
         this.description = workflow.description;
 
-        this.id = workflow["sbg:id"] && workflow["sbg:id"].split("/").length > 3 ?
+        this.id = workflow["sbg:id"] && workflow["sbg:id"].split("/").length > 2 ?
             workflow["sbg:id"].split("/")[2] :
             snakeCase(workflow.id);
 
