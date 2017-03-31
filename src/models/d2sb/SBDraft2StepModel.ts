@@ -155,15 +155,16 @@ export class SBDraft2StepModel extends StepModel {
             base.run = this.runPath;
         }
 
-        delete this.customProps["sbg:rdfId"];
-        delete this.customProps["sbg:rdfSource"];
+        const temp =  {... this.customProps};
+        delete temp["sbg:rdfId"];
+        delete temp["sbg:rdfSource"];
 
         if (this._label) base.label = this._label;
         if (this.description) base.description = this.description;
 
         if (this.scatter) base.scatter = this.in.filter(i => this.scatter === i.id)[0].destinationId;
 
-        return spreadAllProps(base, this.customProps);
+        return spreadAllProps(base, temp);
     }
 
     deserialize(step: WorkflowStep): void {

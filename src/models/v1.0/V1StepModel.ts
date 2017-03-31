@@ -49,15 +49,17 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             base.run = this.runPath;
         }
 
-        delete this.customProps["sbg:rdfId"];
-        delete this.customProps["sbg:rdfSource"];
+        // to preserve rdfId and rdfSource in the model
+        const temp = {...this.customProps};
+        delete temp["sbg:rdfId"];
+        delete temp["sbg:rdfSource"];
 
         if (this._label) base.label = this.label;
         if (this.description) base.doc = this.description;
         if (this.scatter.length) base.scatter = this.scatter;
         if (this.scatterMethod) base.scatterMethod = this.scatterMethod;
 
-        return spreadAllProps(base, this.customProps);
+        return spreadAllProps(base, temp);
     }
 
     deserialize(step: WorkflowStep): void {

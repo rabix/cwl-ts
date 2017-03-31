@@ -235,8 +235,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         if (tool["sbg:job"]) {
             this.job       = tool["sbg:job"];
-            this.runtime   = tool["sbg:job"].runtime;
-            this.jobInputs = tool["sbg:job"].inputs;
+            this.runtime   = tool["sbg:job"].runtime || {};
+            this.jobInputs = tool["sbg:job"].inputs || {};
         }
 
         this.sbgId = tool["sbg:id"];
@@ -301,8 +301,11 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (this.runtime && this.jobInputs) {
             base["sbg:job"] = {
                 inputs: this.jobInputs,
-                runtime: this.runtime
-            }
+                runtime: {}
+            };
+
+            if (this.runtime.cores) base["sbg:job"].runtime.cores = this.runtime.cores;
+            if (this.runtime.ram) base["sbg:job"].runtime.ram = this.runtime.ram;
         }
 
         return spreadAllProps(base, this.customProps);

@@ -9,8 +9,14 @@ export class CommandLineParsers {
         const prefix    = input.inputBinding.prefix || "";
         const separator = input.inputBinding.separate !== false ? " " : "";
         value           = value || job[input.id];
-        value           = value.hasOwnProperty("path") ? value.path : value;
-        value           = value.hasOwnProperty("location") ? value.location : value;
+
+        if (value !== null && value !== undefined) {
+            if (value.hasOwnProperty("path")) {
+                value = value.path;
+            } else if (value.hasOwnProperty("location")) {
+                value = value.location;
+            }
+        }
 
         // if (input.inputBinding.valueFrom &&  input.inputBinding.valueFrom) {
         //     return CommandLinePrepare.prepare(input.inputBinding.valueFrom, job, context.$job, cmdType).then(suc => {
@@ -65,7 +71,7 @@ export class CommandLineParsers {
     static array(input, job, value, context, cmdType, loc): Promise<CommandLinePart> {
         CommandLineParsers.checkMismatch(input, job, value);
         value = value || job[input.id] || [];
-        value = value.map(val => val.hasOwnProperty("path") ? val.path : val);
+        value = value.map(val => val && val.hasOwnProperty("path") ? val.path : val);
 
         const prefix        = input.inputBinding.prefix || "";
         const separator     = input.inputBinding.separate !== false ? " " : "";
