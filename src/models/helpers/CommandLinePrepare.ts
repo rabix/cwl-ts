@@ -1,7 +1,9 @@
-import { CommandArgumentModel, CommandInputParameterModel, ExpressionModel } from '../generic';
+import {CommandLineParsers} from "./CommandLineParsers";
+import {CommandArgumentModel} from "../generic/CommandArgumentModel";
+import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
+import {ExpressionModel} from "../generic/ExpressionModel";
 
 import {CommandLinePart, CommandType} from "./CommandLinePart";
-import {CommandLineParsers} from "./CommandLineParsers";
 
 export class CommandLinePrepare {
 

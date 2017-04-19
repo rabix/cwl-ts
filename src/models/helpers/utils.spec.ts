@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {
     ensureArray, checkMapValueType, incrementString, spreadSelectProps,
-    snakeCase
+    snakeCase, fetchByLoc
 } from "./utils";
 
 describe("ensureArray", () => {
@@ -220,5 +220,46 @@ describe("snakeCase", () => {
     it("should convert illegal characters to underscore", () => {
         const target = snakeCase("string/with-illegal.chars");
         expect(target).to.equal("string_with_illegal_chars");
+    });
+});
+
+describe("fetchByLoc", () => {
+    it("should locate simple dot notation", () => {
+        const test = {
+            hello: {
+                world: "meow"
+            }
+        };
+
+        expect(fetchByLoc(test, "hello.world")).to.equal("meow");
+    });
+
+    it("should locate simple array notation", () => {
+        const test = [3, 4, 6];
+
+        expect(fetchByLoc(test, "[2]")).to.equal(6);
+    });
+
+    it("should locate simple array and dot notation", () => {
+        const test = { arr: [3, 4, 6]};
+
+        expect(fetchByLoc(test, "arr[2]")).to.equal(6);
+    });
+
+    it("should return undefined if failed to locate", () => {
+        const test = { arr: [3, 4, 6]};
+
+        expect(fetchByLoc(test, "arr[4]")).to.be.undefined;
+    });
+
+    it("should not throw an error if failed to locate nested", () => {
+       const test = { arr: { hello: "meow"}};
+        expect(fetchByLoc(test, "arr.foo.baz")).to.be.undefined;
+    });
+
+    it("should locate bracket notation for properties", () => {
+        const test = {hello: {world: "meow"}};
+
+        expect(fetchByLoc(test, "hello['world']")).to.equal("meow");
     })
 });

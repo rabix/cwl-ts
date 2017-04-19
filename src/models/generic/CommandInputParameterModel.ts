@@ -7,6 +7,7 @@ import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {CommandLineBinding as SBDraft2CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {CommandLineBinding as V1CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {ExpressionModel} from "./ExpressionModel";
+import {EventHub} from "../helpers/EventHub";
 
 export abstract class CommandInputParameterModel extends ValidationBase implements InputParameter, Serializable<any> {
     /** unique identifier of input */
@@ -28,6 +29,13 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
     public description?: string;
 
     public customProps: any = {};
+
+    protected eventHub: EventHub;
+
+    constructor(loc?: string, event?: EventHub) {
+        super(loc);
+        this.eventHub = event;
+    }
 
     public get isBound(): boolean {
         return this.inputBinding !== undefined && this.inputBinding !== null;

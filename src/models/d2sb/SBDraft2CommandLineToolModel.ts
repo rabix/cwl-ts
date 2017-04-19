@@ -1,33 +1,29 @@
-import {SBDraft2CommandArgumentModel} from "./SBDraft2CommandArgumentModel";
-import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParameterModel";
-import {CommandLinePart} from "../helpers/CommandLinePart";
-import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
-import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParameterModel";
-import {Expression} from "../../mappings/d2sb/Expression";
-import {JobHelper} from "../helpers/JobHelper";
-import {Serializable} from "../interfaces/Serializable";
-import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
-import {Validation} from "../helpers/validation";
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
-import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
-import {DockerRequirementModel} from "../generic/DockerRequirementModel";
-import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
-import {DockerRequirement} from "../../mappings/d2sb/DockerRequirement";
-import {RequirementBaseModel} from "../generic/RequirementBaseModel";
+import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
+import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
+import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 import {CreateFileRequirement} from "../../mappings/d2sb/CreateFileRequirement";
-import {SBDraft2CreateFileRequirementModel} from "./SBDraft2CreateFileRequirementModel";
+import {DockerRequirement} from "../../mappings/d2sb/DockerRequirement";
+import {Expression} from "../../mappings/d2sb/Expression";
+import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
 import {SBGCPURequirement} from "../../mappings/d2sb/SBGCPURequirement";
 import {SBGMemRequirement} from "../../mappings/d2sb/SBGMemRequirement";
-import {SBDraft2ResourceRequirementModel} from "./SBDraft2ResourceRequirementModel";
-import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
-import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
-import {snakeCase, spreadSelectProps} from "../helpers/utils";
-import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
+import {DockerRequirementModel} from "../generic/DockerRequirementModel";
+import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
+import {JobHelper} from "../helpers/JobHelper";
+import {ensureArray, snakeCase, spreadSelectProps} from "../helpers/utils";
+import {Validation} from "../helpers/validation";
+import {Serializable} from "../interfaces/Serializable";
+import {SBDraft2CommandArgumentModel} from "./SBDraft2CommandArgumentModel";
+import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParameterModel";
+import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParameterModel";
+import {SBDraft2CreateFileRequirementModel} from "./SBDraft2CreateFileRequirementModel";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
+import {SBDraft2ResourceRequirementModel} from "./SBDraft2ResourceRequirementModel";
 
 export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
-    public job: any;
-    public jobInputs: any;
     public id: string;
     public label: string;
     public description: string;
@@ -58,17 +54,46 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public temporaryFailCodes: number[];
     public permanentFailCodes: number[];
 
-    private constructed = false;
-
     public customProps: any = {};
 
-    constructor(loc: string, attr?: CommandLineTool) {
+    public jobInputs: any = {};
+    public runtime: any = {};
+
+    public setJobInputs(inputs: any) {
+        this.jobInputs = inputs;
+    }
+
+    public setRuntime(runtime: any): void {
+        this.runtime = runtime;
+    }
+
+    public getContext(id?: string) {
+        const context: any = {
+            $job: {
+                inputs: this.jobInputs,
+                allocatedResources: this.runtime
+            }
+        };
+
+        if (id) {
+            context.$self = this.jobInputs[id];
+        }
+
+        return context;
+    }
+
+    public resetJobDefaults() {
+        this.jobInputs = JobHelper.getJobInputs(this);
+        this.updateCommandLine();
+    }
+
+    constructor(attr?: CommandLineTool, loc?: string) {
         super(loc || "document");
 
         if (attr) this.deserialize(attr);
         this.constructed = true;
+        this.initializeJobWatchers();
     }
-
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
         const h = new RequirementBaseModel(hint, SBDraft2ExpressionModel, `${this.loc}.hints[${this.hints.length}]`);
@@ -112,9 +137,18 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     }
 
     public addInput(input?: CommandInputParameter): SBDraft2CommandInputParameterModel {
-        const i = new SBDraft2CommandInputParameterModel(input, `${this.loc}.inputs[${this.inputs.length}]`);
-        i.job   = this.job;
+        const i = new SBDraft2CommandInputParameterModel(input, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
         i.self  = JobHelper.generateMockJobData(i);
+
+        i.id = i.id || this.getNextAvailableId("input");
+
+        try {
+            this.checkIdValidity(i.id);
+        } catch (ex) {
+            console.warn(`${i.loc}: ${ex.message}`);
+            //@todo set error on input about duplicate id;
+        }
+
 
         this.inputs.push(i);
 
@@ -122,34 +156,33 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             this.updateValidity(err);
         });
 
+        this.eventHub.emit("input.create", i);
+
         return i;
     }
 
-    public removeInput(input: SBDraft2CommandInputParameterModel | number) {
-        if (typeof input === "number") {
-            this.inputs.splice(input, 1);
-        } else {
-            this.inputs.splice(this.inputs.indexOf(input), 1);
-        }
-    }
 
     public addOutput(output: CommandOutputParameter): SBDraft2CommandOutputParameterModel {
         const o = new SBDraft2CommandOutputParameterModel(output, `${this.loc}.outputs[${this.outputs.length}]`);
+
+        o.id = o.id || this.getNextAvailableId("output");
+
+        try {
+            this.checkIdValidity(o.id);
+        } catch (ex) {
+            console.warn(`${o.loc}: ${ex.message}`);
+            //@todo set error on output about duplicate id;
+        }
+
         this.outputs.push(o);
 
         o.setValidationCallback((err: Validation) => {
             this.updateValidity(err);
         });
 
-        return o;
-    }
+        this.eventHub.emit("output.create", o);
 
-    public removeOutput(output: SBDraft2CommandOutputParameterModel | number) {
-        if (typeof output === "number") {
-            this.outputs.splice(output, 1);
-        } else {
-            this.outputs.splice(this.outputs.indexOf(output), 1);
-        }
+        return o;
     }
 
     public setRequirement(req: ProcessRequirement, hint?: boolean) {
@@ -169,87 +202,6 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
             return parts.trim();
         });
-    }
-
-    public updateCommandLine(): void {
-        if (this.constructed) {
-            this.generateCommandLineParts().then(res => {
-                this.commandLineWatcher(res);
-            })
-        }
-    }
-
-    private commandLineWatcher: Function = () => {
-    };
-
-    public onCommandLineResult(fn: Function) {
-        this.commandLineWatcher = fn;
-    }
-
-    private generateCommandLineParts(): Promise<CommandLinePart[]> {
-        const flatInputs = CommandLinePrepare.flattenInputsAndArgs([].concat(this.arguments).concat(this.inputs));
-
-        const job = this.job.inputs ?
-            Object.assign({inputs: JobHelper.getJob(this)}, this.job || {}) : this.job || {};
-
-        const flatJobInputs = CommandLinePrepare.flattenJob(job.inputs || job, {});
-
-        const baseCmdPromise = this.baseCommand.map(cmd => {
-            return CommandLinePrepare.prepare(cmd, flatJobInputs, this.getContext(), cmd.loc, "baseCommand").then(suc => {
-                if (suc instanceof CommandLinePart) return suc;
-                return new CommandLinePart(<string>suc, "baseCommand", cmd.loc);
-            }, err => {
-                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, cmd.loc);
-            });
-        });
-
-        const inputPromise = flatInputs.map(input => {
-            return CommandLinePrepare.prepare(input, flatJobInputs, this.getContext(input["id"]), input.loc)
-        }).filter(i => i instanceof Promise).map(promise => {
-            return promise.then(succ => succ, err => {
-                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type);
-            });
-        });
-
-        const stdOutPromise = CommandLinePrepare.prepare(this.stdout, flatJobInputs, this.getContext(), this.stdout.loc, "stdout");
-        const stdInPromise  = CommandLinePrepare.prepare(this.stdin, flatJobInputs, this.getContext(), this.stdin.loc, "stdin");
-
-        return Promise.all([].concat(baseCmdPromise, inputPromise, stdOutPromise, stdInPromise)).then(parts => {
-            return parts.filter(part => part !== null);
-        });
-    }
-
-    public setJobInputs(inputs: any) {
-        this.job.inputs = inputs;
-        this.jobInputs = inputs;
-    }
-
-    public setRuntime(runtime: any): void {
-        this.job.allocatedResources = runtime;
-    }
-
-    public getContext(id?: string) {
-        const context: any = {
-            $job: this.job
-        };
-
-        if (id) {
-            context.$self = this.job.inputs[id];
-        }
-
-        return context;
-    }
-
-
-    public setJobProperty(key: string, value: any) {
-        this.updateCommandLine();
-        this.jobInputs[key] = value;
-    }
-
-    public resetJobDefaults() {
-        this.jobInputs = JobHelper.getJob(this);
-        this.job       = {inputs: this.jobInputs, allocatedResources: {mem: 1000, cpu: 1}};
-        this.updateCommandLine();
     }
 
     validate(): Validation {
@@ -354,8 +306,11 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         }
 
         // JOB
-        if (this.job) {
-            base["sbg:job"] = this.job;
+        if (this.jobInputs || this.runtime) {
+            base["sbg:job"] = {
+                inputs: this.jobInputs,
+                runtime: this.runtime
+            };
         }
 
         base = Object.assign({}, base, this.customProps);
@@ -389,9 +344,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.label       = tool.label;
         this.description = tool.description;
 
-        tool.inputs.forEach(i => this.addInput(i));
+        ensureArray(tool.inputs).forEach(i => this.addInput(i));
 
-        tool.outputs.forEach(o => this.addOutput(o));
+        ensureArray(tool.outputs).forEach(o => this.addOutput(o));
 
         if (tool.arguments) {
             tool.arguments.forEach((arg, index) => {
@@ -446,11 +401,13 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             this.addBaseCommand(new SBDraft2ExpressionModel(cmd))
         });
 
-        this.job = tool['sbg:job']
-            ? tool['sbg:job']
-            : {inputs: JobHelper.getJob(this), allocatedResources: {mem: 1000, cpu: 1}};
+        this.jobInputs = JobHelper.getJobInputs(this);
+        this.runtime = {mem: 1000, cpu: 1};
 
-        this.jobInputs = this.job.inputs || this.job;
+        if (tool['sbg:job']) {
+            this.jobInputs = tool['sbg:job'].inputs || this.jobInputs;
+            this.runtime = tool['sbg:job'].allocatedResources || this.runtime;
+        }
 
         // populates object with all custom attributes not covered in model
         spreadSelectProps(tool, this.customProps, serializedAttr);

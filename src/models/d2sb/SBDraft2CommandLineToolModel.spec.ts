@@ -16,7 +16,7 @@ describe("SBDraft2CommandLineToolModel", () => {
     describe("constructor", () => {
 
         it("Should instantiate tool with minimum requirements", () => {
-            let tool = new SBDraft2CommandLineToolModel("", {
+            let tool = new SBDraft2CommandLineToolModel({
                 baseCommand: 'grep',
                 inputs: [],
                 outputs: [],
@@ -28,7 +28,7 @@ describe("SBDraft2CommandLineToolModel", () => {
         });
 
         it("Should create SBDraft2CommandInputParameterModel from input fields", () => {
-            let tool = new SBDraft2CommandLineToolModel("", {
+            let tool = new SBDraft2CommandLineToolModel({
                 baseCommand: 'grep',
                 inputs: [
                     {id: "i1", type: "string"}
@@ -44,7 +44,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
     describe("getCommandLine Async", () => {
         it("should evaluate command line with array of record, in which field is a file", (done) => {
-            const tool = new SBDraft2CommandLineToolModel("", {
+            const tool = new SBDraft2CommandLineToolModel({
                 'class': "CommandLineTool",
                 outputs: [],
                 baseCommand: [],
@@ -89,7 +89,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
 
         it("Should evaluate some command line from inputs async", function (done) {
-            const tool = new SBDraft2CommandLineToolModel("", {
+            const tool = new SBDraft2CommandLineToolModel({
                 'class': "CommandLineTool",
                 outputs: [],
                 baseCommand: [],
@@ -173,7 +173,7 @@ describe("SBDraft2CommandLineToolModel", () => {
     describe("getCommandLine", () => {
 
         it("Should evaluate baseCommand with expression", (done) => {
-            let tool = new SBDraft2CommandLineToolModel("", {
+            let tool = new SBDraft2CommandLineToolModel({
                 "class": "CommandLineTool",
                 inputs: [],
                 outputs: [],
@@ -190,7 +190,7 @@ describe("SBDraft2CommandLineToolModel", () => {
         });
 
         it("Should evaluate baseCommand with expression that returns a number", (done) => {
-            let tool = new SBDraft2CommandLineToolModel("", {
+            let tool = new SBDraft2CommandLineToolModel({
                 "class": "CommandLineTool",
                 inputs: [],
                 outputs: [],
@@ -207,7 +207,7 @@ describe("SBDraft2CommandLineToolModel", () => {
         });
 
         it("Should evaluate BWA mem tool: General test of command line generation", (done) => {
-            let tool = new SBDraft2CommandLineToolModel("", BWAMemTool.default);
+            let tool = new SBDraft2CommandLineToolModel(BWAMemTool.default);
             tool.setJobInputs(BWAMemJob.default);
             tool.setRuntime(BWAMemJob.default.allocatedResources);
 
@@ -218,7 +218,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
 
         // it("Should evaluate Bfctools Annotate from sbg", (done) => {
-        //     let tool = new SBDraft2CommandLineToolModel("", BfctoolsAnnotate.default);
+        //     let tool = new SBDraft2CommandLineToolModel(BfctoolsAnnotate.default);
         //
         //     tool.getCommandLine().then(cmd => {
         //         expect(cmd).to.equal(`bcftools annotate -o annotated_input_file.ext.vcf.gz -a /path/to/annotations.ext -i 'REF=C' -Ob /path/to/input_file.ext.vcf.gz`);
@@ -226,7 +226,7 @@ describe("SBDraft2CommandLineToolModel", () => {
         // });
 
         it("Should evaluate BWM mem tool: Test nested prefixes with arrays", (done) => {
-            let tool = new SBDraft2CommandLineToolModel("", BindingTestTool.default);
+            let tool = new SBDraft2CommandLineToolModel(BindingTestTool.default);
             tool.setJobInputs(BWAMemJob.default);
             tool.setRuntime(BWAMemJob.default.allocatedResources);
 
@@ -236,7 +236,7 @@ describe("SBDraft2CommandLineToolModel", () => {
         });
 
         it("Should evaluate BamTools Index from sbg", (done) => {
-            let tool = new SBDraft2CommandLineToolModel("", <CommandLineTool> BamtoolsIndex.default);
+            let tool = new SBDraft2CommandLineToolModel(<CommandLineTool> BamtoolsIndex.default);
 
             tool.getCommandLine().then(cmd => {
                 expect(cmd).to.equal('/opt/bamtools/bin/bamtools index -in input_bam.bam');
@@ -244,7 +244,7 @@ describe("SBDraft2CommandLineToolModel", () => {
         });
 
         it("Should evaluate BamTools Split from sbg", (done) => {
-            let tool = new SBDraft2CommandLineToolModel("", BamtoolsSplit.default);
+            let tool = new SBDraft2CommandLineToolModel(BamtoolsSplit.default);
 
             tool.getCommandLine().then(cmd => {
                 expect(cmd).to.equal('/opt/bamtools/bin/bamtools split -in input/input_bam.ext -refPrefix refp -tagPrefix tagp -stub input_bam.splitted -mapped -paired -reference -tag tag');
@@ -262,7 +262,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 baseCommand: []
             };
 
-            const model = new SBDraft2CommandLineToolModel("", tool);
+            const model = new SBDraft2CommandLineToolModel(tool);
 
             const target = model.serialize();
             delete target["sbg:job"];
@@ -286,7 +286,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 ]
             };
 
-            const model      = new SBDraft2CommandLineToolModel("", tool);
+            const model      = new SBDraft2CommandLineToolModel(tool);
             const serialized = model.serialize();
             delete serialized["sbg:job"];
             expect(serialized).to.deep.equal(tool);
@@ -307,7 +307,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 ]
             };
 
-            const model = new SBDraft2CommandLineToolModel("", tool);
+            const model = new SBDraft2CommandLineToolModel(tool);
             expect(tool.baseCommand).to.have.length(2);
             expect((<CommandLineTool> model.serialize()).baseCommand).to.have.length(3);
             expect((<CommandLineTool> model.serialize()).baseCommand[0]).to.equal("string1");
@@ -326,7 +326,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
             tool["customProperty"] = 35;
 
-            const serialized = new SBDraft2CommandLineToolModel("", tool).serialize();
+            const serialized = new SBDraft2CommandLineToolModel(tool).serialize();
 
             expect(serialized).to.have.property("customProperty");
             expect(serialized["customProperty"]).to.equal(35);
@@ -341,12 +341,12 @@ describe("SBDraft2CommandLineToolModel", () => {
                 baseCommand: []
             };
 
-            const model = new SBDraft2CommandLineToolModel("", tool);
+            const model = new SBDraft2CommandLineToolModel(tool);
 
             // class and ID should be at the beginning of the object
             expect(JSON.stringify(model.serialize())).to.not.equal(JSON.stringify(tool));
 
-            const model2 = new SBDraft2CommandLineToolModel("", tool);
+            const model2 = new SBDraft2CommandLineToolModel(tool);
 
             expect(JSON.stringify(model.serialize())).to.equal(JSON.stringify(model2.serialize()));
         });
@@ -375,7 +375,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 ],
             };
 
-            const model = new SBDraft2CommandLineToolModel("document", tool);
+            const model = new SBDraft2CommandLineToolModel(tool);
 
             const target = model.serialize();
             delete target["sbg:job"];
@@ -488,7 +488,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
             };
 
-            const model = new SBDraft2CommandLineToolModel("document", tool);
+            const model = new SBDraft2CommandLineToolModel(tool);
 
             expect(model.serialize()).to.deep.equal(tool);
         });
@@ -539,14 +539,14 @@ describe("SBDraft2CommandLineToolModel", () => {
                             },
                             "sbg:inheritMetadataFrom": "#reference"
                         },
-                        "id": "#indexed_reference",
+                        "id": "#indexed_reference_1",
                         "label": "TARed fasta with its BWA indices",
                         "sbg:fileTypes": "TAR"
                     }
                 ]
             };
 
-            const model = new SBDraft2CommandLineToolModel("document", tool);
+            const model = new SBDraft2CommandLineToolModel(tool);
 
             const serialize = model.serialize();
             delete serialize["sbg:job"];
@@ -581,7 +581,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 ]
             };
 
-            const model = new SBDraft2CommandLineToolModel("document", <CommandLineTool>tool);
+            const model = new SBDraft2CommandLineToolModel(<CommandLineTool>tool);
 
             const target = model.serialize();
             delete target["sbg:job"];
@@ -616,7 +616,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 ]
             };
 
-            const model = new SBDraft2CommandLineToolModel("document", <CommandLineTool>tool);
+            const model = new SBDraft2CommandLineToolModel(<CommandLineTool>tool);
 
             const target = model.serialize();
             delete target["sbg:job"];
@@ -626,7 +626,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
     describe("updateValidity", () => {
         it("should be triggered when baseCommand is invalid", (done) => {
-            const tool = new SBDraft2CommandLineToolModel("", {
+            const tool = new SBDraft2CommandLineToolModel({
                 "class": "CommandLineTool",
                 inputs: [],
                 outputs: [],
@@ -656,6 +656,97 @@ describe("SBDraft2CommandLineToolModel", () => {
                 expect(tool.validation.warnings[0].message).to.contain("ReferenceError", "value of warning");
             }).then(done, done);
         });
+    });
 
+    describe("jobManagement", () => {
+        it("should add mock input to job when adding input", () => {
+            const model = new SBDraft2CommandLineToolModel(<any> {});
+
+            expect(model.getContext().inputs).to.be.empty;
+
+            model.addInput({
+                id: "input",
+                type: "string"
+            });
+
+            const context = model.getContext();
+            expect(context.$job.inputs).to.not.be.empty;
+            expect(typeof context.$job.inputs.input).to.equal("string");
+        });
+
+        it("should remove job value when removing input", () => {
+            const model = new SBDraft2CommandLineToolModel(<any> {
+                inputs: [{
+                    id: "input",
+                    type: "string"
+                }]
+            });
+
+            expect(model.getContext().$job.inputs).to.have.all.keys("input");
+
+            model.removeInput(model.inputs[0]);
+            expect(model.getContext().$job.inputs).to.deep.equal({});
+        });
+
+
+        it("should change job value when changing input items type", () => {
+            const model = new SBDraft2CommandLineToolModel(<any> {
+                inputs: [{
+                    id: "input",
+                    type: {
+                        type: "array",
+                        items: "File"
+                    }
+                }]
+            });
+
+            const context = model.getContext().$job;
+
+            expect(typeof context.inputs.input[0]).to.equal("object");
+
+            model.inputs[0].type.items = "int";
+
+            expect(typeof context.inputs.input[0]).to.equal("number");
+        });
+
+        it("should change job value when changing input type", () => {
+            const model = new SBDraft2CommandLineToolModel(<any> {
+                inputs: [{
+                    id: "input",
+                    type: "string"
+                }]
+            });
+
+            const context = model.getContext();
+            debugger;
+
+            expect(typeof context.$job.inputs.input).to.equal("string");
+
+            model.inputs[0].type.type = "int";
+
+            expect(typeof context.$job.inputs.input).to.equal("number");
+        });
+
+        it("should change job key when changing input id", () => {
+            const model = new SBDraft2CommandLineToolModel(<any> {
+                inputs: [{
+                    id: "input",
+                    type: "string"
+                }]
+            });
+
+            const context = model.getContext();
+            expect(context.$job.inputs).to.have.all.keys("input");
+            expect(typeof context.$job.inputs.input).to.equal("string");
+
+            expect(context.$job.inputs.newId).to.be.undefined;
+            expect(context.$job.inputs.input).to.not.be.undefined;
+
+            model.changeIOId(model.inputs[0], "newId");
+
+            expect(context.$job.inputs.input).to.be.undefined;
+            expect(context.$job.inputs.newId).to.not.be.undefined;
+
+        });
     });
 });

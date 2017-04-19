@@ -1,5 +1,4 @@
-export const ensureArray = (map:
-                                { [key: string]: any }
+export const ensureArray = (map: { [key: string]: any }
                                 | any[]
                                 | string
                                 | number
@@ -48,8 +47,7 @@ export const ensureArray = (map:
  * Checks the type of each property in a hashMap. Returns "mismatch" if property types are mixed,
  * otherwise returns type that corresponds to all properties.
  */
-export const checkMapValueType = (map: { [key: string]: any }):
-    "string"
+export const checkMapValueType = (map: { [key: string]: any }): "string"
     | "number"
     | "undefined"
     | "object"
@@ -72,8 +70,7 @@ export const checkMapValueType = (map: { [key: string]: any }):
     return type;
 };
 
-export const checkValueType = (value: any):
-    "string"
+export const checkValueType = (value: any): "string"
     | "number"
     | "undefined"
     | "object"
@@ -130,4 +127,41 @@ export const commaSeparatedToArray = (str: string | string[]): string[] => {
 
 export const snakeCase = (str: string = ""): string => {
     return str.replace(/[\s.\[\/\]-]+/g, "_").replace(/([A-Z])/g, (match) => "_" + match.toLowerCase());
+};
+
+export const isEmpty = (obj: Object | any[]): boolean => {
+    if (Array.isArray(obj)) {
+        return obj.length === 0;
+    } else if (typeof obj === "object" && obj !== null) {
+        return Object.keys(obj).length === 0;
+    }
+};
+
+export const fetchByLoc = (obj: any, loc: string): any => {
+    // change "foo.bar[3]['baz']" to "foo.bar.3.'baz'"
+    loc = loc.replace("[", ".[").replace(/[\[\]]/g, "");
+    // to ["foo", "bar", "3", "'baz'"]
+    const tokens    = loc.split(".").filter(tok => tok.length);
+    let result: any = obj;
+
+    while (tokens.length) {
+        // take first token, remove quotes
+        const token = tokens.shift().replace(/["']/g, "");
+
+        // attempt to access property
+        try {
+            // if token is number, cast to int
+            if (!isNaN(<any> token)) {
+                result = result[parseInt(token, 10)]
+            } else {
+                // otherwise access property
+                result = result[token];
+            }
+        } catch(ex) {
+            // if property doesn't exist, return undefined
+            return undefined;
+        }
+    }
+
+    return result;
 };

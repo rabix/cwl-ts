@@ -6,6 +6,7 @@ import {commaSeparatedToArray, ensureArray, spreadSelectProps} from "../helpers/
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
 import {CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {V1ExpressionModel} from "./V1ExpressionModel";
+import {EventHub} from "../helpers/EventHub";
 
 export class V1CommandInputParameterModel extends CommandInputParameterModel implements Serializable<
     CommandInputParameter
@@ -15,10 +16,12 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
     public streamable: boolean;
 
     public hasSecondaryFiles = true;
-    public hasStageInput = false;
+    public hasStageInput     = false;
 
-    constructor(attr: CommandInputParameter | CommandInputRecordField, loc?: string) {
-        super(loc);
+    constructor(attr:
+                    CommandInputParameter
+                    | CommandInputRecordField, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         if (attr) this.deserialize(attr);
     }
 
@@ -79,7 +82,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
             serializedKeys.push("id");
         }
 
-        this.type = new ParameterTypeModel(attr.type, V1CommandInputParameterModel, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(attr.type, V1CommandInputParameterModel, `${this.loc}.type`, this.eventHub);
         this.type.setValidationCallback(err => this.updateValidity(err));
         this.type.hasDirectoryType = true;
 

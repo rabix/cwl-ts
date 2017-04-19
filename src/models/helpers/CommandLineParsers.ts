@@ -1,7 +1,8 @@
-import {ExpressionModel} from '../generic';
+import {ExpressionModel} from "../generic/ExpressionModel";
 import {CommandLinePart} from "./CommandLinePart";
-import {TypeResolver} from "./TypeResolver";
 import {CommandLinePrepare} from "./CommandLinePrepare";
+import {TypeResolver} from "./TypeResolver";
+
 export class CommandLineParsers {
 
     static primitive(input, job, value, context, cmdType, loc): Promise<CommandLinePart> {

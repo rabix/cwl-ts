@@ -344,16 +344,16 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * @param connectionId
      */
     private checkIdValidity(id: string, connectionId: string) {
-        let next = this.getNextAvailableId(connectionId);
 
         if (!id) {
             throw new Error("ID must be set");
         }
 
         if (!ID_REGEX.test(id)) {
-            throw new Error("ID is invalid, ID must start with a letter and only alphanumerics and _ are allowed");
+            throw new Error(`ID ${id} is invalid, ID must start with a letter and only alphanumerics and _ are allowed`);
         }
 
+        const next = this.getNextAvailableId(connectionId);
         if (next !== id) {
             throw new Error(`ID already exists on graph, the next available id is "${next}"`);
         }

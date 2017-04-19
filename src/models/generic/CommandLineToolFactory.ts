@@ -18,13 +18,13 @@ export class CommandLineToolFactory {
                 case "sbg:draft-2":
                 case "draft-2":
                 default:
-                    return new SBDraft2CommandLineToolModel(loc, tool as SBDraft2CommandLineTool);
+                    return new SBDraft2CommandLineToolModel(tool as SBDraft2CommandLineTool, loc);
                 // default:
                 //     //@todo should default to draft-2 because that was the last draft that didn't require cwlVersion
                 //     console.warn("Unsupported CWL version", tool.cwlVersion);
             }
         }
 
-        return new SBDraft2CommandLineToolModel(loc, tool as SBDraft2CommandLineTool);
+        return new SBDraft2CommandLineToolModel(tool as SBDraft2CommandLineTool, loc);
     }
 }

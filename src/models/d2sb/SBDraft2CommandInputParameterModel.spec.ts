@@ -497,7 +497,7 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
         it("Should check for invalid characters in ID", () => {
             const input = new SBDraft2CommandInputParameterModel(<CommandInputParameter>{
                 type: "string",
-                id: "@"
+                id: "@^%%^"
             });
 
             input.validate();

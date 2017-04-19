@@ -8,6 +8,7 @@ import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {spreadSelectProps} from "../helpers/utils";
 import {ID_REGEX} from "../helpers/constants";
+import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<
     CommandInputParameter
@@ -22,8 +23,8 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
 
     public self: any;
 
-    constructor(input?: CommandInputParameter | CommandInputRecordField, loc?: string) {
-        super(loc);
+    constructor(input?: CommandInputParameter | CommandInputRecordField, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         this.deserialize(input);
     }
 
@@ -76,7 +77,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
             this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
         }
 
-        this.type = new ParameterTypeModel(input.type, SBDraft2CommandInputParameterModel, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(input.type, SBDraft2CommandInputParameterModel, `${this.loc}.type`, this.eventHub);
         this.type.setValidationCallback((err: Validation) => {
             this.updateValidity(err)
         });

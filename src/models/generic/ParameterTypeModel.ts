@@ -10,6 +10,7 @@ import {CommandInputParameterType as V1CommandInputParameterType} from "../../ma
 
 import {Validation} from "../helpers/validation/Validation";
 import {spreadSelectProps} from "../helpers/utils";
+import {EventHub} from "../helpers/EventHub";
 
 export type PrimitiveParameterType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes" | "map";
 
@@ -37,6 +38,10 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     break;
             }
             this._items = t;
+
+            if (this.eventHub) {
+                this.eventHub.emit("io.change.type", this.loc);
+            }
         }
     }
 
@@ -69,6 +74,10 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 this.symbols = null;
                 this.fields  = null;
         }
+
+        if (this.eventHub) {
+            this.eventHub.emit("io.change.type", this.loc);
+        }
     }
 
     public isNullable: boolean             = false;
@@ -77,13 +86,15 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     public symbols: string[]               = null;
     public name: string                    = null;
     private fieldConstructor;
+    private eventHub: EventHub;
 
     constructor(type: SBDraft2CommandInputParameterType |
         SBDraft2CommandOutputParameterType |
         V1CommandOutputParameterType |
-        V1CommandInputParameterType, fieldConstructor?, loc?: string) {
+        V1CommandInputParameterType, fieldConstructor?, loc?: string, eventHub?: EventHub) {
         super(loc);
         this.fieldConstructor = fieldConstructor;
+        this.eventHub = eventHub;
         this.deserialize(type);
     }
 

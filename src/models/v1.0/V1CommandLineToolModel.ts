@@ -1,24 +1,22 @@
 import {CommandLineTool, Expression, ProcessRequirement} from "../../mappings/v1.0/";
+import {CommandInputParameter} from "../../mappings/v1.0/CommandInputParameter";
+import {CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
+import {CommandOutputParameter} from "../../mappings/v1.0/CommandOutputParameter";
+import {DockerRequirement} from "../../mappings/v1.0/DockerRequirement";
+import {InitialWorkDirRequirement} from "../../mappings/v1.0/InitialWorkDirRequirement";
+import {ResourceRequirement} from "../../mappings/v1.0/ResourceRequirement";
+import {CommandLineToolModel} from "../generic/CommandLineToolModel";
+import {DockerRequirementModel} from "../generic/DockerRequirementModel";
+import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
+import {JobHelper} from "../helpers/JobHelper";
+import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {V1CommandArgumentModel} from "./V1CommandArgumentModel";
 import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
 import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
-import {V1CommandArgumentModel} from "./V1CommandArgumentModel";
-import {CommandLineToolModel} from "../generic/CommandLineToolModel";
-import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {V1ExpressionModel} from "./V1ExpressionModel";
-import {CommandInputParameter} from "../../mappings/v1.0/CommandInputParameter";
-import {CommandOutputParameter} from "../../mappings/v1.0/CommandOutputParameter";
-import {CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
-import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
-import {DockerRequirementModel} from "../generic/DockerRequirementModel";
-import {DockerRequirement} from "../../mappings/v1.0/DockerRequirement";
-import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
-import {CommandLinePart} from "../helpers/CommandLinePart";
-import {JobHelper} from "../helpers/JobHelper";
 import {V1InitialWorkDirRequirementModel} from "./V1InitialWorkDirRequirementModel";
-import {InitialWorkDirRequirement} from "../../mappings/v1.0/InitialWorkDirRequirement";
-import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {V1ResourceRequirementModel} from "./V1ResourceRequirementModel";
-import {ResourceRequirement} from "../../mappings/v1.0/ResourceRequirement";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
 
@@ -46,21 +44,46 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public docker: DockerRequirementModel;
 
-    private constructed = false;
-    public job: any     = {};
     public fileRequirement: V1InitialWorkDirRequirementModel;
 
     public resources: V1ResourceRequirementModel;
 
-    public jobInputs: any = {};
+    // Context for JavaScript execution
+    protected runtime: { ram?: number, cores?: number } = {};
 
-    public runtime: { ram?: number, cores?: number } = {};
+    public setJobInputs(inputs: any): void {
+        this.jobInputs = inputs;
+    }
 
-    constructor(json: CommandLineTool, loc?: string) {
-        super(loc);
+    public setRuntime(runtime: any): void {
+        this.runtime.cores = runtime.cores || runtime.cpu;
+        this.runtime.ram   = runtime.ram || runtime.mem;
+    }
+
+
+    public resetJobDefaults(): void {
+        this.jobInputs = JobHelper.getJobInputs(this);
+    }
+
+    public getContext(id?: string): any {
+        const context: any = {
+            runtime: this.runtime,
+            inputs: this.jobInputs
+        };
+
+        if (id) {
+            context.self = this.jobInputs[id];
+        }
+
+        return context;
+    };
+
+    constructor(json?: CommandLineTool, loc?: string) {
+        super(loc || "document");
 
         if (json) this.deserialize(json);
         this.constructed = true;
+        this.initializeJobWatchers();
     }
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
@@ -73,6 +96,16 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public addOutput(output?: CommandOutputParameter): V1CommandOutputParameterModel {
         const o = new V1CommandOutputParameterModel(output, `${this.loc}.outputs[${this.outputs.length}]`);
+
+        o.id = o.id || this.getNextAvailableId("output");
+
+        try {
+            this.checkIdValidity(o.id)
+        } catch (ex) {
+            console.warn(`${o.loc}: ${ex.message}`);
+            //@todo set error on output about duplicate id;
+        }
+
         this.outputs.push(o);
 
         o.setValidationCallback(err => this.updateValidity(err));
@@ -80,10 +113,21 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addInput(input?): V1CommandInputParameterModel {
-        const i = new V1CommandInputParameterModel(input, `${this.loc}.inputs[${this.inputs.length}]`);
-        this.inputs.push(i);
+        const i = new V1CommandInputParameterModel(input, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
 
+        i.id = i.id || this.getNextAvailableId("input");
+
+        try {
+            this.checkIdValidity(i.id)
+        } catch (ex) {
+            console.warn(`${i.loc}: ${ex.message}`);
+            //@todo set error on input about duplicate id;
+        }
+
+        this.inputs.push(i);
         i.setValidationCallback(err => this.updateValidity(err));
+        this.eventHub.emit("input.create", i);
+
         return i;
     }
 
@@ -92,6 +136,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.arguments.push(a);
 
         a.setValidationCallback(err => this.updateValidity(err));
+        this.eventHub.emit("argument.create", arg);
         return a;
     }
 
@@ -105,23 +150,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public setRequirement(req: ProcessRequirement, hint?: boolean) {
         this.createReq(req, null, hint);
-    }
-
-
-    public setJobInputs(inputs: any): void {
-        this.job.inputs = inputs;
-        this.jobInputs  = inputs;
-    }
-
-    public setRuntime(runtime: any): void {
-        this.runtime.cores = runtime.cores || runtime.cpu;
-        this.runtime.ram   = runtime.ram || runtime.mem;
-    }
-
-
-    public resetJobDefaults(): void {
-        this.jobInputs  = JobHelper.getJob(this);
-        this.job.inputs = this.jobInputs;
     }
 
     private createReq(req: ProcessRequirement, loc?: string, hint = false): ProcessRequirementModel {
@@ -166,19 +194,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         stream.loc = `${this.loc}.${type}`;
         stream.setValidationCallback(err => this.updateValidity(err));
     }
-
-    public getContext(id?: string): any {
-        const context: any = {
-            runtime: this.runtime,
-            inputs: this.jobInputs
-        };
-
-        if (id) {
-            context.self = this.jobInputs[id];
-        }
-
-        return context;
-    };
 
     public deserialize(tool: CommandLineTool) {
         const serializedKeys = [
@@ -234,16 +249,18 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.stderr.setValidationCallback(err => this.updateValidity(err));
 
         if (tool["sbg:job"]) {
-            this.job       = tool["sbg:job"];
             this.runtime   = tool["sbg:job"].runtime || {};
             this.jobInputs = tool["sbg:job"].inputs || {};
+        } else {
+            this.runtime = {cores: 1, ram: 1000};
+            this.jobInputs = JobHelper.getJobInputs(this);
         }
 
         this.sbgId = tool["sbg:id"];
 
-        // this.successCodes       = tool.successCodes;
-        // this.temporaryFailCodes = tool.temporaryFailCodes;
-        // this.permanentFailCodes = tool.permanentFailCodes;
+        // this.successCodes       = ensureArray(tool.successCodes);
+        // this.temporaryFailCodes = ensureArray(tool.temporaryFailCodes);
+        // this.permanentFailCodes = ensureArray(tool.permanentFailCodes);
 
         spreadSelectProps(tool, this.customProps, serializedKeys);
     }
@@ -298,68 +315,20 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         if (this.arguments.length) base.arguments = this.arguments.map(a => a.serialize());
 
-        if (this.runtime && this.jobInputs) {
+        if (this.jobInputs) {
             base["sbg:job"] = {
                 inputs: this.jobInputs,
                 runtime: {}
             };
 
-            if (this.runtime.cores) base["sbg:job"].runtime.cores = this.runtime.cores;
-            if (this.runtime.ram) base["sbg:job"].runtime.ram = this.runtime.ram;
+            if (this.runtime && this.runtime.cores !== undefined) {
+                base["sbg:job"].runtime.cores = this.runtime.cores;
+            }
+            if (this.runtime && this.runtime.ram !== undefined) {
+                base["sbg:job"].runtime.ram = this.runtime.ram;
+            }
         }
 
         return spreadAllProps(base, this.customProps);
-    }
-
-    private commandLineWatcher: Function = () => {
-    };
-
-    public onCommandLineResult(fn: Function): void {
-        this.commandLineWatcher = fn;
-    }
-
-    public updateCommandLine(): void {
-        if (this.constructed) {
-            this.generateCommandLineParts().then(res => {
-                this.commandLineWatcher(res);
-            })
-        }
-    }
-
-    public setJob(job: any) {
-        this.job = job;
-    }
-
-    public generateCommandLineParts(): Promise<CommandLinePart[]> {
-        const flatInputs = CommandLinePrepare.flattenInputsAndArgs([].concat(this.arguments).concat(this.inputs));
-
-        const job = this.job.inputs ?
-            Object.assign({inputs: JobHelper.getJob(this)}, this.job || {}) : this.job || {};
-
-        const flatJobInputs = CommandLinePrepare.flattenJob(job.inputs || job, {});
-
-        const baseCmdPromise = this.baseCommand.map(cmd => {
-            return CommandLinePrepare.prepare(cmd, flatJobInputs, this.getContext(), cmd.loc, "baseCommand").then(suc => {
-                if (suc instanceof CommandLinePart) return suc;
-                return new CommandLinePart(<string>suc, "baseCommand", cmd.loc);
-            }, err => {
-                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, cmd.loc);
-            });
-        });
-
-        const inputPromise = flatInputs.map(input => {
-            return CommandLinePrepare.prepare(input, flatJobInputs, this.getContext(input["id"]), input.loc)
-        }).filter(i => i instanceof Promise).map(promise => {
-            return promise.then(succ => succ, err => {
-                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type);
-            });
-        });
-
-        const stdOutPromise = CommandLinePrepare.prepare(this.stdout, flatJobInputs, this.getContext(), this.stdout.loc, "stdout");
-        const stdInPromise  = CommandLinePrepare.prepare(this.stdin, flatJobInputs, this.getContext(), this.stdin.loc, "stdin");
-
-        return Promise.all([].concat(baseCmdPromise, inputPromise, stdOutPromise, stdInPromise)).then(parts => {
-            return parts.filter(part => part !== null);
-        });
     }
 }
