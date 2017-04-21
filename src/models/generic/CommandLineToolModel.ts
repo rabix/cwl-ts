@@ -118,12 +118,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         }
 
         if (!ID_REGEX.test(id)) {
-            throw new Error(`ID ${id} is invalid, ID must start with a letter and only alphanumerics and _ are allowed`);
+            throw new Error(`ID "${id}" is invalid, ID must start with a letter and only alphanumerics and _ are allowed`);
         }
 
         const next = this.getNextAvailableId(id);
         if (next !== id) {
-            throw new Error(`ID already exists on graph, the next available id is "${next}"`);
+            throw new Error(`ID "${id}" already exists in this tool, the next available id is "${next}"`);
         }
     }
 

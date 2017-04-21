@@ -290,7 +290,7 @@ describe("V1WorkflowModel", () => {
             const wf = WorkflowFactory.from(OneStepWf.default);
 
             expect(() => {
-                wf.changeIONodeId(wf.inputs[0], "-char-problems!")
+                wf.changeIONodeId(wf.inputs[0], "-char-problems!|")
             }).to.throw(`invalid`);
         });
 

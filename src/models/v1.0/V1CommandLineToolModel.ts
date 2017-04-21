@@ -269,7 +269,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         let base: CommandLineTool = {
             class: "CommandLineTool",
             cwlVersion: "v1.0",
-            baseCommand: this.baseCommand.map(b => b.serialize()),
+            baseCommand: this.baseCommand.map(b => b.serialize()).filter(b => !!b),
             inputs: <CommandInputParameter[]> this.inputs.map(i => i.serialize()),
             outputs: <CommandOutputParameter[]> this.outputs.map(o => o.serialize())
         };

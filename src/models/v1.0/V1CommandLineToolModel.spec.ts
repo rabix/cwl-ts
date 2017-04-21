@@ -1,7 +1,7 @@
 import {expect, assert} from "chai";
 import {V1CommandLineToolModel} from "./V1CommandLineToolModel";
-import { CommandLineTool } from "../../mappings/v1.0/CommandLineTool";
-import { CommandLinePart } from "../helpers/CommandLinePart";
+import {CommandLineTool} from "../../mappings/v1.0/CommandLineTool";
+import {CommandLinePart} from "../helpers/CommandLinePart";
 
 function runTest(app: CommandLineTool, job: any, expected: CommandLinePart[], done) {
     let model = new V1CommandLineToolModel(app, "document");
@@ -9,36 +9,66 @@ function runTest(app: CommandLineTool, job: any, expected: CommandLinePart[], do
     model.setRuntime({"cores": 4});
     model.generateCommandLineParts().then((result) => {
         let resStr = result.map(
-            (part) => {return part.value}
-        ).filter( (part) => {return part !== ""});
+            (part) => {
+                return part.value
+            }
+        ).filter((part) => {
+            return part !== ""
+        });
 
         expect(resStr.join(" ")).to.equals(expected.join(" "));
     }).then(done, done);
 }
 
 function makeTests(specPath: string) {
-    const YAML = require("js-yaml");
-    const fs = require("fs");
-    const path = require('path');
-    const spec = fs.readFileSync(specPath);
-    let tests = YAML.safeLoad(spec);
+    const YAML    = require("js-yaml");
+    const fs      = require("fs");
+    const path    = require('path');
+    const spec    = fs.readFileSync(specPath);
+    let tests     = YAML.safeLoad(spec);
     let testsRoot = path.dirname(specPath);
-    
+
     for (let test of tests) {
         it("should pass " + test["doc"], (done) => {
             let tool = YAML.safeLoad(fs.readFileSync(path.join(testsRoot, test["tool"])));
-            let job = YAML.safeLoad(fs.readFileSync(path.join(testsRoot, test["job"])));
+            let job  = YAML.safeLoad(fs.readFileSync(path.join(testsRoot, test["job"])));
             runTest(tool, job, test["output"], done);
         });
     }
-    
+
 }
 
 describe("V1CommandLineToolModel", () => {
     describe("generateCommandLineParts conformance", () => {
-        const path = require('path');
+        const path     = require('path');
         const specPath = path.join(__dirname, '../../../src/tests/cli-conformance/conformance-test-v1.yaml');
         makeTests(specPath);
+    });
+
+    describe("serialize", () => {
+        let model: V1CommandLineToolModel;
+
+        beforeEach(() => {
+            model = new V1CommandLineToolModel(<any> {});
+        });
+
+        it("should serialize baseCommand that is defined", () => {
+            model.addBaseCommand("grep");
+            const serialized = model.serialize();
+
+            expect(serialized.baseCommand).to.have.length(1);
+            expect(serialized.baseCommand).to.deep.equal(["grep"]);
+        });
+
+        it("should serialize baseCommand that is blank", () => {
+            model.addBaseCommand();
+            const serialized = model.serialize();
+
+            expect(serialized.baseCommand).to.have.length(0);
+            expect(serialized.baseCommand).to.deep.equal([]);
+        });
+
+
     });
 
     describe("jobManagement", () => {
