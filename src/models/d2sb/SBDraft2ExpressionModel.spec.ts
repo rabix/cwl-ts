@@ -48,6 +48,20 @@ describe("SBDraft2ExpressionModel", () => {
             expect(serialized.engine).to.equal("#cwl-js-engine");
             expect(serialized.script).to.equal("3 + 3");
         });
+
+        it("should return undefined when serialized if value is an empty string or trailing whitespaces", () => {
+            const expr1 = new SBDraft2ExpressionModel();
+            const expr2 = new SBDraft2ExpressionModel();
+
+            expr1.setValue("", "expression");
+            expr2.setValue("       ", "expression");
+
+            const serialized1 = <Expression> expr1.serialize();
+            const serialized2 = <Expression> expr1.serialize();
+
+            expect(serialized1).to.equal(undefined);
+            expect(serialized2).to.equal(undefined);
+        });
     });
 
     describe("evaluate", () => {
@@ -121,6 +135,34 @@ describe("SBDraft2ExpressionModel", () => {
             };
             const expr = new SBDraft2ExpressionModel(<Expression> data);
             expect(expr.serialize()).to.equal(data);
+        });
+    });
+
+    describe("clone", () => {
+        it("Should clone an expression model with simple string as a value", () => {
+            const value = "{}";
+
+            const expr = new SBDraft2ExpressionModel();
+            expr.setValue(value, "expression");
+            expr.loc = "loc";
+
+            const exprClone = expr.clone();
+
+            expect(expr.serialize()).to.equal(exprClone.serialize());
+            expect(expr.loc).to.equal(exprClone.loc);
+        });
+
+        it("Should clone an expression model with expression as a value", () => {
+            const value = "string";
+
+            const expr = new SBDraft2ExpressionModel();
+            expr.setValue(value, "string");
+            expr.loc = "loc";
+
+            const exprClone = expr.clone();
+
+            expect(expr.serialize()).to.equal(exprClone.serialize());
+            expect(expr.loc).to.equal(exprClone.loc);
         });
     });
 });

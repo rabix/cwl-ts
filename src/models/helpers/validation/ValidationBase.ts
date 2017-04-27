@@ -37,4 +37,12 @@ export abstract class ValidationBase implements Validatable {
     }
 
     public validate() {}
+
+    public hasErrors() {
+        return this._validation.errors.length !== 0;
+    }
+
+    public hasWarnings() {
+        return this._validation.warnings.length !== 0;
+    }
 }

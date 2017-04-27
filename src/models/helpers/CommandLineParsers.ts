@@ -95,7 +95,7 @@ export class CommandLineParsers {
 
     static expression(expr: ExpressionModel, job, value, context, cmdType, loc): Promise<any> {
         return expr.evaluate(context).then(res => {
-            return res;
+            return res === undefined ? "" : res;
         }, err => {
             return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, loc);
         });

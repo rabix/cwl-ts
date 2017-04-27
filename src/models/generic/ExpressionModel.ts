@@ -95,7 +95,7 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
         return new Promise((res, rej) => {
             ExpressionEvaluator.evaluate(value, context, version).then(suc => {
                 this.result = suc;
-                res(suc !== undefined ? suc : "");
+                res(suc);
             }, ex => {
                 const err = {loc: this.loc, message: ex.toString()};
 
@@ -119,4 +119,5 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
 
     }
 
+    abstract clone(): ExpressionModel
 }

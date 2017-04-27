@@ -1,6 +1,5 @@
 import {Expression} from "../../mappings/d2sb/Expression";
 import {Serializable} from "../interfaces/Serializable";
-import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {Validation} from "../helpers/validation";
 import {ExpressionModel} from "../generic/ExpressionModel";
 
@@ -75,9 +74,9 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
 
         if (type === "expression" && typeof val === "string") {
             this.value = {
-                "class": "Expression",
+                class: "Expression",
                 engine: "#cwl-js-engine",
-                script: val
+                script: val.trim() === "" ? "" : val
             };
         } else {
             this.value = val;
@@ -111,4 +110,7 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
             undefined;
     }
 
+    clone(): ExpressionModel {
+        return new SBDraft2ExpressionModel(this.serialize(), this.loc);
+    }
 }
