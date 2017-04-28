@@ -57,7 +57,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public customProps: any = {};
 
     public jobInputs: any = {};
-    public runtime: any = {};
+    public runtime: any   = {};
 
     public setJobInputs(inputs: any) {
         this.jobInputs = inputs;
@@ -67,7 +67,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.runtime = runtime;
     }
 
-    public getContext(id?: string) {
+    public getContext(id?: string): {$job?: {inputs?: any, allocatedResources?: any}, $self?: any} {
         const context: any = {
             $job: {
                 inputs: this.jobInputs,
@@ -118,7 +118,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     }
 
     public addArgument(arg?: string | CommandLineBinding): SBDraft2CommandArgumentModel {
-        const argument     = new SBDraft2CommandArgumentModel(arg, `${this.loc}.arguments[${this.arguments.length}]`);
+        const argument = new SBDraft2CommandArgumentModel(arg, `${this.loc}.arguments[${this.arguments.length}]`);
         this.arguments.push(argument);
 
         argument.setValidationCallback((err: Validation) => {
@@ -126,14 +126,6 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         });
 
         return argument;
-    }
-
-    public removeArgument(arg: SBDraft2CommandArgumentModel | number) {
-        if (typeof arg === "number") {
-            this.arguments.splice(arg, 1);
-        } else {
-            this.arguments.splice(this.arguments.indexOf(arg), 1);
-        }
     }
 
     public addInput(input?: CommandInputParameter): SBDraft2CommandInputParameterModel {
@@ -366,7 +358,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             });
         }
 
-        this.docker = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.hints[${this.hints.length}]`);
+        this.docker        = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.hints[${this.hints.length}]`);
         this.docker.isHint = true;
 
         this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
@@ -401,12 +393,13 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             this.addBaseCommand(new SBDraft2ExpressionModel(cmd))
         });
 
-        this.jobInputs = JobHelper.getJobInputs(this);
         this.runtime = {mem: 1000, cpu: 1};
 
-        if (tool['sbg:job']) {
-            this.jobInputs = tool['sbg:job'].inputs || this.jobInputs;
-            this.runtime = tool['sbg:job'].allocatedResources || this.runtime;
+        if (tool["sbg:job"]) {
+            this.jobInputs = {...JobHelper.getNullJobInputs(this), ...tool["sbg:job"].inputs};
+            this.runtime   = {...this.runtime, ...tool["sbg:job"].allocatedResources};
+        } else {
+            this.jobInputs = JobHelper.getJobInputs(this);
         }
 
         // populates object with all custom attributes not covered in model

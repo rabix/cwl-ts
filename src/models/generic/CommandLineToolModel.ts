@@ -151,7 +151,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     protected initializeJobWatchers() {
         this.eventHub.on("input.change.id", (data) => {
-            this.jobInputs[data.newId] = this.jobInputs[data.oldId];
+            this.jobInputs[data.newId] = this.jobInputs[data.oldId] || JobHelper.generateMockJobData(data.port);
             delete this.jobInputs[data.oldId];
             this.updateCommandLine();
             console.log('input id changed');
@@ -195,7 +195,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         return null;
     }
 
-    public removeOutput(output) {
+    public removeOutput(output: CommandOutputParameterModel) {
         const index = this.outputs.indexOf(output);
         if (index < 0) {
             return;
@@ -209,7 +209,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         return null;
     }
 
-    public removeInput(input) {
+    public removeInput(input: CommandInputParameterModel) {
         const index = this.inputs.indexOf(input);
         if (index < 0) {
             return;
@@ -223,7 +223,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         return null;
     }
 
-    public removeArgument(arg) {
+    public removeArgument(arg: CommandArgumentModel) {
         const index = this.arguments.indexOf(arg);
         if (index < 0) {
             return;
@@ -262,7 +262,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     };
 
     public resetJobDefaults(): void {
-        new UnimplementedMethodException("resetJob", "CommandLineToolModel");
+        new UnimplementedMethodException("resetJobDefaults", "CommandLineToolModel");
     }
 
     public serialize(): any {

@@ -63,6 +63,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public resetJobDefaults(): void {
         this.jobInputs = JobHelper.getJobInputs(this);
+        this.updateCommandLine();
     }
 
     public getContext(id?: string): any {
@@ -248,11 +249,12 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.stderr = new V1ExpressionModel(tool.stderr, `${this.loc}.stderr`);
         this.stderr.setValidationCallback(err => this.updateValidity(err));
 
+        this.runtime = {cores: 1, ram: 1000};
+
         if (tool["sbg:job"]) {
-            this.runtime   = tool["sbg:job"].runtime || {};
-            this.jobInputs = tool["sbg:job"].inputs || {};
+            this.jobInputs = {...JobHelper.getNullJobInputs(this), ...tool["sbg:job"].inputs};
+            this.runtime   = {...this.runtime, ...tool["sbg:job"].runtime};
         } else {
-            this.runtime = {cores: 1, ram: 1000};
             this.jobInputs = JobHelper.getJobInputs(this);
         }
 

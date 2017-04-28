@@ -93,5 +93,19 @@ export class JobHelper {
 
         return job;
     }
+
+    public static getNullJobInputs(tool: CommandLineToolModel): any {
+        let job = {};
+
+        tool.inputs.forEach(input => {
+           job[input.id] = JobHelper.nullifyInput(input);
+        });
+
+        return job;
+    }
+
+    private static nullifyInput(input: CommandInputParameterModel) {
+        return input.type.type === "array" ? [] : null;
+    }
 }
 

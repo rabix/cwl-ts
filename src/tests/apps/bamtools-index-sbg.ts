@@ -21,7 +21,7 @@ export default JSON.parse(`
       "valueFrom": {
         "class": "Expression",
         "engine": "#cwl-js-engine",
-        "script": "{\\n  if (!(typeof $job.inputs.input_bai_file !== \\"undefined\\")){\\n    return \\"-in \\" + $job.inputs.input_bam_file.path.split('/').pop() \\n  }\\n}"
+        "script": "{\\n  if (!$job.inputs.input_bai_file){\\n    return \\"-in \\" + $job.inputs.input_bam_file.path.split('/').pop() \\n  }\\n}"
       },
       "separate": true
     },
@@ -30,7 +30,7 @@ export default JSON.parse(`
       "valueFrom": {
         "class": "Expression",
         "engine": "#cwl-js-engine",
-        "script": "{\\n  if (!(typeof $job.inputs.input_bai_file !== \\"undefined\\"))\\n    if ((typeof $job.inputs.bti_format !== \\"undefined\\") && ($job.inputs.bti_format))\\n    \\treturn \\"-bti\\"  \\n}"
+        "script": "{\\n  if (!$job.inputs.input_bai_file)\\n    if ((typeof $job.inputs.bti_format !== \\"undefined\\") && ($job.inputs.bti_format))\\n    \\treturn \\"-bti\\"  \\n}"
       },
       "separate": true
     }
@@ -139,7 +139,7 @@ export default JSON.parse(`
         "glob": {
           "class": "Expression",
           "engine": "#cwl-js-engine",
-          "script": "$job.inputs.input_bam_file.path.split(\\"/\\").pop()\\n\\\\n \\n"
+          "script": "$job.inputs.input_bam_file.path.split(\\"/\\").pop()"
         }
       },
       "description": "Output BAM file with index (BAI or BTI) file.",
@@ -332,7 +332,7 @@ export default JSON.parse(`
     {
       "class": "Expression",
       "engine": "#cwl-js-engine",
-      "script": "{\\n  if (typeof $job.inputs.input_bai_file !== \\"undefined\\"){\\n \\treturn\\"echo Skipping index step because BAI file is provided on the input.\\"\\n  }\\n  else{\\n    return \\"/opt/bamtools/bin/bamtools index\\"\\n  }\\n}"
+      "script": "{\\n  if ($job.inputs.input_bai_file){\\n \\treturn\\"echo Skipping index step because BAI file is provided on the input.\\"\\n  }\\n  else{\\n    return \\"/opt/bamtools/bin/bamtools index\\"\\n  }\\n}"
     }
   ],
   "sbg:sbgMaintained": false,

@@ -659,10 +659,50 @@ describe("SBDraft2CommandLineToolModel", () => {
     });
 
     describe("jobManagement", () => {
+        it("should copy sbg:job if available", () => {
+            const model = new SBDraft2CommandLineToolModel(<any> {
+                "sbg:job": {
+                    inputs: {
+                        first: "a specific string"
+                    }
+                }
+            });
+
+            expect(model.getContext().$job.inputs).to.haveOwnProperty("first");
+            expect(model.getContext().$job.inputs.first).to.equal("a specific string");
+        });
+
+        it("should populate undefined job values with null if sbg:job is defined", () => {
+            const model = new SBDraft2CommandLineToolModel(<any> {
+                inputs: [
+                    {
+                        id: "#first",
+                        type: "string"
+                    },
+                    {
+                        id: "#second",
+                        type: "int"
+                    }
+                ],
+                "sbg:job": {
+                    inputs: {
+                        first: "a specific string"
+                    }
+                }
+            });
+
+            expect(model.getContext().$job.inputs).to.haveOwnProperty("first");
+            expect(model.getContext().$job.inputs.first).to.equal("a specific string");
+
+            expect(model.getContext().$job.inputs).to.haveOwnProperty("second");
+            expect(model.getContext().$job.inputs.second).to.be.null;
+
+        });
+
         it("should add mock input to job when adding input", () => {
             const model = new SBDraft2CommandLineToolModel(<any> {});
 
-            expect(model.getContext().inputs).to.be.empty;
+            expect(model.getContext().$job.inputs).to.be.empty;
 
             model.addInput({
                 id: "input",
