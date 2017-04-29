@@ -758,7 +758,6 @@ describe("SBDraft2CommandLineToolModel", () => {
             });
 
             const context = model.getContext();
-            debugger;
 
             expect(typeof context.$job.inputs.input).to.equal("string");
 

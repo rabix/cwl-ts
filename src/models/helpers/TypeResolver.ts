@@ -2,7 +2,20 @@ import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {Serializable} from "../interfaces/Serializable";
 
-export type PrimitiveType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes" | "map";
+export type PrimitiveType =
+    "array"
+    | "enum"
+    | "record"
+    | "File"
+    | "string"
+    | "int"
+    | "float"
+    | "null"
+    | "boolean"
+    | "long"
+    | "double"
+    | "bytes"
+    | "map";
 
 export interface TypeResolution {
     type: PrimitiveType;
@@ -10,6 +23,7 @@ export interface TypeResolution {
     fields: Array<Serializable<any>>;
     symbols: string[]
     isNullable: boolean;
+    isItemOrArray: boolean;
     typeBinding: CommandLineBinding;
     name: string;
 }
@@ -23,6 +37,7 @@ export class TypeResolver {
                 fields: null,
                 symbols: null,
                 isNullable: false,
+                isItemOrArray: false,
                 typeBinding: null,
                 name: null
             };
@@ -77,7 +92,24 @@ export class TypeResolver {
             }
 
             if (type.length !== 1) {
-                throw("TypeResolverError: Union types not supported yet! Sorry");
+                // check if type has only two remaining values
+                if (type.length === 2) {
+                    // resolve types to TypeResolution
+                    const type0 = TypeResolver.resolveType(type[0]);
+                    const type1 = TypeResolver.resolveType(type[1]);
+
+                    // check if types are actually item and item[]
+                    if (type0.items === type1.type || type1.items === type0.type) {
+                        // remove type which is array for encoding
+                        type0.type === "array" ? type.splice(0, 1) : type.splice(1, 1);
+                        result.isItemOrArray = true;
+                    } else {
+                        throw("TypeResolverError: Union types not supported yet! Sorry");
+                    }
+
+                } else {
+                    throw("TypeResolverError: Union types not supported yet! Sorry");
+                }
             }
 
             if (typeof type[0] === 'string') {
@@ -228,6 +260,23 @@ export class TypeResolver {
 
             default:
                 t = type.type;
+        }
+
+        // type should be serialized as an array of ["item", "item[]"]
+        if (type.isItemOrArray) {
+            const tArr = {
+                type: "array",
+                items: t
+            };
+
+            t = [t];
+            t.push(tArr);
+
+            if (type.isNullable) {
+                t.unshift("null");
+            }
+
+            return t;
         }
 
         if (type.isNullable) {

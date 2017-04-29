@@ -12,7 +12,20 @@ import {Validation} from "../helpers/validation/Validation";
 import {spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
 
-export type PrimitiveParameterType = "array" | "enum" | "record" | "File" | "string" | "int" | "float" | "null" | "boolean" | "long" | "double" | "bytes" | "map";
+export type PrimitiveParameterType =
+    "array"
+    | "enum"
+    | "record"
+    | "File"
+    | "string"
+    | "int"
+    | "float"
+    | "null"
+    | "boolean"
+    | "long"
+    | "double"
+    | "bytes"
+    | "map";
 
 export class ParameterTypeModel extends ValidationBase implements Serializable<any>, TypeResolution {
     public customProps: any = {};
@@ -81,6 +94,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     }
 
     public isNullable: boolean             = false;
+    public isItemOrArray: boolean          = false;
     public typeBinding: CommandLineBinding = null;
     public fields: Array<any>              = null;
     public symbols: string[]               = null;
@@ -89,12 +103,12 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     private eventHub: EventHub;
 
     constructor(type: SBDraft2CommandInputParameterType |
-        SBDraft2CommandOutputParameterType |
-        V1CommandOutputParameterType |
-        V1CommandInputParameterType, fieldConstructor?, loc?: string, eventHub?: EventHub) {
+                    SBDraft2CommandOutputParameterType |
+                    V1CommandOutputParameterType |
+                    V1CommandInputParameterType, fieldConstructor?, loc?: string, eventHub?: EventHub) {
         super(loc);
         this.fieldConstructor = fieldConstructor;
-        this.eventHub = eventHub;
+        this.eventHub         = eventHub;
         this.deserialize(type);
     }
 
@@ -191,7 +205,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         let type = TypeResolver.serializeType(this, version);
 
         if (typeof type === "object" && !Array.isArray(type) && version !== "v1.0") {
-            type = { ...{}, ...type, ...this.customProps};
+            type = {...{}, ...type, ...this.customProps};
         }
 
         return type

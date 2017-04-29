@@ -192,7 +192,19 @@ describe("TypeResolver", () => {
             expect(resolved.typeBinding).to.have.property('prefix');
             expect(resolved.typeBinding.prefix).to.equal("-p");
             expect(resolved.isNullable).to.be.false;
-        })
+        });
+
+        it("Should serialize type with item and array of same item", () => {
+            let resolved = TypeResolver.resolveType(["null", "File", {
+                type: "array",
+                items: "File"
+            }]);
+
+            expect(resolved).to.not.be.undefined;
+            expect(resolved.type).to.equal("File");
+            expect(resolved.isNullable).to.be.true;
+            expect(resolved.isItemOrArray).to.be.true;
+        });
     });
 
     describe("doesTypeMatch", () => {
@@ -271,7 +283,7 @@ describe("TypeResolver", () => {
             }]);
         });
 
-        it("should resolve complex record type that is required", () => {
+        it("should serialize complex record type that is required", () => {
             const resolved   = TypeResolver.resolveType({
                 type: "record",
                 name: "rec",
@@ -292,7 +304,7 @@ describe("TypeResolver", () => {
             }]);
         });
 
-        it("should resolve complex record type that is not required", () => {
+        it("should serialize complex record type that is not required", () => {
             const resolved   = TypeResolver.resolveType(["null", {
                 type: "record",
                 name: "rec",
@@ -313,8 +325,8 @@ describe("TypeResolver", () => {
             }]);
         });
 
-        it("should resolve shorthand for array", () => {
-            const resolved   = TypeResolver.resolveType("string[]");
+        it("should serialize shorthand for array", () => {
+            const resolved     = TypeResolver.resolveType("string[]");
             const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
             const serializedD2 = TypeResolver.serializeType(resolved);
 
@@ -322,8 +334,8 @@ describe("TypeResolver", () => {
             expect(serializedD2).to.deep.equal([{type: "array", items: "string"}]);
         });
 
-        it("should resolve shorthand for primitive that is not required", () => {
-            const resolved   = TypeResolver.resolveType("string?");
+        it("should serialize shorthand for primitive that is not required", () => {
+            const resolved     = TypeResolver.resolveType("string?");
             const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
             const serializedD2 = TypeResolver.serializeType(resolved);
 
@@ -331,7 +343,7 @@ describe("TypeResolver", () => {
             expect(serializedD2).to.deep.equal(["null", "string"]);
         });
 
-        it("should resolve shorthand for array that is not required", () => {
+        it("should serialize shorthand for array that is not required", () => {
             const resolved     = TypeResolver.resolveType("string[]?");
             const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
             const serializedD2 = TypeResolver.serializeType(resolved);
@@ -341,20 +353,63 @@ describe("TypeResolver", () => {
         });
 
         it("should serialize array of enum", () => {
-            const data = [{type: "array", items: {type: "enum", symbols: ["foo", "bar"]}}];
-            const resolved = TypeResolver.resolveType(data);
+            const data       = [{type: "array", items: {type: "enum", symbols: ["foo", "bar"]}}];
+            const resolved   = TypeResolver.resolveType(data);
             const serialized = TypeResolver.serializeType(resolved);
 
             expect(serialized).to.deep.equal(data);
         });
 
         it("should serialize array of records", () => {
-            const data = [{type: "array", items: {type: "record", fields: [{name: "a", type: "string"}]}}];
-            const resolved = TypeResolver.resolveType(data);
+            const data       = [{
+                type: "array",
+                items: {type: "record", fields: [{name: "a", type: "string"}]}
+            }];
+            const resolved   = TypeResolver.resolveType(data);
             const serialized = TypeResolver.serializeType(resolved);
 
             expect(serialized).to.deep.equal(data);
         });
+
+        it("should serialize union type of item and array item", () => {
+            let resolved = TypeResolver.resolveType(["null", "File", {
+                type: "array",
+                items: "File"
+            }]);
+
+            const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
+            const serializedD2 = TypeResolver.serializeType(resolved, "draft-2");
+
+            expect(serializedV1).to.deep.equal(["null", "File", {
+                type: "array",
+                items: "File"
+            }]);
+
+            expect(serializedD2).to.deep.equal(["null", "File", {
+                type: "array",
+                items: "File"
+            }]);
+        });
+
+        it("should serialize required union type of item and array item", () => {
+            let resolved = TypeResolver.resolveType(["File", {
+                type: "array",
+                items: "File"
+            }]);
+
+            const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
+            const serializedD2 = TypeResolver.serializeType(resolved, "draft-2");
+
+            expect(serializedV1).to.deep.equal(["File", {
+                type: "array",
+                items: "File"
+            }]);
+
+            expect(serializedD2).to.deep.equal(["File", {
+                type: "array",
+                items: "File"
+            }]);
+        })
     });
 });
 
