@@ -11,6 +11,12 @@ export interface Workflow extends Process {
     class: WorkflowClass;
     steps: WorkflowStep[];
 
+    'sbg:batchInput'?: string;
+    'sbg:batchBy'?: {
+        type: string,
+        criteria?: string[]
+    };
+
     'sbg:image_url'?: string;
     'sbg:canvas_y'?: number;
     'sbg:canvas_x'?: number;

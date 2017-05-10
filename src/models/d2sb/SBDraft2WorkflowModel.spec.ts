@@ -174,6 +174,41 @@ describe("SBDraft2WorkflowModel", () => {
         });
     });
 
+    describe("setBatch", () => {
+        let wf: WorkflowModel;
+
+        beforeEach(() => {
+            wf = WorkflowFactory.from(OneStepWf.default);
+        });
+
+        it("should set batchByValue and batchInput to null if value is falsy or 'none'", () => {
+            wf.setBatch("input1", undefined);
+            expect(wf["batchByValue"]).to.be.null;
+            expect(wf["batchInput"]).to.be.null;
+
+            wf.setBatch("input2", "none");
+            expect(wf["batchByValue"]).to.be.null;
+            expect(wf["batchInput"]).to.be.null;
+        });
+
+        it("should set batchByValue and batchInput to string or array of strings", () => {
+
+            const id1 = "input1";
+            const value1 = "item";
+
+            wf.setBatch(id1, value1);
+            expect(wf["batchInput"]).to.equal(id1);
+            expect(wf["batchByValue"]).to.equal(value1);
+
+            const id2 = "input2";
+            const value2 = ["value1", "value2"];
+
+            wf.setBatch("input2", value2);
+            expect(wf["batchInput"]).to.equal(id2);
+            expect(wf["batchByValue"]).to.equal(value2);
+        });
+    });
+
     describe("changeStepId", () => {
 
         it("should change id of step itself", () => {
@@ -902,7 +937,12 @@ describe("SBDraft2WorkflowModel", () => {
                 "sbg:project": "maya/test",
                 "id": "maya/test/two-step-wf/1",
                 "label": "two-step-wf",
-                "hints": []
+                "hints": [],
+                "sbg:batchBy": {
+                    type: "criteria",
+                    criteria: ["value1"]
+                },
+                "sbg:batchInput": "#testId"
             };
             const wf = WorkflowFactory.from(data as any);
 

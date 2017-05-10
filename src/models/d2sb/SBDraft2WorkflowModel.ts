@@ -11,6 +11,7 @@ import {Process} from "../../mappings/d2sb/Process";
 import {SBDraft2WorkflowStepOutputModel} from "./SBDraft2WorkflowStepOutputModel";
 import {SBGWorkflowInputParameter} from "../../mappings/d2sb/SBGWorkflowInputParameter";
 import {WorkflowOutputParameter} from "../../mappings/d2sb/WorkflowOutputParameter";
+import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 
 export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -23,12 +24,24 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
     public outputs: SBDraft2WorkflowOutputParameterModel[] = [];
 
+    public hasBatch: boolean = true;
+
+    public batchInput: string;
+
+    public batchByValue: string | string [];
+
     constructor(workflow: Workflow, loc: string) {
         super(loc || "document");
 
         if (workflow) this.deserialize(workflow);
 
         this.graph = this.constructGraph();
+
+        this.eventHub.on("io.change.id", (node, oldId)=> {
+            if (node instanceof WorkflowInputParameterModel && this.batchInput === oldId) {
+                this.batchInput = node.id;
+            }
+        })
     }
 
 
@@ -93,6 +106,18 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         return step;
     }
 
+    public setBatch(input: string, value: string | string []): void {
+
+        if (!value || value === "none") {
+            this.batchByValue = null;
+            this.batchInput = null;
+            return;
+        }
+
+        this.batchInput = input;
+        this.batchByValue = value;
+    }
+
     public serializeEmbedded(): Workflow {
         return this._serialize(false);
     }
@@ -125,11 +150,27 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
             }
         });
 
+        if (this.batchInput) base["sbg:batchInput"] = "#" + this.batchInput;
+
+        if (this.batchByValue) {
+
+            const valueIsArray = Array.isArray(this.batchByValue);
+            const batchBy = {
+                type: valueIsArray ? "criteria" : "item"
+            };
+
+            if (valueIsArray) {
+                batchBy["criteria"] = this.batchByValue;
+            }
+
+            base["sbg:batchBy"] = batchBy;
+        }
+
         return spreadAllProps(base, this.customProps);
     }
 
     deserialize(workflow: Workflow): void {
-        const serializedKeys = ["id", "class", "cwlVersion", "steps", "inputs", "outputs", "label", "description"];
+        const serializedKeys = ["id", "class", "cwlVersion", "steps", "inputs", "outputs", "label", "description", "sbg:batchBy", "sbg:batchInput"];
 
         this.label       = workflow.label;
         this.description = workflow.description;
@@ -163,6 +204,23 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
             });
             return outputParameterModel;
         });
+
+        if (workflow["sbg:batchInput"]) {
+
+            // Remove # in front of id
+            if (workflow["sbg:batchInput"].indexOf("#") === 0) {
+                this.batchInput = workflow["sbg:batchInput"].substring(1);
+            }
+
+            if (workflow["sbg:batchBy"].type === "item") {
+                this.batchByValue = "item";
+            } else {
+                this.batchByValue = workflow["sbg:batchBy"].criteria;
+            }
+        } else {
+            this.batchByValue = null;
+            this.batchInput = null;
+        }
 
         spreadSelectProps(workflow, this.customProps, serializedKeys);
     }
