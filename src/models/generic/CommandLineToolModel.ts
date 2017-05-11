@@ -13,8 +13,7 @@ import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {RequirementBaseModel} from "./RequirementBaseModel";
 import {ResourceRequirementModel} from "./ResourceRequirementModel";
 import {EventHub} from "../helpers/EventHub";
-import {fetchByLoc, incrementString, isEmpty} from "../helpers/utils";
-import {ID_REGEX} from "../helpers/constants";
+import {fetchByLoc, incrementString, isEmpty, validateID} from "../helpers/utils";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {JobHelper} from "../helpers/JobHelper";
@@ -75,7 +74,8 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             "output.create",
             "output.remove",
             "argument.create",
-            "argument.remove"
+            "argument.remove",
+            "validate"
         ]);
     }
 
@@ -113,13 +113,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     }
 
     protected checkIdValidity(id: string) {
-        if (!id) {
-            throw new Error("ID must be set");
-        }
-
-        if (!ID_REGEX.test(id)) {
-            throw new Error(`ID "${id}" is invalid, ID must start with a letter and only alphanumerics and _ are allowed`);
-        }
+        validateID(id);
 
         const next = this.getNextAvailableId(id);
         if (next !== id) {
@@ -235,10 +229,6 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     public addBaseCommand(cmd?): ExpressionModel {
         new UnimplementedMethodException("addBaseCommand", "CommandLineToolModel");
         return null;
-    }
-
-    public validate(): void {
-        new UnimplementedMethodException("validate", "CommandLineToolModel");
     }
 
     public updateCommandLine(): void {

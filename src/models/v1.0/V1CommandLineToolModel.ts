@@ -98,35 +98,54 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public addOutput(output?: CommandOutputParameter): V1CommandOutputParameterModel {
         const o = new V1CommandOutputParameterModel(output, `${this.loc}.outputs[${this.outputs.length}]`);
 
+        o.setValidationCallback(err => this.updateValidity(err));
+
+        if (!o.id) {
+            o.updateValidity({[o.loc + ".id"]: {
+                type: "info",
+                message: `Output had no id, setting id to "${this.getNextAvailableId("input")}"`
+            }});
+        }
+
         o.id = o.id || this.getNextAvailableId("output");
 
         try {
             this.checkIdValidity(o.id)
         } catch (ex) {
-            console.warn(`${o.loc}: ${ex.message}`);
-            //@todo set error on output about duplicate id;
+            this.updateValidity({[o.loc + ".id"]: {
+                type: "error",
+                message: ex.message
+            }});
         }
 
         this.outputs.push(o);
-
-        o.setValidationCallback(err => this.updateValidity(err));
         return o;
     }
 
     public addInput(input?): V1CommandInputParameterModel {
         const i = new V1CommandInputParameterModel(input, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
 
+        i.setValidationCallback(err => this.updateValidity(err));
+
+        if (!i.id) {
+            i.updateValidity({[i.loc + ".id"]: {
+                type: "info",
+                message: `Input had no id, setting id to "${this.getNextAvailableId("input")}"`
+            }});
+        }
+
         i.id = i.id || this.getNextAvailableId("input");
 
         try {
             this.checkIdValidity(i.id)
         } catch (ex) {
-            console.warn(`${i.loc}: ${ex.message}`);
-            //@todo set error on input about duplicate id;
+            this.updateValidity({[i.loc + ".id"]: {
+                type: "error",
+                message: ex.message
+            }});
         }
 
         this.inputs.push(i);
-        i.setValidationCallback(err => this.updateValidity(err));
         this.eventHub.emit("input.create", i);
 
         return i;
@@ -194,6 +213,60 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this[type] = stream;
         stream.loc = `${this.loc}.${type}`;
         stream.setValidationCallback(err => this.updateValidity(err));
+    }
+
+    public validate() : Promise<any> {
+        this.cleanValidity();
+        const map = {};
+
+        const promises:Promise<any>[] = [];
+
+        // validate inputs and make sure IDs are unique
+        for (let i = 0; i < this.inputs.length; i++) {
+            const input = this.inputs[i];
+            promises.push(input.validate());
+
+            if (!map[input.id]) {
+                map[input.id] = true
+            } else {
+                input.updateValidity({
+                    [`${input.loc}.id`]: {
+                        type: "error",
+                        message: `Duplicate id "${input.id}"`
+                    }
+                });
+            }
+        }
+
+        // validate outputs and make sure IDs are unique
+        for (let i = 0; i < this.outputs.length; i++) {
+            const output = this.outputs[i];
+            promises.push(output.validate());
+
+            if (!map[output.id]) {
+                map[output.id] = true
+            } else {
+                output.updateValidity({
+                    [`${output.loc}.id`]: {
+                        type: "error",
+                        message: `Duplicate id "${output.id}"`
+                    }
+                });
+            }
+        }
+
+        // validate streams to make sure expressions are valid
+        if (this.stdin) {
+            promises.push(this.stdin.validate(this.getContext()));
+        }
+
+        if (this.stdout) {
+            promises.push(this.stdout.validate(this.getContext()));
+        }
+
+        return Promise.all(promises).then(() => {
+            return this.issues;
+        });
     }
 
     public deserialize(tool: CommandLineTool) {
@@ -269,7 +342,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public serialize() {
         let base: CommandLineTool = {
-            class: "CommandLineTool",
+            "class": "CommandLineTool",
             cwlVersion: "v1.0",
             baseCommand: this.baseCommand.map(b => b.serialize()).filter(b => !!b),
             inputs: <CommandInputParameter[]> this.inputs.map(i => i.serialize()),

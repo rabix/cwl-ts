@@ -14,7 +14,6 @@ import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {JobHelper} from "../helpers/JobHelper";
 import {ensureArray, snakeCase, spreadSelectProps} from "../helpers/utils";
-import {Validation} from "../helpers/validation";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandArgumentModel} from "./SBDraft2CommandArgumentModel";
 import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParameterModel";
@@ -110,9 +109,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             cmd.loc = `${this.loc}.baseCommand[${this.baseCommand.length}]`;
         }
         this.baseCommand.push(cmd);
-        cmd.setValidationCallback((err: Validation) => {
-            this.updateValidity(err);
-        });
+        cmd.setValidationCallback(err => this.updateValidity(err));
 
         return cmd;
     }
@@ -121,9 +118,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         const argument = new SBDraft2CommandArgumentModel(arg, `${this.loc}.arguments[${this.arguments.length}]`);
         this.arguments.push(argument);
 
-        argument.setValidationCallback((err: Validation) => {
-            this.updateValidity(err);
-        });
+        argument.setValidationCallback(err => this.updateValidity(err));
 
         return argument;
     }
@@ -144,9 +139,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         this.inputs.push(i);
 
-        i.setValidationCallback((err: Validation) => {
-            this.updateValidity(err);
-        });
+        i.setValidationCallback((err) => this.updateValidity(err));
 
         this.eventHub.emit("input.create", i);
 
@@ -168,9 +161,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         this.outputs.push(o);
 
-        o.setValidationCallback((err: Validation) => {
-            this.updateValidity(err);
-        });
+        o.setValidationCallback((err) => this.updateValidity(err));
 
         this.eventHub.emit("output.create", o);
 
@@ -196,22 +187,22 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         });
     }
 
-    validate(): Validation {
-        const validation: Validation = {errors: [], warnings: []};
+    validate(): Promise<any> {
+        const promises = [];
 
-        // check if all inputs are valid
-        this.inputs.forEach(input => {
-            input.validate();
-        });
+        // validate inputs
+        promises.concat(this.inputs.map(input => input.validate()));
 
-        this.baseCommand.forEach(cmd => cmd.validate());
+        // validate outputs
+        promises.concat(this.outputs.map(output => output.validate()));
 
-        // check if inputs have unique id
+        // validate baseCommand
+        promises.concat(this.baseCommand.map(cmd => cmd.validate(this.getContext())));
 
-        this.validation.errors   = this.validation.errors.concat(validation.errors);
-        this.validation.warnings = this.validation.warnings.concat(validation.warnings);
+        // validate arguments
+        promises.concat(this.arguments.map(arg => arg.validate()));
 
-        return this.validation;
+        return Promise.all(promises).then(res => this.issues);
     }
 
     serialize(): CommandLineTool | any {

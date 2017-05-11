@@ -2,12 +2,10 @@ import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
-import {Validation} from "../helpers/validation";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {spreadSelectProps} from "../helpers/utils";
-import {ID_REGEX} from "../helpers/constants";
 import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<
@@ -74,12 +72,12 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         // if inputBinding isn't defined in input, it shouldn't exist as an object in model
         if (input.inputBinding !== undefined) {
             this.inputBinding = new SBDraft2CommandLineBindingModel(input.inputBinding, `${this.loc}.inputBinding`);
-            this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
+            this.inputBinding.setValidationCallback((err) => this.updateValidity(err));
         }
 
         this.type = new ParameterTypeModel(input.type, SBDraft2CommandInputParameterModel, `${this.loc}.type`, this.eventHub);
-        this.type.setValidationCallback((err: Validation) => {
-            this.updateValidity(err)
+        this.type.setValidationCallback((err) => {
+            this.updateValidity(err);
         });
 
         // populates object with all custom attributes not covered in model
@@ -101,31 +99,31 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         return this.inputBinding;
     }
 
-    //@todo(maya) implement validation
-    validate(): Validation {
-        this.validation = {errors: [], warnings: []}; // purge current validation;
-
-        // if (this.inputBinding && this.inputBinding.valueFrom) {
-        //     this.inputBinding.valueFrom.evaluate({$job: this.job, $self: this.self});
-        // }
-
-        // check id validity
-        // doesn't exist
-        if (this.id === "" || this.id === undefined) {
-            this.validation.errors.push({
-                message: "ID must be set",
-                loc: `${this.loc}.id`
-            });
-            // contains illegal characters
-        } else if (!ID_REGEX.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
-            this.validation.errors.push({
-                message: "ID can only contain alphanumeric and underscore characters",
-                loc: `${this.loc}.id`
-            });
-        }
-
-        this.type.validate();
-
-        return this.validation;
-    }
+    // //@todo(maya) implement validation
+    // validate(): Validation {
+    //     this.validation = {errors: [], warnings: []}; // purge current validation;
+    //
+    //     // if (this.inputBinding && this.inputBinding.valueFrom) {
+    //     //     this.inputBinding.valueFrom.evaluate({$job: this.job, $self: this.self});
+    //     // }
+    //
+    //     // check id validity
+    //     // doesn't exist
+    //     if (this.id === "" || this.id === undefined) {
+    //         this.validation.errors.push({
+    //             message: "ID must be set",
+    //             loc: `${this.loc}.id`
+    //         });
+    //         // contains illegal characters
+    //     } else if (!ID_REGEX.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
+    //         this.validation.errors.push({
+    //             message: "ID can only contain alphanumeric and underscore characters",
+    //             loc: `${this.loc}.id`
+    //         });
+    //     }
+    //
+    //     this.type.validate();
+    //
+    //     return this.validation;
+    // }
 }

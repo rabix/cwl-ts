@@ -90,9 +90,15 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
         return null;
     }
 
+    public validate(context?: any): Promise<any> {
+        return this.evaluate(context).then(() => this.issues, () => this.issues);
+    }
+
     protected _evaluate(value: number | string | SBDraft2Expression, context: any, version: "v1.0" | "draft-2"): Promise<any> {
 
         return new Promise((res, rej) => {
+            this.cleanValidity();
+
             ExpressionEvaluator.evaluate(value, context, version).then(suc => {
                 this.result = suc;
                 res(suc);
@@ -100,17 +106,27 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
                 const err = {loc: this.loc, message: ex.toString()};
 
                 if (ex.name === "SyntaxError") {
-                    this.validation = {
-                        errors: [err],
-                        warnings: []
-                    };
+                    this.updateValidity({[this.loc]: {
+                        type: "error",
+                        message: ex.toString()
+                    }});
+
+                    // this.validation = {
+                    //     errors: [err],
+                    //     warnings: []
+                    // };
 
                     rej(Object.assign({type: "error"}, err));
                 } else {
-                    this.validation = {
-                        warnings: [err],
-                        errors: []
-                    };
+                    this.updateValidity({[this.loc] : {
+                        type: "warning",
+                        message: ex.toString()
+                    }});
+
+                    // this.validation = {
+                    //     warnings: [err],
+                    //     errors: []
+                    // };
 
                     rej(Object.assign({type: "warning"}, err));
                 }

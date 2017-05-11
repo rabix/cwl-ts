@@ -1,11 +1,10 @@
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
-import {Serializable} from "../interfaces/Serializable";
-import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
-import {Validation} from "../helpers/validation/Validation";
 import {CommandOutputRecordField} from "../../mappings/d2sb/CommandOutputRecordField";
-import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel"
+import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {commaSeparatedToArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {Serializable} from "../interfaces/Serializable";
+import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
 
 export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterModel implements Serializable<CommandOutputParameter | CommandOutputRecordField> {
 
@@ -35,7 +34,9 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
 
         if (this.label) base.label = this.label;
         if (this.description) base.description = this.description;
-        if (this.fileTypes.length) base["sbg:fileTypes"] = (this.fileTypes || []).join(", ");
+        if (this.fileTypes && this.fileTypes.length) {
+            base["sbg:fileTypes"] = (this.fileTypes || []).join(", ");
+        }
 
         if (this.outputBinding) {
             base.outputBinding = this.outputBinding.serialize();
@@ -92,19 +93,13 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
         spreadSelectProps(attr, this.customProps, serializedAttr);
     }
 
-    validate(): Validation {
-        //@fixme context should be passed with constructor if model can have expressions
-        const val = {errors: [], warnings: []};
+    validate(): Promise<any> {
+        this.cleanValidity();
+        const promises = [];
 
-        //@fixme outputBinding validation isn't implemented
-        this.outputBinding.validate();
-        this.type.validate();
+        promises.push(this.outputBinding.validate());
+        promises.push(this.type.validate());
 
-        const errors   = this.validation.errors.concat(val.errors);
-        const warnings = this.validation.warnings.concat(val.warnings);
-
-        this.validation = {errors, warnings};
-
-        return this.validation;
+        return Promise.all(promises).then(() => this.issues);
     }
 }

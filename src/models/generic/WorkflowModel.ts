@@ -1,25 +1,22 @@
+import {Process as SBDraft2Process} from "../../mappings/d2sb/Process";
+import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
+import {STEP_INPUT_CONNECTION_PREFIX, STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {EventHub} from "../helpers/EventHub";
+import {Edge, EdgeNode, Graph} from "../helpers/Graph";
+import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
+import {incrementString, intersection, validateID} from "../helpers/utils";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
+import {Serializable} from "../interfaces/Serializable";
+import {CommandLineToolModel} from "./CommandLineToolModel";
+import {ExpressionToolModel} from "./ExpressionToolModel";
+import {InputParameter} from "./InputParameter";
+import {OutputParameter} from "./OutputParameter";
+import {Process} from "./Process";
 import {StepModel} from "./StepModel";
 import {WorkflowInputParameterModel} from "./WorkflowInputParameterModel";
 import {WorkflowOutputParameterModel} from "./WorkflowOutputParameterModel";
-import {Serializable} from "../interfaces/Serializable";
 import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
 import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
-import {Edge, EdgeNode, Graph} from "../helpers/Graph";
-import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
-import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
-import {CommandLineToolModel} from "./CommandLineToolModel";
-import {ExpressionToolModel} from "./ExpressionToolModel";
-import {incrementString, intersection} from "../helpers/utils";
-import {InputParameter} from "./InputParameter";
-import {Process} from "./Process";
-import {Process as SBDraft2Process} from "../../mappings/d2sb/Process";
-import {
-    ID_REGEX, STEP_INPUT_CONNECTION_PREFIX,
-    STEP_OUTPUT_CONNECTION_PREFIX
-} from "../helpers/constants";
-import {OutputParameter} from "./OutputParameter";
-import {EventHub} from "../helpers/EventHub";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -344,14 +341,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * @param connectionId
      */
     private checkIdValidity(id: string, connectionId: string) {
-
-        if (!id) {
-            throw new Error("ID must be set");
-        }
-
-        if (!ID_REGEX.test(id)) {
-            throw new Error(`ID ${id} is invalid, ID must start with a letter and only alphanumerics and _ are allowed`);
-        }
+        validateID(id);
 
         const next = this.getNextAvailableId(connectionId);
         if (next !== id) {
@@ -823,7 +813,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             type: inPort.type ? inPort.type.serialize() : "null",
             fileTypes: inPort.fileTypes,
             inputBinding: inPort["inputBinding"]
-        });
+        }, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
 
         // add it to the workflow tree
         input.setValidationCallback(err => this.updateValidity(err));
@@ -880,7 +870,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             id: this.getNextAvailableId(`${STEP_INPUT_CONNECTION_PREFIX}${outPort.id}/${outPort.id}`, true), // might change later in case output is already taken
             type: outPort.type ? outPort.type.serialize() : "null",
             fileTypes: outPort.fileTypes
-        });
+        }, `${this.loc}.outputs[${this.outputs.length}]`, this.eventHub);
 
 
         // add it to the workflow tree
@@ -1003,9 +993,5 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     protected getSourceConnectionId(source: string): string {
         new UnimplementedMethodException("getSourceConnectionId");
         return undefined;
-    }
-
-    public validate() {
-        new UnimplementedMethodException("validate");
     }
 }

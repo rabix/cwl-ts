@@ -1,13 +1,8 @@
 import {Expression} from "../../mappings/d2sb/Expression";
-import {Serializable} from "../interfaces/Serializable";
-import {Validation} from "../helpers/validation";
 import {ExpressionModel} from "../generic/ExpressionModel";
+import {Serializable} from "../interfaces/Serializable";
 
 export class SBDraft2ExpressionModel extends ExpressionModel implements Serializable<number | string | Expression> {
-    validate(): Validation {
-        return this.validation;
-    }
-
     /**
      * Evaluates expression and sets its result to result property.
      *
@@ -70,11 +65,11 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
      */
     public setValue(val: number | string | Expression, type: "expression" | "string" | "number") {
         this.result     = undefined;
-        this.validation = {errors: [], warnings: []};
+        this.cleanValidity();
 
         if (type === "expression" && typeof val === "string") {
             this.value = {
-                class: "Expression",
+                "class": "Expression",
                 engine: "#cwl-js-engine",
                 script: val.trim() === "" ? "" : val
             };

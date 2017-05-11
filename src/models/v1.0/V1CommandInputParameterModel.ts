@@ -2,7 +2,7 @@ import {CommandInputParameter, CommandInputRecordField} from "../../mappings/v1.
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {Serializable} from "../interfaces/Serializable";
-import {commaSeparatedToArray, ensureArray, spreadSelectProps} from "../helpers/utils";
+import {commaSeparatedToArray, ensureArray, spreadSelectProps, validateID} from "../helpers/utils";
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
 import {CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {V1ExpressionModel} from "./V1ExpressionModel";
@@ -18,8 +18,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
     public hasSecondaryFiles = true;
     public hasStageInput     = false;
 
-    constructor(attr:
-                    CommandInputParameter
+    constructor(attr: CommandInputParameter
                     | CommandInputRecordField, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
         if (attr) this.deserialize(attr);

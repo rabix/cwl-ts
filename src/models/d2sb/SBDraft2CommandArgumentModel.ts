@@ -1,8 +1,7 @@
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
+import {CommandArgumentModel} from "../generic/CommandArgumentModel";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
-import {Validation} from "../helpers/validation/Validation";
-import {CommandArgumentModel} from "../generic/CommandArgumentModel";
 
 export class SBDraft2CommandArgumentModel extends CommandArgumentModel implements Serializable<
     string
@@ -79,15 +78,11 @@ export class SBDraft2CommandArgumentModel extends CommandArgumentModel implement
         } else if (attr instanceof SBDraft2CommandLineBindingModel) {
             this.hasBinding = true;
             this.binding    = new SBDraft2CommandLineBindingModel(attr.serialize(), this.loc);
-            this.binding.setValidationCallback((err: Validation) => {
-                this.updateValidity(err);
-            })
+            this.binding.setValidationCallback(err => this.updateValidity(err));
         } else {
             this.hasBinding = true;
             this.binding    = new SBDraft2CommandLineBindingModel(<CommandLineBinding> attr, this.loc);
-            this.binding.setValidationCallback((err: Validation) => {
-                this.updateValidity(err);
-            })
+            this.binding.setValidationCallback(err => this.updateValidity(err));
         }
     }
 }

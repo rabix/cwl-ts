@@ -1,9 +1,8 @@
-import {Serializable} from "../interfaces/Serializable";
 import {CommandOutputBinding} from "../../mappings/d2sb/CommandOutputBinding";
-import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
-import {Validation} from "../helpers/validation/Validation";
 import {CommandOutputBindingModel} from "../generic/CommandOutputBindingModel";
+import {Serializable} from "../interfaces/Serializable";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 
 export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel implements Serializable<CommandOutputBinding> {
     public loadContents: boolean;
@@ -53,13 +52,19 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
         this._outputEval.setValidationCallback(err => this.updateValidity(err));
 
         if (!this._outputEval.isExpression) {
-            this._outputEval.validation = {
-                errors: [{
-                    loc: `${this.loc}.outputEval`,
+            this._outputEval.updateValidity({
+                [`${this.loc}.outputEval`]: {
+                    type: "error",
                     message: `outputEval must be an expression, instead got ${value.type}`
-                }],
-                warnings: []
-            };
+                }
+            })
+            // this._outputEval.validation = {
+            //     errors: [{
+            //         loc: `${this.loc}.outputEval`,
+            //         message: `outputEval must be an expression, instead got ${value.type}`
+            //     }],
+            //     warnings: []
+            // };
         }
     }
 
@@ -93,21 +98,24 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
         this.updateSecondaryFile(file, this._secondaryFiles.length);
     }
 
-    validate(): Validation {
-        this.validation = {errors: [], warnings: []};
+    validate(): Promise<any> {
+        this.cleanValidity();
+        const promises = [];
 
         if (!this._glob || (this._glob && this._glob.serialize() === undefined)) {
-            this.validation.warnings.push({
-                loc: `${this.loc}.glob`,
-                message: "Glob should be specified"
+            this.updateValidity({
+                [`${this.loc}.glob`]: {
+                    message: "Glob should be specified",
+                    type: "warning"
+                }
             });
         }
 
         if (this._outputEval) {
-            this._outputEval.validate()
+            promises.push(this._outputEval.validate());
         }
+        return Promise.all(promises).then(() => this.issues);
 
-        return this.validation;
     }
 
     customProps: any = {};

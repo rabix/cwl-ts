@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {
     ensureArray, checkMapValueType, incrementString, spreadSelectProps,
-    snakeCase, fetchByLoc
+    snakeCase, fetchByLoc, cleanupNull
 } from "./utils";
 
 describe("ensureArray", () => {
@@ -261,5 +261,48 @@ describe("fetchByLoc", () => {
         const test = {hello: {world: "meow"}};
 
         expect(fetchByLoc(test, "hello['world']")).to.equal("meow");
+    })
+});
+
+describe("cleanupNull", () => {
+    it("should remove null values", () => {
+        const test = {
+            a: null,
+            b: 3
+        };
+
+        const clean = cleanupNull(test);
+        expect(Object.keys(clean)).to.have.length(1);
+        expect(clean).to.not.haveOwnProperty("a");
+        expect(clean).to.haveOwnProperty("b");
+    });
+
+    it("should not change values", () => {
+        const test = {
+            a: null,
+            b: 3,
+            c: 44
+        };
+
+        const clean = cleanupNull(test);
+        expect(Object.keys(clean)).to.have.length(2);
+        expect(clean).to.not.haveOwnProperty("a");
+        expect(clean).to.haveOwnProperty("b");
+        expect(clean.b).to.equal(3);
+        expect(clean.c).to.equal(44);
+    });
+
+    it("should remove undefined values", () => {
+        let q = undefined;
+
+        const test = {
+            a: q,
+            b: 3
+        };
+
+        const clean = cleanupNull(test);
+        expect(Object.keys(clean)).to.have.length(1);
+        expect(clean).to.not.haveOwnProperty("a");
+        expect(clean).to.haveOwnProperty("b");
     })
 });

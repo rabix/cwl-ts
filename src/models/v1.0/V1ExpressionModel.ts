@@ -44,10 +44,9 @@ export class V1ExpressionModel extends ExpressionModel {
         });
     }
 
-
     public setValue(val: string | Expression, type?: "expression" | "string") {
-        this.result     = undefined;
-        this.validation = {errors: [], warnings: []};
+        this.result = undefined;
+        this.cleanValidity();
 
         this.tokenizeAndSetType(val);
         this.value = val;

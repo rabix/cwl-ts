@@ -144,8 +144,6 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
     protected compareInPorts() {
         const inPorts: Array<V1WorkflowStepInputModel> = this.in;
         const stepInputs: Array<InputParameterModel>   = this.run.inputs;
-        const errors                                   = [];
-        const warnings                                 = [];
 
         // check if step.in includes ports which are not defined in the app
         const inserted = inPorts.filter(port => {
@@ -154,10 +152,10 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
         // if there are steps in ports which aren't in the app, throw a warning for interface mismatch
         if (inserted.length) {
-            this.validation.warnings.push({
+            this.updateValidity({[this.loc]: {
                 message: `Step contains input ports which are not present on the app: ${inserted.map(port => port.id).join(",")}. It will not be included in the workflow.`,
-                loc: this.loc
-            });
+                type: "warning"
+            }});
         }
 
         // because type cannot be check on the level of the step (step.in is just the id of the incoming port),
@@ -166,12 +164,12 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         this.in = stepInputs.map((input, index) => {
             let match: any = inPorts.find(port => input.id === port.id);
 
-
             if (match && match.type && match.type.type) {
                 if (match.type.type !== input.type.type || match.type.items !== input.type.items) {
-                    errors.push({
-                        message: `Schema mismatch between step input ${this.loc}.inputs[${index}] and step run input ${input.loc}. `
-                    });
+                    this.updateValidity({[`${this.loc}.inputs[${index}]`]: {
+                        type: "error",
+                        message: `Schema mismatch between step input ${this.loc}.inputs[${index}] and step run input ${input.loc}.`
+                    }});
                 }
             }
 
@@ -186,8 +184,6 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
                 ...match
             }, this, `${this.loc}.in[${index}]`);
         }).filter(port => port !== undefined);
-
-        this.validation = {errors, warnings};
     }
 
     protected compareOutPorts() {

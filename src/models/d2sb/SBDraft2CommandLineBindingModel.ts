@@ -1,10 +1,9 @@
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
+import {Expression} from "../../mappings/d2sb/Expression";
+import {CommandLineBindingModel} from "../generic/CommandLineBindingModel";
+import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
-import {Expression} from "../../mappings/d2sb/Expression";
-import {Validation} from "../helpers/validation";
-import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
-import {CommandLineBindingModel} from "../generic/CommandLineBindingModel";
 
 export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: SBDraft2ExpressionModel;
@@ -42,7 +41,7 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
 
     setValueFrom(val: string | Expression) {
         this.valueFrom = new SBDraft2ExpressionModel(val, `${this.loc}.valueFrom`);
-        this.valueFrom.setValidationCallback((err: Validation) => {
+        this.valueFrom.setValidationCallback((err) => {
             this.updateValidity(err);
         });
     }

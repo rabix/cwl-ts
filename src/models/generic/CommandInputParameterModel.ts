@@ -8,6 +8,7 @@ import {CommandLineBinding as SBDraft2CommandLineBinding} from "../../mappings/d
 import {CommandLineBinding as V1CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {ExpressionModel} from "./ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
+import {validateID} from "../helpers/utils";
 
 export abstract class CommandInputParameterModel extends ValidationBase implements InputParameter, Serializable<any> {
     /** unique identifier of input */
@@ -52,6 +53,38 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
 
     public removeInputBinding() {
         this.inputBinding = null;
+    }
+
+    public validate(): Promise<any> {
+        this.cleanValidity();
+        const promises: Promise<any>[] = [];
+
+        // id
+        try {
+            validateID(this.id);
+        } catch (ex) {
+            this.updateValidity({[this.loc + ".id"] : {
+                type: "error",
+                message: ex.message
+            }});
+        }
+
+        // inputBinding
+        if (this.inputBinding) {
+            promises.push(this.inputBinding.validate());
+        }
+
+        // type
+        if (this.type) {
+            promises.push(this.type.validate());
+        }
+
+        // secondaryFiles
+        if (this.secondaryFiles) {
+            promises.concat(this.secondaryFiles.map(file => file.validate()));
+        }
+
+        return Promise.all(promises);
     }
 
     serialize(): any {
