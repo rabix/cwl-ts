@@ -1,5 +1,6 @@
 import {WorkflowModel} from "../generic/WorkflowModel";
 import {Workflow} from "../../mappings/d2sb/Workflow";
+import {BatchInput} from "../../mappings/d2sb/Workflow";
 import {SBDraft2StepModel} from "./SBDraft2StepModel";
 import {SBDraft2WorkflowInputParameterModel} from "./SBDraft2WorkflowInputParameterModel";
 import {SBDraft2WorkflowOutputParameterModel} from "./SBDraft2WorkflowOutputParameterModel";
@@ -25,10 +26,6 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     public outputs: SBDraft2WorkflowOutputParameterModel[] = [];
 
     public hasBatch: boolean = true;
-
-    public batchInput: string;
-
-    public batchByValue: string | string [];
 
     constructor(workflow: Workflow, loc: string) {
         super(loc || "document");
@@ -155,12 +152,13 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         if (this.batchByValue) {
 
             const valueIsArray = Array.isArray(this.batchByValue);
-            const batchBy = {
+
+            let batchBy : BatchInput = {
                 type: valueIsArray ? "criteria" : "item"
             };
 
             if (valueIsArray) {
-                batchBy["criteria"] = this.batchByValue;
+                batchBy.criteria = this.batchByValue as string [];
             }
 
             base["sbg:batchBy"] = batchBy;

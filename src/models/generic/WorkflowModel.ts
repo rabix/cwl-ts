@@ -30,6 +30,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     public hasBatch: boolean = false;
 
+    public batchInput: string;
+
+    public batchByValue: string | string [];
+
     public steps: StepModel[]                      = [];
     public inputs: WorkflowInputParameterModel[]   = [];
     public outputs: WorkflowOutputParameterModel[] = [];
