@@ -25,6 +25,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     public sbgId: string;
 
+    public hasBatch: boolean = false;
+
+    public batchInput: string;
+
+    public batchByValue: string | string [];
+
     public steps: StepModel[]                      = [];
     public inputs: WorkflowInputParameterModel[]   = [];
     public outputs: WorkflowOutputParameterModel[] = [];
@@ -88,6 +94,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     public deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "WorkflowModel");
     }
+
+    public setBatch(input, type): void {};
 
     public findById(connectionId: string) {
         return this.graph.getVertexData(connectionId);
@@ -423,7 +431,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.checkIdValidity(id, `${pref}${id}/${id}`);
 
         const oldConnectionId = node.connectionId;
-        const oldId           = (node as WorkflowInputParameterModel).sourceId;
+        const oldId = node.id;
+        const oldSourceId           = (node as WorkflowInputParameterModel).sourceId;
         node.id               = id;
 
         this.graph.removeVertex(oldConnectionId);
@@ -446,7 +455,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                     edge.source.id                         = node.connectionId;
                     const destNode: WorkflowStepInputModel = this.graph.getVertexData(edge.destination.id);
                     for (let i = 0; i < destNode.source.length; i++) {
-                        if (destNode.source[i] === oldId) {
+                        if (destNode.source[i] === oldSourceId) {
                             destNode.source[i] = node.sourceId;
                         }
                     }
@@ -454,7 +463,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             });
         }
 
-        this.eventHub.emit("io.change.id", node);
+        this.eventHub.emit("io.change.id", node, oldId);
     }
 
     /**
