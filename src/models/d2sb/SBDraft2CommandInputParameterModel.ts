@@ -7,6 +7,7 @@ import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
+import {ID_REGEX} from "../helpers/constants";
 
 export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<
     CommandInputParameter
@@ -86,6 +87,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
 
     public updateInputBinding(binding: SBDraft2CommandLineBindingModel | CommandLineBinding) {
         if (binding instanceof SBDraft2CommandLineBindingModel) {
+            //@todo breaks here for serialize of undefined
             binding = (binding as SBDraft2CommandLineBindingModel).serialize();
         }
         this.inputBinding = new SBDraft2CommandLineBindingModel(<CommandLineBinding> binding, `${this.loc}.inputBinding`);
@@ -100,30 +102,38 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
     }
 
     // //@todo(maya) implement validation
-    // validate(): Validation {
-    //     this.validation = {errors: [], warnings: []}; // purge current validation;
-    //
-    //     // if (this.inputBinding && this.inputBinding.valueFrom) {
-    //     //     this.inputBinding.valueFrom.evaluate({$job: this.job, $self: this.self});
-    //     // }
-    //
-    //     // check id validity
-    //     // doesn't exist
-    //     if (this.id === "" || this.id === undefined) {
-    //         this.validation.errors.push({
-    //             message: "ID must be set",
-    //             loc: `${this.loc}.id`
-    //         });
-    //         // contains illegal characters
-    //     } else if (!ID_REGEX.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
-    //         this.validation.errors.push({
-    //             message: "ID can only contain alphanumeric and underscore characters",
-    //             loc: `${this.loc}.id`
-    //         });
-    //     }
-    //
-    //     this.type.validate();
-    //
-    //     return this.validation;
-    // }
+    validate(context): Promise<any> {
+        const promises = [];
+        this.cleanValidity();
+
+        if (this.inputBinding) {
+            promises.push(this.inputBinding.validate(context));
+        }
+
+        promises.push(this.type.validate());
+
+        if (this.secondaryFiles) {
+            promises.concat(this.secondaryFiles.map(file => file.validate(context)));
+        }
+
+        // check id validity
+        // doesn't exist
+        if (this.id === "" || this.id === undefined) {
+            this.updateValidity({[`${this.loc}.id`]: {
+                message: "ID must be set",
+                type: "error"
+            }});
+            // contains illegal characters
+        } else if (!ID_REGEX.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
+            this.updateValidity({[`${this.loc}.id`]: {
+                message: "ID can only contain alphanumeric and underscore characters",
+                type: "error"
+            }});
+        }
+
+        return Promise.all(promises).then(() => this.issues, (ex) => {
+            console.warn(`SBDraft2CommandInputParameterModel threw error in validation: ${ex}`);
+            return this.issues
+        });
+    }
 }

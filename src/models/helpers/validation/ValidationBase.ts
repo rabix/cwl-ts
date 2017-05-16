@@ -6,10 +6,11 @@ import {Validation} from "./Validation";
 
 export abstract class ValidationBase implements Validatable {
 
-    private _validation: Validation = {warnings: [], errors: []};
-
     public issues: { [key: string]: Issue } = {};
+    public errors: Issue[] = [];
+    public warnings: Issue[] = [];
 
+    /** @deprecated */
     get validation(): Validation {
         return {
             warnings: this.filterIssues("warning"),
@@ -20,32 +21,16 @@ export abstract class ValidationBase implements Validatable {
     /** @deprecated */
     set validation(value: Validation) {
         console.warn(`Setting validation is deprecated. Please use updateValidity(issue: {[key: string]: Issue}) instead`);
-        // if (value !== this._validation) {
-            // this._validation = Object.assign({errors: [], warnings: []}, value);
-            // this.updateParentValidation(this._validation);
-        // }
-
-        // actually got issues, not Validation
-        // if (!value.errors) {
-
-        // }
     }
 
     public updateValidity(issue: {[key: string]: Issue}) {
 
         this.issues = cleanupNull({...this.issues, ...issue});
 
-        // console.log("on validate to this thingy", issue);
-        // if (!issue) {
-        //     this.issues[loc] = null;
-        // } else {
-        //     Array.isArray(this.issues[loc]) ?
-        //         this.issues[loc].push(issue) :
-        //         this.issues[loc] = [issue];
-        // }
-
-        this.hasErrors = !!this.filterIssues("error").length;
-        this.hasWarnings = !!this.filterIssues("warning").length;
+        this.errors = this.filterIssues("error");
+        this.warnings = this.filterIssues("warning");
+        this.hasErrors = !!this.errors.length;
+        this.hasWarnings = !!this.warnings.length;
 
         this.updateParentValidation(this.issues);
     }
@@ -53,7 +38,6 @@ export abstract class ValidationBase implements Validatable {
     protected cleanValidity() {
         this.issues = nullifyObjValues(this.issues);
         this.updateParentValidation(this.issues);
-        this.issues = {};
 
         this.hasErrors = false;
         this.hasWarnings = false;
@@ -63,22 +47,24 @@ export abstract class ValidationBase implements Validatable {
 
     constructor(loc: string) {
         this.loc = loc || "";
+        this.issues[this.loc] = null;
     }
 
-    public setValidationCallback(fn: (err: Validation | any) => void): void {
+    public setValidationCallback(fn: (err: { [key: string]: Issue }) => void): void {
         this.updateParentValidation = fn;
+        this.updateParentValidation(this.issues);
     }
 
-    protected updateParentValidation = (err: Validation | any) => {
+    protected updateParentValidation = (err: { [key: string]: Issue }) => {
     };
 
     public filterIssues(type: "warning" | "error" | "info" = "error") {
         return Object.keys(this.issues)
-            .filter(key => this.issues[key].type === type)
+            .filter(key => this.issues[key] && this.issues[key].type === type)
             .map(key => ({...this.issues[key], ...{loc: key}}));
     }
 
-    public validate(): Promise<any> {
+    public validate(...args: any[]): Promise<any> {
         new UnimplementedMethodException("validate");
         return new Promise(res => {
             res(this.issues);

@@ -98,7 +98,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
         this.updateSecondaryFile(file, this._secondaryFiles.length);
     }
 
-    validate(): Promise<any> {
+    validate(context): Promise<any> {
         this.cleanValidity();
         const promises = [];
 
@@ -109,10 +109,12 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
                     type: "warning"
                 }
             });
+        } else {
+            promises.push(this._glob.validate(context));
         }
 
         if (this._outputEval) {
-            promises.push(this._outputEval.validate());
+            promises.push(this._outputEval.validate(context));
         }
         return Promise.all(promises).then(() => this.issues);
 

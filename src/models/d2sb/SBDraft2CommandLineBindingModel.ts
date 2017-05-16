@@ -4,10 +4,13 @@ import {CommandLineBindingModel} from "../generic/CommandLineBindingModel";
 import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
+import * as ts from "typescript-json-schema/typings/typescript/typescript";
+import warning = ts.ScriptElementKind.warning;
 
 export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: SBDraft2ExpressionModel;
     public hasSecondaryFiles = true;
+    protected context: { $job: any, $self: any };
 
     get secondaryFiles(): SBDraft2ExpressionModel[] {
         return this._secondaryFiles;
@@ -44,6 +47,24 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
         this.valueFrom.setValidationCallback((err) => {
             this.updateValidity(err);
         });
+    }
+
+    public validate(context: {$job: any, $self: any}): Promise<any> {
+        const promises = [];
+        this.cleanValidity();
+
+        if (this.valueFrom) {
+            promises.push(this.valueFrom.validate(context));
+        }
+
+        if (this._secondaryFiles) {
+            promises.concat(this._secondaryFiles.map(file => file.validate(context)))
+        }
+
+        return Promise.all(promises).then(() => this.issues, (ex) => {
+            console.warn(`SBDraft2CommandLineBindingModel threw error in validation: ${ex}`);
+            return this.issues;
+        })
     }
 
     public updateSecondaryFile(file: SBDraft2ExpressionModel, index: number) {

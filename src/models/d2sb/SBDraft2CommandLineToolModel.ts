@@ -13,7 +13,10 @@ import {DockerRequirementModel} from "../generic/DockerRequirementModel";
 import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {JobHelper} from "../helpers/JobHelper";
-import {ensureArray, snakeCase, spreadSelectProps} from "../helpers/utils";
+import {
+    ensureArray, findLastIndexInLocAndIncrement, snakeCase,
+    spreadSelectProps
+} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandArgumentModel} from "./SBDraft2CommandArgumentModel";
 import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParameterModel";
@@ -103,10 +106,13 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     }
 
     public addBaseCommand(cmd?: SBDraft2ExpressionModel): SBDraft2ExpressionModel {
+        const lastCmd = this.baseCommand[this.baseCommand.length - 1] || {loc: ""};
+        const index = findLastIndexInLocAndIncrement(lastCmd.loc) || this.baseCommand.length;
+
         if (!cmd) {
-            cmd = new SBDraft2ExpressionModel("", `${this.loc}.baseCommand[${this.baseCommand.length}]`);
+            cmd = new SBDraft2ExpressionModel("", `${this.loc}.baseCommand[${index}]`);
         } else {
-            cmd.loc = `${this.loc}.baseCommand[${this.baseCommand.length}]`;
+            cmd.loc = `${this.loc}.baseCommand[${index}]`;
         }
         this.baseCommand.push(cmd);
         cmd.setValidationCallback(err => this.updateValidity(err));
@@ -115,7 +121,10 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     }
 
     public addArgument(arg?: string | CommandLineBinding): SBDraft2CommandArgumentModel {
-        const argument = new SBDraft2CommandArgumentModel(arg, `${this.loc}.arguments[${this.arguments.length}]`);
+        const lastArg = this.arguments[this.arguments.length - 1] || {loc: ""};
+        const index = findLastIndexInLocAndIncrement(lastArg.loc) || this.arguments.length;
+
+        const argument = new SBDraft2CommandArgumentModel(arg, `${this.loc}.arguments[${index}]`);
         this.arguments.push(argument);
 
         argument.setValidationCallback(err => this.updateValidity(err));
@@ -124,7 +133,10 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     }
 
     public addInput(input?: CommandInputParameter): SBDraft2CommandInputParameterModel {
-        const i = new SBDraft2CommandInputParameterModel(input, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
+        const lastInput = this.inputs[this.inputs.length - 1] || {loc: ""};
+        const index = findLastIndexInLocAndIncrement(lastInput.loc) || this.inputs.length;
+
+        const i = new SBDraft2CommandInputParameterModel(input, `${this.loc}.inputs[${index}]`, this.eventHub);
         i.self  = JobHelper.generateMockJobData(i);
 
         i.id = i.id || this.getNextAvailableId("input");
@@ -148,7 +160,10 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
 
     public addOutput(output: CommandOutputParameter): SBDraft2CommandOutputParameterModel {
-        const o = new SBDraft2CommandOutputParameterModel(output, `${this.loc}.outputs[${this.outputs.length}]`);
+        const lastOutput = this.outputs[this.outputs.length - 1] || {loc: ""};
+        const index = findLastIndexInLocAndIncrement(lastOutput.loc) || this.outputs.length;
+
+        const o = new SBDraft2CommandOutputParameterModel(output, `${this.loc}.outputs[${index}]`);
 
         o.id = o.id || this.getNextAvailableId("output");
 
@@ -188,13 +203,14 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     }
 
     validate(): Promise<any> {
+        this.cleanValidity();
         const promises = [];
 
         // validate inputs
-        promises.concat(this.inputs.map(input => input.validate()));
+        promises.concat(this.inputs.map(input => input.validate(this.getContext(input.id))));
 
         // validate outputs
-        promises.concat(this.outputs.map(output => output.validate()));
+        promises.concat(this.outputs.map(output => output.validate(this.getContext())));
 
         // validate baseCommand
         promises.concat(this.baseCommand.map(cmd => cmd.validate(this.getContext())));

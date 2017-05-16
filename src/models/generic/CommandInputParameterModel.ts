@@ -55,7 +55,7 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
         this.inputBinding = null;
     }
 
-    public validate(): Promise<any> {
+    public validate(context: any): Promise<any> {
         this.cleanValidity();
         const promises: Promise<any>[] = [];
 
@@ -71,7 +71,7 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
 
         // inputBinding
         if (this.inputBinding) {
-            promises.push(this.inputBinding.validate());
+            promises.push(this.inputBinding.validate(context));
         }
 
         // type

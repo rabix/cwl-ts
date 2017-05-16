@@ -105,7 +105,12 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
             undefined;
     }
 
-    clone(): ExpressionModel {
+    clone(): SBDraft2ExpressionModel {
         return new SBDraft2ExpressionModel(this.serialize(), this.loc);
+    }
+
+    cloneStatus(clone: SBDraft2ExpressionModel) {
+        this.setValue(clone.serialize(), clone.type);
+        this.updateValidity({...clone.issues});
     }
 }

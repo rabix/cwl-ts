@@ -19,6 +19,13 @@ export abstract class CommandLineBindingModel extends ValidationBase implements 
 
     public secondaryFiles?: ExpressionModel[];
 
+    protected context: any;
+
+    public validate(context: any): Promise<any> {
+        new UnimplementedMethodException("validate", "CommandLineBindingModel");
+        return new Promise((res, rej) => res(this.issues));
+    }
+
     setValueFrom(val: string | SBDraft2Expression | V1Expression) {
         new UnimplementedMethodException("setValueFrom", "CommandLineBindingModel");
     }

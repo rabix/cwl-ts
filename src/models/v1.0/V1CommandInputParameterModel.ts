@@ -26,6 +26,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
 
     public updateInputBinding(binding: V1CommandLineBindingModel | CommandLineBinding) {
         if (binding instanceof V1CommandLineBindingModel) {
+            //@todo breaks here for "serialize of undefined"
             binding = (binding as V1CommandLineBindingModel).serialize();
         }
 

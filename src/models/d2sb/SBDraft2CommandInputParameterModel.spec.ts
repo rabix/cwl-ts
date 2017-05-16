@@ -282,29 +282,33 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
     });
 
     describe("validate", () => {
-        it("Should check if ID exists", () => {
+        it("Should check if ID exists", (done) => {
             const input = new SBDraft2CommandInputParameterModel({
                 type: "string",
                 id: ''
             });
 
-            input.validate();
-            expect(input.validation.errors).to.not.be.empty;
-            expect(input.validation.errors[0].message).to.equal("ID must be set");
+            input.validate({}).then(res => {
+                const issues = input.filterIssues("error");
+                expect(issues).to.not.be.empty;
+                expect(issues[0].message).to.equal("ID must be set");
+            }).then(done, done);
         });
 
-        it("Should check for invalid characters in ID", () => {
+        it("Should check for invalid characters in ID", (done) => {
             const input = new SBDraft2CommandInputParameterModel(<CommandInputParameter>{
                 type: "string",
                 id: "@^%%^"
             });
 
-            input.validate();
-            expect(input.validation.errors).to.not.be.empty;
-            expect(input.validation.errors[0].message).to.contain("invalid");
+            input.validate({}).then(res => {
+                const issues = input.filterIssues("error");
+                expect(issues).to.not.be.empty;
+                expect(issues[0].message).to.contain("alphanumeric");
+            }).then(done, done);
         });
 
-        it("Should ensure enum has symbols", () => {
+        it("Should ensure enum has symbols", (done) => {
             const input = new SBDraft2CommandInputParameterModel(<CommandInputParameter>{
                 id: "asdf",
                 type: {
@@ -312,10 +316,11 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
                 }
             }, "inp");
 
-            input.validate();
-
-            expect(input.validation.errors).to.not.be.empty;
-            expect(input.validation.errors[0].loc).to.equal("inp.type");
+            input.validate({}).then(res => {
+                const issues = input.filterIssues("error");
+                expect(issues).to.not.be.empty;
+                expect(issues[0].loc).to.contain("inp.type");
+            }).then(done, done);
         });
     });
 

@@ -199,3 +199,14 @@ export const validateID = (id: string) => {
         throw new Error(`ID "${id}" is invalid, ID must start with a letter and only alphanumerics and _ are allowed`);
     }
 };
+
+export const findLastIndexInLocAndIncrement = (loc: string) => {
+    if (!loc) return null;
+
+    let match:any = ((loc.match(/\[(\d+)]$/g) || [""])[0].match(/\d+/g) || [""])[0];
+
+    if (!match) return null;
+
+    match = parseInt(match);
+    return ++match;
+};

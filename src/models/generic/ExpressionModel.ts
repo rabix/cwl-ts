@@ -95,9 +95,9 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
     }
 
     protected _evaluate(value: number | string | SBDraft2Expression, context: any, version: "v1.0" | "draft-2"): Promise<any> {
+        this.cleanValidity();
 
         return new Promise((res, rej) => {
-            this.cleanValidity();
 
             ExpressionEvaluator.evaluate(value, context, version).then(suc => {
                 this.result = suc;
@@ -111,22 +111,12 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
                         message: ex.toString()
                     }});
 
-                    // this.validation = {
-                    //     errors: [err],
-                    //     warnings: []
-                    // };
-
                     rej(Object.assign({type: "error"}, err));
                 } else {
                     this.updateValidity({[this.loc] : {
                         type: "warning",
                         message: ex.toString()
                     }});
-
-                    // this.validation = {
-                    //     warnings: [err],
-                    //     errors: []
-                    // };
 
                     rej(Object.assign({type: "warning"}, err));
                 }
@@ -136,4 +126,6 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
     }
 
     abstract clone(): ExpressionModel
+
+    abstract cloneStatus(clone: ExpressionModel);
 }

@@ -10,7 +10,10 @@ import {DockerRequirementModel} from "../generic/DockerRequirementModel";
 import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {JobHelper} from "../helpers/JobHelper";
-import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {
+    ensureArray, findLastIndexInLocAndIncrement, snakeCase, spreadAllProps,
+    spreadSelectProps
+} from "../helpers/utils";
 import {V1CommandArgumentModel} from "./V1CommandArgumentModel";
 import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
 import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
@@ -96,15 +99,20 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addOutput(output?: CommandOutputParameter): V1CommandOutputParameterModel {
-        const o = new V1CommandOutputParameterModel(output, `${this.loc}.outputs[${this.outputs.length}]`);
+        const lastOutput = this.outputs[this.outputs.length - 1] || {loc: ""};
+        const index = findLastIndexInLocAndIncrement(lastOutput.loc) || this.outputs.length;
+
+        const o = new V1CommandOutputParameterModel(output, `${this.loc}.outputs[${index}]`);
 
         o.setValidationCallback(err => this.updateValidity(err));
 
         if (!o.id) {
-            o.updateValidity({[o.loc + ".id"]: {
-                type: "info",
-                message: `Output had no id, setting id to "${this.getNextAvailableId("input")}"`
-            }});
+            o.updateValidity({
+                [o.loc + ".id"]: {
+                    type: "info",
+                    message: `Output had no id, setting id to "${this.getNextAvailableId("input")}"`
+                }
+            });
         }
 
         o.id = o.id || this.getNextAvailableId("output");
@@ -112,10 +120,12 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         try {
             this.checkIdValidity(o.id)
         } catch (ex) {
-            this.updateValidity({[o.loc + ".id"]: {
-                type: "error",
-                message: ex.message
-            }});
+            this.updateValidity({
+                [o.loc + ".id"]: {
+                    type: "error",
+                    message: ex.message
+                }
+            });
         }
 
         this.outputs.push(o);
@@ -123,15 +133,20 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addInput(input?): V1CommandInputParameterModel {
-        const i = new V1CommandInputParameterModel(input, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
+        const lastInput = this.inputs[this.inputs.length - 1] || {loc: ""};
+        const index = findLastIndexInLocAndIncrement(lastInput.loc) || this.inputs.length;
+
+        const i = new V1CommandInputParameterModel(input, `${this.loc}.inputs[${index}]`, this.eventHub);
 
         i.setValidationCallback(err => this.updateValidity(err));
 
         if (!i.id) {
-            i.updateValidity({[i.loc + ".id"]: {
-                type: "info",
-                message: `Input had no id, setting id to "${this.getNextAvailableId("input")}"`
-            }});
+            i.updateValidity({
+                [i.loc + ".id"]: {
+                    type: "info",
+                    message: `Input had no id, setting id to "${this.getNextAvailableId("input")}"`
+                }
+            });
         }
 
         i.id = i.id || this.getNextAvailableId("input");
@@ -139,10 +154,12 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         try {
             this.checkIdValidity(i.id)
         } catch (ex) {
-            this.updateValidity({[i.loc + ".id"]: {
-                type: "error",
-                message: ex.message
-            }});
+            this.updateValidity({
+                [i.loc + ".id"]: {
+                    type: "error",
+                    message: ex.message
+                }
+            });
         }
 
         this.inputs.push(i);
@@ -152,7 +169,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addArgument(arg?: CommandLineBinding | string): V1CommandArgumentModel {
-        const a = new V1CommandArgumentModel(arg, `${this.loc}.arguments[${this.arguments.length}]`);
+        const lastArg = this.arguments[this.arguments.length - 1] || {loc: ""};
+        const index = findLastIndexInLocAndIncrement(lastArg.loc) || this.arguments.length;
+
+        const a = new V1CommandArgumentModel(arg, `${this.loc}.arguments[${index}]`);
         this.arguments.push(a);
 
         a.setValidationCallback(err => this.updateValidity(err));
@@ -161,7 +181,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addBaseCommand(cmd?: Expression | string): V1ExpressionModel {
-        const b = new V1ExpressionModel(cmd, `${this.loc}.baseCommand[${this.baseCommand.length}]`);
+        const lastCmd = this.baseCommand[this.baseCommand.length - 1] || {loc: ""};
+        const index = findLastIndexInLocAndIncrement(lastCmd.loc) || this.baseCommand.length;
+
+        const b = new V1ExpressionModel(cmd, `${this.loc}.baseCommand[${index}]`);
         this.baseCommand.push(b);
 
         b.setValidationCallback(err => this.updateValidity(err));
@@ -215,16 +238,16 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         stream.setValidationCallback(err => this.updateValidity(err));
     }
 
-    public validate() : Promise<any> {
+    public validate(): Promise<any> {
         this.cleanValidity();
         const map = {};
 
-        const promises:Promise<any>[] = [];
+        const promises: Promise<any>[] = [];
 
         // validate inputs and make sure IDs are unique
         for (let i = 0; i < this.inputs.length; i++) {
             const input = this.inputs[i];
-            promises.push(input.validate());
+            promises.push(input.validate(this.getContext(input.id)));
 
             if (!map[input.id]) {
                 map[input.id] = true
