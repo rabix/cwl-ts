@@ -1,7 +1,9 @@
-import {JSExecutor} from "./JSExecutor";
 import {Expression as ExpressionD2} from "../../mappings/d2sb/Expression";
 
 export class ExpressionEvaluator {
+
+    public static evaluateExpression: Function = null;
+
     public static evaluate(expr: number | string | ExpressionD2, context: any = {}, version:
                                "v1.0"
                                | "draft-2"): Promise<any> {
@@ -35,9 +37,10 @@ export class ExpressionEvaluator {
                 let results: Promise<any>[] = ExpressionEvaluator.grabExpressions(expr).map(token => {
                     switch (token.type) {
                         case "func":
-                            return JSExecutor.evaluate("(function() {" + token.value + "})()", context);
+                            return ExpressionEvaluator.evaluateExpression("(function() {"
+                                + token.value + "})()", context);
                         case "expr":
-                            return JSExecutor.evaluate(token.value, context);
+                            return ExpressionEvaluator.evaluateExpression(token.value, context);
                         case "literal":
                             return new Promise(res => res(token.value));
                     }
@@ -62,7 +65,7 @@ export class ExpressionEvaluator {
                     ? "(function()" + expr.script + ")()"
                     : expr.script;
 
-                return JSExecutor.evaluate(script, context);
+                return ExpressionEvaluator.evaluateExpression(script, context);
             }
         }
 
@@ -76,7 +79,7 @@ export class ExpressionEvaluator {
                 ? "(function()" + expr.script + ")()"
                 : expr.script;
 
-            return JSExecutor.evaluate(script, context);
+            return ExpressionEvaluator.evaluateExpression(script, context);
         }
     }
 
