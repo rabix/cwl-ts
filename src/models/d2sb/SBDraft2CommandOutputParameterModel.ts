@@ -76,7 +76,7 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
             }
 
             if (this.type.type === "File" || this.type.items === "File") {
-                base.outputBinding.secondaryFiles = this.secondaryFiles.map(f => f.serialize());
+                base.outputBinding.secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
             }
 
 

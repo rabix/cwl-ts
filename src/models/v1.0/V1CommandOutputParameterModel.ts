@@ -56,7 +56,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         }
 
         if (!this.isField && this.secondaryFiles.length && (this.type.type === "File" || this.type.items === "File")) {
-            (<CommandOutputParameter> base).secondaryFiles = this.secondaryFiles.map(f => f.serialize());
+            (<CommandOutputParameter> base).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
         if (!this.isField && this.fileTypes.length) {
@@ -89,7 +89,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         this.description = ensureArray(attr.doc).join("\n\n");
 
         // properties only on inputs, not on fields
-        this.secondaryFiles = ensureArray((<CommandOutputParameter> attr).secondaryFiles).map((f, i) => new V1ExpressionModel(f, `${this.loc}.secondaryFiles[${i}]`));
+        this.secondaryFiles = ensureArray((<CommandOutputParameter> attr).secondaryFiles).map(f => this.addSecondaryFile(f));
         this.fileTypes      = commaSeparatedToArray((<CommandOutputParameter> attr).format);
         this.streamable     = (<CommandOutputParameter> attr).streamable;
 

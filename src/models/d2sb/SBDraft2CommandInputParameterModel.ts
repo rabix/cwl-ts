@@ -40,7 +40,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
             base.inputBinding = this.inputBinding.serialize();
 
             if (this.type.type === "File" || this.type.items === "File") {
-                base.inputBinding.secondaryFiles = this.secondaryFiles.map(f => f.serialize());
+                base.inputBinding.secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
             }
         }
 

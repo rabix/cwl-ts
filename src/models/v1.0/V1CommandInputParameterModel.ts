@@ -82,7 +82,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         }
 
         if (this.secondaryFiles && !this.isField) {
-            (base as CommandInputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize());
+            (base as CommandInputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
         return base;
