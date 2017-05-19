@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {
     ensureArray, checkMapValueType, incrementString, spreadSelectProps,
-    snakeCase, fetchByLoc, cleanupNull
+    snakeCase, fetchByLoc, cleanupNull, incrementLastLoc
 } from "./utils";
 
 describe("ensureArray", () => {
@@ -304,5 +304,22 @@ describe("cleanupNull", () => {
         expect(Object.keys(clean)).to.have.length(1);
         expect(clean).to.not.haveOwnProperty("a");
         expect(clean).to.haveOwnProperty("b");
+    })
+});
+
+describe("incrementLastLoc", () => {
+    it("should return the last location with an incremented index", () => {
+        const loc = incrementLastLoc([{loc: "items[0]"}, {loc: "items[1]"}], "items");
+        expect(loc).to.equal("items[2]");
+    });
+
+    it("should return prefix[0] when array is empty", () => {
+        const loc = incrementLastLoc([], "items");
+        expect(loc).to.equal("items[0]");
+    });
+
+    it("should return null if loc isn't incrementable", () => {
+        const loc = incrementLastLoc([{loc: "items.one"}, {loc: "items.two"}], "items");
+        expect(loc).to.be.null;
     })
 });

@@ -3,18 +3,19 @@ import {CommandOutputParameterModel} from "../generic/CommandOutputParameterMode
 import {Serializable} from "../interfaces/Serializable";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {
-    commaSeparatedToArray, ensureArray, spreadAllProps,
+    commaSeparatedToArray, ensureArray, incrementLastLoc, spreadAllProps,
     spreadSelectProps
 } from "../helpers/utils";
 import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {CommandOutputRecordField} from "../../mappings/v1.0/CommandOutputRecordField";
+import {Expression} from "../../mappings/v1.0/Expression";
 
 export class V1CommandOutputParameterModel extends CommandOutputParameterModel implements Serializable<CommandOutputParameter> {
     public label: string;
     public outputBinding: V1CommandOutputBindingModel;
     public description: string;
-    public secondaryFiles: V1ExpressionModel[];
+    public secondaryFiles: V1ExpressionModel[] = [];
     public streamable: boolean;
     public id: string;
 
@@ -27,6 +28,18 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
     }
 
     customProps: any = {};
+
+    addSecondaryFile(file: string = ""): V1ExpressionModel {
+        const f = new V1ExpressionModel(file, incrementLastLoc(this.secondaryFiles, `${this.loc}.secondaryFiles`));
+        f.setValidationCallback(err => this.updateValidity(err));
+        this.secondaryFiles.push(f);
+        return f;
+    }
+
+    updateSecondaryFiles(files: Array<Expression | string>) {
+        this.secondaryFiles = [];
+        files.forEach(f => this.addSecondaryFile(f));
+    }
 
     serialize(): CommandOutputParameter {
         let base: CommandOutputParameter | CommandOutputRecordField = <any> {};

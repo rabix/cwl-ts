@@ -632,28 +632,26 @@ describe("SBDraft2CommandLineToolModel", () => {
                 outputs: [],
                 baseCommand: []
             });
-            const expr = new SBDraft2ExpressionModel({
+
+            expect(tool.errors).to.be.empty;
+            tool.addBaseCommand({
                 "class": "Expression",
                 script: "---",
                 engine: "#cwl-js-engine"
             });
+            expect(tool.errors).to.be.empty;
 
-            expect(tool.validation.errors).to.be.empty;
-            tool.addBaseCommand(expr);
-            expect(tool.validation.errors).to.be.empty;
-
-            const expr2 = new SBDraft2ExpressionModel({
+            expect(tool.warnings).to.be.empty;
+            tool.addBaseCommand({
                 "class": "Expression",
                 script: "abb",
                 engine: "#cwl-js-engine"
             });
 
-            expect(tool.validation.warnings).to.be.empty;
-            tool.addBaseCommand(expr2);
-            expr2.evaluate().then(done, () => {
-                expect(tool.validation.warnings).to.not.be.empty;
-                expect(tool.validation.warnings[0].loc).to.equal("document.baseCommand[1]", "location of warning");
-                expect(tool.validation.warnings[0].message).to.contain("ReferenceError", "value of warning");
+            tool.baseCommand[1].validate({}).then(() => {
+                expect(tool.warnings).to.not.deep.equal([], "should have warning");
+                expect(tool.warnings[0].loc).to.equal("document.baseCommand[1]", "location of warning");
+                expect(tool.warnings[0].message).to.contain("ReferenceError", "value of warning");
             }).then(done, done);
         });
     });

@@ -20,25 +20,10 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     }
 
     set glob(value: SBDraft2ExpressionModel) {
-        this._glob     = value;
-        this._glob.loc = `${this.loc}.glob`;
+        this._glob = new SBDraft2ExpressionModel(value.serialize(), `${this.loc}.glob`);
         this._glob.setValidationCallback(err => this.updateValidity(err));
     }
 
-    private _secondaryFiles: SBDraft2ExpressionModel[] = [];
-
-    get secondaryFiles(): SBDraft2ExpressionModel[] {
-        return this._secondaryFiles;
-    }
-
-    set secondaryFiles(files: SBDraft2ExpressionModel[]) {
-        this._secondaryFiles = files;
-
-        files.forEach((file, index) => {
-            file.loc = `${this.loc}.secondaryFiles[${index}]`;
-            file.setValidationCallback((err) => this.updateValidity(err))
-        });
-    }
 
     private _outputEval: SBDraft2ExpressionModel;
 
@@ -57,14 +42,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
                     type: "error",
                     message: `outputEval must be an expression, instead got ${value.type}`
                 }
-            })
-            // this._outputEval.validation = {
-            //     errors: [{
-            //         loc: `${this.loc}.outputEval`,
-            //         message: `outputEval must be an expression, instead got ${value.type}`
-            //     }],
-            //     warnings: []
-            // };
+            });
         }
     }
 
@@ -75,27 +53,6 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     constructor(binding?: CommandOutputBinding, loc?: string) {
         super(loc);
         this.deserialize(binding || {});
-    }
-
-    public updateSecondaryFile(file: SBDraft2ExpressionModel, index: number) {
-        this._secondaryFiles[index] = file;
-
-        file.loc = `${this.loc}.secondaryFiles[${index}]`;
-        file.setValidationCallback((err) => this.updateValidity(err));
-    }
-
-    public removeSecondaryFile(index: number) {
-        this._secondaryFiles.splice(index, 1);
-
-        if (index !== this._secondaryFiles.length) {
-            this._secondaryFiles.forEach((file, index) => {
-                file.loc = `${this.loc}.secondaryFiles[${index}]`;
-            });
-        }
-    }
-
-    public addSecondaryFile(file: SBDraft2ExpressionModel) {
-        this.updateSecondaryFile(file, this._secondaryFiles.length);
     }
 
     validate(context): Promise<any> {
@@ -126,11 +83,6 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
         let base: CommandOutputBinding = {};
         if (this._glob && this._glob.serialize()) {
             base.glob = <string | Expression> this._glob.serialize();
-        }
-        if (this._secondaryFiles.length) {
-            base.secondaryFiles = <Array<string | Expression>> this._secondaryFiles
-                .map(file => file.serialize())
-                .filter(file => !!file);
         }
 
         if (Object.keys(this.metadata).length) {
@@ -180,25 +132,6 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
             }
 
             this._outputEval = new SBDraft2ExpressionModel(binding.outputEval, `${this.loc}.outputEval`);
-
-            if (binding.secondaryFiles) {
-                if (Array.isArray(binding.secondaryFiles)) {
-                    //noinspection TypeScriptUnresolvedFunction
-                    this._secondaryFiles = binding.secondaryFiles
-                        .map((file, index) => {
-                            const f = new SBDraft2ExpressionModel(file, `${this.loc}.secondaryFiles[${index}]`);
-                            f.setValidationCallback((err) => this.updateValidity(err));
-                            return f;
-                        });
-                } else {
-                    const f = new SBDraft2ExpressionModel(
-                        <string | Expression> binding.secondaryFiles,
-                        `${this.loc}.secondaryFiles[0]`);
-                    f.setValidationCallback((err) => this.updateValidity(err));
-
-                    this._secondaryFiles = [f];
-                }
-            }
 
             if (binding["sbg:metadata"] && binding["sbg:metadata"].constructor === Object) {
                 Object.keys(binding["sbg:metadata"]).forEach(key => {

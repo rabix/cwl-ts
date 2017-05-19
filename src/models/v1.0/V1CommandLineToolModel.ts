@@ -11,7 +11,7 @@ import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {JobHelper} from "../helpers/JobHelper";
 import {
-    ensureArray, findLastIndexInLocAndIncrement, snakeCase, spreadAllProps,
+    ensureArray, incrementLastLoc, snakeCase, spreadAllProps,
     spreadSelectProps
 } from "../helpers/utils";
 import {V1CommandArgumentModel} from "./V1CommandArgumentModel";
@@ -99,10 +99,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addOutput(output?: CommandOutputParameter): V1CommandOutputParameterModel {
-        const lastOutput = this.outputs[this.outputs.length - 1] || {loc: ""};
-        const index = findLastIndexInLocAndIncrement(lastOutput.loc) || this.outputs.length;
+        const loc = incrementLastLoc(this.outputs, `${this.loc}.outputs`);
 
-        const o = new V1CommandOutputParameterModel(output, `${this.loc}.outputs[${index}]`);
+        const o = new V1CommandOutputParameterModel(output, loc);
 
         o.setValidationCallback(err => this.updateValidity(err));
 
@@ -133,10 +132,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addInput(input?): V1CommandInputParameterModel {
-        const lastInput = this.inputs[this.inputs.length - 1] || {loc: ""};
-        const index = findLastIndexInLocAndIncrement(lastInput.loc) || this.inputs.length;
+        const loc = incrementLastLoc(this.inputs, `${this.loc}.inputs`);
 
-        const i = new V1CommandInputParameterModel(input, `${this.loc}.inputs[${index}]`, this.eventHub);
+        const i = new V1CommandInputParameterModel(input, loc, this.eventHub);
 
         i.setValidationCallback(err => this.updateValidity(err));
 
@@ -169,10 +167,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addArgument(arg?: CommandLineBinding | string): V1CommandArgumentModel {
-        const lastArg = this.arguments[this.arguments.length - 1] || {loc: ""};
-        const index = findLastIndexInLocAndIncrement(lastArg.loc) || this.arguments.length;
+        const loc = incrementLastLoc(this.arguments, `${this.loc}.arguments`);
 
-        const a = new V1CommandArgumentModel(arg, `${this.loc}.arguments[${index}]`);
+        const a = new V1CommandArgumentModel(arg, loc);
         this.arguments.push(a);
 
         a.setValidationCallback(err => this.updateValidity(err));
@@ -181,10 +178,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addBaseCommand(cmd?: Expression | string): V1ExpressionModel {
-        const lastCmd = this.baseCommand[this.baseCommand.length - 1] || {loc: ""};
-        const index = findLastIndexInLocAndIncrement(lastCmd.loc) || this.baseCommand.length;
+        const loc = incrementLastLoc(this.baseCommand, `${this.loc}.baseCommand`);
 
-        const b = new V1ExpressionModel(cmd, `${this.loc}.baseCommand[${index}]`);
+        const b = new V1ExpressionModel(cmd, loc);
         this.baseCommand.push(b);
 
         b.setValidationCallback(err => this.updateValidity(err));

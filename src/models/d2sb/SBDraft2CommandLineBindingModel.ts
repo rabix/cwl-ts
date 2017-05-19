@@ -12,21 +12,6 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
     public hasSecondaryFiles = true;
     protected context: { $job: any, $self: any };
 
-    get secondaryFiles(): SBDraft2ExpressionModel[] {
-        return this._secondaryFiles;
-    }
-
-    set secondaryFiles(files: SBDraft2ExpressionModel[]) {
-        this._secondaryFiles = files;
-
-        files.forEach((file, index) => {
-            file.loc = `${this.loc}.secondaryFiles[${index}]`;
-            file.setValidationCallback((err) => this.updateValidity(err))
-        });
-    }
-
-    private _secondaryFiles: SBDraft2ExpressionModel[] = [];
-
     private serializedKeys: string[] = [
         "position",
         "prefix",
@@ -57,37 +42,11 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
             promises.push(this.valueFrom.validate(context));
         }
 
-        if (this._secondaryFiles) {
-            promises.concat(this._secondaryFiles.map(file => file.validate(context)))
-        }
-
         return Promise.all(promises).then(() => this.issues, (ex) => {
             console.warn(`SBDraft2CommandLineBindingModel threw error in validation: ${ex}`);
             return this.issues;
         })
     }
-
-    public updateSecondaryFile(file: SBDraft2ExpressionModel, index: number) {
-        this._secondaryFiles[index] = file;
-
-        file.loc = `${this.loc}.secondaryFiles[${index}]`;
-        file.setValidationCallback((err) => this.updateValidity(err));
-    }
-
-    public removeSecondaryFile(index: number) {
-        this._secondaryFiles.splice(index, 1);
-
-        if (index !== this._secondaryFiles.length) {
-            this._secondaryFiles.forEach((file, index) => {
-                file.loc = `${this.loc}.secondaryFiles[${index}]`;
-            });
-        }
-    }
-
-    public addSecondaryFile(file: SBDraft2ExpressionModel) {
-        this.updateSecondaryFile(file, this._secondaryFiles.length);
-    }
-
 
     serialize(): CommandLineBinding {
         const base: CommandLineBinding = <CommandLineBinding> {};
@@ -97,12 +56,6 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
                 base[key] = this[key];
             }
         });
-
-        if (this._secondaryFiles.length) {
-            base.secondaryFiles = <Array<string | Expression>> this._secondaryFiles
-                .map(file => file.serialize())
-                .filter(file => !!file);
-        }
 
         if (!base.loadContents) delete base.loadContents;
 
@@ -115,7 +68,7 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
 
     deserialize(binding: CommandLineBinding): void {
         if (binding && binding.constructor === Object) {
-            this.position      = binding.position;
+            this.position      = !isNaN(binding.position) ? parseInt(<any> binding.position) : 0;
             this.prefix        = binding.prefix;
             this.separate      = binding.separate;
             this.itemSeparator = binding.itemSeparator;
@@ -123,25 +76,6 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
 
             this.valueFrom = new SBDraft2ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`);
             this.valueFrom.setValidationCallback(err => this.updateValidity(err));
-
-            if (binding.secondaryFiles) {
-                if (Array.isArray(binding.secondaryFiles)) {
-                    //noinspection TypeScriptUnresolvedFunction
-                    this._secondaryFiles = binding.secondaryFiles
-                        .map((file, index) => {
-                            const f = new SBDraft2ExpressionModel(file, `${this.loc}.secondaryFiles[${index}]`);
-                            f.setValidationCallback((err) => this.updateValidity(err));
-                            return f;
-                        });
-                } else {
-                    const f = new SBDraft2ExpressionModel(
-                        <string | Expression> binding.secondaryFiles,
-                        `${this.loc}.secondaryFiles[0]`);
-                    f.setValidationCallback((err) => this.updateValidity(err));
-
-                    this._secondaryFiles = [f];
-                }
-            }
 
             // populates object with all custom attributes not covered in model
             spreadSelectProps(binding, this.customProps, this.serializedKeys);

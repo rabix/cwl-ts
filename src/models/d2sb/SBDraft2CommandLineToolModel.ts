@@ -14,7 +14,7 @@ import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {JobHelper} from "../helpers/JobHelper";
 import {
-    ensureArray, findLastIndexInLocAndIncrement, snakeCase,
+    ensureArray, incrementLastLoc, snakeCase,
     spreadSelectProps
 } from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
@@ -69,7 +69,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.runtime = runtime;
     }
 
-    public getContext(id?: string): {$job?: {inputs?: any, allocatedResources?: any}, $self?: any} {
+    public getContext(id?: string): { $job?: { inputs?: any, allocatedResources?: any }, $self?: any } {
         const context: any = {
             $job: {
                 inputs: this.jobInputs,
@@ -105,26 +105,21 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         return h;
     }
 
-    public addBaseCommand(cmd?: SBDraft2ExpressionModel): SBDraft2ExpressionModel {
-        const lastCmd = this.baseCommand[this.baseCommand.length - 1] || {loc: ""};
-        const index = findLastIndexInLocAndIncrement(lastCmd.loc) || this.baseCommand.length;
+    public addBaseCommand(cmd: Expression | string | number = ""): SBDraft2ExpressionModel {
+        const loc = incrementLastLoc(this.baseCommand, `${this.loc}.baseCommand`);
 
-        if (!cmd) {
-            cmd = new SBDraft2ExpressionModel("", `${this.loc}.baseCommand[${index}]`);
-        } else {
-            cmd.loc = `${this.loc}.baseCommand[${index}]`;
-        }
-        this.baseCommand.push(cmd);
-        cmd.setValidationCallback(err => this.updateValidity(err));
+        const c = new SBDraft2ExpressionModel(cmd, loc);
+        this.baseCommand.push(c);
 
-        return cmd;
+        c.setValidationCallback(err => this.updateValidity(err));
+
+        return c;
     }
 
     public addArgument(arg?: string | CommandLineBinding): SBDraft2CommandArgumentModel {
-        const lastArg = this.arguments[this.arguments.length - 1] || {loc: ""};
-        const index = findLastIndexInLocAndIncrement(lastArg.loc) || this.arguments.length;
+        const loc = incrementLastLoc(this.arguments, `${this.loc}.arguments`);
 
-        const argument = new SBDraft2CommandArgumentModel(arg, `${this.loc}.arguments[${index}]`);
+        const argument = new SBDraft2CommandArgumentModel(arg, loc);
         this.arguments.push(argument);
 
         argument.setValidationCallback(err => this.updateValidity(err));
@@ -133,10 +128,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     }
 
     public addInput(input?: CommandInputParameter): SBDraft2CommandInputParameterModel {
-        const lastInput = this.inputs[this.inputs.length - 1] || {loc: ""};
-        const index = findLastIndexInLocAndIncrement(lastInput.loc) || this.inputs.length;
+        const loc = incrementLastLoc(this.inputs, `${this.loc}.inputs`);
 
-        const i = new SBDraft2CommandInputParameterModel(input, `${this.loc}.inputs[${index}]`, this.eventHub);
+        const i = new SBDraft2CommandInputParameterModel(input, loc, this.eventHub);
         i.self  = JobHelper.generateMockJobData(i);
 
         i.id = i.id || this.getNextAvailableId("input");
@@ -160,10 +154,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
 
     public addOutput(output: CommandOutputParameter): SBDraft2CommandOutputParameterModel {
-        const lastOutput = this.outputs[this.outputs.length - 1] || {loc: ""};
-        const index = findLastIndexInLocAndIncrement(lastOutput.loc) || this.outputs.length;
+        const loc = incrementLastLoc(this.outputs, `${this.loc}.outputs`);
 
-        const o = new SBDraft2CommandOutputParameterModel(output, `${this.loc}.outputs[${index}]`);
+        const o = new SBDraft2CommandOutputParameterModel(output, loc);
 
         o.id = o.id || this.getNextAvailableId("output");
 
@@ -397,7 +390,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
                 return acc.concat([curr]);
             }
         }, []).forEach((cmd) => {
-            this.addBaseCommand(new SBDraft2ExpressionModel(cmd))
+            this.addBaseCommand(cmd);
         });
 
         this.runtime = {mem: 1000, cpu: 1};

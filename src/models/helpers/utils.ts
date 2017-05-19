@@ -200,13 +200,18 @@ export const validateID = (id: string) => {
     }
 };
 
-export const findLastIndexInLocAndIncrement = (loc: string) => {
-    if (!loc) return null;
+export const incrementLastLoc = (items: {loc: string}[] = [], prefix: string) => {
+    if (items.length === 0){
+        return `${prefix}[0]`
+    }
 
-    let match:any = ((loc.match(/\[(\d+)]$/g) || [""])[0].match(/\d+/g) || [""])[0];
+    const lastItem = items[items.length - 1];
+
+    let match:any = ((lastItem.loc.match(/\[(\d+)]$/g) || [""])[0].match(/\d+/g) || [""])[0];
 
     if (!match) return null;
 
     match = parseInt(match);
-    return ++match;
+
+    return `${prefix}[${++match}]`;
 };

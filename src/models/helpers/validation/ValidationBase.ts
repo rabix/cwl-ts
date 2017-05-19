@@ -25,7 +25,7 @@ export abstract class ValidationBase implements Validatable {
 
     public updateValidity(issue: {[key: string]: Issue}) {
 
-        this.issues = cleanupNull({...this.issues, ...issue});
+        this.issues = {...this.issues, ...issue};
 
         this.errors = this.filterIssues("error");
         this.warnings = this.filterIssues("warning");

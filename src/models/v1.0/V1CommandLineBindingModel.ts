@@ -32,7 +32,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
     }
 
     deserialize(binding: CommandLineBinding): void {
-        this.position      = binding.position;
+        this.position      = !isNaN(binding.position) ? parseInt(<any> binding.position) : 0;
         this.prefix        = binding.prefix;
         this.separate      = binding.separate;
         this.itemSeparator = binding.itemSeparator;

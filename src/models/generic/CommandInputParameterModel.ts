@@ -9,6 +9,8 @@ import {CommandLineBinding as V1CommandLineBinding} from "../../mappings/v1.0/Co
 import {ExpressionModel} from "./ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
 import {validateID} from "../helpers/utils";
+import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
+import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 
 export abstract class CommandInputParameterModel extends ValidationBase implements InputParameter, Serializable<any> {
     /** unique identifier of input */
@@ -22,6 +24,7 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
 
     public hasStageInput: boolean;
     public hasSecondaryFiles: boolean;
+    public hasSecondaryFilesInRoot: boolean;
     public secondaryFiles: ExpressionModel[];
 
     /** Human readable short name */
@@ -55,6 +58,10 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
         this.inputBinding = null;
     }
 
+    abstract addSecondaryFile(file: V1Expression | SBDraft2Expression | string): ExpressionModel;
+
+    abstract updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>);
+
     public validate(context: any): Promise<any> {
         this.cleanValidity();
         const promises: Promise<any>[] = [];
@@ -81,7 +88,7 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
 
         // secondaryFiles
         if (this.secondaryFiles) {
-            promises.concat(this.secondaryFiles.map(file => file.validate()));
+            promises.concat(this.secondaryFiles.map(file => file.validate(context)));
         }
 
         return Promise.all(promises);
