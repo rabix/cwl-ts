@@ -101,32 +101,19 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
                 let message = ex.message;
 
                 if (ex.message.startsWith("Uncaught DataCloneError")) {
-                    message = "Type Error: Return value should have transferable data (fully JSON-serializable)";
-                    const err = {loc: this.loc, message: message};
+                    message = "Error: Return value should have transferable data (fully JSON-serializable)";
+                }
 
+                const err = {loc: this.loc, message: message};
+
+                if (ex.message.startsWith("Uncaught SyntaxError")) {
                     this.validation = {
                         errors: [err],
                         warnings: []
                     };
-
-                    rej(Object.assign({type: "error"}, err));
-
-
-                } else if (ex.message.startsWith("Uncaught SyntaxError") || ex.name === "SyntaxError") {
-                    message = `SyntaxError: ${message}`;
-                    const err = {loc: this.loc, message: message};
-
-                    this.validation = {
-                        errors: [err],
-                        warnings: []
-                    };
-
 
                     rej(Object.assign({type: "error"}, err));
                 } else {
-                    message = `ReferenceError: ${message}`;
-                    const err = {loc: this.loc, message: message};
-
                     this.validation = {
                         warnings: [err],
                         errors: []
