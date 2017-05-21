@@ -2,8 +2,13 @@ import {expect} from "chai";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
+import {JSExecutor} from "../helpers/JSExecutor";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 
 describe("SBDraft2ExpressionModel", () => {
+    beforeEach(() => {
+        ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
+    });
 
     describe("constructor", () => {
 
@@ -85,7 +90,7 @@ describe("SBDraft2ExpressionModel", () => {
 
         it("should add a SyntaxError to model validation.errors", (done) => {
             const expr = new SBDraft2ExpressionModel("");
-            expr.setValue("--", "expression");
+            expr.setValue("---", "expression");
 
             expect(expr.validation.errors).to.be.empty;
 

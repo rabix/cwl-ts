@@ -9,10 +9,16 @@ import * as BfctoolsAnnotate from "../../tests/apps/bfctools-annotate-sbg";
 import * as BindingTestTool from "../../tests/apps/binding-test-tool";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
+import {JSExecutor} from "../helpers/JSExecutor";
 
 should();
 
 describe("SBDraft2CommandLineToolModel", () => {
+    beforeEach(() => {
+        ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
+    });
+
     describe("constructor", () => {
 
         it("Should instantiate tool with minimum requirements", () => {
