@@ -33,11 +33,11 @@ export class V1ResourceRequirementModel extends ResourceRequirementModel {
         cores = isNaN(<any> cores) ? cores : parseInt(cores);
 
         const base: ResourceRequirement = {
-            class: "ResourceRequirement"
+            "class": "ResourceRequirement"
         };
 
-        if (mem) base.ramMin = mem;
-        if (cores) base.coresMin = cores;
+        if (mem !== undefined) base.ramMin = mem;
+        if (cores !== undefined) base.coresMin = cores;
 
         return spreadAllProps(base, this.customProps);
     }
