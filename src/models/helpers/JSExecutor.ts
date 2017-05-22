@@ -15,7 +15,7 @@ export class JSExecutor {
         } catch (ex) {
             //@todo figure out why this exception is even thrown..
             return new Promise((res, rej) => {
-                rej(ex);
+                rej(new SyntaxError(ex.message));
             })
         }
 
