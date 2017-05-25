@@ -6,7 +6,6 @@ import {
     commaSeparatedToArray, ensureArray, incrementLastLoc, spreadSelectProps
 } from "../helpers/utils";
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
-import {CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
 import {Expression} from "../../mappings/v1.0/Expression";
@@ -17,9 +16,9 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
     public secondaryFiles: V1ExpressionModel[] = [];
     public streamable: boolean;
 
-    public hasSecondaryFiles = true;
+    public hasSecondaryFiles       = true;
     public hasSecondaryFilesInRoot = true;
-    public hasStageInput     = false;
+    public hasStageInput           = false;
 
     constructor(attr: CommandInputParameter
         | CommandInputRecordField, loc?: string, eventHub?: EventHub) {
@@ -27,14 +26,12 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         if (attr) this.deserialize(attr);
     }
 
-    public updateInputBinding(binding: V1CommandLineBindingModel | CommandLineBinding) {
+    public updateInputBinding(binding: V1CommandLineBindingModel) {
         if (binding instanceof V1CommandLineBindingModel) {
             //@todo breaks here for "serialize of undefined"
-            binding = (binding as V1CommandLineBindingModel).serialize();
+            this.inputBinding.cloneStatus(binding);
+            this.inputBinding.setValidationCallback(err => this.updateValidity(err));
         }
-
-        this.inputBinding = new V1CommandLineBindingModel(<CommandLineBinding> binding, `${this.loc}.inputBinding`);
-        this.inputBinding.setValidationCallback(err => this.updateValidity(err));
     }
 
     public createInputBinding(): V1CommandLineBindingModel {
@@ -45,18 +42,27 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
 
     addSecondaryFile(file: Expression | string): V1ExpressionModel {
         const loc = incrementLastLoc(this.secondaryFiles, `${this.loc}.secondaryFiles`);
-        const f = new V1ExpressionModel(file, loc);
+        const f   = new V1ExpressionModel(file, loc);
         f.setValidationCallback(err => this.updateValidity(err));
         this.secondaryFiles.push(f);
 
         return f;
     }
 
-
     updateSecondaryFiles(files: Array<Expression | Expression | string>) {
         this.secondaryFiles = [];
         files.forEach(f => this.addSecondaryFile(f));
     }
+
+
+    removeSecondaryFile(index: number) {
+        const file = this.secondaryFiles[index];
+        if (file) {
+            file.setValue("", "string");
+            this.secondaryFiles.splice(index, 1);
+        }
+    }
+
 
     public serialize(): CommandInputParameter | CommandInputRecordField {
         let base: CommandInputParameter | CommandInputRecordField = {...this.customProps};

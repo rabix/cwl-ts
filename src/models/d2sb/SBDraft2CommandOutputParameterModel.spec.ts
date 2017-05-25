@@ -1,7 +1,8 @@
 import {expect} from "chai";
-import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParameterModel";
+import {CommandOutputBinding} from "../../mappings/d2sb/CommandOutputBinding";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
 import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
+import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParameterModel";
 
 describe("SBDraft2CommandOutputParameterModel", () => {
     describe("constructor", () => {
@@ -117,9 +118,8 @@ describe("SBDraft2CommandOutputParameterModel", () => {
                 "sbg:fileTypes": "CTX"
             };
 
-            const out = new SBDraft2CommandOutputParameterModel(obj);
+            const out     = new SBDraft2CommandOutputParameterModel(obj);
             const binding = {
-                secondaryFiles: [".txt", ".bai"],
                 glob: "*.txt"
             };
 
@@ -136,7 +136,7 @@ describe("SBDraft2CommandOutputParameterModel", () => {
             });
         });
 
-        it ("Should clear outputBinding", () => {
+        it("Should clear outputBinding", () => {
             const obj = {
                 "type": [
                     "null",
@@ -166,6 +166,93 @@ describe("SBDraft2CommandOutputParameterModel", () => {
                 "label": "Result",
                 "sbg:fileTypes": "CTX"
             });
-        })
+        });
+
+        it("Should regulate secondaryFiles", () => {
+            it("should updateSecondaryFiles with string values", () => {
+                const obj = {
+                    id: "output",
+                    type: ["File"],
+                    outputBinding: {
+                        secondaryFiles: [
+                            ".bai",
+                            ".bti"
+                        ]
+                    }
+                };
+
+                const output = new SBDraft2CommandOutputParameterModel(obj, "output");
+                expect(output.secondaryFiles[1].serialize()).to.equal(".bti");
+
+                output.updateSecondaryFiles([
+                    ".bai",
+                    ".txt"
+                ]);
+
+                expect(output.secondaryFiles[1].serialize()).to.equal(".txt");
+                expect(output.secondaryFiles[1].loc).to.equal("output.outputBinding.secondaryFiles[1]");
+            });
+
+            it("should removeSecondaryFile at index", () => {
+                const obj = {
+                    id: "output",
+                    type: ["File"],
+                    outputBinding: {
+                        secondaryFiles: [
+                            ".bai",
+                            ".bti"
+                        ]
+                    }
+                };
+
+                const output = new SBDraft2CommandOutputParameterModel(obj, "output");
+                expect(output.secondaryFiles).to.have.length(2);
+
+                output.removeSecondaryFile(0);
+
+                expect(output.secondaryFiles).to.have.length(1);
+                expect(output.secondaryFiles[0].serialize()).to.equal(".bti");
+
+                expect(output.secondaryFiles[0].loc).to.equal("output.outputBinding.secondaryFiles[0]");
+            });
+
+            it("should addSecondaryFile to the end of the list", () => {
+                const obj = {
+                    id: "output",
+                    type: ["File"],
+                    outputBinding: {
+                        secondaryFiles: [
+                            ".bai",
+                            ".bti"
+                        ]
+                    }
+                };
+
+                const output = new SBDraft2CommandOutputParameterModel(obj, "output");
+                output.addSecondaryFile(".txt");
+
+
+                expect(output.secondaryFiles).to.have.length(3);
+                expect(output.secondaryFiles[2].serialize()).to.equal(".txt");
+
+                expect(output.secondaryFiles[2].loc).to.equal("binding.secondaryFiles[2]");
+            });
+
+            it("should not serialize secondaryFiles if array is blank", () => {
+                const obj = {
+                    id: "output",
+                    type: ["File"],
+                    outputBinding: {
+                        glob: ".txt",
+                        secondaryFiles: []
+                    }
+                };
+
+                const bind = new SBDraft2CommandOutputParameterModel(obj, "binding");
+
+                expect((<CommandOutputBinding>bind.serialize().outputBinding).secondaryFiles).to.be.undefined;
+                expect(bind.serialize()).to.not.haveOwnProperty("secondaryFiles");
+            });
+        });
     });
 });

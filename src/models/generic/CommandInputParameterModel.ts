@@ -55,12 +55,15 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
     }
 
     public removeInputBinding() {
+        this.inputBinding.cleanValidity();
         this.inputBinding = null;
     }
 
     abstract addSecondaryFile(file: V1Expression | SBDraft2Expression | string): ExpressionModel;
 
     abstract updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>);
+
+    abstract removeSecondaryFile(index: number);
 
     public validate(context: any): Promise<any> {
         this.cleanValidity();

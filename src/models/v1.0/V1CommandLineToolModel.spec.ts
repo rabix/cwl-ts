@@ -2,6 +2,8 @@ import {expect} from "chai";
 import {V1CommandLineToolModel} from "./V1CommandLineToolModel";
 import {CommandLineTool} from "../../mappings/v1.0/CommandLineTool";
 import {CommandLinePart} from "../helpers/CommandLinePart";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
+import {JSExecutor} from "../helpers/JSExecutor";
 
 function runTest(app: CommandLineTool, job: any, expected: CommandLinePart[], done) {
     let model = new V1CommandLineToolModel(app, "document");
@@ -50,6 +52,7 @@ describe("V1CommandLineToolModel", () => {
 
         beforeEach(() => {
             model = new V1CommandLineToolModel(<any> {});
+            ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
         });
 
         it("should serialize baseCommand that is defined", () => {
@@ -197,6 +200,10 @@ describe("V1CommandLineToolModel", () => {
                 expect(errors).to.not.be.empty;
                 expect(errors).to.have.length(1);
                 expect(errors[0].loc).to.equal("document.stdin");
+
+                expect(model.stdin.errors).to.not.be.empty;
+                expect(model.stdin.errors).to.have.length(1);
+                expect(model.stdin.errors[0].loc).to.equal("document.stdin");
             }).then(done, done);
         });
 
@@ -206,10 +213,9 @@ describe("V1CommandLineToolModel", () => {
             });
 
             model.validate().then(() => {
-                const errors = model.filterIssues();
-                expect(errors).to.not.be.empty;
-                expect(errors).to.have.length(1);
-                expect(errors[0].loc).to.equal("document.stdout");
+                expect(model.errors).to.not.be.empty;
+                expect(model.errors).to.have.length(1);
+                expect(model.errors[0].loc).to.equal("document.stdout");
             }).then(done, done);
 
         });

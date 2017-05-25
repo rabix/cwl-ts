@@ -40,10 +40,19 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
         if (this.outputBinding) {
             const loc = incrementLastLoc(this.outputBinding.secondaryFiles, `${this.outputBinding.loc}.secondaryFiles`);
             const f   = new SBDraft2ExpressionModel(file, loc);
-            // this.outputBinding.addSecondaryFile(f);
             this.secondaryFiles.push(f);
             f.setValidationCallback(err => this.updateValidity(err));
             return f;
+        }
+    }
+
+    removeSecondaryFile(index: number) {
+        if (this.outputBinding) {
+            const file = this.secondaryFiles[index];
+            if (file) {
+                file.setValue("", "string");
+                this.secondaryFiles.splice(index, 1);
+            }
         }
     }
 
@@ -75,7 +84,7 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
                 delete base["sbg:fileTypes"];
             }
 
-            if (this.type.type === "File" || this.type.items === "File") {
+            if ((this.type.type === "File" || this.type.items === "File") && this.secondaryFiles.length > 0) {
                 base.outputBinding.secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
             }
 
@@ -118,6 +127,10 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
 
         this.outputBinding = new SBDraft2CommandOutputBindingModel(attr.outputBinding, `${this.loc}.outputBinding`);
         this.outputBinding.setValidationCallback(err => this.updateValidity(err));
+
+        if (attr.outputBinding && attr.outputBinding.secondaryFiles) {
+            this.secondaryFiles = attr.outputBinding.secondaryFiles.map(f => this.addSecondaryFile(f));
+        }
 
         this.type = new ParameterTypeModel(attr.type, SBDraft2CommandOutputParameterModel, `${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));

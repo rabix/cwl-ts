@@ -81,4 +81,5 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
             spreadSelectProps(binding, this.customProps, this.serializedKeys);
         }
     }
+
 }

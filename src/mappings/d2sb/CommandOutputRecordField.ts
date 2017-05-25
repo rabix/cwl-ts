@@ -1,9 +1,9 @@
-import {CommandLineBinding} from "../draft-3/CommandLineBinding";
 import {
     CommandInputMapSchema, CommandInputSchema,
     CommandInputArraySchema, CommandInputRecordSchema, CommandInputEnumSchema
 } from "./CommandInputSchema";
 import {Datatype} from "./Datatype";
+import {CommandOutputBinding} from "./CommandOutputBinding";
 
 export interface CommandOutputRecordField {
     name: string;
@@ -11,7 +11,7 @@ export interface CommandOutputRecordField {
         | CommandInputEnumSchema | CommandInputRecordSchema | string | Array<Datatype
         | CommandInputSchema | CommandInputArraySchema | CommandInputMapSchema
         | CommandInputEnumSchema | CommandInputRecordSchema | string>;
-    outputBinding?: CommandLineBinding;
+    outputBinding?: CommandOutputBinding;
     description?: string;
     label?: string;
 }

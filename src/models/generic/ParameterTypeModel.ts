@@ -102,9 +102,9 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     private eventHub: EventHub;
 
     constructor(type: SBDraft2CommandInputParameterType |
-                    SBDraft2CommandOutputParameterType |
-                    V1CommandOutputParameterType |
-                    V1CommandInputParameterType, fieldConstructor?, loc?: string, eventHub?: EventHub) {
+        SBDraft2CommandOutputParameterType |
+        V1CommandOutputParameterType |
+        V1CommandInputParameterType, fieldConstructor?, loc?: string, eventHub?: EventHub) {
         super(loc);
         this.fieldConstructor = fieldConstructor;
         this.eventHub         = eventHub;
@@ -119,84 +119,106 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         // if array, has items. Does not have symbols or items
         if (this.type === "array") {
             if (this.items === null) {
-                this.updateValidity({[this.loc]: {
-                    type: "error",
-                    message: "Type array must have items",
-                }});
+                this.updateValidity({
+                    [this.loc]: {
+                        type: "error",
+                        message: "Type array must have items",
+                    }
+                });
             }
             if (this.symbols && this.items !== "enum") {
-                this.updateValidity({[`${this.loc}.symbols`]: {
-                    type: "error",
-                    message: "Type array must not have symbols",
-                }});
+                this.updateValidity({
+                    [`${this.loc}.symbols`]: {
+                        type: "error",
+                        message: "Type array must not have symbols",
+                    }
+                });
             }
             if (this.fields && this.items !== "record") {
-                this.updateValidity({[`${this.loc}.fields`]: {
-                    type: "error",
-                    message: "Type array must not have fields",
-                }});
+                this.updateValidity({
+                    [`${this.loc}.fields`]: {
+                        type: "error",
+                        message: "Type array must not have fields",
+                    }
+                });
             }
         }
         // if enum, has symbols. Does not have items or fields. Has name.
         if (this.type === "enum") {
             if (this.items) {
 
-                this.updateValidity({[`${this.loc}.items`]: {
-                    type: "error",
-                    message: "Type enum must not have items",
-                }});
+                this.updateValidity({
+                    [`${this.loc}.items`]: {
+                        type: "error",
+                        message: "Type enum must not have items",
+                    }
+                });
             }
             if (!this.symbols) {
-                this.updateValidity({[this.loc]: {
-                    type: "error",
-                    message: "Type enum must have symbols",
-                }});
+                this.updateValidity({
+                    [this.loc]: {
+                        type: "error",
+                        message: "Type enum must have symbols",
+                    }
+                });
             }
             if (this.fields) {
-                this.updateValidity({[`${this.loc}.fields`]: {
-                    type: "error",
-                    message: "Type enum must not have fields",
-                }});
+                this.updateValidity({
+                    [`${this.loc}.fields`]: {
+                        type: "error",
+                        message: "Type enum must not have fields",
+                    }
+                });
             }
 
             if (!this.name) {
-                this.updateValidity({[`${this.loc}`]: {
-                    type: "error",
-                    message: "Type enum must have a name",
-                }});
+                this.updateValidity({
+                    [`${this.loc}`]: {
+                        type: "error",
+                        message: "Type enum must have a name",
+                    }
+                });
             }
         }
         // if record, has fields. Does not have items or symbols. Has name.
         if (this.type === "record") {
             if (this.items) {
 
-                this.updateValidity({[`${this.loc}.items`]: {
-                    type: "error",
-                    message: "Type record must not have items",
-                }});
+                this.updateValidity({
+                    [`${this.loc}.items`]: {
+                        type: "error",
+                        message: "Type record must not have items",
+                    }
+                });
             }
             if (this.symbols) {
 
-                this.updateValidity({[`${this.loc}.symbols`]: {
-                    type: "error",
-                    message: "Type record must not have symbols",
-                }});
+                this.updateValidity({
+                    [`${this.loc}.symbols`]: {
+                        type: "error",
+                        message: "Type record must not have symbols",
+                    }
+                });
             }
             if (!this.fields) {
-                this.updateValidity({[`${this.loc}`]: {
-                    type: "error",
-                    message: "Type record must have fields",
-                }});
+                this.updateValidity({
+                    [`${this.loc}`]: {
+                        type: "error",
+                        message: "Type record must have fields",
+                    }
+                });
             } else {
                 // check validity for each field.
                 // @todo check uniqueness of each field name
             }
 
             if (!this.name) {
-                this.updateValidity({[`${this.loc}.type`]: {
-                    type: "error",
-                    message: "Type record must have a name"
-                }});
+                this.updateValidity({
+                    [`${this.loc}.type`]: {
+                        type: "error",
+                        message: "Type record must have a name"
+                    }
+                });
             }
         }
 
@@ -266,9 +288,11 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             });
 
             if (duplicate.length > 0) {
-                this.validation.errors.push({
-                    loc: this.loc,
-                    message: `Field with name "${duplicate[0].id}" already exists`
+                this.updateValidity({
+                    [this.loc]: {
+                        message: `Field with name "${duplicate[0].id}" already exists`,
+                        type: "error"
+                    }
                 });
             }
 

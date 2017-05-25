@@ -39,4 +39,12 @@ export abstract class CommandLineBindingModel extends ValidationBase implements 
         new UnimplementedMethodException("deserialize", "CommandLineBindingModel");
     }
 
+    cleanValidity() {
+        super.cleanValidity();
+    }
+
+    cloneStatus(clone: CommandLineBindingModel) {
+        this.updateValidity({...clone.issues});
+        this.deserialize(clone.serialize());
+    };
 }

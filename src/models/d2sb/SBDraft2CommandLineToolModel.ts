@@ -199,14 +199,14 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.cleanValidity();
         const promises = [];
 
+        // validate baseCommand
+        promises.concat(this.baseCommand.map(cmd => cmd.validate(this.getContext())));
+
         // validate inputs
         promises.concat(this.inputs.map(input => input.validate(this.getContext(input.id))));
 
         // validate outputs
         promises.concat(this.outputs.map(output => output.validate(this.getContext())));
-
-        // validate baseCommand
-        promises.concat(this.baseCommand.map(cmd => cmd.validate(this.getContext())));
 
         // validate arguments
         promises.concat(this.arguments.map(arg => arg.validate()));
@@ -404,6 +404,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         // populates object with all custom attributes not covered in model
         spreadSelectProps(tool, this.customProps, serializedAttr);
+
+        // validate all objects within
+        this.validate().then(console.log, console.warn);
     }
 
     private createReq(req: ProcessRequirement, loc: string, hint?: boolean) {

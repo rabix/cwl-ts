@@ -2,8 +2,13 @@ import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParamete
 import {expect} from "chai";
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
+import {JSExecutor} from "../helpers/JSExecutor";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 
 describe("SBDraft2CommandInputParameterModel d2sb", () => {
+    beforeEach(() => {
+        ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
+    });
 
     describe("constructor", () => {
         it("should create new input from no parameters", () => {
@@ -257,13 +262,10 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
             expect(input.isBound).to.equal(false);
         });
 
-    });
-
-    describe("updateValidity", () => {
-        it("Should be invalid if valueFrom is invalid", () => {
+        it("Should reset validity of input", (done) => {
             const input = new SBDraft2CommandInputParameterModel({
-                id: "i",
-                type: ["boolean"],
+                id: "input",
+                type: "string",
                 inputBinding: {
                     valueFrom: {
                         "class": "Expression",
@@ -271,12 +273,19 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
                         script: "---"
                     }
                 }
-            });
+            }, "input");
 
-            // input.validate();
+            input.validate({}).then(() => {
+                expect(input.errors).to.not.be.empty;
+                expect(input.errors[0].loc).to.contain("input.inputBinding.valueFrom");
 
-            //@fixme input validation must be async
-            // expect(input.validation.errors).to.not.be.empty;
+                input.removeInputBinding();
+
+                input.validate(<any> {}).then(() => {
+                    expect(input.errors).to.be.empty;
+                }).then(done, done);
+
+            }).then(done, done);
         });
 
     });
@@ -288,7 +297,7 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
                 id: ''
             });
 
-            input.validate({}).then(res => {
+            input.validate({}).then(() => {
                 const issues = input.filterIssues("error");
                 expect(issues).to.not.be.empty;
                 expect(issues[0].message).to.equal("ID must be set");
@@ -322,6 +331,27 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
                 expect(issues[0].loc).to.contain("inp.type");
             }).then(done, done);
         });
+
+        it("Should be invalid if valueFrom is invalid", (done) => {
+            const input = new SBDraft2CommandInputParameterModel({
+                id: "input",
+                type: "string",
+                inputBinding: {
+                    valueFrom: {
+                        "class": "Expression",
+                        engine: "#cwl-js-engine",
+                        script: "---"
+                    }
+                }
+            }, "input");
+
+            input.validate(<any> {}).then(() => {
+                expect(input.inputBinding.valueFrom.errors).to.not.be.empty;
+                expect(input.inputBinding.errors).to.not.be.empty;
+                expect(input.errors).to.not.be.empty;
+                expect(input.errors[0].message).to.contain("Unexpected");
+            }).then(done, done);
+        });
     });
 
     describe("serialize", () => {
@@ -332,6 +362,7 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
                 description: "desc",
                 id: "#hello",
                 inputBinding: {
+                    position: 0,
                     prefix: "--prefix"
                 }
             };
@@ -348,6 +379,7 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
                 id: "#hello",
                 inputBinding: {
                     prefix: "--prefix",
+                    position: 0,
                     valueFrom: {
                         'class': <ExpressionClass> "Expression",
                         engine: "#cwl-js-engine",
@@ -379,7 +411,7 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
         });
 
         it("Should serialize with custom properties", () => {
-            const data = {
+            const data  = {
                 type: ["null", "string"],
                 id: "#b",
                 "pref:customprop": "some value",
@@ -392,14 +424,14 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
         });
 
         it("Should remove File-specific attributes if type is not file", () => {
-            const data = {
+            const data      = {
                 type: ["null", "File"],
                 id: "#b",
                 inputBinding: {
                     secondaryFiles: ["bam", "bai"]
                 }
             };
-            const input = new SBDraft2CommandInputParameterModel(data);
+            const input     = new SBDraft2CommandInputParameterModel(data);
             input.type.type = "string";
 
             expect(input.serialize().inputBinding).to.not.haveOwnProperty("secondaryFiles");
@@ -407,5 +439,74 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
         })
 
     });
+
+    describe("secondaryFiles", () => {
+        it("should updateSecondaryFile with string value", () => {
+            const obj = {
+                id: "input",
+                type: ["File"],
+                inputBinding: {
+                    secondaryFiles: [
+                        ".bai",
+                        ".bti"
+                    ]
+                }
+            };
+
+            const bind = new SBDraft2CommandInputParameterModel(obj, "input");
+            expect(bind.secondaryFiles[1].serialize()).to.equal(".bti");
+
+            bind.updateSecondaryFiles([".txt"]);
+
+            expect(bind.secondaryFiles[0].serialize()).to.equal(".txt");
+            expect(bind.secondaryFiles[0].loc).to.equal("input.inputBinding.secondaryFiles[0]");
+        });
+
+        it("should removeSecondaryFile at index", () => {
+            const obj = {
+                id: "input",
+                type: ["File"],
+                inputBinding: {
+                    secondaryFiles: [
+                        ".bai",
+                        ".bti"
+                    ]
+                }
+            };
+
+            const input = new SBDraft2CommandInputParameterModel(obj, "input");
+            expect(input.secondaryFiles).to.have.length(2);
+
+            input.removeSecondaryFile(0);
+
+            expect(input.secondaryFiles).to.have.length(1);
+            expect(input.secondaryFiles[0].serialize()).to.equal(".bti");
+
+            expect(input.secondaryFiles[0].loc).to.equal("input.inputBinding.secondaryFiles[1]");
+        });
+
+        it("should addSecondaryFile to the end of the list", () => {
+            const obj = {
+                id: "input",
+                type: ["File"],
+                inputBinding: {
+                    secondaryFiles: [
+                        ".bai",
+                        ".bti"
+                    ]
+                }
+            };
+
+            const bind = new SBDraft2CommandInputParameterModel(obj, "input");
+
+            bind.addSecondaryFile(".txt");
+
+
+            expect(bind.secondaryFiles).to.have.length(3);
+            expect(bind.secondaryFiles[2].serialize()).to.equal(".txt");
+
+            expect(bind.secondaryFiles[2].loc).to.equal("input.inputBinding.secondaryFiles[2]");
+        });
+    })
 
 });

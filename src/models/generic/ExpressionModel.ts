@@ -76,8 +76,8 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
      * Sets value of expression.script or primitive based on type parameter.
      */
     public setValue(val: number | string | SBDraft2Expression | V1Expression, type: "expression"
-                        | "string"
-                        | "number") {
+        | "string"
+        | "number") {
         new UnimplementedMethodException("setValue", "ExpressionModel");
     }
 
@@ -91,11 +91,19 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
     }
 
     public validate(context?: any): Promise<any> {
-        return this.evaluate(context).then(() => this.issues, () => this.issues);
+        return this.evaluate(context).then((suc) => {
+            this.cleanValidity();
+        }, (err) => {
+            this.updateValidity({
+                [this.loc]: {
+                    type: err.type,
+                    message: err.message
+                }
+            });
+        });
     }
 
     protected _evaluate(value: number | string | SBDraft2Expression, context: any, version: "v1.0" | "draft-2"): Promise<any> {
-        this.cleanValidity();
 
         return new Promise((res, rej) => {
 
@@ -112,19 +120,9 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
 
                 const err = {loc: this.loc, message: message};
 
-                if (ex.message.startsWith("Uncaught SyntaxError")) {
-                    this.updateValidity({[this.loc]: {
-                        type: "error",
-                        message: ex.toString()
-                    }});
-
+                if (ex.message.startsWith("Uncaught SyntaxError") || ex.name === "SyntaxError") {
                     rej(Object.assign({type: "error"}, err));
                 } else {
-                    this.updateValidity({[this.loc] : {
-                        type: "warning",
-                        message: ex.toString()
-                    }});
-
                     rej(Object.assign({type: "warning"}, err));
                 }
             });

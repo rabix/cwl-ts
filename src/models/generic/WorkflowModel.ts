@@ -613,19 +613,20 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             const isConnected = this.graph.isConnected();
 
             if (!isConnected) {
-                this.validation.errors.push({
+
+                this.updateValidity({[this.loc]: {
                     message: "Workflow is not connected",
-                    loc: this.loc
-                });
+                    type: "warning"
+                }});
             }
 
             return isConnected;
 
         } catch (ex) {
-            this.validation.errors.push({
+            this.updateValidity({[this.loc]: {
                 message: ex,
-                loc: this.loc
-            });
+                type: "error"
+            }});
             return false;
         }
     }
@@ -636,19 +637,19 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             const hasCycles = this.graph.hasCycles();
 
             if (hasCycles) {
-                this.validation.errors.push({
+                this.updateValidity({[this.loc]: {
                     message: "Workflow contains cycles",
-                    loc: this.loc
-                });
+                    type: "error"
+                }});
             }
 
             return hasCycles;
 
         } catch (ex) {
-            this.validation.errors.push({
+            this.updateValidity({[this.loc]: {
                 message: ex,
-                loc: this.loc
-            });
+                type: "error"
+            }});
             return false;
         }
     }

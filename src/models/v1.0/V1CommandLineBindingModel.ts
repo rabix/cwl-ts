@@ -60,6 +60,4 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
 
         return spreadAllProps(base, this.customProps);
     }
-
-
 }

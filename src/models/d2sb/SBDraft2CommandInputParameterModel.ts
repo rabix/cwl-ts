@@ -1,14 +1,13 @@
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
+import {Expression} from "../../mappings/d2sb/Expression";
+import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
+import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+import {ID_REGEX} from "../helpers/constants";
+import {EventHub} from "../helpers/EventHub";
+import {ensureArray, incrementLastLoc, spreadSelectProps} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
-import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
-import {ParameterTypeModel} from "../generic/ParameterTypeModel";
-import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
-import {ensureArray, incrementLastLoc, spreadSelectProps} from "../helpers/utils";
-import {EventHub} from "../helpers/EventHub";
-import {ID_REGEX} from "../helpers/constants";
-import {Expression} from "../../mappings/d2sb/Expression";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 
 export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter
@@ -93,15 +92,13 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         spreadSelectProps(input, this.customProps, serializedAttr);
     }
 
-    public updateInputBinding(binding: SBDraft2CommandLineBindingModel | CommandLineBinding) {
+    public updateInputBinding(binding: SBDraft2CommandLineBindingModel) {
         if (binding instanceof SBDraft2CommandLineBindingModel) {
             //@todo breaks here for serialize of undefined
-            binding = (binding as SBDraft2CommandLineBindingModel).serialize();
+            // this.updateSecondaryFiles(ensureArray(binding.secondaryFiles));
+            this.inputBinding.setValidationCallback(err => this.updateValidity(err));
+            this.inputBinding.cloneStatus(binding);
         }
-        this.updateSecondaryFiles(ensureArray(binding.secondaryFiles));
-        this.inputBinding = new SBDraft2CommandLineBindingModel(<CommandLineBinding> binding, `${this.loc}.inputBinding`);
-        this.inputBinding.setValidationCallback(err => this.updateValidity(err));
-
     }
 
     public createInputBinding(): SBDraft2CommandLineBindingModel {
@@ -124,6 +121,16 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         if (this.inputBinding) {
             this.secondaryFiles = [];
             files.forEach(f => this.addSecondaryFile(f));
+        }
+    }
+
+    removeSecondaryFile(index: number) {
+        if (this.inputBinding) {
+            const file = this.secondaryFiles[index];
+            if (file) {
+                file.setValue("", "string");
+                this.secondaryFiles.splice(index, 1);
+            }
         }
     }
 

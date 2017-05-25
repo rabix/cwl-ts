@@ -1,8 +1,7 @@
 import {UnimplementedMethodException} from "../UnimplementedMethodException";
-import {cleanupNull, nullifyObjValues} from "../utils";
+import {nullifyObjValues} from "../utils";
 import {Issue} from "./Issue";
 import {Validatable} from "./Validatable";
-import {Validation} from "./Validation";
 
 export abstract class ValidationBase implements Validatable {
 
@@ -10,21 +9,7 @@ export abstract class ValidationBase implements Validatable {
     public errors: Issue[] = [];
     public warnings: Issue[] = [];
 
-    /** @deprecated */
-    get validation(): Validation {
-        return {
-            warnings: this.filterIssues("warning"),
-            errors: this.filterIssues("error")
-        };
-    }
-
-    /** @deprecated */
-    set validation(value: Validation) {
-        console.warn(`Setting validation is deprecated. Please use updateValidity(issue: {[key: string]: Issue}) instead`);
-    }
-
     public updateValidity(issue: {[key: string]: Issue}) {
-
         this.issues = {...this.issues, ...issue};
 
         this.errors = this.filterIssues("error");
@@ -41,6 +26,8 @@ export abstract class ValidationBase implements Validatable {
 
         this.hasErrors = false;
         this.hasWarnings = false;
+        this.errors = [];
+        this.warnings = [];
     }
 
     public loc = "";

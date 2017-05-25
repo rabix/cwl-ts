@@ -8,7 +8,6 @@ import * as BamtoolsSplit from "../../tests/apps/bamtools-split-sbg";
 import * as BfctoolsAnnotate from "../../tests/apps/bfctools-annotate-sbg";
 import * as BindingTestTool from "../../tests/apps/binding-test-tool";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
-import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {JSExecutor} from "../helpers/JSExecutor";
 
@@ -372,6 +371,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                     },
                     {
                         "separate": true,
+                        position: 0,
                         "valueFrom": {
                             "script": "{\n  reference_file = $job.inputs.reference.path.split('/')[$job.inputs.reference.path.split('/').length-1]\n  ext = reference_file.split('.')[reference_file.split('.').length-1]\n  if(ext=='tar'){\n    return ''\n  }\n  else{\n    tar_cmd = 'tar -cf ' + reference_file + '.tar ' + reference_file + ' *.amb' + ' *.ann' + ' *.bwt' + ' *.pac' + ' *.sa' \n    return ' ; ' + tar_cmd\n  }\n}",
                             "class": "Expression",
@@ -409,6 +409,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                             }
                         ],
                         "inputBinding": {
+                            position: 0,
                             "separate": true,
                             "sbg:cmdInclude": true,
                             "prefix": "-a"
@@ -631,7 +632,7 @@ describe("SBDraft2CommandLineToolModel", () => {
     });
 
     describe("updateValidity", () => {
-        it("should be triggered when baseCommand is invalid", (done) => {
+        it("should be triggered when baseCommand is invalid", () => {
             //@todo fix error reporting in JSExecutor
             // const tool = new SBDraft2CommandLineToolModel({
             //     "class": "CommandLineTool",

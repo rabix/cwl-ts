@@ -23,16 +23,16 @@ describe("SBDraft2StepModel", () => {
             const step = wf.steps[0];
 
             step.setRunProcess(BasicTool.default);
-            expect(step.validation.errors).to.not.be.empty;
-            expect(step.validation.errors[0].message).to.contain("not present");
+            expect(step.errors).to.not.be.empty;
+            expect(step.errors[0].message).to.contain("not present");
         });
 
         it("should set error for inputs with changed type", () => {
             const step = wf.steps[0];
 
             step.setRunProcess(BasicTool.default);
-            expect(step.validation.errors).to.not.be.empty;
-            expect(step.validation.errors[1].message).to.contain("Schema mismatch");
+            expect(step.errors).to.not.be.empty;
+            expect(step.errors[1].message).to.contain("Schema mismatch");
         });
     })
 });

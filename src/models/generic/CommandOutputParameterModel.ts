@@ -42,6 +42,8 @@ export abstract class CommandOutputParameterModel extends ValidationBase impleme
 
     abstract updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>);
 
+    abstract removeSecondaryFile(index: number);
+
     serialize(): any {
         new UnimplementedMethodException("serialize", "CommandOutputParameterModel");
         return null;

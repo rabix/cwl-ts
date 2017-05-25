@@ -41,6 +41,14 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         files.forEach(f => this.addSecondaryFile(f));
     }
 
+    removeSecondaryFile(index: number) {
+        const file = this.secondaryFiles[index];
+        if (file) {
+            file.setValue("", "string");
+            this.secondaryFiles.splice(index, 1);
+        }
+    }
+
     serialize(): CommandOutputParameter {
         let base: CommandOutputParameter | CommandOutputRecordField = <any> {};
 
