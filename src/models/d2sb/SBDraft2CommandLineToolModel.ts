@@ -409,7 +409,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         spreadSelectProps(tool, this.customProps, serializedAttr);
 
         // validate all objects within
-        this.validate().then(console.log, console.warn);
+        this.validate().then(() => this.issues, () => this.issues);
     }
 
     private createReq(req: ProcessRequirement, loc: string, hint?: boolean) {

@@ -285,7 +285,7 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
                     expect(input.errors).to.be.empty;
                 }).then(done, done);
 
-            }).then(done, done);
+            }).then(() => {}, done);
         });
 
     });
