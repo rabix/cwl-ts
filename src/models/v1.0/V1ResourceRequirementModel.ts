@@ -12,8 +12,8 @@ export class V1ResourceRequirementModel extends ResourceRequirementModel {
     constructor(req?: ResourceRequirement, loc?: string) {
         super(loc);
 
-        this.mem   = new V1ExpressionModel("1000", `${this.loc}.ramMin`);
-        this.cores = new V1ExpressionModel("1", `${this.loc}.coresMin`);
+        this.mem   = new V1ExpressionModel("", `${this.loc}.ramMin`);
+        this.cores = new V1ExpressionModel("", `${this.loc}.coresMin`);
 
         if (req) this.deserialize(req);
     }

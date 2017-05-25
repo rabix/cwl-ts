@@ -341,7 +341,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         ensureArray(tool.outputs).forEach(o => this.addOutput(o));
 
         if (tool.arguments) {
-            tool.arguments.forEach((arg, index) => {
+            tool.arguments.forEach((arg) => {
                 this.addArgument(arg);
             });
         }
@@ -360,8 +360,11 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         this.docker        = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.hints[${this.hints.length}]`);
         this.docker.isHint = true;
+        this.docker.setValidationCallback(err => this.updateValidity(err));
+
 
         this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+        this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
 
         this.updateStream(new SBDraft2ExpressionModel(tool.stdin, `${this.loc}.stdin`), "stdin");
         this.updateStream(new SBDraft2ExpressionModel(tool.stdout, `${this.loc}.stdout`), "stdout");

@@ -5,7 +5,7 @@ export * from "./SBDraft2CommandOutputBindingModel";
 export * from "./SBDraft2CommandLineToolModel";
 export * from "./SBDraft2CommandLineBindingModel";
 export * from "./SBDraft2ExpressionModel";
-export * from "./FileDefModel";
+export * from "./SBDraft2FileDefModel";
 export * from "./ExpressionEngineRequirementModel";
 export * from "./SBDraft2ResourceRequirementModel";
 export * from "./SBDraft2WorkflowModel";

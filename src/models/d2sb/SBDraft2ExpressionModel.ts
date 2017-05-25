@@ -65,7 +65,6 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
      */
     public setValue(val: number | string | Expression, type: "expression" | "string" | "number") {
         this.result     = undefined;
-        this.cleanValidity();
 
         if (type === "expression" && typeof val === "string") {
             this.value = {

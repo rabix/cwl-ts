@@ -12,5 +12,11 @@ export abstract class CreateFileRequirementModel extends ProcessRequirementModel
         return null;
     }
 
+    validate(context: any): Promise<any> {
+        this.cleanValidity();
 
+        return Promise.all(
+            this.listing.map(dir => dir.validate(context)))
+            .then(() => this.issues, () => this.issues)
+    }
 }

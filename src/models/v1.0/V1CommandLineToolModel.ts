@@ -260,7 +260,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         // validate outputs and make sure IDs are unique
         for (let i = 0; i < this.outputs.length; i++) {
             const output = this.outputs[i];
-            promises.push(output.validate());
+            promises.push(output.validate(this.getContext()));
 
             if (!map[output.id]) {
                 map[output.id] = true
@@ -274,6 +274,11 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             }
         }
 
+        for(let i = 0; i < this.arguments.length; i++) {
+            const argument = this.arguments[i];
+            promises.push(argument.validate(this.getContext()));
+        }
+
         // validate streams to make sure expressions are valid
         if (this.stdin) {
             promises.push(this.stdin.validate(this.getContext()));
@@ -281,6 +286,14 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         if (this.stdout) {
             promises.push(this.stdout.validate(this.getContext()));
+        }
+
+        if (this.resources) {
+            promises.push(this.resources.validate(this.getContext()));
+        }
+
+        if (this.fileRequirement) {
+            promises.push(this.fileRequirement.validate(this.getContext()));
         }
 
         return Promise.all(promises).then(() => {
@@ -395,7 +408,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             (base[dest] as Array<ProcessRequirement>).push(this.docker.serialize());
         }
 
-        if (this.fileRequirement.serialize() && this.fileRequirement.listing.length > 0) {
+        if (this.fileRequirement.serialize()) {
             const dest = this.fileRequirement.isHint ? "hints" : "requirements";
             (base[dest] as Array<ProcessRequirement>).push(this.fileRequirement.serialize());
         }

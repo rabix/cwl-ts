@@ -30,7 +30,7 @@ export class V1ExpressionModel extends ExpressionModel {
         this.tokens = ExpressionEvaluator.grabExpressions(str || "") || [];
 
         // if expression is literal, type is string, otherwise it's complex (expression or function)
-        this.type = this.tokens.length === 1 && this.tokens[0].type === "literal" ? "string" : "expression";
+        this.type = this.tokens.length === 1 && this.tokens[0].type === "literal" || this.tokens.length === 0 ? "string" : "expression";
         return this.tokens;
     }
 
@@ -46,7 +46,6 @@ export class V1ExpressionModel extends ExpressionModel {
 
     public setValue(val: string | Expression, type?: "expression" | "string") {
         this.result = undefined;
-        this.cleanValidity();
 
         this.tokenizeAndSetType(val);
         this.value = val;
@@ -57,7 +56,7 @@ export class V1ExpressionModel extends ExpressionModel {
     }
 
     public toString(): string {
-        return this.value;
+        return this.value || "";
     }
 
     clone(): V1ExpressionModel {
