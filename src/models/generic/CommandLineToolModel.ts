@@ -139,6 +139,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.checkIdValidity(id);
 
         port.id = id;
+
         // emit change event so CLT subclasses can change job values
         this.eventHub.emit(`${type}.change.id`, {port, oldId, newId: port.id});
     }
@@ -152,8 +153,11 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         });
 
         this.eventHub.on("io.change.type", (loc: string) => {
+            // make sure loc is within this tree and that belongs to one of the inputs
             if (loc.search(this.loc) === 0 && loc.search("inputs") > -1) {
+                // remove root part of loc and ignore type part of loc
                 loc = loc.substr(this.loc.length).replace("type", "");
+                // find port based on its loc
                 const port: CommandInputParameterModel = fetchByLoc(this, loc);
                 if (!port)  {
                     // newly added inputs will trigger this event before they are added to tool

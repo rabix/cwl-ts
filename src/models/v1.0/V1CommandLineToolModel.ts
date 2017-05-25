@@ -79,6 +79,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             context.self = this.jobInputs[id];
         }
 
+        // console.log("sending context", context.inputs);
+
         return context;
     };
 
@@ -109,7 +111,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             o.updateValidity({
                 [o.loc + ".id"]: {
                     type: "info",
-                    message: `Output had no id, setting id to "${this.getNextAvailableId("input")}"`
+                    message: `Output had no id, setting id to "${this.getNextAvailableId("output")}"`
                 }
             });
         }
@@ -214,6 +216,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             case "ResourceRequirement":
                 loc            = this.resources ? this.resources.loc || loc : loc;
                 this.resources = new V1ResourceRequirementModel(req, loc);
+                this.resources.setValidationCallback(err => this.updateValidity(err));
+                this.resources.isHint = hint;
                 return;
 
             default:
@@ -316,7 +320,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             "label",
             "arguments",
             "hints",
-            "requirements"
+            "requirements",
+            "sbg:job"
         ];
 
         this.id = this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 2 ?
@@ -333,17 +338,26 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         ensureArray(tool.hints, "class", "value").map((h, i) => this.createReq(h, null, true));
         ensureArray(tool.requirements, "class", "value").map((r, i) => this.createReq(r));
 
+        let counter = this.requirements.length;
         // create DockerRequirement for manipulation
-        this.docker = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+        if (!this.docker) {
+            this.docker = new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.requirements[${++counter}]`);
+        }
+        this.docker.setValidationCallback(err => this.updateValidity(err));
 
         // create InitialWorkDirRequirement for manipulation
-        this.fileRequirement = this.fileRequirement || new V1InitialWorkDirRequirementModel(<InitialWorkDirRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+        if (!this.fileRequirement) {
+            this.fileRequirement = new V1InitialWorkDirRequirementModel(<InitialWorkDirRequirement> {}, `${this.loc}.requirements[${++counter}]`);
+        }
+        this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
 
         // create ResourceRequirement for manipulation
-        this.resources = this.resources || new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+        if (!this.resources) {
+            this.resources = new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${++counter}]`);
+        }
+        this.resources.setValidationCallback(err => this.updateValidity(err));
 
         this.arguments = ensureArray(tool.arguments).map(arg => this.addArgument(arg));
-
 
         this.stdin = new V1ExpressionModel(tool.stdin, `${this.loc}.stdin`);
         this.stdin.setValidationCallback(err => this.updateValidity(err));
@@ -391,7 +405,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
 
         if (this.requirements.length) {
-            this.requirements.forEach(r => base.requirements.push(r.serialize()));
+            this.requirements.filter(r => !!r).forEach(r => base.requirements.push(r.serialize()));
         }
 
         if (this.hints.length) {

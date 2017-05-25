@@ -324,7 +324,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             "outputs",
             "stdin",
             "stdout",
-            "cwlVersion"
+            "cwlVersion",
+            "sbg:job"
         ];
 
         this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 2 ?

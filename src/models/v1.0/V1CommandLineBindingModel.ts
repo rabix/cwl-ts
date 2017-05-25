@@ -47,7 +47,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
     serialize(): any {
         const base: CommandLineBinding = <CommandLineBinding> {};
         this.serializedKeys.forEach(key => {
-            if (this[key] !== undefined && key !== "valueFrom") {
+            if (this[key] !== undefined && this[key] !== null && key !== "valueFrom") {
                 base[key] = this[key];
             }
         });

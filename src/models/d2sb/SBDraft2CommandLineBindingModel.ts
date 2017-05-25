@@ -52,7 +52,7 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
         const base: CommandLineBinding = <CommandLineBinding> {};
 
         this.serializedKeys.forEach(key => {
-            if (this[key] !== undefined && key !== "valueFrom" && key !== "secondaryFiles") {
+            if (this[key] !== undefined && this[key] !== null && key !== "valueFrom" && key !== "secondaryFiles") {
                 base[key] = this[key];
             }
         });

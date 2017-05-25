@@ -81,7 +81,7 @@ export class JobHelper {
             });
         }
 
-        return val;
+        return val !== undefined ? val : null;
     }
 
     public static getJobInputs(tool: CommandLineToolModel): any {
