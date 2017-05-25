@@ -395,7 +395,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             (base[dest] as Array<ProcessRequirement>).push(this.docker.serialize());
         }
 
-        if (this.fileRequirement.serialize()) {
+        if (this.fileRequirement.serialize() && this.fileRequirement.listing.length > 0) {
             const dest = this.fileRequirement.isHint ? "hints" : "requirements";
             (base[dest] as Array<ProcessRequirement>).push(this.fileRequirement.serialize());
         }
