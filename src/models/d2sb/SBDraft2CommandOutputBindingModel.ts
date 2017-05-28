@@ -40,8 +40,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     }
 
     set outputEval(value: SBDraft2ExpressionModel) {
-        this._outputEval     = value;
-        this._outputEval.loc = `${this.loc}.outputEval`;
+        this._outputEval = new SBDraft2ExpressionModel(value.serialize(), `${this.loc}.outputEval`);
         this._outputEval.setValidationCallback(err => this.updateValidity(err));
 
         if (!this._outputEval.isExpression) {
