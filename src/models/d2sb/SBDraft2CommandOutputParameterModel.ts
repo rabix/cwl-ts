@@ -137,14 +137,4 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
 
         spreadSelectProps(attr, this.customProps, serializedAttr);
     }
-
-    validate(context): Promise<any> {
-        this.cleanValidity();
-        const promises = [];
-
-        promises.push(this.outputBinding.validate(context));
-        promises.push(this.type.validate());
-
-        return Promise.all(promises).then(() => this.issues);
-    }
 }

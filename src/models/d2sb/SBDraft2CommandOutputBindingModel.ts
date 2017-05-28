@@ -13,7 +13,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     public hasMetadata        = true;
     public hasInheritMetadata = true;
 
-    private _glob: SBDraft2ExpressionModel;
+    protected _glob: SBDraft2ExpressionModel;
 
     get glob(): SBDraft2ExpressionModel {
         return this._glob;
@@ -22,10 +22,18 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     set glob(value: SBDraft2ExpressionModel) {
         this._glob = new SBDraft2ExpressionModel(value.serialize(), `${this.loc}.glob`);
         this._glob.setValidationCallback(err => this.updateValidity(err));
+        if (this._glob.serialize() === undefined) {
+            this._glob.updateValidity({
+                [`${this.loc}.glob`]: {
+                    message: "Glob should be specified",
+                    type: "warning"
+                }
+            });
+        }
     }
 
 
-    private _outputEval: SBDraft2ExpressionModel;
+    protected _outputEval: SBDraft2ExpressionModel;
 
     get outputEval(): SBDraft2ExpressionModel {
         return this._outputEval;
@@ -53,28 +61,6 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     constructor(binding?: CommandOutputBinding, loc?: string) {
         super(loc);
         this.deserialize(binding || {});
-    }
-
-    validate(context): Promise<any> {
-        this.cleanValidity();
-        const promises = [];
-
-        if (!this._glob || (this._glob && this._glob.serialize() === undefined)) {
-            this.updateValidity({
-                [`${this.loc}.glob`]: {
-                    message: "Glob should be specified",
-                    type: "warning"
-                }
-            });
-        } else {
-            promises.push(this._glob.validate(context));
-        }
-
-        if (this._outputEval) {
-            promises.push(this._outputEval.validate(context));
-        }
-        return Promise.all(promises).then(() => this.issues);
-
     }
 
     customProps: any = {};

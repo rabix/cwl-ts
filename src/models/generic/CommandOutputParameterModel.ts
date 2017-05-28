@@ -52,4 +52,16 @@ export abstract class CommandOutputParameterModel extends ValidationBase impleme
     deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "CommandOutputParameterModel");
     }
+
+    validate(context): Promise<any> {
+        this.cleanValidity();
+        const promises = [];
+
+        promises.push(this.outputBinding.validate(context));
+        promises.push(this.type.validate());
+
+        promises.concat(this.secondaryFiles.map(f => f.validate(context)));
+
+        return Promise.all(promises).then(() => this.issues);
+    }
 }
