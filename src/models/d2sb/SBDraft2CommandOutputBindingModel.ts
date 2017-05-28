@@ -93,6 +93,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
         const serializedKeys = [
             "glob",
             "secondaryFiles",
+            "outputEval",
             "loadContents",
             "sbg:metadata",
             "sbg:inheritMetadataFrom"
@@ -117,6 +118,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
             }
 
             this._outputEval = new SBDraft2ExpressionModel(binding.outputEval, `${this.loc}.outputEval`);
+            this._outputEval.setValidationCallback(err => this.updateValidity(err));
 
             if (binding["sbg:metadata"] && binding["sbg:metadata"].constructor === Object) {
                 Object.keys(binding["sbg:metadata"]).forEach(key => {
