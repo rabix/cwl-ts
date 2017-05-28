@@ -198,6 +198,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         if (index < 0) {
             return;
         }
+        this.outputs[index].cleanValidity();
         this.outputs.splice(index, 1);
         this.eventHub.emit("output.remove", output);
     }
@@ -212,6 +213,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         if (index < 0) {
             return;
         }
+        this.inputs[index].cleanValidity();
         this.inputs.splice(index, 1);
         this.eventHub.emit("input.remove", input);
     }
@@ -226,6 +228,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         if (index < 0) {
             return;
         }
+        this.arguments[index].cleanValidity();
         this.arguments.splice(index, 1);
         this.eventHub.emit("argument.remove", arg);
     }

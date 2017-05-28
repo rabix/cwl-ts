@@ -20,7 +20,7 @@ export abstract class ValidationBase implements Validatable {
         this.updateParentValidation(this.issues);
     }
 
-    protected cleanValidity() {
+    public cleanValidity() {
         this.issues = nullifyObjValues(this.issues);
         this.updateParentValidation(this.issues);
 
