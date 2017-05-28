@@ -26,9 +26,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
 
     setValueFrom(val: string | Expression) {
         this.valueFrom = new V1ExpressionModel(val, `${this.loc}.valueFrom`);
-        this.valueFrom.setValidationCallback(err => {
-            this.updateValidity(err);
-        });
+        this.valueFrom.setValidationCallback(err => this.updateValidity(err));
     }
 
     deserialize(binding: CommandLineBinding): void {

@@ -14,8 +14,10 @@ export class SBDraft2CommandArgumentModel extends CommandArgumentModel implement
         this.hasBinding = true;
         this.primitive  = undefined;
 
-        this.binding = new SBDraft2CommandLineBindingModel(binding, this.loc);
-        this.binding.setValidationCallback(err => this.updateValidity(err));
+        this.binding.prefix = binding.prefix;
+        this.binding.position = binding.position;
+        this.binding.separate = binding.separate;
+        this.binding.itemSeparator = binding.itemSeparator;
     }
 
 
