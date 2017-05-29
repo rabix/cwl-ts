@@ -26,13 +26,11 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
 
     setValueFrom(val: string | Expression) {
         this.valueFrom = new V1ExpressionModel(val, `${this.loc}.valueFrom`);
-        this.valueFrom.setValidationCallback(err => {
-            this.updateValidity(err);
-        });
+        this.valueFrom.setValidationCallback(err => this.updateValidity(err));
     }
 
     deserialize(binding: CommandLineBinding): void {
-        this.position      = binding.position;
+        this.position      = !isNaN(binding.position) ? parseInt(<any> binding.position) : 0;
         this.prefix        = binding.prefix;
         this.separate      = binding.separate;
         this.itemSeparator = binding.itemSeparator;
@@ -47,7 +45,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
     serialize(): any {
         const base: CommandLineBinding = <CommandLineBinding> {};
         this.serializedKeys.forEach(key => {
-            if (this[key] !== undefined && key !== "valueFrom") {
+            if (this[key] !== undefined && this[key] !== null && key !== "valueFrom") {
                 base[key] = this[key];
             }
         });
@@ -60,6 +58,4 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
 
         return spreadAllProps(base, this.customProps);
     }
-
-
 }

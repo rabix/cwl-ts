@@ -5,7 +5,6 @@ import {V1WorkflowOutputParameterModel} from "./V1WorkflowOutputParameterModel";
 import {Workflow} from "../../mappings/v1.0/Workflow";
 import {Serializable} from "../interfaces/Serializable";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
-import {Validation} from "../helpers/validation/Validation";
 import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
 import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
@@ -37,22 +36,35 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         this.graph = this.constructGraph();
     }
 
-    public validate() {
+    public validate(): Promise<any> {
+        this.cleanValidity();
+        const promises = [];
+
+        promises.concat(this.steps.map(step => step.validate()));
+        promises.concat(this.inputs.map(inp => inp.validate()));
+        promises.concat(this.outputs.map(out => out.validate()));
+
         try {
             this.graph.topSort();
         } catch (ex) {
             if (ex === "Graph has cycles") {
-                this.validation.errors.push({
-                    loc: this.loc,
-                    message: "Graph has cycles"
-                })
+                this.updateValidity({
+                    [this.loc]: {
+                        message: "Graph has cycles",
+                        type: "error"
+                    }
+                });
             } else if (ex === "Can't sort unconnected graph") {
-                this.validation.warnings.push({
-                    loc: this.loc,
-                    message: "Graph is not connected"
-                })
+                this.updateValidity({
+                    [this.loc]: {
+                        message: "Graph is not connected",
+                        type: "warning"
+                    }
+                });
             }
         }
+
+        return Promise.all(promises).then(() => this.issues);
     }
 
     public loc: string;
@@ -86,9 +98,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         (this[type] as Array<any>).push(entry);
 
-        entry.setValidationCallback((err: Validation) => {
-            this.updateValidity(err);
-        });
+        entry.setValidationCallback((err) => this.updateValidity(err));
         return entry;
     }
 

@@ -1,3 +1,4 @@
+import {ID_REGEX} from "./constants";
 export const ensureArray = (map: { [key: string]: any }
                                 | any[]
                                 | string
@@ -139,7 +140,7 @@ export const isEmpty = (obj: Object | any[]): boolean => {
 
 export const fetchByLoc = (obj: any, loc: string): any => {
     // change "foo.bar[3]['baz']" to "foo.bar.3.'baz'"
-    loc = loc.replace("[", ".[").replace(/[\[\]]/g, "");
+    loc             = loc.replace("[", ".[").replace(/[\[\]]/g, "");
     // to ["foo", "bar", "3", "'baz'"]
     const tokens    = loc.split(".").filter(tok => tok.length);
     let result: any = obj;
@@ -157,11 +158,60 @@ export const fetchByLoc = (obj: any, loc: string): any => {
                 // otherwise access property
                 result = result[token];
             }
-        } catch(ex) {
+        } catch (ex) {
             // if property doesn't exist, return undefined
             return undefined;
         }
     }
 
     return result;
+};
+
+export const cleanupNull = (obj: Object): any => {
+    const keys = Object.keys(obj);
+    let tmp    = {...obj};
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        if (obj[key] === undefined || obj[key] === null) {
+            delete tmp[key];
+        }
+    }
+
+    return tmp;
+};
+
+export const nullifyObjValues = (obj: Object): any => {
+    const keys = Object.keys(obj);
+    let tmp = {...obj};
+    for (let i = 0; i < keys.length; i++) {
+        tmp[keys[i]] = null;
+    }
+
+    return tmp;
+};
+
+export const validateID = (id: string) => {
+    if (!id) {
+        throw new Error("ID must be set");
+    }
+
+    if (!ID_REGEX.test(id)) {
+        throw new Error(`ID "${id}" is invalid, ID must start with a letter and only alphanumerics and _ are allowed`);
+    }
+};
+
+export const incrementLastLoc = (items: {loc: string}[] = [], prefix: string) => {
+    if (items.length === 0){
+        return `${prefix}[0]`
+    }
+
+    const lastItem = items[items.length - 1];
+
+    let match:any = ((lastItem.loc.match(/\[(\d+)]$/g) || [""])[0].match(/\d+/g) || [""])[0];
+
+    if (!match) return null;
+
+    match = parseInt(match);
+
+    return `${prefix}[${++match}]`;
 };

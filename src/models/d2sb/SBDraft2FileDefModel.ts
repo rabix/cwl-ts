@@ -11,7 +11,9 @@ export class SBDraft2FileDefModel extends DirentModel implements Serializable<Fi
 
     constructor(fileDef?: FileDef, loc?: string) {
         super(loc);
-        
+        this.entryName.setValidationCallback(err => this.updateValidity(err));
+        this.entry.setValidationCallback(err => this.updateValidity(err));
+
         this.deserialize(fileDef)
     }
 

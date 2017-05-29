@@ -10,7 +10,10 @@ import {DockerRequirementModel} from "../generic/DockerRequirementModel";
 import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {JobHelper} from "../helpers/JobHelper";
-import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {
+    ensureArray, incrementLastLoc, snakeCase, spreadAllProps,
+    spreadSelectProps
+} from "../helpers/utils";
 import {V1CommandArgumentModel} from "./V1CommandArgumentModel";
 import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
 import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
@@ -76,6 +79,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             context.self = this.jobInputs[id];
         }
 
+        // console.log("sending context", context.inputs);
+
         return context;
     };
 
@@ -96,44 +101,77 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addOutput(output?: CommandOutputParameter): V1CommandOutputParameterModel {
-        const o = new V1CommandOutputParameterModel(output, `${this.loc}.outputs[${this.outputs.length}]`);
+        const loc = incrementLastLoc(this.outputs, `${this.loc}.outputs`);
+
+        const o = new V1CommandOutputParameterModel(output, loc);
+
+        o.setValidationCallback(err => this.updateValidity(err));
+
+        if (!o.id) {
+            o.updateValidity({
+                [o.loc + ".id"]: {
+                    type: "info",
+                    message: `Output had no id, setting id to "${this.getNextAvailableId("output")}"`
+                }
+            });
+        }
 
         o.id = o.id || this.getNextAvailableId("output");
 
         try {
             this.checkIdValidity(o.id)
         } catch (ex) {
-            console.warn(`${o.loc}: ${ex.message}`);
-            //@todo set error on output about duplicate id;
+            this.updateValidity({
+                [o.loc + ".id"]: {
+                    type: "error",
+                    message: ex.message
+                }
+            });
         }
 
         this.outputs.push(o);
-
-        o.setValidationCallback(err => this.updateValidity(err));
         return o;
     }
 
     public addInput(input?): V1CommandInputParameterModel {
-        const i = new V1CommandInputParameterModel(input, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
+        const loc = incrementLastLoc(this.inputs, `${this.loc}.inputs`);
+
+        const i = new V1CommandInputParameterModel(input, loc, this.eventHub);
+
+        i.setValidationCallback(err => this.updateValidity(err));
+
+        if (!i.id) {
+            i.updateValidity({
+                [i.loc + ".id"]: {
+                    type: "info",
+                    message: `Input had no id, setting id to "${this.getNextAvailableId("input")}"`
+                }
+            });
+        }
 
         i.id = i.id || this.getNextAvailableId("input");
 
         try {
             this.checkIdValidity(i.id)
         } catch (ex) {
-            console.warn(`${i.loc}: ${ex.message}`);
-            //@todo set error on input about duplicate id;
+            this.updateValidity({
+                [i.loc + ".id"]: {
+                    type: "error",
+                    message: ex.message
+                }
+            });
         }
 
         this.inputs.push(i);
-        i.setValidationCallback(err => this.updateValidity(err));
         this.eventHub.emit("input.create", i);
 
         return i;
     }
 
     public addArgument(arg?: CommandLineBinding | string): V1CommandArgumentModel {
-        const a = new V1CommandArgumentModel(arg, `${this.loc}.arguments[${this.arguments.length}]`);
+        const loc = incrementLastLoc(this.arguments, `${this.loc}.arguments`);
+
+        const a = new V1CommandArgumentModel(arg, loc);
         this.arguments.push(a);
 
         a.setValidationCallback(err => this.updateValidity(err));
@@ -142,7 +180,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addBaseCommand(cmd?: Expression | string): V1ExpressionModel {
-        const b = new V1ExpressionModel(cmd, `${this.loc}.baseCommand[${this.baseCommand.length}]`);
+        const loc = incrementLastLoc(this.baseCommand, `${this.loc}.baseCommand`);
+
+        const b = new V1ExpressionModel(cmd, loc);
         this.baseCommand.push(b);
 
         b.setValidationCallback(err => this.updateValidity(err));
@@ -176,6 +216,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             case "ResourceRequirement":
                 loc            = this.resources ? this.resources.loc || loc : loc;
                 this.resources = new V1ResourceRequirementModel(req, loc);
+                this.resources.setValidationCallback(err => this.updateValidity(err));
+                this.resources.isHint = hint;
                 return;
 
             default:
@@ -196,6 +238,73 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         stream.setValidationCallback(err => this.updateValidity(err));
     }
 
+    public validate(): Promise<any> {
+        this.cleanValidity();
+        const map = {};
+
+        const promises: Promise<any>[] = [];
+
+        // validate inputs and make sure IDs are unique
+        for (let i = 0; i < this.inputs.length; i++) {
+            const input = this.inputs[i];
+            promises.push(input.validate(this.getContext(input.id)));
+
+            if (!map[input.id]) {
+                map[input.id] = true
+            } else {
+                input.updateValidity({
+                    [`${input.loc}.id`]: {
+                        type: "error",
+                        message: `Duplicate id "${input.id}"`
+                    }
+                });
+            }
+        }
+
+        // validate outputs and make sure IDs are unique
+        for (let i = 0; i < this.outputs.length; i++) {
+            const output = this.outputs[i];
+            promises.push(output.validate(this.getContext()));
+
+            if (!map[output.id]) {
+                map[output.id] = true
+            } else {
+                output.updateValidity({
+                    [`${output.loc}.id`]: {
+                        type: "error",
+                        message: `Duplicate id "${output.id}"`
+                    }
+                });
+            }
+        }
+
+        for(let i = 0; i < this.arguments.length; i++) {
+            const argument = this.arguments[i];
+            promises.push(argument.validate(this.getContext()));
+        }
+
+        // validate streams to make sure expressions are valid
+        if (this.stdin) {
+            promises.push(this.stdin.validate(this.getContext()));
+        }
+
+        if (this.stdout) {
+            promises.push(this.stdout.validate(this.getContext()));
+        }
+
+        if (this.resources) {
+            promises.push(this.resources.validate(this.getContext()));
+        }
+
+        if (this.fileRequirement) {
+            promises.push(this.fileRequirement.validate(this.getContext()));
+        }
+
+        return Promise.all(promises).then(() => {
+            return this.issues;
+        });
+    }
+
     public deserialize(tool: CommandLineTool) {
         const serializedKeys = [
             "baseCommand",
@@ -211,7 +320,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             "label",
             "arguments",
             "hints",
-            "requirements"
+            "requirements",
+            "sbg:job"
         ];
 
         this.id = this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 2 ?
@@ -228,17 +338,26 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         ensureArray(tool.hints, "class", "value").map((h, i) => this.createReq(h, null, true));
         ensureArray(tool.requirements, "class", "value").map((r, i) => this.createReq(r));
 
+        let counter = this.requirements.length;
         // create DockerRequirement for manipulation
-        this.docker = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+        if (!this.docker) {
+            this.docker = new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.requirements[${++counter}]`);
+        }
+        this.docker.setValidationCallback(err => this.updateValidity(err));
 
         // create InitialWorkDirRequirement for manipulation
-        this.fileRequirement = this.fileRequirement || new V1InitialWorkDirRequirementModel(<InitialWorkDirRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+        if (!this.fileRequirement) {
+            this.fileRequirement = new V1InitialWorkDirRequirementModel(<InitialWorkDirRequirement> {}, `${this.loc}.requirements[${++counter}]`);
+        }
+        this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
 
         // create ResourceRequirement for manipulation
-        this.resources = this.resources || new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+        if (!this.resources) {
+            this.resources = new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${++counter}]`);
+        }
+        this.resources.setValidationCallback(err => this.updateValidity(err));
 
         this.arguments = ensureArray(tool.arguments).map(arg => this.addArgument(arg));
-
 
         this.stdin = new V1ExpressionModel(tool.stdin, `${this.loc}.stdin`);
         this.stdin.setValidationCallback(err => this.updateValidity(err));
@@ -269,7 +388,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public serialize() {
         let base: CommandLineTool = {
-            class: "CommandLineTool",
+            "class": "CommandLineTool",
             cwlVersion: "v1.0",
             baseCommand: this.baseCommand.map(b => b.serialize()).filter(b => !!b),
             inputs: <CommandInputParameter[]> this.inputs.map(i => i.serialize()),
@@ -286,7 +405,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
 
         if (this.requirements.length) {
-            this.requirements.forEach(r => base.requirements.push(r.serialize()));
+            this.requirements.filter(r => !!r).forEach(r => base.requirements.push(r.serialize()));
         }
 
         if (this.hints.length) {

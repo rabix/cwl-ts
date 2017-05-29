@@ -76,8 +76,8 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
      * Sets value of expression.script or primitive based on type parameter.
      */
     public setValue(val: number | string | SBDraft2Expression | V1Expression, type: "expression"
-                        | "string"
-                        | "number") {
+        | "string"
+        | "number") {
         new UnimplementedMethodException("setValue", "ExpressionModel");
     }
 
@@ -90,9 +90,23 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
         return null;
     }
 
+    public validate(context?: any): Promise<any> {
+        return this.evaluate(context).then((suc) => {
+            this.cleanValidity();
+        }, (err) => {
+            this.updateValidity({
+                [this.loc]: {
+                    type: err.type,
+                    message: err.message
+                }
+            });
+        });
+    }
+
     protected _evaluate(value: number | string | SBDraft2Expression, context: any, version: "v1.0" | "draft-2"): Promise<any> {
 
         return new Promise((res, rej) => {
+
             ExpressionEvaluator.evaluate(value, context, version).then(suc => {
                 this.result = suc;
                 res(suc);
@@ -106,19 +120,9 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
 
                 const err = {loc: this.loc, message: message};
 
-                if (ex.message.startsWith("Uncaught SyntaxError")) {
-                    this.validation = {
-                        errors: [err],
-                        warnings: []
-                    };
-
+                if (ex.message.startsWith("Uncaught SyntaxError") || ex.name === "SyntaxError") {
                     rej(Object.assign({type: "error"}, err));
                 } else {
-                    this.validation = {
-                        warnings: [err],
-                        errors: []
-                    };
-
                     rej(Object.assign({type: "warning"}, err));
                 }
             });
@@ -127,4 +131,6 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
     }
 
     abstract clone(): ExpressionModel
+
+    abstract cloneStatus(clone: ExpressionModel);
 }

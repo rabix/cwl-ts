@@ -4,8 +4,11 @@ import {Serializable} from "../interfaces/Serializable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
 import {ExpressionModel} from "./ExpressionModel";
+import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
+import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 
-export class CommandOutputParameterModel extends ValidationBase implements Serializable<any>{
+
+export abstract class CommandOutputParameterModel extends ValidationBase implements Serializable<any>{
     /** Unique identifier of output */
     public id: string;
     /** Human readable short name */
@@ -18,6 +21,7 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
     public secondaryFiles: ExpressionModel[];
 
     public hasSecondaryFiles: boolean;
+    public hasSecondaryFilesInRoot: boolean;
 
     /** Complex object that holds logic and information about output's type property */
     public type: ParameterTypeModel;
@@ -34,6 +38,12 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
         new UnimplementedMethodException("updateOutputBinding", "CommandOutputParameterModel");
     }
 
+    abstract addSecondaryFile(file: V1Expression | SBDraft2Expression | string): ExpressionModel;
+
+    abstract updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>);
+
+    abstract removeSecondaryFile(index: number);
+
     serialize(): any {
         new UnimplementedMethodException("serialize", "CommandOutputParameterModel");
         return null;
@@ -41,5 +51,17 @@ export class CommandOutputParameterModel extends ValidationBase implements Seria
 
     deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "CommandOutputParameterModel");
+    }
+
+    validate(context): Promise<any> {
+        this.cleanValidity();
+        const promises = [];
+
+        promises.push(this.outputBinding.validate(context));
+        promises.push(this.type.validate());
+
+        promises.concat(this.secondaryFiles.map(f => f.validate(context)));
+
+        return Promise.all(promises).then(() => this.issues);
     }
 }

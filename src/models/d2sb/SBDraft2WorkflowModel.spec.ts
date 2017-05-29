@@ -683,6 +683,7 @@ describe("SBDraft2WorkflowModel", () => {
                                         "string"
                                     ],
                                     "inputBinding": {
+                                        "position": 0,
                                         "separate": true,
                                         "sbg:cmdInclude": true
                                     }
@@ -825,6 +826,7 @@ describe("SBDraft2WorkflowModel", () => {
                                         "string"
                                     ],
                                     "inputBinding": {
+                                        "position": 0,
                                         "separate": true,
                                         "sbg:cmdInclude": true
                                     }

@@ -1,13 +1,8 @@
 import {Expression} from "../../mappings/d2sb/Expression";
-import {Serializable} from "../interfaces/Serializable";
-import {Validation} from "../helpers/validation";
 import {ExpressionModel} from "../generic/ExpressionModel";
+import {Serializable} from "../interfaces/Serializable";
 
 export class SBDraft2ExpressionModel extends ExpressionModel implements Serializable<number | string | Expression> {
-    validate(): Validation {
-        return this.validation;
-    }
-
     /**
      * Evaluates expression and sets its result to result property.
      *
@@ -70,11 +65,10 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
      */
     public setValue(val: number | string | Expression, type: "expression" | "string" | "number") {
         this.result     = undefined;
-        this.validation = {errors: [], warnings: []};
 
         if (type === "expression" && typeof val === "string") {
             this.value = {
-                class: "Expression",
+                "class": "Expression",
                 engine: "#cwl-js-engine",
                 script: val.trim() === "" ? "" : val
             };
@@ -94,7 +88,7 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
         if (this.type === "expression") {
             return (<Expression> this.value).script
         } else if (this.value === null || this.value === undefined) {
-            return <string> this.value;
+            return <string> "";
         } else {
             return this.value.toString();
         }
@@ -110,7 +104,12 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
             undefined;
     }
 
-    clone(): ExpressionModel {
+    clone(): SBDraft2ExpressionModel {
         return new SBDraft2ExpressionModel(this.serialize(), this.loc);
+    }
+
+    cloneStatus(clone: SBDraft2ExpressionModel) {
+        this.setValue(clone.serialize(), clone.type);
+        this.updateValidity({...clone.issues});
     }
 }

@@ -1,7 +1,9 @@
-import {expect, assert} from "chai";
+import {expect} from "chai";
 import {V1CommandLineToolModel} from "./V1CommandLineToolModel";
 import {CommandLineTool} from "../../mappings/v1.0/CommandLineTool";
 import {CommandLinePart} from "../helpers/CommandLinePart";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
+import {JSExecutor} from "../helpers/JSExecutor";
 
 function runTest(app: CommandLineTool, job: any, expected: CommandLinePart[], done) {
     let model = new V1CommandLineToolModel(app, "document");
@@ -50,6 +52,7 @@ describe("V1CommandLineToolModel", () => {
 
         beforeEach(() => {
             model = new V1CommandLineToolModel(<any> {});
+            ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
         });
 
         it("should serialize baseCommand that is defined", () => {
@@ -150,6 +153,70 @@ describe("V1CommandLineToolModel", () => {
 
             expect(context.inputs.input).to.be.undefined;
             expect(context.inputs.newId).to.not.be.undefined;
+
+        });
+    });
+
+    describe("validation", () => {
+        it("should be invalid if inputs have duplicate id", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: [
+                    {id: "dup", type: "string"},
+                    {id: "dup", type: "int"}
+                ]
+            });
+
+            model.validate().then(() => {
+                const errors = model.filterIssues();
+                expect(errors).to.not.be.empty;
+                expect(errors).to.have.length(1);
+                expect(errors[0].loc).to.equal("document.inputs[1].id");
+            }).then(done, done);
+        });
+
+        it("should be invalid if outputs have duplicate id", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                outputs: [
+                    {id: "dup", type: "string"},
+                    {id: "dup", type: "int"}
+                ]
+            });
+
+            model.validate().then(() => {
+                const errors = model.filterIssues();
+                expect(errors).to.not.be.empty;
+                expect(errors).to.have.length(1);
+                expect(errors[0].loc).to.equal("document.outputs[1].id");
+            }).then(done, done);
+        });
+
+        it("should be invalid if stdin expression is invalid", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+               stdin: "${!!!}"
+            });
+
+            model.validate().then(() => {
+                const errors = model.filterIssues();
+                expect(errors).to.not.be.empty;
+                expect(errors).to.have.length(1);
+                expect(errors[0].loc).to.equal("document.stdin");
+
+                expect(model.stdin.errors).to.not.be.empty;
+                expect(model.stdin.errors).to.have.length(1);
+                expect(model.stdin.errors[0].loc).to.equal("document.stdin");
+            }).then(done, done);
+        });
+
+        it("should be invalid if stdout expression is invalid", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                stdout: "${!!!}"
+            });
+
+            model.validate().then(() => {
+                expect(model.errors).to.not.be.empty;
+                expect(model.errors).to.have.length(1);
+                expect(model.errors[0].loc).to.equal("document.stdout");
+            }).then(done, done);
 
         });
     });

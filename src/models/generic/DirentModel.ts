@@ -17,4 +17,10 @@ export abstract class DirentModel extends ValidationBase implements Serializable
     deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize",  "DirentModel");
     }
+
+    validate(context: any): Promise<any> {
+        this.cleanValidity();
+
+        return Promise.all([this.entry.validate(context), this.entryName.validate(context)]);
+    }
 }

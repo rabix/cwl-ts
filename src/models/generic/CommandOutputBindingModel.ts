@@ -12,9 +12,13 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
 
     glob: ExpressionModel;
 
+    protected _glob: ExpressionModel;
+
     loadContents: boolean;
 
     outputEval: ExpressionModel;
+
+    protected _outputEval: ExpressionModel;
 
     customProps: any = {};
 
@@ -25,5 +29,28 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
 
     deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "CommandOutputBindingModel");
+    }
+
+    validate(context): Promise<any> {
+
+        this.cleanValidity();
+        const promises = [];
+
+        if (!this._glob || (this._glob && this._glob.serialize() === undefined)) {
+            this.updateValidity({
+                [`${this.loc}.glob`]: {
+                    message: "Glob should be specified",
+                    type: "warning"
+                }
+            });
+        } else {
+            promises.push(this._glob.validate(context));
+        }
+
+        if (this._outputEval) {
+            promises.push(this._outputEval.validate(context));
+        }
+
+        return Promise.all(promises).then(() => this.issues);
     }
 }

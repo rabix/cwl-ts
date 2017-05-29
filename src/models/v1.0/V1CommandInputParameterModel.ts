@@ -2,36 +2,36 @@ import {CommandInputParameter, CommandInputRecordField} from "../../mappings/v1.
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {Serializable} from "../interfaces/Serializable";
-import {commaSeparatedToArray, ensureArray, spreadSelectProps} from "../helpers/utils";
+import {
+    commaSeparatedToArray, ensureArray, incrementLastLoc, spreadSelectProps
+} from "../helpers/utils";
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
-import {CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
+import {Expression} from "../../mappings/v1.0/Expression";
 
-export class V1CommandInputParameterModel extends CommandInputParameterModel implements Serializable<
-    CommandInputParameter
+export class V1CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter
     | CommandInputRecordField> {
     public inputBinding: V1CommandLineBindingModel;
-    public secondaryFiles: V1ExpressionModel[];
+    public secondaryFiles: V1ExpressionModel[] = [];
     public streamable: boolean;
 
-    public hasSecondaryFiles = true;
-    public hasStageInput     = false;
+    public hasSecondaryFiles       = true;
+    public hasSecondaryFilesInRoot = true;
+    public hasStageInput           = false;
 
-    constructor(attr:
-                    CommandInputParameter
-                    | CommandInputRecordField, loc?: string, eventHub?: EventHub) {
+    constructor(attr: CommandInputParameter
+        | CommandInputRecordField, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
         if (attr) this.deserialize(attr);
     }
 
-    public updateInputBinding(binding: V1CommandLineBindingModel | CommandLineBinding) {
+    public updateInputBinding(binding: V1CommandLineBindingModel) {
         if (binding instanceof V1CommandLineBindingModel) {
-            binding = (binding as V1CommandLineBindingModel).serialize();
+            //@todo breaks here for "serialize of undefined"
+            this.inputBinding.cloneStatus(binding);
+            this.inputBinding.setValidationCallback(err => this.updateValidity(err));
         }
-
-        this.inputBinding = new V1CommandLineBindingModel(<CommandLineBinding> binding, `${this.loc}.inputBinding`);
-        this.inputBinding.setValidationCallback(err => this.updateValidity(err));
     }
 
     public createInputBinding(): V1CommandLineBindingModel {
@@ -39,6 +39,30 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         this.inputBinding.setValidationCallback(err => this.updateValidity(err));
         return this.inputBinding;
     }
+
+    addSecondaryFile(file: Expression | string): V1ExpressionModel {
+        const loc = incrementLastLoc(this.secondaryFiles, `${this.loc}.secondaryFiles`);
+        const f   = new V1ExpressionModel(file, loc);
+        f.setValidationCallback(err => this.updateValidity(err));
+        this.secondaryFiles.push(f);
+
+        return f;
+    }
+
+    updateSecondaryFiles(files: Array<Expression | Expression | string>) {
+        this.secondaryFiles = [];
+        files.forEach(f => this.addSecondaryFile(f));
+    }
+
+
+    removeSecondaryFile(index: number) {
+        const file = this.secondaryFiles[index];
+        if (file) {
+            file.setValue("", "string");
+            this.secondaryFiles.splice(index, 1);
+        }
+    }
+
 
     public serialize(): CommandInputParameter | CommandInputRecordField {
         let base: CommandInputParameter | CommandInputRecordField = {...this.customProps};
@@ -64,7 +88,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         }
 
         if (this.secondaryFiles && !this.isField) {
-            (base as CommandInputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize());
+            (base as CommandInputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
         return base;
@@ -93,11 +117,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
 
         this.label          = attr.label;
         this.description    = ensureArray(attr.doc).join('\n');
-        this.secondaryFiles = ensureArray((<CommandInputParameter> attr).secondaryFiles).map((f, i) => {
-            const file = new V1ExpressionModel(f, `${this.loc}.secondaryFiles[${i}]`);
-            file.setValidationCallback(err => this.updateValidity(err));
-            return file;
-        });
+        this.secondaryFiles = ensureArray((<CommandInputParameter> attr).secondaryFiles).map(f => this.addSecondaryFile(f));
         this.fileTypes      = commaSeparatedToArray(attr["format"]);
         this.streamable     = (<CommandInputParameter> attr).streamable;
 

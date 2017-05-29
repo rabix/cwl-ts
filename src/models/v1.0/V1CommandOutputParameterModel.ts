@@ -3,18 +3,19 @@ import {CommandOutputParameterModel} from "../generic/CommandOutputParameterMode
 import {Serializable} from "../interfaces/Serializable";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {
-    commaSeparatedToArray, ensureArray, spreadAllProps,
+    commaSeparatedToArray, ensureArray, incrementLastLoc, spreadAllProps,
     spreadSelectProps
 } from "../helpers/utils";
 import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {CommandOutputRecordField} from "../../mappings/v1.0/CommandOutputRecordField";
+import {Expression} from "../../mappings/v1.0/Expression";
 
 export class V1CommandOutputParameterModel extends CommandOutputParameterModel implements Serializable<CommandOutputParameter> {
     public label: string;
     public outputBinding: V1CommandOutputBindingModel;
     public description: string;
-    public secondaryFiles: V1ExpressionModel[];
+    public secondaryFiles: V1ExpressionModel[] = [];
     public streamable: boolean;
     public id: string;
 
@@ -27,6 +28,26 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
     }
 
     customProps: any = {};
+
+    addSecondaryFile(file: string = ""): V1ExpressionModel {
+        const f = new V1ExpressionModel(file, incrementLastLoc(this.secondaryFiles, `${this.loc}.secondaryFiles`));
+        f.setValidationCallback(err => this.updateValidity(err));
+        this.secondaryFiles.push(f);
+        return f;
+    }
+
+    updateSecondaryFiles(files: Array<Expression | string>) {
+        this.secondaryFiles = [];
+        files.forEach(f => this.addSecondaryFile(f));
+    }
+
+    removeSecondaryFile(index: number) {
+        const file = this.secondaryFiles[index];
+        if (file) {
+            file.setValue("", "string");
+            this.secondaryFiles.splice(index, 1);
+        }
+    }
 
     serialize(): CommandOutputParameter {
         let base: CommandOutputParameter | CommandOutputRecordField = <any> {};
@@ -43,7 +64,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         }
 
         if (!this.isField && this.secondaryFiles.length && (this.type.type === "File" || this.type.items === "File")) {
-            (<CommandOutputParameter> base).secondaryFiles = this.secondaryFiles.map(f => f.serialize());
+            (<CommandOutputParameter> base).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
         if (!this.isField && this.fileTypes.length) {
@@ -76,7 +97,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         this.description = ensureArray(attr.doc).join("\n\n");
 
         // properties only on inputs, not on fields
-        this.secondaryFiles = ensureArray((<CommandOutputParameter> attr).secondaryFiles).map((f, i) => new V1ExpressionModel(f, `${this.loc}.secondaryFiles[${i}]`));
+        this.secondaryFiles = ensureArray((<CommandOutputParameter> attr).secondaryFiles).map(f => this.addSecondaryFile(f));
         this.fileTypes      = commaSeparatedToArray((<CommandOutputParameter> attr).format);
         this.streamable     = (<CommandOutputParameter> attr).streamable;
 

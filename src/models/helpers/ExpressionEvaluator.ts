@@ -17,6 +17,7 @@ export class ExpressionEvaluator {
             }
 
             try {
+                //@todo (remove me) unnecessary code for reworking sbg:draft-2 context to v1 context
                 if (typeof(context) === "object" && context !== null) {
                     if ("$job" in context) {
                         let job = context["$job"];

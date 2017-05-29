@@ -8,7 +8,6 @@ import {CommandInputParameterType as SBDraft2CommandInputParameterType} from "..
 import {CommandOutputParameterType as V1CommandOutputParameterType} from "../../mappings/v1.0/CommandOutputParameter";
 import {CommandInputParameterType as V1CommandInputParameterType} from "../../mappings/v1.0/CommandInputParameter";
 
-import {Validation} from "../helpers/validation/Validation";
 import {spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
 
@@ -103,86 +102,110 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     private eventHub: EventHub;
 
     constructor(type: SBDraft2CommandInputParameterType |
-                    SBDraft2CommandOutputParameterType |
-                    V1CommandOutputParameterType |
-                    V1CommandInputParameterType, fieldConstructor?, loc?: string, eventHub?: EventHub) {
+        SBDraft2CommandOutputParameterType |
+        V1CommandOutputParameterType |
+        V1CommandInputParameterType, fieldConstructor?, loc?: string, eventHub?: EventHub) {
         super(loc);
         this.fieldConstructor = fieldConstructor;
         this.eventHub         = eventHub;
         this.deserialize(type);
     }
 
-    validate(): Validation {
+    validate(): Promise<any> {
         let val = {errors: [], warnings: []};
+        this.cleanValidity();
 
         // check type
         // if array, has items. Does not have symbols or items
         if (this.type === "array") {
             if (this.items === null) {
-                val.errors.push({
-                    message: "Type array must have items",
-                    loc: `${this.loc}`
+                this.updateValidity({
+                    [this.loc]: {
+                        type: "error",
+                        message: "Type array must have items",
+                    }
                 });
             }
             if (this.symbols && this.items !== "enum") {
-                val.errors.push({
-                    message: "Type array must not have symbols",
-                    loc: `${this.loc}.symbols`
+                this.updateValidity({
+                    [`${this.loc}.symbols`]: {
+                        type: "error",
+                        message: "Type array must not have symbols",
+                    }
                 });
             }
             if (this.fields && this.items !== "record") {
-                val.errors.push({
-                    message: "Type array must not have fields",
-                    loc: `${this.loc}.fields`
+                this.updateValidity({
+                    [`${this.loc}.fields`]: {
+                        type: "error",
+                        message: "Type array must not have fields",
+                    }
                 });
             }
         }
         // if enum, has symbols. Does not have items or fields. Has name.
         if (this.type === "enum") {
             if (this.items) {
-                val.errors.push({
-                    message: "Type enum must not have items",
-                    loc: `${this.loc}.items`
+
+                this.updateValidity({
+                    [`${this.loc}.items`]: {
+                        type: "error",
+                        message: "Type enum must not have items",
+                    }
                 });
             }
             if (!this.symbols) {
-                val.errors.push({
-                    message: "Type enum must have symbols",
-                    loc: `${this.loc}`
+                this.updateValidity({
+                    [this.loc]: {
+                        type: "error",
+                        message: "Type enum must have symbols",
+                    }
                 });
             }
             if (this.fields) {
-                val.errors.push({
-                    message: "Type enum must not have fields",
-                    loc: `${this.loc}.fields`
+                this.updateValidity({
+                    [`${this.loc}.fields`]: {
+                        type: "error",
+                        message: "Type enum must not have fields",
+                    }
                 });
             }
 
             if (!this.name) {
-                val.errors.push({
-                    message: "Type enum must have a name",
-                    loc: `${this.loc}`
+                this.updateValidity({
+                    [`${this.loc}`]: {
+                        type: "error",
+                        message: "Type enum must have a name",
+                    }
                 });
             }
         }
         // if record, has fields. Does not have items or symbols. Has name.
         if (this.type === "record") {
             if (this.items) {
-                val.errors.push({
-                    message: "Type record must not have items",
-                    loc: `${this.loc}.items`
+
+                this.updateValidity({
+                    [`${this.loc}.items`]: {
+                        type: "error",
+                        message: "Type record must not have items",
+                    }
                 });
             }
             if (this.symbols) {
-                val.errors.push({
-                    message: "Type record must not have symbols",
-                    loc: `${this.loc}.symbols`
+
+                this.updateValidity({
+                    [`${this.loc}.symbols`]: {
+                        type: "error",
+                        message: "Type record must not have symbols",
+                    }
                 });
             }
             if (!this.fields) {
-                val.errors.push({
-                    message: "Type record must have fields",
-                    loc: `${this.loc}`
+                this.updateValidity({
+                    [`${this.loc}`]: {
+                        type: "error",
+                        message: "Type record must have fields",
+                    }
                 });
             } else {
                 // check validity for each field.
@@ -190,15 +213,18 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             }
 
             if (!this.name) {
-                val.errors.push({
-                    message: "Type record must have a name",
-                    loc: `${this.loc}.type`
+                this.updateValidity({
+                    [`${this.loc}.type`]: {
+                        type: "error",
+                        message: "Type record must have a name"
+                    }
                 });
             }
         }
 
-        this.validation = val;
-        return val;
+        return new Promise(res => {
+            res(this.issues);
+        });
     }
 
     serialize(version?: "v1.0" | "draft-2"): any {
@@ -224,7 +250,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         if (this.fields) {
             this.fields = this.fields.map((field, index) => {
                 const f = new this.fieldConstructor(field, `${this.loc}.fields[${index}]`);
-                f.setValidationCallback((err: Validation) => {
+                f.setValidationCallback((err) => {
                     this.updateValidity(err)
                 });
                 return f;
@@ -262,15 +288,17 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             });
 
             if (duplicate.length > 0) {
-                this.validation.errors.push({
-                    loc: this.loc,
-                    message: `Field with name "${duplicate[0].id}" already exists`
+                this.updateValidity({
+                    [this.loc]: {
+                        message: `Field with name "${duplicate[0].id}" already exists`,
+                        type: "error"
+                    }
                 });
             }
 
             if (field instanceof this.fieldConstructor) {
                 field.loc = `${this.loc}.fields[${this.fields.length}]`;
-                field.setValidationCallback((err: Validation) => {
+                field.setValidationCallback((err) => {
                     this.updateValidity(err)
                 });
 
@@ -278,7 +306,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 return field;
             } else {
                 const f = new this.fieldConstructor(field, `${this.loc}.fields[${this.fields.length}]`);
-                f.setValidationCallback((err: Validation) => {
+                f.setValidationCallback((err) => {
                     this.updateValidity(err)
                 });
 

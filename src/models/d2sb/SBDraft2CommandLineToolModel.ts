@@ -13,8 +13,10 @@ import {DockerRequirementModel} from "../generic/DockerRequirementModel";
 import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {JobHelper} from "../helpers/JobHelper";
-import {ensureArray, snakeCase, spreadSelectProps} from "../helpers/utils";
-import {Validation} from "../helpers/validation";
+import {
+    ensureArray, incrementLastLoc, snakeCase,
+    spreadSelectProps
+} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandArgumentModel} from "./SBDraft2CommandArgumentModel";
 import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParameterModel";
@@ -67,7 +69,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.runtime = runtime;
     }
 
-    public getContext(id?: string): {$job?: {inputs?: any, allocatedResources?: any}, $self?: any} {
+    public getContext(id?: string): { $job?: { inputs?: any, allocatedResources?: any }, $self?: any } {
         const context: any = {
             $job: {
                 inputs: this.jobInputs,
@@ -103,33 +105,32 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         return h;
     }
 
-    public addBaseCommand(cmd?: SBDraft2ExpressionModel): SBDraft2ExpressionModel {
-        if (!cmd) {
-            cmd = new SBDraft2ExpressionModel("", `${this.loc}.baseCommand[${this.baseCommand.length}]`);
-        } else {
-            cmd.loc = `${this.loc}.baseCommand[${this.baseCommand.length}]`;
-        }
-        this.baseCommand.push(cmd);
-        cmd.setValidationCallback((err: Validation) => {
-            this.updateValidity(err);
-        });
+    public addBaseCommand(cmd: Expression | string | number = ""): SBDraft2ExpressionModel {
+        const loc = incrementLastLoc(this.baseCommand, `${this.loc}.baseCommand`);
 
-        return cmd;
+        const c = new SBDraft2ExpressionModel(cmd, loc);
+        this.baseCommand.push(c);
+
+        c.setValidationCallback(err => this.updateValidity(err));
+
+        return c;
     }
 
     public addArgument(arg?: string | CommandLineBinding): SBDraft2CommandArgumentModel {
-        const argument = new SBDraft2CommandArgumentModel(arg, `${this.loc}.arguments[${this.arguments.length}]`);
+        const loc = incrementLastLoc(this.arguments, `${this.loc}.arguments`);
+
+        const argument = new SBDraft2CommandArgumentModel(arg, loc);
         this.arguments.push(argument);
 
-        argument.setValidationCallback((err: Validation) => {
-            this.updateValidity(err);
-        });
+        argument.setValidationCallback(err => this.updateValidity(err));
 
         return argument;
     }
 
     public addInput(input?: CommandInputParameter): SBDraft2CommandInputParameterModel {
-        const i = new SBDraft2CommandInputParameterModel(input, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
+        const loc = incrementLastLoc(this.inputs, `${this.loc}.inputs`);
+
+        const i = new SBDraft2CommandInputParameterModel(input, loc, this.eventHub);
         i.self  = JobHelper.generateMockJobData(i);
 
         i.id = i.id || this.getNextAvailableId("input");
@@ -144,9 +145,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         this.inputs.push(i);
 
-        i.setValidationCallback((err: Validation) => {
-            this.updateValidity(err);
-        });
+        i.setValidationCallback((err) => this.updateValidity(err));
 
         this.eventHub.emit("input.create", i);
 
@@ -155,7 +154,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
 
     public addOutput(output: CommandOutputParameter): SBDraft2CommandOutputParameterModel {
-        const o = new SBDraft2CommandOutputParameterModel(output, `${this.loc}.outputs[${this.outputs.length}]`);
+        const loc = incrementLastLoc(this.outputs, `${this.loc}.outputs`);
+
+        const o = new SBDraft2CommandOutputParameterModel(output, loc);
 
         o.id = o.id || this.getNextAvailableId("output");
 
@@ -168,9 +169,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         this.outputs.push(o);
 
-        o.setValidationCallback((err: Validation) => {
-            this.updateValidity(err);
-        });
+        o.setValidationCallback((err) => this.updateValidity(err));
 
         this.eventHub.emit("output.create", o);
 
@@ -196,22 +195,44 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         });
     }
 
-    validate(): Validation {
-        const validation: Validation = {errors: [], warnings: []};
+    validate(): Promise<any> {
+        this.cleanValidity();
+        const promises = [];
 
-        // check if all inputs are valid
-        this.inputs.forEach(input => {
-            input.validate();
-        });
+        // validate baseCommand
+        promises.concat(this.baseCommand.map(cmd => cmd.validate(this.getContext())));
 
-        this.baseCommand.forEach(cmd => cmd.validate());
+        // validate inputs
+        promises.concat(this.inputs.map(input => input.validate(this.getContext(input.id))));
 
-        // check if inputs have unique id
+        // validate outputs
+        promises.concat(this.outputs.map(output => output.validate(this.getContext())));
 
-        this.validation.errors   = this.validation.errors.concat(validation.errors);
-        this.validation.warnings = this.validation.warnings.concat(validation.warnings);
+        // validate arguments
+        promises.concat(this.arguments.map(arg => arg.validate(this.getContext())));
 
-        return this.validation;
+        if (this.stdin) {
+            promises.push(this.stdin.validate(this.getContext()));
+        }
+
+        if (this.stdout) {
+            promises.push(this.stdout.validate(this.getContext()));
+        }
+
+
+        // validate CreateFileRequirement
+        if (this.fileRequirement) {
+            promises.push(this.fileRequirement.validate(this.getContext()));
+        }
+
+
+        if (this.resources) {
+            // validate sbg:CPURequirement and sbg:MemRequirement
+            promises.push(this.resources.validate(this.getContext()));
+        }
+
+
+        return Promise.all(promises).then(res => this.issues);
     }
 
     serialize(): CommandLineTool | any {
@@ -301,7 +322,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         if (this.jobInputs || this.runtime) {
             base["sbg:job"] = {
                 inputs: this.jobInputs,
-                runtime: this.runtime
+                allocatedResources: this.runtime
             };
         }
 
@@ -324,7 +345,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             "outputs",
             "stdin",
             "stdout",
-            "cwlVersion"
+            "cwlVersion",
+            "sbg:job"
         ];
 
         this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 2 ?
@@ -341,7 +363,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         ensureArray(tool.outputs).forEach(o => this.addOutput(o));
 
         if (tool.arguments) {
-            tool.arguments.forEach((arg, index) => {
+            tool.arguments.forEach((arg) => {
                 this.addArgument(arg);
             });
         }
@@ -360,8 +382,11 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         this.docker        = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.hints[${this.hints.length}]`);
         this.docker.isHint = true;
+        this.docker.setValidationCallback(err => this.updateValidity(err));
+
 
         this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+        this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
 
         this.updateStream(new SBDraft2ExpressionModel(tool.stdin, `${this.loc}.stdin`), "stdin");
         this.updateStream(new SBDraft2ExpressionModel(tool.stdout, `${this.loc}.stdout`), "stdout");
@@ -390,7 +415,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
                 return acc.concat([curr]);
             }
         }, []).forEach((cmd) => {
-            this.addBaseCommand(new SBDraft2ExpressionModel(cmd))
+            this.addBaseCommand(cmd);
         });
 
         this.runtime = {mem: 1000, cpu: 1};
@@ -404,6 +429,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         // populates object with all custom attributes not covered in model
         spreadSelectProps(tool, this.customProps, serializedAttr);
+
+        // validate all objects within
+        this.validate().then(() => this.issues, () => this.issues);
     }
 
     private createReq(req: ProcessRequirement, loc: string, hint?: boolean) {

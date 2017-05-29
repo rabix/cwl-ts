@@ -1,11 +1,15 @@
 import {CommandOutputParameter} from "../../mappings/d2sb/CommandOutputParameter";
+import {CommandOutputRecordField} from "../../mappings/d2sb/CommandOutputRecordField";
+import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
+import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+import {
+    commaSeparatedToArray, incrementLastLoc, spreadAllProps,
+    spreadSelectProps
+} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
-import {Validation} from "../helpers/validation/Validation";
-import {CommandOutputRecordField} from "../../mappings/d2sb/CommandOutputRecordField";
-import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel"
-import {ParameterTypeModel} from "../generic/ParameterTypeModel";
-import {commaSeparatedToArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {Expression} from "../../mappings/d2sb/Expression";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 
 export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterModel implements Serializable<CommandOutputParameter | CommandOutputRecordField> {
 
@@ -15,16 +19,47 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
     /** Binding for connecting output files and CWL output description */
     public outputBinding: SBDraft2CommandOutputBindingModel;
 
+    public secondaryFiles: SBDraft2ExpressionModel[] = [];
+
     public hasSecondaryFiles = false;
+    public hasSecondaryFilesInRoot = false;
 
     constructor(output?: CommandOutputParameter | CommandOutputRecordField, loc?: string) {
         super(loc);
         this.deserialize(output || <CommandOutputParameter>{});
     }
 
+    updateSecondaryFiles(files: Array<Expression | string>) {
+        if (this.outputBinding) {
+            this.secondaryFiles = [];
+            files.forEach(f => this.addSecondaryFile(f));
+        }
+    }
+
+    addSecondaryFile(file: Expression | string): SBDraft2ExpressionModel {
+        if (this.outputBinding) {
+            const loc = incrementLastLoc(this.outputBinding.secondaryFiles, `${this.outputBinding.loc}.secondaryFiles`);
+            const f   = new SBDraft2ExpressionModel(file, loc);
+            this.secondaryFiles.push(f);
+            f.setValidationCallback(err => this.updateValidity(err));
+            return f;
+        }
+    }
+
+    removeSecondaryFile(index: number) {
+        if (this.outputBinding) {
+            const file = this.secondaryFiles[index];
+            if (file) {
+                file.setValue("", "string");
+                this.secondaryFiles.splice(index, 1);
+            }
+        }
+    }
+
     public updateOutputBinding(binding?: SBDraft2CommandOutputBindingModel) {
-        this.outputBinding     = binding || new SBDraft2CommandOutputBindingModel();
-        this.outputBinding.loc = `${this.loc}.outputBinding`;
+        this.outputBinding     = new SBDraft2CommandOutputBindingModel(
+            binding instanceof SBDraft2CommandOutputBindingModel ?
+                binding.serialize() : {}, `${this.loc}.outputBinding`);
         this.outputBinding.setValidationCallback((err) => this.updateValidity(err));
     }
 
@@ -35,7 +70,9 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
 
         if (this.label) base.label = this.label;
         if (this.description) base.description = this.description;
-        if (this.fileTypes.length) base["sbg:fileTypes"] = (this.fileTypes || []).join(", ");
+        if (this.fileTypes && this.fileTypes.length) {
+            base["sbg:fileTypes"] = (this.fileTypes || []).join(", ");
+        }
 
         if (this.outputBinding) {
             base.outputBinding = this.outputBinding.serialize();
@@ -46,6 +83,11 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
                 delete base.outputBinding.loadContents;
                 delete base["sbg:fileTypes"];
             }
+
+            if ((this.type.type === "File" || this.type.items === "File") && this.secondaryFiles.length > 0) {
+                base.outputBinding.secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
+            }
+
 
             if (!Object.keys(base.outputBinding).length) {
                 delete base.outputBinding;
@@ -83,28 +125,16 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
         this.description = attr.description;
         this.fileTypes   = commaSeparatedToArray(attr["sbg:fileTypes"]);
 
-        this.outputBinding = new SBDraft2CommandOutputBindingModel(attr.outputBinding);
+        this.outputBinding = new SBDraft2CommandOutputBindingModel(attr.outputBinding, `${this.loc}.outputBinding`);
         this.outputBinding.setValidationCallback(err => this.updateValidity(err));
+
+        if (attr.outputBinding && attr.outputBinding.secondaryFiles) {
+            this.secondaryFiles = attr.outputBinding.secondaryFiles.map(f => this.addSecondaryFile(f));
+        }
 
         this.type = new ParameterTypeModel(attr.type, SBDraft2CommandOutputParameterModel, `${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));
 
         spreadSelectProps(attr, this.customProps, serializedAttr);
-    }
-
-    validate(): Validation {
-        //@fixme context should be passed with constructor if model can have expressions
-        const val = {errors: [], warnings: []};
-
-        //@fixme outputBinding validation isn't implemented
-        this.outputBinding.validate();
-        this.type.validate();
-
-        const errors   = this.validation.errors.concat(val.errors);
-        const warnings = this.validation.warnings.concat(val.warnings);
-
-        this.validation = {errors, warnings};
-
-        return this.validation;
     }
 }

@@ -8,7 +8,6 @@ import * as BamtoolsSplit from "../../tests/apps/bamtools-split-sbg";
 import * as BfctoolsAnnotate from "../../tests/apps/bfctools-annotate-sbg";
 import * as BindingTestTool from "../../tests/apps/binding-test-tool";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
-import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {JSExecutor} from "../helpers/JSExecutor";
 
@@ -372,6 +371,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                     },
                     {
                         "separate": true,
+                        position: 0,
                         "valueFrom": {
                             "script": "{\n  reference_file = $job.inputs.reference.path.split('/')[$job.inputs.reference.path.split('/').length-1]\n  ext = reference_file.split('.')[reference_file.split('.').length-1]\n  if(ext=='tar'){\n    return ''\n  }\n  else{\n    tar_cmd = 'tar -cf ' + reference_file + '.tar ' + reference_file + ' *.amb' + ' *.ann' + ' *.bwt' + ' *.pac' + ' *.sa' \n    return ' ; ' + tar_cmd\n  }\n}",
                             "class": "Expression",
@@ -409,6 +409,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                             }
                         ],
                         "inputBinding": {
+                            position: 0,
                             "separate": true,
                             "sbg:cmdInclude": true,
                             "prefix": "-a"
@@ -639,28 +640,26 @@ describe("SBDraft2CommandLineToolModel", () => {
             //     outputs: [],
             //     baseCommand: []
             // });
-            // const expr = new SBDraft2ExpressionModel({
+            //
+            // expect(tool.errors).to.be.empty;
+            // tool.addBaseCommand({
             //     "class": "Expression",
             //     script: "---",
             //     engine: "#cwl-js-engine"
             // });
+            // expect(tool.errors).to.be.empty;
             //
-            // expect(tool.validation.errors).to.be.empty;
-            // tool.addBaseCommand(expr);
-            // expect(tool.validation.errors).to.be.empty;
-            //
-            // const expr2 = new SBDraft2ExpressionModel({
+            // expect(tool.warnings).to.be.empty;
+            // tool.addBaseCommand({
             //     "class": "Expression",
             //     script: "abb",
             //     engine: "#cwl-js-engine"
             // });
             //
-            // expect(tool.validation.warnings).to.be.empty;
-            // tool.addBaseCommand(expr2);
-            // expr2.evaluate().then(done, () => {
-            //     expect(tool.validation.warnings).to.not.be.empty;
-            //     expect(tool.validation.warnings[0].loc).to.equal("document.baseCommand[1]", "location of warning");
-            //     expect(tool.validation.warnings[0].message).to.contain("ReferenceError", "value of warning");
+            // tool.baseCommand[1].validate({}).then(() => {
+            //     expect(tool.warnings).to.not.deep.equal([], "should have warning");
+            //     expect(tool.warnings[0].loc).to.equal("document.baseCommand[1]", "location of warning");
+            //     expect(tool.warnings[0].message).to.contain("ReferenceError", "value of warning");
             // }).then(done, done);
         });
     });

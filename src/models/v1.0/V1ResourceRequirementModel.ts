@@ -13,7 +13,9 @@ export class V1ResourceRequirementModel extends ResourceRequirementModel {
         super(loc);
 
         this.mem   = new V1ExpressionModel("", `${this.loc}.ramMin`);
+        this.mem.setValidationCallback(err => this.updateValidity(err));
         this.cores = new V1ExpressionModel("", `${this.loc}.coresMin`);
+        this.cores.setValidationCallback(err => this.updateValidity(err));
 
         if (req) this.deserialize(req);
     }
@@ -33,23 +35,26 @@ export class V1ResourceRequirementModel extends ResourceRequirementModel {
         cores = isNaN(<any> cores) ? cores : parseInt(cores);
 
         const base: ResourceRequirement = {
-            class: "ResourceRequirement"
+            "class": "ResourceRequirement"
         };
 
-        if (mem) base.ramMin = mem;
-        if (cores) base.coresMin = cores;
+        if (mem !== undefined) base.ramMin = mem;
+        if (cores !== undefined) base.coresMin = cores;
 
         return spreadAllProps(base, this.customProps);
     }
 
     deserialize(attr: ResourceRequirement): void {
         //@todo cover maximum values
+
         if (attr.ramMin !== undefined && attr.ramMin !== null) {
             this.mem = new V1ExpressionModel(<string> attr.ramMin.toString(), `${this.loc}.ramMin`);
+            this.mem.setValidationCallback(err => this.updateValidity(err));
         }
 
         if (attr.coresMin !== undefined && attr.coresMin !== null) {
             this.cores = new V1ExpressionModel(<string> attr.coresMin.toString(), `${this.loc}.coresMin`);
+            this.cores.setValidationCallback(err => this.updateValidity(err));
         }
 
         spreadSelectProps(attr, this.customProps, ["class", "ramMin", "coresMin"]);

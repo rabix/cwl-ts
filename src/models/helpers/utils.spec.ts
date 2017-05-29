@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {
     ensureArray, checkMapValueType, incrementString, spreadSelectProps,
-    snakeCase, fetchByLoc
+    snakeCase, fetchByLoc, cleanupNull, incrementLastLoc
 } from "./utils";
 
 describe("ensureArray", () => {
@@ -261,5 +261,65 @@ describe("fetchByLoc", () => {
         const test = {hello: {world: "meow"}};
 
         expect(fetchByLoc(test, "hello['world']")).to.equal("meow");
+    })
+});
+
+describe("cleanupNull", () => {
+    it("should remove null values", () => {
+        const test = {
+            a: null,
+            b: 3
+        };
+
+        const clean = cleanupNull(test);
+        expect(Object.keys(clean)).to.have.length(1);
+        expect(clean).to.not.haveOwnProperty("a");
+        expect(clean).to.haveOwnProperty("b");
+    });
+
+    it("should not change values", () => {
+        const test = {
+            a: null,
+            b: 3,
+            c: 44
+        };
+
+        const clean = cleanupNull(test);
+        expect(Object.keys(clean)).to.have.length(2);
+        expect(clean).to.not.haveOwnProperty("a");
+        expect(clean).to.haveOwnProperty("b");
+        expect(clean.b).to.equal(3);
+        expect(clean.c).to.equal(44);
+    });
+
+    it("should remove undefined values", () => {
+        let q = undefined;
+
+        const test = {
+            a: q,
+            b: 3
+        };
+
+        const clean = cleanupNull(test);
+        expect(Object.keys(clean)).to.have.length(1);
+        expect(clean).to.not.haveOwnProperty("a");
+        expect(clean).to.haveOwnProperty("b");
+    })
+});
+
+describe("incrementLastLoc", () => {
+    it("should return the last location with an incremented index", () => {
+        const loc = incrementLastLoc([{loc: "items[0]"}, {loc: "items[1]"}], "items");
+        expect(loc).to.equal("items[2]");
+    });
+
+    it("should return prefix[0] when array is empty", () => {
+        const loc = incrementLastLoc([], "items");
+        expect(loc).to.equal("items[0]");
+    });
+
+    it("should return null if loc isn't incrementable", () => {
+        const loc = incrementLastLoc([{loc: "items.one"}, {loc: "items.two"}], "items");
+        expect(loc).to.be.null;
     })
 });

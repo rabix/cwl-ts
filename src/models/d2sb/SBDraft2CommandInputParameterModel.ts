@@ -1,23 +1,25 @@
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordField";
-import {Serializable} from "../interfaces/Serializable";
-import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
-import {Validation} from "../helpers/validation";
-import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
-import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+import {Expression} from "../../mappings/d2sb/Expression";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
-import {spreadSelectProps} from "../helpers/utils";
+import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {ID_REGEX} from "../helpers/constants";
 import {EventHub} from "../helpers/EventHub";
+import {ensureArray, incrementLastLoc, spreadSelectProps} from "../helpers/utils";
+import {Serializable} from "../interfaces/Serializable";
+import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 
-export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<
-    CommandInputParameter
+export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter
     | CommandInputRecordField> {
     /** Binding for inclusion in command line */
     public inputBinding: SBDraft2CommandLineBindingModel = null;
 
     public hasSecondaryFiles = false;
-    public hasStageInput = true;
+    public hasSecondaryFilesInRoot = false;
+    public hasStageInput     = true;
+    public secondaryFiles: SBDraft2ExpressionModel[] = [];
+
 
     public job: any;
 
@@ -36,8 +38,8 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         if (this.inputBinding) {
             base.inputBinding = this.inputBinding.serialize();
 
-            if (this.type.type !== "File" && this.type.items !== "File") {
-                delete base.inputBinding.secondaryFiles;
+            if (this.type.type === "File" || this.type.items === "File") {
+                base.inputBinding.secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
             }
         }
 
@@ -74,25 +76,29 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         // if inputBinding isn't defined in input, it shouldn't exist as an object in model
         if (input.inputBinding !== undefined) {
             this.inputBinding = new SBDraft2CommandLineBindingModel(input.inputBinding, `${this.loc}.inputBinding`);
-            this.inputBinding.setValidationCallback((err: Validation) => this.updateValidity(err));
+            this.inputBinding.setValidationCallback((err) => this.updateValidity(err));
+
+            if (input.inputBinding.secondaryFiles) {
+                this.secondaryFiles = ensureArray(input.inputBinding.secondaryFiles).map(f => this.addSecondaryFile(f));
+            }
         }
 
         this.type = new ParameterTypeModel(input.type, SBDraft2CommandInputParameterModel, `${this.loc}.type`, this.eventHub);
-        this.type.setValidationCallback((err: Validation) => {
-            this.updateValidity(err)
+        this.type.setValidationCallback((err) => {
+            this.updateValidity(err);
         });
 
         // populates object with all custom attributes not covered in model
         spreadSelectProps(input, this.customProps, serializedAttr);
     }
 
-    public updateInputBinding(binding: SBDraft2CommandLineBindingModel | CommandLineBinding) {
+    public updateInputBinding(binding: SBDraft2CommandLineBindingModel) {
         if (binding instanceof SBDraft2CommandLineBindingModel) {
-            binding = (binding as SBDraft2CommandLineBindingModel).serialize();
+            //@todo breaks here for serialize of undefined
+            // this.updateSecondaryFiles(ensureArray(binding.secondaryFiles));
+            this.inputBinding.setValidationCallback(err => this.updateValidity(err));
+            this.inputBinding.cloneStatus(binding);
         }
-        this.inputBinding = new SBDraft2CommandLineBindingModel(<CommandLineBinding> binding, `${this.loc}.inputBinding`);
-        this.inputBinding.setValidationCallback(err => this.updateValidity(err));
-
     }
 
     public createInputBinding(): SBDraft2CommandLineBindingModel {
@@ -101,31 +107,70 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         return this.inputBinding;
     }
 
-    //@todo(maya) implement validation
-    validate(): Validation {
-        this.validation = {errors: [], warnings: []}; // purge current validation;
+    addSecondaryFile(file: Expression | string): SBDraft2ExpressionModel {
+        if (this.inputBinding) {
+            const loc = incrementLastLoc(this.secondaryFiles, `${this.inputBinding.loc}.secondaryFiles`);
+            const f   = new SBDraft2ExpressionModel(file, loc);
+            this.secondaryFiles.push(f);
+            f.setValidationCallback(err => this.updateValidity(err));
+            return f;
+        }
+    }
 
-        // if (this.inputBinding && this.inputBinding.valueFrom) {
-        //     this.inputBinding.valueFrom.evaluate({$job: this.job, $self: this.self});
-        // }
+    updateSecondaryFiles(files: Array<Expression | Expression | string>) {
+        if (this.inputBinding) {
+            this.secondaryFiles = [];
+            files.forEach(f => this.addSecondaryFile(f));
+        }
+    }
+
+    removeSecondaryFile(index: number) {
+        if (this.inputBinding) {
+            const file = this.secondaryFiles[index];
+            if (file) {
+                file.setValue("", "string");
+                this.secondaryFiles.splice(index, 1);
+            }
+        }
+    }
+
+// //@todo(maya) implement validation
+    validate(context): Promise<any> {
+        const promises = [];
+        this.cleanValidity();
+
+        if (this.inputBinding) {
+            promises.push(this.inputBinding.validate(context));
+        }
+
+        promises.push(this.type.validate());
+
+        if (this.secondaryFiles) {
+            promises.concat(this.secondaryFiles.map(file => file.validate(context)));
+        }
 
         // check id validity
         // doesn't exist
         if (this.id === "" || this.id === undefined) {
-            this.validation.errors.push({
-                message: "ID must be set",
-                loc: `${this.loc}.id`
+            this.updateValidity({
+                [`${this.loc}.id`]: {
+                    message: "ID must be set",
+                    type: "error"
+                }
             });
             // contains illegal characters
         } else if (!ID_REGEX.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
-            this.validation.errors.push({
-                message: "ID can only contain alphanumeric and underscore characters",
-                loc: `${this.loc}.id`
+            this.updateValidity({
+                [`${this.loc}.id`]: {
+                    message: "ID can only contain alphanumeric and underscore characters",
+                    type: "error"
+                }
             });
         }
 
-        this.type.validate();
-
-        return this.validation;
+        return Promise.all(promises).then(() => this.issues, (ex) => {
+            console.warn(`SBDraft2CommandInputParameterModel threw error in validation: ${ex}`);
+            return this.issues
+        });
     }
 }

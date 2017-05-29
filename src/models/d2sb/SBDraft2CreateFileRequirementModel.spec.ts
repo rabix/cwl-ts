@@ -2,7 +2,6 @@ import {expect} from "chai";
 import {SBDraft2CreateFileRequirementModel} from "./SBDraft2CreateFileRequirementModel";
 import {CreateFileRequirementClass} from "../../mappings/d2sb/CreateFileRequirement";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
-import {SBDraft2FileDefModel} from "./FileDefModel";
 
 describe("CreateFileRequirementModel", () => {
     describe("serialize", () => {

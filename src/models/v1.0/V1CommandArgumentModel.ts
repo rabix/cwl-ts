@@ -45,11 +45,13 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
     }
 
     updateBinding(binding: CommandLineBinding) {
+        this.binding.prefix = binding.prefix;
+        this.binding.position = binding.position;
+        this.binding.separate = binding.separate;
+        this.binding.itemSeparator = binding.itemSeparator;
+
         this.primitive  = undefined;
         this.hasBinding = true;
-
-        this.binding = new V1CommandLineBindingModel(binding, this.loc);
-        this.binding.setValidationCallback(err => this.updateValidity(err));
     }
 
     serialize(): CommandLineBinding | string {

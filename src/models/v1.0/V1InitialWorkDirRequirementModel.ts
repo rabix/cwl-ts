@@ -40,7 +40,12 @@ export class V1InitialWorkDirRequirementModel extends CreateFileRequirementModel
         // don't serialize if the only property that is being serialized is the class
         const keys            = Object.keys(base);
         const customPropsKeys = Object.keys(this.customProps);
-        if (keys.length === 1 && keys[0] === "class" && customPropsKeys.length === 0) {
+        if (keys.length === 2 &&
+            keys[0] === "class" &&
+            keys[1] === "listing" &&
+            !base.listing.length &&
+            customPropsKeys.length === 0) {
+
             return undefined;
         }
 

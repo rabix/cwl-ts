@@ -2,7 +2,7 @@ import {CreateFileRequirement} from "../../mappings/d2sb/CreateFileRequirement";
 import {FileDef} from "../../mappings/d2sb/FileDef";
 import {CreateFileRequirementModel} from "../generic/CreateFileRequirementModel";
 import {Serializable} from "../interfaces/Serializable";
-import {SBDraft2FileDefModel} from "./FileDefModel";
+import {SBDraft2FileDefModel} from "./SBDraft2FileDefModel";
 
 export class SBDraft2CreateFileRequirementModel extends CreateFileRequirementModel implements Serializable<CreateFileRequirement> {
     public 'class' = "CreateFileRequirement";
@@ -31,15 +31,16 @@ export class SBDraft2CreateFileRequirementModel extends CreateFileRequirementMod
         this.deserialize(req);
     }
 
-    public addDirent(def: SBDraft2FileDefModel | FileDef): SBDraft2FileDefModel {
+    public addDirent(def: FileDef): SBDraft2FileDefModel {
+
         if (def instanceof SBDraft2FileDefModel) {
+            //@todo remove this if possible
             this._listing.push(def);
             def.setValidationCallback(err => this.updateValidity(err));
             def.loc = `${this.loc}.fileDef[${this._listing.length}]`;
             return def;
         } else {
-            const d = new SBDraft2FileDefModel(<FileDef> def);
-            d.loc   = `${this.loc}.fileDef[${this._listing.length}]`;
+            const d = new SBDraft2FileDefModel(<FileDef> def, `${this.loc}.fileDef[${this._listing.length}]`);
             d.setValidationCallback(err => this.updateValidity(err));
             this._listing.push(d);
             return d;
