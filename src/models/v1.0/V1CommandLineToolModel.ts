@@ -399,6 +399,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             base.id = this.sbgId || this.id;
         }
 
+        if (this.description) base.doc = this.description;
+        if (this.label) base.label = this.label;
+
         // REQUIREMENTS && HINTS
         base.requirements = [];
         base.hints        = [];
