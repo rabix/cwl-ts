@@ -88,7 +88,7 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
         if (this.type === "expression") {
             return (<Expression> this.value).script
         } else if (this.value === null || this.value === undefined) {
-            return <string> this.value;
+            return <string> "";
         } else {
             return this.value.toString();
         }
