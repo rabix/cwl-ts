@@ -322,7 +322,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         if (this.jobInputs || this.runtime) {
             base["sbg:job"] = {
                 inputs: this.jobInputs,
-                runtime: this.runtime
+                allocatedResources: this.runtime
             };
         }
 
