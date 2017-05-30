@@ -278,7 +278,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             }
         }
 
-        for(let i = 0; i < this.arguments.length; i++) {
+        for (let i = 0; i < this.arguments.length; i++) {
             const argument = this.arguments[i];
             promises.push(argument.validate(this.getContext()));
         }
@@ -402,8 +402,28 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (this.description) base.doc = this.description;
         if (this.label) base.label = this.label;
 
+        if (this.arguments.length) {
+            let hasShellQuote = false;
+            base.arguments    = [];
+            for (let i = 0; i < this.arguments.length; i++) {
+                const arg = this.arguments[i];
+                base.arguments.push(arg.serialize());
+                if (arg.shellQuote) {
+                    hasShellQuote = true;
+                }
+            }
+
+            // Add ShellCommandRequirement if any of the arguments has shellQuote
+            if (hasShellQuote) {
+                base.requirements = [];
+                base.requirements.push({
+                    "class": "ShellCommandRequirement"
+                });
+            }
+        }
+
         // REQUIREMENTS && HINTS
-        base.requirements = [];
+        base.requirements = base.requirements || [];
         base.hints        = [];
 
 
@@ -436,8 +456,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (this.stdin.serialize() !== undefined) base.stdin = this.stdin.serialize();
         if (this.stdout.serialize() !== undefined) base.stdout = this.stdout.serialize();
         if (this.stderr.serialize() !== undefined) base.stderr = this.stderr.serialize();
-
-        if (this.arguments.length) base.arguments = this.arguments.map(a => a.serialize());
 
         if (this.jobInputs) {
             base["sbg:job"] = {

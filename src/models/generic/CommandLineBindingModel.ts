@@ -5,7 +5,7 @@ import {ExpressionModel} from "./ExpressionModel";
 import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
 
-export abstract class CommandLineBindingModel extends ValidationBase implements Serializable<any>{
+export abstract class CommandLineBindingModel extends ValidationBase implements Serializable<any> {
     public customProps = {};
 
     public loadContents: boolean;
@@ -16,6 +16,7 @@ export abstract class CommandLineBindingModel extends ValidationBase implements 
     public valueFrom: ExpressionModel;
 
     public hasSecondaryFiles: boolean;
+    public hasShellQuote: boolean;
 
     public secondaryFiles?: ExpressionModel[];
 

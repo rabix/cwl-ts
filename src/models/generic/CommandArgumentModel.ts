@@ -10,6 +10,7 @@ export abstract class CommandArgumentModel extends ValidationBase implements Ser
     protected binding: CommandLineBindingModel;
     hasBinding: boolean = false;
     hasExprPrimitive: boolean;
+    hasShellQuote: boolean;
     primitive: string | ExpressionModel;
 
     get prefix(): string {
@@ -31,6 +32,12 @@ export abstract class CommandArgumentModel extends ValidationBase implements Ser
     get valueFrom(): ExpressionModel {
         return this.binding ? this.binding.valueFrom : undefined;
     }
+
+    // if binding doesn't have shellQuote, it will return undefined anyway
+    get shellQuote(): boolean {
+        return this.binding ? (<any> this.binding).shellQuote : undefined;
+    }
+
     customProps: any = {};
 
     toggleBinding(state: boolean): void {

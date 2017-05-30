@@ -8,6 +8,7 @@ export class SBDraft2CommandArgumentModel extends CommandArgumentModel implement
     | CommandLineBinding> {
 
     hasExprPrimitive = false;
+    hasShellQuote = false;
     primitive: string;
 
     public updateBinding(binding: CommandLineBinding) {

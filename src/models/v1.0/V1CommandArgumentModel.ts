@@ -4,12 +4,14 @@ import {CommandArgumentModel} from "../generic/CommandArgumentModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
 
-export class V1CommandArgumentModel extends CommandArgumentModel implements Serializable<
-    CommandLineBinding
+export class V1CommandArgumentModel extends CommandArgumentModel implements Serializable<CommandLineBinding
     | string> {
+
     protected binding: V1CommandLineBindingModel;
-              primitive: V1ExpressionModel;
-              hasExprPrimitive = true;
+
+    primitive: V1ExpressionModel;
+    hasExprPrimitive = true;
+    hasShellQuote = true;
 
     constructor(arg?: CommandLineBinding | string, loc?: string) {
         super(loc);
@@ -27,11 +29,11 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
 
     toggleBinding(state: boolean): void {
         if (state) {
-            this.binding = new V1CommandLineBindingModel({}, this.loc);
+            this.binding   = new V1CommandLineBindingModel({}, this.loc);
             this.primitive = undefined;
         } else {
             this.primitive = new V1ExpressionModel("", this.loc);
-            this.binding = undefined;
+            this.binding   = undefined;
         }
 
         this.hasBinding = state;
@@ -45,10 +47,11 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
     }
 
     updateBinding(binding: CommandLineBinding) {
-        this.binding.prefix = binding.prefix;
-        this.binding.position = binding.position;
-        this.binding.separate = binding.separate;
+        this.binding.prefix        = binding.prefix;
+        this.binding.position      = binding.position;
+        this.binding.separate      = binding.separate;
         this.binding.itemSeparator = binding.itemSeparator;
+        this.binding.shellQuote    = binding.shellQuote;
 
         this.primitive  = undefined;
         this.hasBinding = true;

@@ -10,6 +10,8 @@ import warning = ts.ScriptElementKind.warning;
 export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: SBDraft2ExpressionModel;
     public hasSecondaryFiles = true;
+    public hasShellQuote = false;
+
     protected context: { $job: any, $self: any };
 
     private serializedKeys: string[] = [

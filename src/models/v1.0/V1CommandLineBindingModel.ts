@@ -7,7 +7,9 @@ import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
 
 export class V1CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: V1ExpressionModel;
+    public shellQuote: boolean;
     public hasSecondaryFiles = false;
+    public hasShellQuote     = true;
 
     constructor(binding?: CommandLineBinding, loc?: string) {
         super(loc);
@@ -21,6 +23,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
         "separate",
         "itemSeparator",
         "valueFrom",
+        "shellQuote",
         "loadContents"
     ];
 
@@ -34,6 +37,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
         this.prefix        = binding.prefix;
         this.separate      = binding.separate;
         this.itemSeparator = binding.itemSeparator;
+        this.shellQuote    = binding.shellQuote;
         this.loadContents  = binding.loadContents === true;
 
         this.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`);
@@ -51,6 +55,8 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
         });
 
         if (!base.loadContents) delete base.loadContents;
+
+        if (!base.shellQuote) delete base.shellQuote;
 
         if (this.valueFrom.serialize() !== undefined) {
             base.valueFrom = <string | Expression> this.valueFrom.serialize();
