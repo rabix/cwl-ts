@@ -75,7 +75,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
 
         // if inputBinding isn't defined in input, it shouldn't exist as an object in model
         if (input.inputBinding !== undefined) {
-            this.inputBinding = new SBDraft2CommandLineBindingModel(input.inputBinding, `${this.loc}.inputBinding`);
+            this.inputBinding = new SBDraft2CommandLineBindingModel(input.inputBinding, `${this.loc}.inputBinding`, this.eventHub);
             this.inputBinding.setValidationCallback((err) => this.updateValidity(err));
 
             if (input.inputBinding.secondaryFiles) {
@@ -102,7 +102,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
     }
 
     public createInputBinding(): SBDraft2CommandLineBindingModel {
-        this.inputBinding = new SBDraft2CommandLineBindingModel({}, `${this.loc}.inputBinding`);
+        this.inputBinding = new SBDraft2CommandLineBindingModel({}, `${this.loc}.inputBinding`, this.eventHub);
         this.inputBinding.setValidationCallback(err => this.updateValidity(err));
         return this.inputBinding;
     }
@@ -110,7 +110,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
     addSecondaryFile(file: Expression | string): SBDraft2ExpressionModel {
         if (this.inputBinding) {
             const loc = incrementLastLoc(this.secondaryFiles, `${this.inputBinding.loc}.secondaryFiles`);
-            const f   = new SBDraft2ExpressionModel(file, loc);
+            const f   = new SBDraft2ExpressionModel(file, loc, this.eventHub);
             this.secondaryFiles.push(f);
             f.setValidationCallback(err => this.updateValidity(err));
             return f;

@@ -29,7 +29,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
     ];
 
     setValueFrom(val: string | Expression) {
-        this.valueFrom = new V1ExpressionModel(val, `${this.loc}.valueFrom`);
+        this.valueFrom = new V1ExpressionModel(val, `${this.loc}.valueFrom`, this.eventHub);
         this.valueFrom.setValidationCallback(err => this.updateValidity(err));
     }
 
@@ -41,7 +41,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
         this.shellQuote    = binding.shellQuote;
         this.loadContents  = binding.loadContents === true;
 
-        this.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`);
+        this.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`, this.eventHub);
         this.valueFrom.setValidationCallback(err => this.updateValidity(err));
 
         spreadSelectProps(binding, this.customProps, this.serializedKeys);

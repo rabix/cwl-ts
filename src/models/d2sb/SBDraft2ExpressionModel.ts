@@ -1,6 +1,7 @@
 import {Expression} from "../../mappings/d2sb/Expression";
 import {ExpressionModel} from "../generic/ExpressionModel";
 import {Serializable} from "../interfaces/Serializable";
+import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2ExpressionModel extends ExpressionModel implements Serializable<number | string | Expression> {
     /**
@@ -26,8 +27,8 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
     /** Internal CWL representation of Expression */
     private value: number | string | Expression;
 
-    constructor(value?: number | string | Expression, loc?: string) {
-        super(loc);
+    constructor(value?: number | string | Expression, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
 
         // guard against passing something that is already wrapped
         if (value instanceof SBDraft2ExpressionModel) {
@@ -44,6 +45,10 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
      * Returns CWL representation.
      */
     public serialize(): number | string | Expression {
+        if (this.type === "expression" && this.eventHub) {
+            this.eventHub.emit("expression.serialize", true);
+        }
+
         if (this.value && this.value.hasOwnProperty("script") && (<Expression> this.value).script === "") {
             return undefined;
         } else if (this.value === "" || this.value === null) {

@@ -108,7 +108,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public addBaseCommand(cmd: Expression | string | number = ""): SBDraft2ExpressionModel {
         const loc = incrementLastLoc(this.baseCommand, `${this.loc}.baseCommand`);
 
-        const c = new SBDraft2ExpressionModel(cmd, loc);
+        const c = new SBDraft2ExpressionModel(cmd, loc, this.eventHub);
         this.baseCommand.push(c);
 
         c.setValidationCallback(err => this.updateValidity(err));
@@ -156,7 +156,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public addOutput(output: CommandOutputParameter): SBDraft2CommandOutputParameterModel {
         const loc = incrementLastLoc(this.outputs, `${this.loc}.outputs`);
 
-        const o = new SBDraft2CommandOutputParameterModel(output, loc);
+        const o = new SBDraft2CommandOutputParameterModel(output, loc, this.eventHub);
 
         o.id = o.id || this.getNextAvailableId("output");
 
@@ -237,6 +237,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     serialize(): CommandLineTool | any {
         let base: CommandLineTool = <CommandLineTool>{};
+        let hasExpression         = false;
 
         base.cwlVersion = "sbg:draft-2";
         base.class      = "CommandLineTool";
@@ -247,6 +248,10 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         if (this.label) base.label = this.label;
         if (this.description) base.description = this.description;
+
+        const expressionWatcherDispose = this.eventHub.on("expression.serialize", (data) => {
+            hasExpression = data;
+        });
 
         // BASECOMMAND
         base.baseCommand = this.baseCommand
@@ -318,6 +323,24 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             base.stdout = <string | Expression> this.stdout.serialize();
         }
 
+        const exprReqIndex = this.requirements.findIndex((req => req.class === "ExpressionEngineRequirement"));
+        if (hasExpression) {
+            base.requirements = base.requirements || [];
+            if (exprReqIndex === -1) {
+                base.requirements.push({
+                    id: "#cwl-js-engine",
+                    "class": "ExpressionEngineRequirement",
+                    requirements: [
+                        {
+                            dockerPull: "rabix/js-engine",
+                            "class": "DockerRequirement"
+                        }
+                    ]
+                });
+            }
+        }
+        expressionWatcherDispose();
+
         // JOB
         if (this.jobInputs || this.runtime) {
             base["sbg:job"] = {
@@ -325,6 +348,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
                 allocatedResources: this.runtime
             };
         }
+
 
         base = Object.assign({}, base, this.customProps);
 
@@ -385,11 +409,11 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.docker.setValidationCallback(err => this.updateValidity(err));
 
 
-        this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`);
+        this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`, this.eventHub);
         this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
 
-        this.updateStream(new SBDraft2ExpressionModel(tool.stdin, `${this.loc}.stdin`), "stdin");
-        this.updateStream(new SBDraft2ExpressionModel(tool.stdout, `${this.loc}.stdout`), "stdout");
+        this.updateStream(new SBDraft2ExpressionModel(tool.stdin, `${this.loc}.stdin`, this.eventHub), "stdin");
+        this.updateStream(new SBDraft2ExpressionModel(tool.stdout, `${this.loc}.stdout`, this.eventHub), "stdout");
 
         this.successCodes       = tool.successCodes || [];
         this.temporaryFailCodes = tool.temporaryFailCodes || [];
@@ -444,16 +468,16 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
                 this.docker.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "CreateFileRequirement":
-                reqModel             = new SBDraft2CreateFileRequirementModel(<CreateFileRequirement>req, loc);
+                reqModel             = new SBDraft2CreateFileRequirementModel(<CreateFileRequirement>req, loc, this.eventHub);
                 this.fileRequirement = <SBDraft2CreateFileRequirementModel> reqModel;
                 reqModel.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:CPURequirement":
-                this.resources.cores = new SBDraft2ExpressionModel((<SBGCPURequirement>req).value, `${loc}.value`);
+                this.resources.cores = new SBDraft2ExpressionModel((<SBGCPURequirement>req).value, `${loc}.value`, this.eventHub);
                 this.resources.cores.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:MemRequirement":
-                this.resources.mem = new SBDraft2ExpressionModel((<SBGMemRequirement>req).value, `${loc}.value`);
+                this.resources.mem = new SBDraft2ExpressionModel((<SBGMemRequirement>req).value, `${loc}.value`, this.eventHub);
                 this.resources.mem.setValidationCallback(err => this.updateValidity(err));
                 return;
             default:

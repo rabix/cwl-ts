@@ -1,6 +1,7 @@
 import {CommandOutputBindingModel} from "../generic/CommandOutputBindingModel";
 import {CommandOutputBinding} from "../../mappings/v1.0/CommandOutputBinding";
 import {V1ExpressionModel} from "./V1ExpressionModel";
+import {EventHub} from "../helpers/EventHub";
 export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     public hasSecondaryFiles  = false;
     public hasMetadata        = false;
@@ -13,7 +14,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     }
 
     set glob(value: V1ExpressionModel) {
-        this._glob = new V1ExpressionModel(value.serialize(), `${this.loc}.glob`);
+        this._glob = new V1ExpressionModel(value.serialize(), `${this.loc}.glob`, this.eventHub);
         this._glob.setValidationCallback(err => this.updateValidity(err));
         if (this._glob.serialize() === undefined) {
             this._glob.updateValidity({
@@ -32,12 +33,12 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     }
 
     set outputEval(value: V1ExpressionModel) {
-        this._outputEval = new V1ExpressionModel(value.serialize(), `${this.loc}.outputEval`);
+        this._outputEval = new V1ExpressionModel(value.serialize(), `${this.loc}.outputEval`, this.eventHub);
         this._outputEval.setValidationCallback(err => this.updateValidity(err));
     }
 
-    constructor(binding: CommandOutputBinding = {}, loc?: string) {
-        super(loc);
+    constructor(binding: CommandOutputBinding = {}, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
 
         if (binding) this.deserialize(binding);
     }
@@ -49,10 +50,10 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
             glob = binding.glob[0];
         }
 
-        this._glob = new V1ExpressionModel(<string> glob, `${this.loc}.glob`);
+        this._glob = new V1ExpressionModel(<string> glob, `${this.loc}.glob`, this.eventHub);
         this._glob.setValidationCallback(err => this.updateValidity(err));
 
-        this._outputEval = new V1ExpressionModel(binding.outputEval, `${this.loc}.outputEval`);
+        this._outputEval = new V1ExpressionModel(binding.outputEval, `${this.loc}.outputEval`, this.eventHub);
         this._outputEval.setValidationCallback(err => this.updateValidity(err));
     }
 

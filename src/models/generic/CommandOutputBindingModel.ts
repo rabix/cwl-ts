@@ -2,6 +2,7 @@ import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {ExpressionModel} from "./ExpressionModel";
+import {EventHub} from "../helpers/EventHub";
 
 export class CommandOutputBindingModel extends ValidationBase implements Serializable<any> {
     hasSecondaryFiles: boolean;
@@ -21,6 +22,10 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
     protected _outputEval: ExpressionModel;
 
     customProps: any = {};
+
+    constructor(loc?: string, protected eventHub?: EventHub) {
+        super(loc);
+    }
 
     serialize(): any {
         new UnimplementedMethodException("serialize", "CommandOutputBindingModel");

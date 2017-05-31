@@ -42,7 +42,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
 
     addSecondaryFile(file: Expression | string): V1ExpressionModel {
         const loc = incrementLastLoc(this.secondaryFiles, `${this.loc}.secondaryFiles`);
-        const f   = new V1ExpressionModel(file, loc);
+        const f   = new V1ExpressionModel(file, loc, this.eventHub);
         f.setValidationCallback(err => this.updateValidity(err));
         this.secondaryFiles.push(f);
 

@@ -3,6 +3,7 @@ import {Expression} from "../../mappings/d2sb/Expression";
 import {CommandOutputBindingModel} from "../generic/CommandOutputBindingModel";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
+import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel implements Serializable<CommandOutputBinding> {
     public loadContents: boolean;
@@ -20,7 +21,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     }
 
     set glob(value: SBDraft2ExpressionModel) {
-        this._glob = new SBDraft2ExpressionModel(value.serialize(), `${this.loc}.glob`);
+        this._glob = new SBDraft2ExpressionModel(value.serialize(), `${this.loc}.glob`, this.eventHub);
         this._glob.setValidationCallback(err => this.updateValidity(err));
         if (this._glob.serialize() === undefined) {
             this._glob.updateValidity({
@@ -40,7 +41,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     }
 
     set outputEval(value: SBDraft2ExpressionModel) {
-        this._outputEval = new SBDraft2ExpressionModel(value.serialize(), `${this.loc}.outputEval`);
+        this._outputEval = new SBDraft2ExpressionModel(value.serialize(), `${this.loc}.outputEval`, this.eventHub);
         this._outputEval.setValidationCallback(err => this.updateValidity(err));
 
         if (!this._outputEval.isExpression) {
@@ -57,8 +58,8 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
         this.outputEval = expr;
     }
 
-    constructor(binding?: CommandOutputBinding, loc?: string) {
-        super(loc);
+    constructor(binding?: CommandOutputBinding, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         this.deserialize(binding || {});
     }
 
@@ -101,7 +102,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
 
         if (binding && binding.constructor === Object) {
             if (!Array.isArray(binding.glob)) {
-                this._glob = new SBDraft2ExpressionModel(binding.glob, this.loc + '.glob');
+                this._glob = new SBDraft2ExpressionModel(binding.glob, this.loc + '.glob', this.eventHub);
                 this._glob.setValidationCallback((err) => this.updateValidity(err));
             } else {
                 console.warn(`Not supporting glob which is string[] at ${this.loc}. Glob cannot be edited via model`);
@@ -117,12 +118,12 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
                     binding["sbg:inheritMetadataFrom"];
             }
 
-            this._outputEval = new SBDraft2ExpressionModel(binding.outputEval, `${this.loc}.outputEval`);
+            this._outputEval = new SBDraft2ExpressionModel(binding.outputEval, `${this.loc}.outputEval`, this.eventHub);
             this._outputEval.setValidationCallback(err => this.updateValidity(err));
 
             if (binding["sbg:metadata"] && binding["sbg:metadata"].constructor === Object) {
                 Object.keys(binding["sbg:metadata"]).forEach(key => {
-                    this.metadata[key] = new SBDraft2ExpressionModel(binding["sbg:metadata"][key], `${this.loc}["sbg:metadata"].${key}`);
+                    this.metadata[key] = new SBDraft2ExpressionModel(binding["sbg:metadata"][key], `${this.loc}["sbg:metadata"].${key}`, this.eventHub);
                     this.metadata[key].setValidationCallback(err => this.updateValidity(err));
                 });
             }

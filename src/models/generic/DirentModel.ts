@@ -2,12 +2,17 @@ import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {ExpressionModel} from "./ExpressionModel";
 import {Serializable} from "../interfaces/Serializable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
+import {EventHub} from "../helpers/EventHub";
 
 export abstract class DirentModel extends ValidationBase implements Serializable<any> {
     entry: ExpressionModel;
     entryName: ExpressionModel;
 
     customProps: any = {};
+
+    constructor(loc?: string, protected eventHub?: EventHub) {
+        super(loc);
+    }
 
     serialize(): any {
         new UnimplementedMethodException("serialize",  "DirentModel");

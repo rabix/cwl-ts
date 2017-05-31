@@ -31,7 +31,7 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
     }
 
     setValueFrom(val: string | Expression) {
-        this.valueFrom = new SBDraft2ExpressionModel(val, `${this.loc}.valueFrom`);
+        this.valueFrom = new SBDraft2ExpressionModel(val, `${this.loc}.valueFrom`, this.eventHub);
         this.valueFrom.setValidationCallback((err) => {
             this.updateValidity(err);
         });
@@ -77,7 +77,7 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
             this.itemSeparator = binding.itemSeparator;
             this.loadContents  = binding.loadContents === true;
 
-            this.valueFrom = new SBDraft2ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`);
+            this.valueFrom = new SBDraft2ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`, this.eventHub);
             this.valueFrom.setValidationCallback(err => this.updateValidity(err));
 
             // populates object with all custom attributes not covered in model

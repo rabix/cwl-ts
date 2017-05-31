@@ -2,6 +2,7 @@ import {ResourceRequirement} from "../../mappings/v1.0/ResourceRequirement";
 import {ResourceRequirementModel} from "../generic/ResourceRequirementModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {EventHub} from "../helpers/EventHub";
 
 export class V1ResourceRequirementModel extends ResourceRequirementModel {
     class = "ResourceRequirement";
@@ -9,12 +10,12 @@ export class V1ResourceRequirementModel extends ResourceRequirementModel {
     mem: V1ExpressionModel;
     cores: V1ExpressionModel;
 
-    constructor(req?: ResourceRequirement, loc?: string) {
-        super(loc);
+    constructor(req?: ResourceRequirement, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
 
-        this.mem   = new V1ExpressionModel("", `${this.loc}.ramMin`);
+        this.mem   = new V1ExpressionModel("", `${this.loc}.ramMin`, this.eventHub);
         this.mem.setValidationCallback(err => this.updateValidity(err));
-        this.cores = new V1ExpressionModel("", `${this.loc}.coresMin`);
+        this.cores = new V1ExpressionModel("", `${this.loc}.coresMin`, this.eventHub);
         this.cores.setValidationCallback(err => this.updateValidity(err));
 
         if (req) this.deserialize(req);
@@ -48,12 +49,12 @@ export class V1ResourceRequirementModel extends ResourceRequirementModel {
         //@todo cover maximum values
 
         if (attr.ramMin !== undefined && attr.ramMin !== null) {
-            this.mem = new V1ExpressionModel(<string> attr.ramMin.toString(), `${this.loc}.ramMin`);
+            this.mem = new V1ExpressionModel(<string> attr.ramMin.toString(), `${this.loc}.ramMin`, this.eventHub);
             this.mem.setValidationCallback(err => this.updateValidity(err));
         }
 
         if (attr.coresMin !== undefined && attr.coresMin !== null) {
-            this.cores = new V1ExpressionModel(<string> attr.coresMin.toString(), `${this.loc}.coresMin`);
+            this.cores = new V1ExpressionModel(<string> attr.coresMin.toString(), `${this.loc}.coresMin`, this.eventHub);
             this.cores.setValidationCallback(err => this.updateValidity(err));
         }
 

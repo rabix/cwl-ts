@@ -4,6 +4,7 @@ import {UnimplementedMethodException} from "../helpers/UnimplementedMethodExcept
 import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
+import {EventHub} from "../helpers/EventHub";
 
 export abstract class ExpressionModel extends ValidationBase implements Serializable<any> {
     public customProps = {};
@@ -31,6 +32,10 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
     /** Getter for model type. Returns internal representation */
     public get type() {
         return this._type;
+    }
+
+    constructor(loc?: string, protected eventHub?: EventHub) {
+        super(loc);
     }
 
     /**

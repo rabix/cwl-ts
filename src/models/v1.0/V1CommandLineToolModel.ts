@@ -103,7 +103,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public addOutput(output?: CommandOutputParameter): V1CommandOutputParameterModel {
         const loc = incrementLastLoc(this.outputs, `${this.loc}.outputs`);
 
-        const o = new V1CommandOutputParameterModel(output, loc);
+        const o = new V1CommandOutputParameterModel(output, loc, this.eventHub);
 
         o.setValidationCallback(err => this.updateValidity(err));
 
@@ -208,14 +208,14 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             case "InitialWorkDirRequirement":
                 loc                  = this.fileRequirement ? this.fileRequirement.loc || loc : loc;
                 this.fileRequirement = new V1InitialWorkDirRequirementModel(
-                    <InitialWorkDirRequirement> req, loc);
+                    <InitialWorkDirRequirement> req, loc, this.eventHub);
                 this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
                 this.fileRequirement.isHint = hint;
                 return;
 
             case "ResourceRequirement":
                 loc            = this.resources ? this.resources.loc || loc : loc;
-                this.resources = new V1ResourceRequirementModel(req, loc);
+                this.resources = new V1ResourceRequirementModel(req, loc, this.eventHub);
                 this.resources.setValidationCallback(err => this.updateValidity(err));
                 this.resources.isHint = hint;
                 return;
@@ -347,7 +347,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         // create InitialWorkDirRequirement for manipulation
         if (!this.fileRequirement) {
-            this.fileRequirement = new V1InitialWorkDirRequirementModel(<InitialWorkDirRequirement> {}, `${this.loc}.requirements[${++counter}]`);
+            this.fileRequirement = new V1InitialWorkDirRequirementModel(<InitialWorkDirRequirement> {}, `${this.loc}.requirements[${++counter}]`, this.eventHub);
         }
         this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
 
@@ -359,13 +359,13 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         this.arguments = ensureArray(tool.arguments).map(arg => this.addArgument(arg));
 
-        this.stdin = new V1ExpressionModel(tool.stdin, `${this.loc}.stdin`);
+        this.stdin = new V1ExpressionModel(tool.stdin, `${this.loc}.stdin`, this.eventHub);
         this.stdin.setValidationCallback(err => this.updateValidity(err));
 
-        this.stdout = new V1ExpressionModel(tool.stdout, `${this.loc}.stdout`);
+        this.stdout = new V1ExpressionModel(tool.stdout, `${this.loc}.stdout`, this.eventHub);
         this.stdout.setValidationCallback(err => this.updateValidity(err));
 
-        this.stderr = new V1ExpressionModel(tool.stderr, `${this.loc}.stderr`);
+        this.stderr = new V1ExpressionModel(tool.stderr, `${this.loc}.stderr`, this.eventHub);
         this.stderr.setValidationCallback(err => this.updateValidity(err));
 
         this.runtime = {cores: 1, ram: 1000};
@@ -389,9 +389,14 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public serialize(): CommandLineTool {
         let base: CommandLineTool = <any> {};
         let hasShellQuote         = false;
+        let hasExpression         = false;
 
         const shellWatcherDispose = this.eventHub.on("binding.shellQuote", (data) => {
             hasShellQuote = data;
+        });
+
+        const expressionWatcherDispose = this.eventHub.on("expression.serialize", (data) => {
+            hasExpression = data;
         });
 
         base.class      = "CommandLineTool";
@@ -412,12 +417,18 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             base.arguments = this.arguments.map(a => a.serialize());
         }
 
-        // Add ShellCommandRequirement if any of the arguments has shellQuote
+        // Add ShellCommandRequirement if any CommandLineBinding has shellQuote
+        // remove requirement if no CommandLineBinding has shellQuote
+        const shellReqIndex = this.requirements.findIndex((req => req.class === "ShellCommandRequirement"));
         if (hasShellQuote) {
             base.requirements = [];
-            base.requirements.push({
-                "class": "ShellCommandRequirement"
-            });
+            if (shellReqIndex === -1) {
+                base.requirements.push({
+                    "class": "ShellCommandRequirement"
+                });
+            }
+        } else if (shellReqIndex > -1) {
+            this.requirements.splice(shellReqIndex, 1);
         }
 
         shellWatcherDispose();
@@ -456,6 +467,17 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (this.stdin.serialize() !== undefined) base.stdin = this.stdin.serialize();
         if (this.stdout.serialize() !== undefined) base.stdout = this.stdout.serialize();
         if (this.stderr.serialize() !== undefined) base.stderr = this.stderr.serialize();
+
+        const exprReqIndex = this.requirements.findIndex((req => req.class === "InlineJavascriptRequirement"));
+        if (hasExpression) {
+            base.requirements = base.requirements || [];
+            if (exprReqIndex === -1) {
+                base.requirements.push({
+                    "class": "InlineJavascriptRequirement"
+                });
+            }
+        }
+        expressionWatcherDispose();
 
         if (this.jobInputs) {
             base["sbg:job"] = {

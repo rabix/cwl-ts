@@ -3,6 +3,7 @@ import {FileDef} from "../../mappings/d2sb/FileDef";
 import {CreateFileRequirementModel} from "../generic/CreateFileRequirementModel";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2FileDefModel} from "./SBDraft2FileDefModel";
+import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2CreateFileRequirementModel extends CreateFileRequirementModel implements Serializable<CreateFileRequirement> {
     public 'class' = "CreateFileRequirement";
@@ -17,17 +18,16 @@ export class SBDraft2CreateFileRequirementModel extends CreateFileRequirementMod
 
         value.forEach((def, index) => {
             if (!(def instanceof SBDraft2FileDefModel)) {
-                def = new SBDraft2FileDefModel(<FileDef> def);
+                def = new SBDraft2FileDefModel(<FileDef> def, `${this.loc}.fileDef[${index}]`, this.eventHub);
             }
             this._listing.push(def);
 
-            def.loc = `${this.loc}.fileDef[${index}]`;
             def.setValidationCallback(err => this.updateValidity(err));
         })
     }
 
-    constructor(req: CreateFileRequirement, loc?: string) {
-        super(loc);
+    constructor(req: CreateFileRequirement, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         this.deserialize(req);
     }
 
@@ -40,7 +40,7 @@ export class SBDraft2CreateFileRequirementModel extends CreateFileRequirementMod
             def.loc = `${this.loc}.fileDef[${this._listing.length}]`;
             return def;
         } else {
-            const d = new SBDraft2FileDefModel(<FileDef> def, `${this.loc}.fileDef[${this._listing.length}]`);
+            const d = new SBDraft2FileDefModel(<FileDef> def, `${this.loc}.fileDef[${this._listing.length}]`, this.eventHub);
             d.setValidationCallback(err => this.updateValidity(err));
             this._listing.push(d);
             return d;
@@ -50,7 +50,7 @@ export class SBDraft2CreateFileRequirementModel extends CreateFileRequirementMod
     deserialize(req: CreateFileRequirement) {
         if (req.fileDef && Array.isArray(req.fileDef)) {
             this._listing = req.fileDef.map((def, index) => {
-                const d = new SBDraft2FileDefModel(def, `${this.loc}.fileDef[${index}]`);
+                const d = new SBDraft2FileDefModel(def, `${this.loc}.fileDef[${index}]`, this.eventHub);
                 d.setValidationCallback(err => this.updateValidity(err));
                 return d;
             });
