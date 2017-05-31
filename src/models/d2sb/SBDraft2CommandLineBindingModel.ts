@@ -6,6 +6,7 @@ import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import * as ts from "typescript-json-schema/typings/typescript/typescript";
 import warning = ts.ScriptElementKind.warning;
+import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: SBDraft2ExpressionModel;
@@ -24,8 +25,8 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
         "secondaryFiles"
     ];
 
-    constructor(binding?: CommandLineBinding, loc?: string) {
-        super(loc);
+    constructor(binding?: CommandLineBinding, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         this.deserialize(binding || {});
     }
 

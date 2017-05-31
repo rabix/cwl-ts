@@ -4,6 +4,7 @@ import {CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {Expression} from "../../mappings/v1.0/Expression";
 import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {EventHub} from "../helpers/EventHub";
 
 export class V1CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: V1ExpressionModel;
@@ -11,8 +12,8 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
     public hasSecondaryFiles = false;
     public hasShellQuote     = true;
 
-    constructor(binding?: CommandLineBinding, loc?: string) {
-        super(loc);
+    constructor(binding?: CommandLineBinding, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
 
         if (binding) this.deserialize(binding);
     }
@@ -56,7 +57,11 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
 
         if (!base.loadContents) delete base.loadContents;
 
-        if (!base.shellQuote) delete base.shellQuote;
+        if (!base.shellQuote) {
+            delete base.shellQuote;
+        } else if (this.eventHub) {
+            this.eventHub.emit("binding.shellQuote", true);
+        }
 
         if (this.valueFrom.serialize() !== undefined) {
             base.valueFrom = <string | Expression> this.valueFrom.serialize();

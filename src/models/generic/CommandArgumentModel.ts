@@ -5,6 +5,7 @@ import {ExpressionModel} from "./ExpressionModel";
 import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {CommandLineBinding as SBDraft2CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {CommandLineBinding as V1CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
+import {EventHub} from "../helpers/EventHub";
 
 export abstract class CommandArgumentModel extends ValidationBase implements Serializable<any> {
     protected binding: CommandLineBindingModel;
@@ -39,6 +40,10 @@ export abstract class CommandArgumentModel extends ValidationBase implements Ser
     }
 
     customProps: any = {};
+
+    constructor(loc?: string, protected eventHub?: EventHub) {
+        super(loc);
+    }
 
     toggleBinding(state: boolean): void {
         new UnimplementedMethodException("toggleBinding", "CommandArgumentModel");

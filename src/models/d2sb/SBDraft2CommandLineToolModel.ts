@@ -119,7 +119,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public addArgument(arg?: string | CommandLineBinding): SBDraft2CommandArgumentModel {
         const loc = incrementLastLoc(this.arguments, `${this.loc}.arguments`);
 
-        const argument = new SBDraft2CommandArgumentModel(arg, loc);
+        const argument = new SBDraft2CommandArgumentModel(arg, loc, this.eventHub);
         this.arguments.push(argument);
 
         argument.setValidationCallback(err => this.updateValidity(err));

@@ -51,7 +51,7 @@ describe("V1CommandLineToolModel", () => {
         let model: V1CommandLineToolModel;
 
         beforeEach(() => {
-            model = new V1CommandLineToolModel(<any> {});
+            model                                  = new V1CommandLineToolModel(<any> {});
             ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
         });
 
@@ -157,6 +157,95 @@ describe("V1CommandLineToolModel", () => {
         });
     });
 
+    describe("ShellCommandRequirement", () => {
+        it("should add ShellCommandRequirement if an argument has shellQuote: true", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                arguments: [
+                    {
+                        prefix: "b",
+                        valueFrom: "string",
+                        shellQuote: true
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
+        });
+
+        it("should add ShellCommandRequirement if an input has shellQuote: true", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    first: {
+                        type: "string",
+                        inputBinding: {
+                            prefix: "a",
+                            shellQuote: true
+                        }
+                    }
+                }
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
+        });
+
+        it("should add ShellCommandRequirement if field has shellQuote: true", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    first: {
+                        type: {
+                            type: "record",
+                            fields: {
+                                field: {
+                                    type: "string",
+                                    inputBinding: {
+                                        shellQuote: true
+                                    }
+                                }
+                            }
+                        },
+                        inputBinding: {
+                            prefix: "a"
+                        }
+                    }
+                }
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
+        });
+
+        it("should not add ShellQuoteRequirement if no binding has shellQuote: true", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    first: "string",
+                    second: {
+                        type: "string",
+                        inputBinding: {
+                            prefix: "a"
+                        }
+                    }
+                },
+                arguments: [
+                    {
+                        prefix: "b",
+                        valueFrom: "string"
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.be.empty;
+        });
+    });
+
     describe("validation", () => {
         it("should be invalid if inputs have duplicate id", (done) => {
             const model = new V1CommandLineToolModel(<any> {
@@ -192,7 +281,7 @@ describe("V1CommandLineToolModel", () => {
 
         it("should be invalid if stdin expression is invalid", (done) => {
             const model = new V1CommandLineToolModel(<any> {
-               stdin: "${!!!}"
+                stdin: "${!!!}"
             });
 
             model.validate().then(() => {

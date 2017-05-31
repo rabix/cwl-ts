@@ -171,7 +171,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public addArgument(arg?: CommandLineBinding | string): V1CommandArgumentModel {
         const loc = incrementLastLoc(this.arguments, `${this.loc}.arguments`);
 
-        const a = new V1CommandArgumentModel(arg, loc);
+        const a = new V1CommandArgumentModel(arg, loc, this.eventHub);
         this.arguments.push(a);
 
         a.setValidationCallback(err => this.updateValidity(err));
@@ -386,41 +386,41 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         spreadSelectProps(tool, this.customProps, serializedKeys);
     }
 
-    public serialize() {
-        let base: CommandLineTool = {
-            "class": "CommandLineTool",
-            cwlVersion: "v1.0",
-            baseCommand: this.baseCommand.map(b => b.serialize()).filter(b => !!b),
-            inputs: <CommandInputParameter[]> this.inputs.map(i => i.serialize()),
-            outputs: <CommandOutputParameter[]> this.outputs.map(o => o.serialize())
-        };
+    public serialize(): CommandLineTool {
+        let base: CommandLineTool = <any> {};
+        let hasShellQuote         = false;
+
+        const shellWatcherDispose = this.eventHub.on("binding.shellQuote", (data) => {
+            hasShellQuote = data;
+        });
+
+        base.class      = "CommandLineTool";
+        base.cwlVersion = "v1.0";
 
         if (this.sbgId || this.id) {
             base.id = this.sbgId || this.id;
         }
 
+        base.baseCommand = this.baseCommand.map(b => b.serialize()).filter(b => !!b);
+        base.inputs      = <CommandInputParameter[]> this.inputs.map(i => i.serialize());
+        base.outputs     = <CommandOutputParameter[]> this.outputs.map(o => o.serialize());
+
         if (this.description) base.doc = this.description;
         if (this.label) base.label = this.label;
 
         if (this.arguments.length) {
-            let hasShellQuote = false;
-            base.arguments    = [];
-            for (let i = 0; i < this.arguments.length; i++) {
-                const arg = this.arguments[i];
-                base.arguments.push(arg.serialize());
-                if (arg.shellQuote) {
-                    hasShellQuote = true;
-                }
-            }
-
-            // Add ShellCommandRequirement if any of the arguments has shellQuote
-            if (hasShellQuote) {
-                base.requirements = [];
-                base.requirements.push({
-                    "class": "ShellCommandRequirement"
-                });
-            }
+            base.arguments = this.arguments.map(a => a.serialize());
         }
+
+        // Add ShellCommandRequirement if any of the arguments has shellQuote
+        if (hasShellQuote) {
+            base.requirements = [];
+            base.requirements.push({
+                "class": "ShellCommandRequirement"
+            });
+        }
+
+        shellWatcherDispose();
 
         // REQUIREMENTS && HINTS
         base.requirements = base.requirements || [];

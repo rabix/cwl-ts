@@ -35,7 +35,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
     }
 
     public createInputBinding(): V1CommandLineBindingModel {
-        this.inputBinding = new V1CommandLineBindingModel({}, `${this.loc}.inputBinding`);
+        this.inputBinding = new V1CommandLineBindingModel({}, `${this.loc}.inputBinding`, this.eventHub);
         this.inputBinding.setValidationCallback(err => this.updateValidity(err));
         return this.inputBinding;
     }
@@ -111,7 +111,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         this.type.hasDirectoryType = true;
 
         if (attr.inputBinding) {
-            this.inputBinding = new V1CommandLineBindingModel(attr.inputBinding, `${this.loc}.inputBinding`);
+            this.inputBinding = new V1CommandLineBindingModel(attr.inputBinding, `${this.loc}.inputBinding`, this.eventHub);
             this.inputBinding.setValidationCallback(err => this.updateValidity(err));
         }
 
