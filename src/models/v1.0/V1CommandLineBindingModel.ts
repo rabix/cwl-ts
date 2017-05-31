@@ -4,13 +4,16 @@ import {CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {Expression} from "../../mappings/v1.0/Expression";
 import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {EventHub} from "../helpers/EventHub";
 
 export class V1CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: V1ExpressionModel;
+    public shellQuote: boolean;
     public hasSecondaryFiles = false;
+    public hasShellQuote     = true;
 
-    constructor(binding?: CommandLineBinding, loc?: string) {
-        super(loc);
+    constructor(binding?: CommandLineBinding, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
 
         if (binding) this.deserialize(binding);
     }
@@ -21,11 +24,12 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
         "separate",
         "itemSeparator",
         "valueFrom",
+        "shellQuote",
         "loadContents"
     ];
 
     setValueFrom(val: string | Expression) {
-        this.valueFrom = new V1ExpressionModel(val, `${this.loc}.valueFrom`);
+        this.valueFrom = new V1ExpressionModel(val, `${this.loc}.valueFrom`, this.eventHub);
         this.valueFrom.setValidationCallback(err => this.updateValidity(err));
     }
 
@@ -34,9 +38,10 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
         this.prefix        = binding.prefix;
         this.separate      = binding.separate;
         this.itemSeparator = binding.itemSeparator;
+        this.shellQuote    = binding.shellQuote;
         this.loadContents  = binding.loadContents === true;
 
-        this.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`);
+        this.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`, this.eventHub);
         this.valueFrom.setValidationCallback(err => this.updateValidity(err));
 
         spreadSelectProps(binding, this.customProps, this.serializedKeys);
@@ -51,6 +56,12 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
         });
 
         if (!base.loadContents) delete base.loadContents;
+
+        if (!base.shellQuote) {
+            delete base.shellQuote;
+        } else if (this.eventHub) {
+            this.eventHub.emit("binding.shellQuote", true);
+        }
 
         if (this.valueFrom.serialize() !== undefined) {
             base.valueFrom = <string | Expression> this.valueFrom.serialize();

@@ -3,20 +3,21 @@ import {V1DirentModel} from "./V1DirentModel";
 import {InitialWorkDirRequirement} from "../../mappings/v1.0/InitialWorkDirRequirement";
 import {Dirent} from "../../mappings/v1.0/Dirent";
 import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {EventHub} from "../helpers/EventHub";
 
 
 export class V1InitialWorkDirRequirementModel extends CreateFileRequirementModel {
     'class'                  = "InitialWorkDirRequirement";
     listing: V1DirentModel[] = [];
 
-    constructor(req?: InitialWorkDirRequirement, loc?: string) {
-        super(loc);
+    constructor(req?: InitialWorkDirRequirement, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
 
         if (req) this.deserialize(req);
     }
 
     addDirent(d: Dirent): V1DirentModel {
-        const dirent = new V1DirentModel(d, `${this.loc}.listing[${this.listing.length}]`);
+        const dirent = new V1DirentModel(d, `${this.loc}.listing[${this.listing.length}]`, this.eventHub);
         dirent.setValidationCallback(err => this.updateValidity(err));
         this.listing.push(dirent);
 

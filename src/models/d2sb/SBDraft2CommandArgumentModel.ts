@@ -2,12 +2,14 @@ import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {CommandArgumentModel} from "../generic/CommandArgumentModel";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
+import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2CommandArgumentModel extends CommandArgumentModel implements Serializable<
     string
     | CommandLineBinding> {
 
     hasExprPrimitive = false;
+    hasShellQuote = false;
     primitive: string;
 
     public updateBinding(binding: CommandLineBinding) {
@@ -30,7 +32,7 @@ export class SBDraft2CommandArgumentModel extends CommandArgumentModel implement
 
     toggleBinding(state: boolean): void {
         if (state) {
-            this.binding = new SBDraft2CommandLineBindingModel({}, this.loc);
+            this.binding = new SBDraft2CommandLineBindingModel({}, this.loc, this.eventHub);
             this.primitive = undefined;
         } else {
             this.primitive = "";
@@ -50,8 +52,8 @@ export class SBDraft2CommandArgumentModel extends CommandArgumentModel implement
 
     protected binding: SBDraft2CommandLineBindingModel;
 
-    constructor(arg?: string | CommandLineBinding, loc?: string) {
-        super(loc);
+    constructor(arg?: string | CommandLineBinding, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         this.deserialize(arg || {});
     }
 
@@ -79,11 +81,11 @@ export class SBDraft2CommandArgumentModel extends CommandArgumentModel implement
             this.primitive  = attr;
         } else if (attr instanceof SBDraft2CommandLineBindingModel) {
             this.hasBinding = true;
-            this.binding    = new SBDraft2CommandLineBindingModel(attr.serialize(), this.loc);
+            this.binding    = new SBDraft2CommandLineBindingModel(attr.serialize(), this.loc, this.eventHub);
             this.binding.setValidationCallback(err => this.updateValidity(err));
         } else {
             this.hasBinding = true;
-            this.binding    = new SBDraft2CommandLineBindingModel(<CommandLineBinding> attr, this.loc);
+            this.binding    = new SBDraft2CommandLineBindingModel(<CommandLineBinding> attr, this.loc, this.eventHub);
             this.binding.setValidationCallback(err => this.updateValidity(err));
         }
     }

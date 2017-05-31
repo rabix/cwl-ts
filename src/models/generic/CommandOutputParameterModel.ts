@@ -6,9 +6,10 @@ import {CommandOutputBindingModel} from "./CommandOutputBindingModel";
 import {ExpressionModel} from "./ExpressionModel";
 import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
 import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
+import {EventHub} from "../helpers/EventHub";
 
 
-export abstract class CommandOutputParameterModel extends ValidationBase implements Serializable<any>{
+export abstract class CommandOutputParameterModel extends ValidationBase implements Serializable<any> {
     /** Unique identifier of output */
     public id: string;
     /** Human readable short name */
@@ -43,6 +44,10 @@ export abstract class CommandOutputParameterModel extends ValidationBase impleme
     abstract updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>);
 
     abstract removeSecondaryFile(index: number);
+
+    constructor(loc?: string, protected eventHub?: EventHub) {
+        super(loc);
+    }
 
     serialize(): any {
         new UnimplementedMethodException("serialize", "CommandOutputParameterModel");

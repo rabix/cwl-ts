@@ -5,11 +5,13 @@ import {ExpressionModel} from "./ExpressionModel";
 import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {CommandLineBinding as SBDraft2CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {CommandLineBinding as V1CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
+import {EventHub} from "../helpers/EventHub";
 
 export abstract class CommandArgumentModel extends ValidationBase implements Serializable<any> {
     protected binding: CommandLineBindingModel;
     hasBinding: boolean = false;
     hasExprPrimitive: boolean;
+    hasShellQuote: boolean;
     primitive: string | ExpressionModel;
 
     get prefix(): string {
@@ -31,7 +33,17 @@ export abstract class CommandArgumentModel extends ValidationBase implements Ser
     get valueFrom(): ExpressionModel {
         return this.binding ? this.binding.valueFrom : undefined;
     }
+
+    // if binding doesn't have shellQuote, it will return undefined anyway
+    get shellQuote(): boolean {
+        return this.binding ? (<any> this.binding).shellQuote : undefined;
+    }
+
     customProps: any = {};
+
+    constructor(loc?: string, protected eventHub?: EventHub) {
+        super(loc);
+    }
 
     toggleBinding(state: boolean): void {
         new UnimplementedMethodException("toggleBinding", "CommandArgumentModel");

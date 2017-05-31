@@ -51,7 +51,7 @@ describe("V1CommandLineToolModel", () => {
         let model: V1CommandLineToolModel;
 
         beforeEach(() => {
-            model = new V1CommandLineToolModel(<any> {});
+            model                                  = new V1CommandLineToolModel(<any> {});
             ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
         });
 
@@ -157,6 +157,341 @@ describe("V1CommandLineToolModel", () => {
         });
     });
 
+    describe("ShellCommandRequirement", () => {
+        it("should add ShellCommandRequirement if an argument has shellQuote: true", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                arguments: [
+                    {
+                        prefix: "b",
+                        valueFrom: "string",
+                        shellQuote: true
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
+        });
+
+        it("should add ShellCommandRequirement if an input has shellQuote: true", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    first: {
+                        type: "string",
+                        inputBinding: {
+                            prefix: "a",
+                            shellQuote: true
+                        }
+                    }
+                }
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
+        });
+
+        it("should add ShellCommandRequirement if field has shellQuote: true", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    first: {
+                        type: {
+                            type: "record",
+                            fields: {
+                                field: {
+                                    type: "string",
+                                    inputBinding: {
+                                        shellQuote: true
+                                    }
+                                }
+                            }
+                        },
+                        inputBinding: {
+                            prefix: "a"
+                        }
+                    }
+                }
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
+        });
+
+        it("should not add ShellQuoteRequirement if no binding has shellQuote: true", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    first: "string",
+                    second: {
+                        type: "string",
+                        inputBinding: {
+                            prefix: "a"
+                        }
+                    }
+                },
+                arguments: [
+                    {
+                        prefix: "b",
+                        valueFrom: "string"
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.be.empty;
+        });
+
+        it("should remove ShellQuoteRequirement if no binding has shellQuote: true", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    first: "string",
+                    second: {
+                        type: "string",
+                        inputBinding: {
+                            prefix: "a"
+                        }
+                    }
+                },
+                arguments: [
+                    {
+                        prefix: "b",
+                        valueFrom: "string"
+                    }
+                ],
+                requirements: [
+                    {
+                        class: "ShellCommandRequirement"
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.be.empty;
+        });
+
+        it("should not duplicate requirement", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                arguments: [{
+                    shellQuote: true
+                }],
+                requirements: [{
+                    "class": "ShellCommandRequirement"
+                }]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
+        });
+
+    });
+
+    describe("InlineJavascriptRequirement", () => {
+        it("should add requirement if input.inputBinding.valueFrom is expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    one: {
+                        inputBinding: {
+                            valueFrom: "$(expr)"
+                        }
+                    }
+                }
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should add requirement if input.secondaryFile is expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    one: {
+                        type: "File",
+                        secondaryFiles: ["$(expr)"]
+                    }
+                }
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should add requirement if output.outputBinding.glob is expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                outputs: {
+                    one: {
+                        outputBinding: {glob: "$(expr)"}
+                    }
+                }
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should add requirement if output.outputBinding.outputEval is expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                outputs: {
+                    one: {
+                        outputBinding: {outputEval: "$(expr)"}
+                    }
+                }
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should add requirement if output.secondaryFile is expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                outputs: {
+                    one: {
+                        type: "File",
+                        secondaryFiles: ["$(expr)"]
+                    }
+                }
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should add requirement if stdin is expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                stdin: "$(expr)"
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should add requirement if stdout is expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                stdout: "$(expr)"
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should add requirement if stderr is expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                stderr: "$(expr)"
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should add requirement if argument.valueFrom is expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                arguments: [
+                    {
+                        valueFrom: "$(expr)"
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should add requirement if argument is expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                arguments: ["$(expr)"]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should add requirement if fileRequirement has expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                requirements: [
+                    {
+                        "class": "InitialWorkDirRequirement",
+                        listing: [
+                            {entryname: "$(name)", entry: ""}
+                        ]
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(2);
+            expect(serialize.requirements[1].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should add requirement if resourceRequirement has expression", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                requirements: [
+                    {
+                        "class": "ResourceRequirement",
+                        ramMin: "$(expr)"
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(2);
+            expect(serialize.requirements[1].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should not remove existing requirement", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                requirements: [{
+                    "class": "InlineJavascriptRequirement"
+                }]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+
+        it("should not duplicate requirement", () => {
+            const tool = new V1CommandLineToolModel(<any> {
+                stdin: "$(expr)",
+                requirements: [{
+                    "class": "InlineJavascriptRequirement"
+                }]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+    });
+
     describe("validation", () => {
         it("should be invalid if inputs have duplicate id", (done) => {
             const model = new V1CommandLineToolModel(<any> {
@@ -192,7 +527,7 @@ describe("V1CommandLineToolModel", () => {
 
         it("should be invalid if stdin expression is invalid", (done) => {
             const model = new V1CommandLineToolModel(<any> {
-               stdin: "${!!!}"
+                stdin: "${!!!}"
             });
 
             model.validate().then(() => {

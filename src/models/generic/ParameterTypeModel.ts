@@ -8,7 +8,7 @@ import {CommandInputParameterType as SBDraft2CommandInputParameterType} from "..
 import {CommandOutputParameterType as V1CommandOutputParameterType} from "../../mappings/v1.0/CommandOutputParameter";
 import {CommandInputParameterType as V1CommandInputParameterType} from "../../mappings/v1.0/CommandInputParameter";
 
-import {spreadSelectProps} from "../helpers/utils";
+import {ensureArray, spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
 
 export type PrimitiveParameterType =
@@ -248,8 +248,8 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         }
 
         if (this.fields) {
-            this.fields = this.fields.map((field, index) => {
-                const f = new this.fieldConstructor(field, `${this.loc}.fields[${index}]`);
+            this.fields = ensureArray(this.fields, "id", "type").map((field, index) => {
+                const f = new this.fieldConstructor(field, `${this.loc}.fields[${index}]`, this.eventHub);
                 f.setValidationCallback((err) => {
                     this.updateValidity(err)
                 });

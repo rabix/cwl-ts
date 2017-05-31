@@ -1,12 +1,16 @@
 import {ExpressionModel} from "../generic/ExpressionModel";
 import {ExpressionEvaluator, ExprObj} from "../helpers/ExpressionEvaluator";
 import {Expression} from "../../mappings/v1.0/Expression";
+import {EventHub} from "../helpers/EventHub";
 
 export class V1ExpressionModel extends ExpressionModel {
     private value?: string     = "";
     private tokens?: ExprObj[] = [];
 
     public serialize(): string | Expression {
+        if (this.type === "expression" && this.eventHub) {
+            this.eventHub.emit("expression.serialize", true);
+        }
         return this.value !== "" ? this.value : undefined;
     }
 
@@ -15,8 +19,8 @@ export class V1ExpressionModel extends ExpressionModel {
         this.tokenizeAndSetType(attr);
     }
 
-    constructor(expression?: string | V1ExpressionModel, loc?: string) {
-        super(loc);
+    constructor(expression?: string | V1ExpressionModel, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
 
         if (expression instanceof V1ExpressionModel) {
             expression = (<V1ExpressionModel> expression).serialize();

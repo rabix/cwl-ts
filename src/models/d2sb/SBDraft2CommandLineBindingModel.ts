@@ -6,10 +6,13 @@ import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import * as ts from "typescript-json-schema/typings/typescript/typescript";
 import warning = ts.ScriptElementKind.warning;
+import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: SBDraft2ExpressionModel;
     public hasSecondaryFiles = true;
+    public hasShellQuote = false;
+
     protected context: { $job: any, $self: any };
 
     private serializedKeys: string[] = [
@@ -22,13 +25,13 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
         "secondaryFiles"
     ];
 
-    constructor(binding?: CommandLineBinding, loc?: string) {
-        super(loc);
+    constructor(binding?: CommandLineBinding, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         this.deserialize(binding || {});
     }
 
     setValueFrom(val: string | Expression) {
-        this.valueFrom = new SBDraft2ExpressionModel(val, `${this.loc}.valueFrom`);
+        this.valueFrom = new SBDraft2ExpressionModel(val, `${this.loc}.valueFrom`, this.eventHub);
         this.valueFrom.setValidationCallback((err) => {
             this.updateValidity(err);
         });
@@ -74,7 +77,7 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
             this.itemSeparator = binding.itemSeparator;
             this.loadContents  = binding.loadContents === true;
 
-            this.valueFrom = new SBDraft2ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`);
+            this.valueFrom = new SBDraft2ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`, this.eventHub);
             this.valueFrom.setValidationCallback(err => this.updateValidity(err));
 
             // populates object with all custom attributes not covered in model

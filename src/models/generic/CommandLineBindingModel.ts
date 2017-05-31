@@ -4,8 +4,9 @@ import {UnimplementedMethodException} from "../helpers/UnimplementedMethodExcept
 import {ExpressionModel} from "./ExpressionModel";
 import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
+import {EventHub} from "../helpers/EventHub";
 
-export abstract class CommandLineBindingModel extends ValidationBase implements Serializable<any>{
+export abstract class CommandLineBindingModel extends ValidationBase implements Serializable<any> {
     public customProps = {};
 
     public loadContents: boolean;
@@ -14,12 +15,18 @@ export abstract class CommandLineBindingModel extends ValidationBase implements 
     public itemSeparator: string;
     public separate: boolean;
     public valueFrom: ExpressionModel;
+    public shellQuote: boolean;
 
     public hasSecondaryFiles: boolean;
+    public hasShellQuote: boolean;
 
     public secondaryFiles?: ExpressionModel[];
 
     protected context: any;
+
+    constructor(loc?: string, protected eventHub?: EventHub) {
+        super(loc);
+    }
 
     public validate(context: any): Promise<any> {
         new UnimplementedMethodException("validate", "CommandLineBindingModel");

@@ -288,6 +288,18 @@ describe("SBDraft2CommandLineToolModel", () => {
                         engine: "cwl-js-engine",
                         script: "{ return $job.inputs.file.path; }"
                     }
+                ],
+                "requirements": [
+                    {
+                        "class": "ExpressionEngineRequirement",
+                        "id": "#cwl-js-engine",
+                        "requirements": [
+                            {
+                                "class": "DockerRequirement",
+                                "dockerPull": "rabix/js-engine"
+                            }
+                        ]
+                    }
                 ]
             };
 
@@ -379,6 +391,16 @@ describe("SBDraft2CommandLineToolModel", () => {
                         }
                     }
                 ],
+                requirements: [{
+                    id: "#cwl-js-engine",
+                    "class": "ExpressionEngineRequirement",
+                    requirements: [
+                        {
+                            dockerPull: "rabix/js-engine",
+                            "class": "DockerRequirement"
+                        }
+                    ]
+                }]
             };
 
             const model = new SBDraft2CommandLineToolModel(tool);
@@ -506,6 +528,18 @@ describe("SBDraft2CommandLineToolModel", () => {
                 cwlVersion: "sbg:draft-2",
                 baseCommand: 'cmd',
                 "class": "CommandLineTool",
+                "requirements": [
+                    {
+                        "class": "ExpressionEngineRequirement",
+                        "id": "#cwl-js-engine",
+                        "requirements": [
+                            {
+                                "class": "DockerRequirement",
+                                "dockerPull": "rabix/js-engine"
+                            }
+                        ]
+                    }
+                ],
                 outputs: [
                     {
                         "type": [
@@ -568,6 +602,16 @@ describe("SBDraft2CommandLineToolModel", () => {
                 "outputs": [],
                 "class": "CommandLineTool",
                 "requirements": [
+                    {
+                        "class": "ExpressionEngineRequirement",
+                        "id": "#cwl-js-engine",
+                        "requirements": [
+                            {
+                                "class": "DockerRequirement",
+                                "dockerPull": "rabix/js-engine"
+                            }
+                        ]
+                    },
                     {
                         "fileDef": [
                             {
@@ -794,4 +838,269 @@ describe("SBDraft2CommandLineToolModel", () => {
 
         });
     });
+
+    describe("ExpressionEngineRequirement", () => {
+        it("should add requirement if input.inputBinding.valueFrom is expression", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                inputs: [
+                    {
+                        id: "one",
+                        inputBinding: {
+                            valueFrom: {
+                                "class": "Expression",
+                                script: "3 + 3",
+                                engine: "#cwl-engine"
+                            }
+                        }
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+
+        it("should add requirement if baseCommand is expression", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                baseCommand: [
+                    {
+                        "class": "Expression",
+                        script: "3 + 3",
+                        engine: "#cwl-engine"
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+
+
+        it("should add requirement if input.secondaryFile is expression", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                inputs: [
+                    {
+                        id: "one",
+                        type: "File",
+                        inputBinding: {
+                            secondaryFiles: [{
+                                "class": "Expression",
+                                script: "3 + 3",
+                                engine: "#cwl-engine"
+                            }]
+                        }
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+
+        it("should add requirement if output.outputBinding.glob is expression", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                outputs: [
+                    {
+                        id: "one",
+                        outputBinding: {
+                            glob: {
+                                "class": "Expression",
+                                script: "3 + 3",
+                                engine: "#cwl-engine"
+                            }
+                        }
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+
+        it("should add requirement if output.outputBinding.outputEval is expression", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                outputs: [
+                    {
+                        id: "one",
+                        outputBinding: {
+                            outputEval: {
+                                "class": "Expression",
+                                script: "3 + 3",
+                                engine: "#cwl-engine"
+                            }
+                        }
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+
+        it("should add requirement if output.outputBinding['sbg:metadata'] is expression", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                outputs: [
+                    {
+                        "outputBinding": {
+                            "sbg:metadata": {
+                                "meta": {
+                                    "class": "Expression",
+                                    "engine": "#cwl-js-engine",
+                                    "script": "data"
+                                }
+                            }
+                        },
+                        "id": "#output",
+                        "type": "File"
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+
+        it("should add requirement if output.secondaryFile is expression", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                outputs: {
+                    one: {
+                        type: "File",
+                        outputBinding: {
+                            secondaryFiles: [{
+                                "class": "Expression",
+                                script: "3 + 3",
+                                engine: "#cwl-engine"
+                            }]
+                        }
+                    }
+                }
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+
+        it("should add requirement if stdin is expression", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                stdin: {"class": "Expression", script: "3 + 3", engine: "#cwl-engine"}
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+
+        it("should add requirement if stdout is expression", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                stdout: {"class": "Expression", script: "3 + 3", engine: "#cwl-engine"}
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+
+        it("should add requirement if fileRequirement has expression", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                requirements: [
+                    {
+                        "class": "CreateFileRequirement",
+                        fileDef: [
+                            {
+                                filename: {
+                                    class: "Expression",
+                                    script: "3+3",
+                                    engine: "#cwl-js-engine"
+                                },
+                                fileContent: ""
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(2);
+            expect(serialize.requirements[1].class).to.equal("ExpressionEngineRequirement");
+        });
+
+        it("should add requirement if resourceRequirement has expression", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                requirements: [
+                    {
+                        "class": "sbg:MemRequirement",
+                        value: {"class": "Expression", script: "3 + 3", engine: "#cwl-engine"}
+                    },
+                    {
+                        "class": "sbg:CPURequirement",
+                        value: {"class": "Expression", script: "3 + 3", engine: "#cwl-engine"}
+                    }
+                ]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.hints).to.have.length(2);
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+
+        it("should not remove existing requirement", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                requirements: [{
+                    id: "#cwl-js-engine",
+                    "class": "ExpressionEngineRequirement",
+                    requirements: [
+                        {
+                            dockerPull: "rabix/js-engine",
+                            "class": "DockerRequirement"
+                        }
+                    ]
+                }]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+
+        it("should not duplicate requirement", () => {
+            const tool = new SBDraft2CommandLineToolModel(<any> {
+                stdin: {"class": "Expression", script: "3 + 3", engine: "#cwl-engine"},
+                requirements: [{
+                    id: "#cwl-js-engine",
+                    "class": "ExpressionEngineRequirement",
+                    requirements: [
+                        {
+                            dockerPull: "rabix/js-engine",
+                            "class": "DockerRequirement"
+                        }
+                    ]
+                }]
+            });
+
+            const serialize = tool.serialize();
+            expect(serialize.requirements).to.not.be.empty;
+            expect(serialize.requirements).to.have.length(1);
+            expect(serialize.requirements[0].class).to.equal("ExpressionEngineRequirement");
+        });
+    })
 });

@@ -10,6 +10,7 @@ import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {CommandOutputRecordField} from "../../mappings/v1.0/CommandOutputRecordField";
 import {Expression} from "../../mappings/v1.0/Expression";
+import {EventHub} from "../helpers/EventHub";
 
 export class V1CommandOutputParameterModel extends CommandOutputParameterModel implements Serializable<CommandOutputParameter> {
     public label: string;
@@ -21,8 +22,8 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
 
     public hasSecondaryFiles = true;
 
-    constructor(output: CommandOutputParameter | CommandOutputRecordField, loc?: string) {
-        super(loc);
+    constructor(output: CommandOutputParameter | CommandOutputRecordField, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
 
         if (output) this.deserialize(output);
     }
@@ -30,7 +31,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
     customProps: any = {};
 
     addSecondaryFile(file: string = ""): V1ExpressionModel {
-        const f = new V1ExpressionModel(file, incrementLastLoc(this.secondaryFiles, `${this.loc}.secondaryFiles`));
+        const f = new V1ExpressionModel(file, incrementLastLoc(this.secondaryFiles, `${this.loc}.secondaryFiles`), this.eventHub);
         f.setValidationCallback(err => this.updateValidity(err));
         this.secondaryFiles.push(f);
         return f;
@@ -90,7 +91,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         this.type.setValidationCallback(err => this.updateValidity(err));
         this.type.hasDirectoryType = true;
 
-        this.outputBinding = new V1CommandOutputBindingModel(attr.outputBinding, `${this.loc}.outputBinding`);
+        this.outputBinding = new V1CommandOutputBindingModel(attr.outputBinding, `${this.loc}.outputBinding`, this.eventHub);
         this.outputBinding.setValidationCallback(err => this.updateValidity(err));
 
         this.label       = attr.label;

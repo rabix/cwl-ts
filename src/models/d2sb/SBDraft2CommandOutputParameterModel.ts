@@ -10,6 +10,7 @@ import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
+import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterModel implements Serializable<CommandOutputParameter | CommandOutputRecordField> {
 
@@ -24,8 +25,8 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
     public hasSecondaryFiles = false;
     public hasSecondaryFilesInRoot = false;
 
-    constructor(output?: CommandOutputParameter | CommandOutputRecordField, loc?: string) {
-        super(loc);
+    constructor(output?: CommandOutputParameter | CommandOutputRecordField, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
         this.deserialize(output || <CommandOutputParameter>{});
     }
 
@@ -39,7 +40,7 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
     addSecondaryFile(file: Expression | string): SBDraft2ExpressionModel {
         if (this.outputBinding) {
             const loc = incrementLastLoc(this.outputBinding.secondaryFiles, `${this.outputBinding.loc}.secondaryFiles`);
-            const f   = new SBDraft2ExpressionModel(file, loc);
+            const f   = new SBDraft2ExpressionModel(file, loc, this.eventHub);
             this.secondaryFiles.push(f);
             f.setValidationCallback(err => this.updateValidity(err));
             return f;
@@ -59,7 +60,7 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
     public updateOutputBinding(binding?: SBDraft2CommandOutputBindingModel) {
         this.outputBinding     = new SBDraft2CommandOutputBindingModel(
             binding instanceof SBDraft2CommandOutputBindingModel ?
-                binding.serialize() : {}, `${this.loc}.outputBinding`);
+                binding.serialize() : {}, `${this.loc}.outputBinding`, this.eventHub);
         this.outputBinding.setValidationCallback((err) => this.updateValidity(err));
     }
 
@@ -125,7 +126,7 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
         this.description = attr.description;
         this.fileTypes   = commaSeparatedToArray(attr["sbg:fileTypes"]);
 
-        this.outputBinding = new SBDraft2CommandOutputBindingModel(attr.outputBinding, `${this.loc}.outputBinding`);
+        this.outputBinding = new SBDraft2CommandOutputBindingModel(attr.outputBinding, `${this.loc}.outputBinding`, this.eventHub);
         this.outputBinding.setValidationCallback(err => this.updateValidity(err));
 
         if (attr.outputBinding && attr.outputBinding.secondaryFiles) {
