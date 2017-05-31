@@ -15,6 +15,7 @@ export abstract class CommandLineBindingModel extends ValidationBase implements 
     public itemSeparator: string;
     public separate: boolean;
     public valueFrom: ExpressionModel;
+    public shellQuote: boolean;
 
     public hasSecondaryFiles: boolean;
     public hasShellQuote: boolean;
