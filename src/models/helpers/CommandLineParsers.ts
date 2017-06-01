@@ -28,6 +28,12 @@ export class CommandLineParsers {
         });
     }
 
+    static string(input, job, value, context, type, loc): Promise<CommandLinePart> {
+        return new Promise((res, rej) => {
+            res(new CommandLinePart(input, type, loc));
+        });
+    }
+
     static boolean(input, job, value, context, type, loc): Promise<CommandLinePart> {
         CommandLineParsers.checkMismatch(input, job, value);
 

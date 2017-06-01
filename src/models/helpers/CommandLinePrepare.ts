@@ -42,11 +42,13 @@ export class CommandLinePrepare {
             inputType = "stream";
         }
 
+        if (typeof input === "string") {
+            inputType = "string";
+        }
+
         let parser = CommandLineParsers[inputType];
 
-        let result = parser(input, flatJobInputs, flatJobInputs[input.id || null], context, cmdType, loc);
-
-        return result;
+        return parser(input, flatJobInputs, flatJobInputs[input.id || null], context, cmdType, loc);
     };
 
     static flattenInputsAndArgs(inputs: Array<CommandInputParameterModel | CommandArgumentModel>): Array<CommandInputParameterModel | CommandArgumentModel> {

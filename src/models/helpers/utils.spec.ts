@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {
     ensureArray, checkMapValueType, incrementString, spreadSelectProps,
-    snakeCase, fetchByLoc, cleanupNull, incrementLastLoc
+    snakeCase, fetchByLoc, cleanupNull, incrementLastLoc, charSeparatedToArray
 } from "./utils";
 
 describe("ensureArray", () => {
@@ -92,8 +92,7 @@ describe("ensureArray", () => {
 
         expect(arr).to.have.length(1);
         expect(arr).to.deep.equal(["simple string"]);
-
-    })
+    });
 });
 
 describe("checkMapValueType", () => {
@@ -323,3 +322,10 @@ describe("incrementLastLoc", () => {
         expect(loc).to.be.null;
     })
 });
+
+describe("charSeparatedToArray", () => {
+    it("should return single string wrapped in array when splitting by whitespace", () => {
+        const arr = charSeparatedToArray("string", /\s+/);
+        expect(arr).to.deep.equal(["string"]);
+    })
+})

@@ -1,4 +1,4 @@
-import {CommandLineTool, Expression, ProcessRequirement} from "../../mappings/v1.0/";
+import {CommandLineTool, ProcessRequirement} from "../../mappings/v1.0/";
 import {CommandInputParameter} from "../../mappings/v1.0/CommandInputParameter";
 import {CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {CommandOutputParameter} from "../../mappings/v1.0/CommandOutputParameter";
@@ -11,7 +11,11 @@ import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {JobHelper} from "../helpers/JobHelper";
 import {
-    ensureArray, incrementLastLoc, snakeCase, spreadAllProps,
+    charSeparatedToArray,
+    ensureArray,
+    incrementLastLoc,
+    snakeCase,
+    spreadAllProps,
     spreadSelectProps
 } from "../helpers/utils";
 import {V1CommandArgumentModel} from "./V1CommandArgumentModel";
@@ -32,7 +36,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public label: string;
     public description: string;
 
-    public baseCommand: Array<V1ExpressionModel> = [];
+    public baseCommand: Array<string> = [];
 
     public arguments: Array<V1CommandArgumentModel> = [];
     public stdin: V1ExpressionModel;
@@ -179,14 +183,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         return a;
     }
 
-    public addBaseCommand(cmd?: Expression | string): V1ExpressionModel {
-        const loc = incrementLastLoc(this.baseCommand, `${this.loc}.baseCommand`);
-
-        const b = new V1ExpressionModel(cmd, loc);
-        this.baseCommand.push(b);
-
-        b.setValidationCallback(err => this.updateValidity(err));
-        return b;
+    public addBaseCommand(cmd?: string): void {
+        this.baseCommand.push(cmd);
     }
 
     public setRequirement(req: ProcessRequirement, hint?: boolean) {
@@ -331,9 +329,11 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.description = tool.doc;
         this.label       = tool.label;
 
+        this.baseCommand = charSeparatedToArray(tool.baseCommand, /\s+/);
         ensureArray(tool.inputs, "id", "type").map(inp => this.addInput(inp));
         ensureArray(tool.outputs, "id", "type").map(out => this.addOutput(out));
-        ensureArray(tool.baseCommand).map(cmd => this.addBaseCommand(cmd));
+
+        this.arguments = ensureArray(tool.arguments).map(arg => this.addArgument(arg));
 
         ensureArray(tool.hints, "class", "value").map((h, i) => this.createReq(h, null, true));
         ensureArray(tool.requirements, "class", "value").map((r, i) => this.createReq(r));
@@ -356,8 +356,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             this.resources = new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${++counter}]`);
         }
         this.resources.setValidationCallback(err => this.updateValidity(err));
-
-        this.arguments = ensureArray(tool.arguments).map(arg => this.addArgument(arg));
 
         this.stdin = new V1ExpressionModel(tool.stdin, `${this.loc}.stdin`, this.eventHub);
         this.stdin.setValidationCallback(err => this.updateValidity(err));
@@ -406,7 +404,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             base.id = this.sbgId || this.id;
         }
 
-        base.baseCommand = this.baseCommand.map(b => b.serialize()).filter(b => !!b);
+        base.baseCommand = this.baseCommand.filter(b => !!b);
         base.inputs      = <CommandInputParameter[]> this.inputs.map(i => i.serialize());
         base.outputs     = <CommandOutputParameter[]> this.outputs.map(o => o.serialize());
 
