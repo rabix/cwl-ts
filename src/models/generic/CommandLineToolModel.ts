@@ -17,7 +17,6 @@ import {fetchByLoc, incrementString, isEmpty, validateID} from "../helpers/utils
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {JobHelper} from "../helpers/JobHelper";
-import {LocatableString} from "../helpers/LocatableString";
 
 export abstract class CommandLineToolModel extends ValidationBase implements Serializable<any> {
     public id: string;
