@@ -55,7 +55,7 @@ export class RequirementBaseModel extends ProcessRequirementModel implements Ser
 
         if (attr["value"] !== undefined) {
             this.value = attr["value"];
-            if (typeof this.value === "string" || this.value["script"]) {
+            if (typeof this.value === "string" || (this.value["script"] && this.exprConstructor === SBDraft2ExpressionModel)) {
                 this.value = new this.exprConstructor(attr["value"], `${this.loc}.value`);
                 (<ExpressionModel> this.value).setValidationCallback(err => this.updateValidity(err));
             }
