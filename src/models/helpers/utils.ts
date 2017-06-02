@@ -126,6 +126,13 @@ export const commaSeparatedToArray = (str: string | string[]): string[] => {
     return str.replace(/\s/g, "").split(",");
 };
 
+export const charSeparatedToArray = (str: string | string[], pattern: RegExp): string[] => {
+    if (!str) return [];
+    if (Array.isArray(str)) return str;
+
+    return str.split(pattern).map(s => s.trim());
+};
+
 export const snakeCase = (str: string = ""): string => {
     return str.replace(/[\s.\[\/\]-]+/g, "_").replace(/([A-Z])/g, (match) => "_" + match.toLowerCase());
 };

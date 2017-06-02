@@ -27,9 +27,9 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public sbgId: string;
 
-    public baseCommand: ExpressionModel[]         = [];
-    public inputs: CommandInputParameterModel[]   = [];
-    public outputs: CommandOutputParameterModel[] = [];
+    public baseCommand: Array<ExpressionModel | string> = [];
+    public inputs: CommandInputParameterModel[]         = [];
+    public outputs: CommandOutputParameterModel[]       = [];
 
     public arguments: CommandArgumentModel[] = [];
 
@@ -158,10 +158,10 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             // make sure loc is within this tree and that belongs to one of the inputs
             if (loc.search(this.loc) === 0 && loc.search("inputs") > -1) {
                 // remove root part of loc and ignore type part of loc
-                loc = loc.substr(this.loc.length).replace("type", "");
+                loc                                    = loc.substr(this.loc.length).replace("type", "");
                 // find port based on its loc
                 const port: CommandInputParameterModel = fetchByLoc(this, loc);
-                if (!port)  {
+                if (!port) {
                     // newly added inputs will trigger this event before they are added to tool
                     return;
                 }
@@ -235,7 +235,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.eventHub.emit("argument.remove", arg);
     }
 
-    public addBaseCommand(cmd?): ExpressionModel {
+    public addBaseCommand(cmd?): ExpressionModel | void {
         new UnimplementedMethodException("addBaseCommand", "CommandLineToolModel");
         return null;
     }
@@ -289,12 +289,13 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
         const flatJobInputs = CommandLinePrepare.flattenJob(job.inputs || job, {});
 
-        const baseCmdPromise = this.baseCommand.map(cmd => {
-            return CommandLinePrepare.prepare(cmd, flatJobInputs, this.getContext(), cmd.loc, "baseCommand").then(suc => {
+        const baseCmdPromise = this.baseCommand.map((cmd, index) => {
+            const loc = `${this.loc}.baseCommand[${index}]`;
+            return CommandLinePrepare.prepare(cmd, flatJobInputs, this.getContext(), loc, "baseCommand").then(suc => {
                 if (suc instanceof CommandLinePart) return suc;
-                return new CommandLinePart(<string>suc, "baseCommand", cmd.loc);
+                return new CommandLinePart(<string>suc, "baseCommand", loc);
             }, err => {
-                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, cmd.loc);
+                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, loc);
             });
         });
 

@@ -71,7 +71,35 @@ describe("V1CommandLineToolModel", () => {
             expect(serialized.baseCommand).to.deep.equal([]);
         });
 
+        it("should serialize baseCommand that is an array of strings", () => {
+            model = new V1CommandLineToolModel(<any> {baseCommand: ["one", "two"]});
+            expect(model.baseCommand).to.deep.equal(["one", "two"]);
 
+            const serialized = model.serialize();
+
+            expect(serialized.baseCommand).to.have.length(2);
+            expect(serialized.baseCommand).to.deep.equal(["one", "two"]);
+        });
+
+        it("should serialize baseCommand that is a single string as an array of one string", () => {
+            model = new V1CommandLineToolModel(<any> {baseCommand: "string"});
+            expect(model.baseCommand).to.deep.equal(["string"]);
+
+            const serialized = model.serialize();
+
+            expect(serialized.baseCommand).to.have.length(1);
+            expect(serialized.baseCommand).to.deep.equal(["string"]);
+        });
+
+        it("should split spaced string into array of strings", () => {
+            model = new V1CommandLineToolModel(<any> {baseCommand: "one two"});
+            expect(model.baseCommand).to.deep.equal(["one", "two"]);
+
+            const serialized = model.serialize();
+
+            expect(serialized.baseCommand).to.have.length(2);
+            expect(serialized.baseCommand).to.deep.equal(["one", "two"]);
+        });
     });
 
     describe("jobManagement", () => {
