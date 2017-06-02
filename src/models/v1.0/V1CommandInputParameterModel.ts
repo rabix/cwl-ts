@@ -77,7 +77,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         if (this.inputBinding) base.inputBinding = this.inputBinding.serialize();
 
         if (this.label) base.label = this.label;
-        if (this.description.length) base.doc = this.description;
+        if (this.description) base.doc = this.description;
 
         if (this.fileTypes.length && !this.isField) {
             (base as CommandInputParameter).format = this.fileTypes;
