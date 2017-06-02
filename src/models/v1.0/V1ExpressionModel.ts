@@ -15,8 +15,10 @@ export class V1ExpressionModel extends ExpressionModel {
     }
 
     public deserialize(attr: string): void {
-        this.value = attr;
-        this.tokenizeAndSetType(attr);
+        if (typeof attr === "string") {
+            this.value = attr;
+            this.tokenizeAndSetType(attr);
+        }
     }
 
     constructor(expression?: string | V1ExpressionModel, loc?: string, eventHub?: EventHub) {
