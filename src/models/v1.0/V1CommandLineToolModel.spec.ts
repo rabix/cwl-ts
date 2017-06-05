@@ -186,13 +186,13 @@ describe("V1CommandLineToolModel", () => {
     });
 
     describe("ShellCommandRequirement", () => {
-        it("should add ShellCommandRequirement if an argument has shellQuote: true", () => {
+        it("should add ShellCommandRequirement if an argument has shellQuote: false", () => {
             const tool = new V1CommandLineToolModel(<any> {
                 arguments: [
                     {
                         prefix: "b",
                         valueFrom: "string",
-                        shellQuote: true
+                        shellQuote: false
                     }
                 ]
             });
@@ -203,14 +203,14 @@ describe("V1CommandLineToolModel", () => {
             expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
         });
 
-        it("should add ShellCommandRequirement if an input has shellQuote: true", () => {
+        it("should add ShellCommandRequirement if an input has shellQuote: false", () => {
             const tool = new V1CommandLineToolModel(<any> {
                 inputs: {
                     first: {
                         type: "string",
                         inputBinding: {
                             prefix: "a",
-                            shellQuote: true
+                            shellQuote: false
                         }
                     }
                 }
@@ -222,7 +222,7 @@ describe("V1CommandLineToolModel", () => {
             expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
         });
 
-        it("should add ShellCommandRequirement if field has shellQuote: true", () => {
+        it("should add ShellCommandRequirement if field has shellQuote: false", () => {
             const tool = new V1CommandLineToolModel(<any> {
                 inputs: {
                     first: {
@@ -232,7 +232,7 @@ describe("V1CommandLineToolModel", () => {
                                 field: {
                                     type: "string",
                                     inputBinding: {
-                                        shellQuote: true
+                                        shellQuote: false
                                     }
                                 }
                             }
@@ -250,7 +250,7 @@ describe("V1CommandLineToolModel", () => {
             expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
         });
 
-        it("should not add ShellQuoteRequirement if no binding has shellQuote: true", () => {
+        it("should not add ShellQuoteRequirement if no binding has shellQuote: false", () => {
             const tool = new V1CommandLineToolModel(<any> {
                 inputs: {
                     first: "string",
@@ -273,7 +273,7 @@ describe("V1CommandLineToolModel", () => {
             expect(serialize.requirements).to.be.empty;
         });
 
-        it("should remove ShellQuoteRequirement if no binding has shellQuote: true", () => {
+        it("should remove ShellQuoteRequirement if no binding has shellQuote: false", () => {
             const tool = new V1CommandLineToolModel(<any> {
                 inputs: {
                     first: "string",
@@ -304,7 +304,7 @@ describe("V1CommandLineToolModel", () => {
         it("should not duplicate requirement", () => {
             const tool = new V1CommandLineToolModel(<any> {
                 arguments: [{
-                    shellQuote: true
+                    shellQuote: false
                 }],
                 requirements: [{
                     "class": "ShellCommandRequirement"

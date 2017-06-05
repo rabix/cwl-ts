@@ -8,7 +8,7 @@ import {EventHub} from "../helpers/EventHub";
 
 export class V1CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: V1ExpressionModel;
-    public shellQuote: boolean;
+    public shellQuote = true;
     public hasSecondaryFiles = false;
     public hasShellQuote     = true;
 
@@ -36,9 +36,9 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
     deserialize(binding: CommandLineBinding): void {
         this.position      = !isNaN(binding.position) ? parseInt(<any> binding.position) : 0;
         this.prefix        = binding.prefix;
-        this.separate      = binding.separate;
+        this.separate      = binding.separate !== false; // default is true if not specified
         this.itemSeparator = binding.itemSeparator;
-        this.shellQuote    = binding.shellQuote;
+        this.shellQuote    = binding.shellQuote !== false; // default is true if not specified
         this.loadContents  = binding.loadContents === true;
 
         this.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`, this.eventHub);
@@ -57,10 +57,14 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
 
         if (!base.loadContents) delete base.loadContents;
 
-        if (!base.shellQuote) {
-            delete base.shellQuote;
-        } else if (this.eventHub) {
+        if (base.shellQuote !== false) {
+            delete base.shellQuote; // true by default
+        } else if (base.shellQuote === false && this.eventHub) {
             this.eventHub.emit("binding.shellQuote", true);
+        }
+
+        if (base.separate !== false) {
+            delete base.separate; // true by default
         }
 
         if (this.valueFrom.serialize() !== undefined) {

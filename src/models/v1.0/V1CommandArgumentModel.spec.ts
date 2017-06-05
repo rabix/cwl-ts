@@ -6,7 +6,6 @@ describe("V1CommandArgumentModel", () => {
             const data = {
                 prefix: "--pref",
                 position: 3,
-                shellQuote: true,
                 valueFrom: "string"
             };
 
@@ -15,7 +14,6 @@ describe("V1CommandArgumentModel", () => {
             expect(arg.hasBinding).to.be.true;
             expect(arg.prefix).to.equal(data.prefix);
             expect(arg.position).to.equal(data.position);
-            expect(arg.shellQuote).to.equal(data.shellQuote);
             expect(arg.valueFrom.serialize()).to.equal(data.valueFrom);
 
             expect(arg.serialize()).to.deep.equal(data);
