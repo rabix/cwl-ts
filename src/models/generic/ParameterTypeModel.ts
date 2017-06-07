@@ -8,7 +8,7 @@ import {CommandInputParameterType as SBDraft2CommandInputParameterType} from "..
 import {CommandOutputParameterType as V1CommandOutputParameterType} from "../../mappings/v1.0/CommandOutputParameter";
 import {CommandInputParameterType as V1CommandInputParameterType} from "../../mappings/v1.0/CommandInputParameter";
 
-import {ensureArray, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, incrementLastLoc, incrementString, spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
 
 export type PrimitiveParameterType =
@@ -100,20 +100,22 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     public name: string                    = null;
     private fieldConstructor;
     private eventHub: EventHub;
+    private nameBase = "field";
 
     constructor(type: SBDraft2CommandInputParameterType |
         SBDraft2CommandOutputParameterType |
         V1CommandOutputParameterType |
-        V1CommandInputParameterType, fieldConstructor?, loc?: string, eventHub?: EventHub) {
+        V1CommandInputParameterType, fieldConstructor?, nameBase?: string, loc?: string, eventHub?: EventHub) {
         super(loc);
         this.fieldConstructor = fieldConstructor;
         this.eventHub         = eventHub;
+        this.nameBase = nameBase;
         this.deserialize(type);
     }
 
-    validate(): Promise<any> {
-        let val = {errors: [], warnings: []};
+    validate(context): Promise<any> {
         this.cleanValidity();
+        const promises = [];
 
         // check type
         // if array, has items. Does not have symbols or items
@@ -192,7 +194,6 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 });
             }
             if (this.symbols) {
-
                 this.updateValidity({
                     [`${this.loc}.symbols`]: {
                         type: "error",
@@ -208,8 +209,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     }
                 });
             } else {
-                // check validity for each field.
-                // @todo check uniqueness of each field name
+                promises.concat(this.fields.map(field => field.validate(context)));
             }
 
             if (!this.name) {
@@ -222,8 +222,8 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             }
         }
 
-        return new Promise(res => {
-            res(this.issues);
+        return Promise.all(promises).then(res => {
+            return this.issues;
         });
     }
 
@@ -248,7 +248,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         }
 
         if (this.fields) {
-            this.fields = ensureArray(this.fields, "id", "type").map((field, index) => {
+            this.fields = ensureArray(this.fields, "name", "type").map((field, index) => {
                 const f = new this.fieldConstructor(field, `${this.loc}.fields[${index}]`, this.eventHub);
                 f.setValidationCallback((err) => {
                     this.updateValidity(err)
@@ -278,22 +278,48 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         }
     }
 
-    addField(field?: any): any {
+    private getNextAvailableName(id: string) {
+        let hasId  = true;
+        let result = id;
+
+        const set = this.fields;
+        const len = set.length;
+
+        while (hasId) {
+            hasId = false;
+
+            // loop through all inputs and outputs to verify id uniqueness
+            for (let i = 0; i < len; i++) {
+                if (set[i].id === result) {
+                    hasId  = true;
+                    // if id exists, increment and check the uniqueness of the incremented id
+                    result = incrementString(result);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    addField(field: any = {}): any {
         if (this.type !== "record" && this.items !== "record") {
             throw(`Fields can only be added to type or items record: type is ${this.type}, items is ${this.items}.`);
         } else {
-            const duplicate = this.fields.filter(val => {
-                return val.id === field.name
-                    || val.id === field.id;
-            });
 
-            if (duplicate.length > 0) {
-                this.updateValidity({
-                    [this.loc]: {
-                        message: `Field with name "${duplicate[0].id}" already exists`,
-                        type: "error"
-                    }
+            if (field.id) {
+                const duplicate = this.fields.filter(val => {
+                    return val.id === field.name
+                        || val.id === field.id;
                 });
+
+                if (duplicate.length > 0) {
+                    this.updateValidity({
+                        [this.loc]: {
+                            message: `Field with name "${duplicate[0].id}" already exists`,
+                            type: "error"
+                        }
+                    });
+                }
             }
 
             if (field instanceof this.fieldConstructor) {
@@ -302,13 +328,23 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     this.updateValidity(err)
                 });
 
+                if (this.eventHub) {
+                    this.eventHub.emit("field.create", field);
+                }
+
                 this.fields.push(field);
                 return field;
             } else {
-                const f = new this.fieldConstructor(field, `${this.loc}.fields[${this.fields.length}]`);
+                field.name = field.name || this.getNextAvailableName(this.nameBase);
+                const loc = incrementLastLoc(this.fields, `${this.loc}.fields`);
+                const f = new this.fieldConstructor(field, loc, this.eventHub);
                 f.setValidationCallback((err) => {
                     this.updateValidity(err)
                 });
+
+                if (this.eventHub) {
+                    this.eventHub.emit("field.create", f);
+                }
 
                 this.fields.push(f);
                 return f;
@@ -331,5 +367,9 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         }
 
         this.fields.splice(index, 1);
+
+        if (this.eventHub) {
+            this.eventHub.emit("field.remove", found);
+        }
     }
 }

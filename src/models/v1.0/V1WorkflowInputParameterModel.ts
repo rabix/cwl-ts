@@ -32,7 +32,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
         this.id      = (<InputParameter> attr).id || (<RecordField> attr).name;
         this.isField = !!(<RecordField> attr).name;
-        this.type    = new ParameterTypeModel(attr.type, V1WorkflowInputParameterModel, `${this.loc}.type`);
+        this.type    = new ParameterTypeModel(attr.type, V1WorkflowInputParameterModel, `${this.id}_field`, `${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));
         this.type.hasDirectoryType = true;
 

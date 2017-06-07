@@ -3,7 +3,7 @@ import {CommandOutputParameterModel} from "../generic/CommandOutputParameterMode
 import {Serializable} from "../interfaces/Serializable";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {
-    commaSeparatedToArray, ensureArray, incrementLastLoc, spreadAllProps,
+    commaSeparatedToArray, ensureArray, incrementLastLoc, isType, spreadAllProps,
     spreadSelectProps
 } from "../helpers/utils";
 import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
@@ -87,9 +87,13 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
 
         this.id = (<CommandOutputParameter> attr).id || (<CommandOutputRecordField> attr).name;
 
-        this.type = new ParameterTypeModel(attr.type, V1CommandOutputParameterModel, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(attr.type, V1CommandOutputParameterModel, `${this.id}_field`,`${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));
         this.type.hasDirectoryType = true;
+
+        if (isType(this, ["record", "enum"]) && !this.type.name) {
+            this.type.name = this.id;
+        }
 
         this.outputBinding = new V1CommandOutputBindingModel(attr.outputBinding, `${this.loc}.outputBinding`, this.eventHub);
         this.outputBinding.setValidationCallback(err => this.updateValidity(err));

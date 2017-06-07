@@ -22,7 +22,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
                     message: "Glob should be specified",
                     type: "warning"
                 }
-            });
+            }, true);
         }
     }
 

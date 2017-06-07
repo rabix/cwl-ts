@@ -3,7 +3,7 @@ import {CommandOutputRecordField} from "../../mappings/d2sb/CommandOutputRecordF
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {
-    commaSeparatedToArray, incrementLastLoc, spreadAllProps,
+    commaSeparatedToArray, incrementLastLoc, isType, spreadAllProps,
     spreadSelectProps
 } from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
@@ -133,8 +133,12 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
             this.secondaryFiles = attr.outputBinding.secondaryFiles.map(f => this.addSecondaryFile(f));
         }
 
-        this.type = new ParameterTypeModel(attr.type, SBDraft2CommandOutputParameterModel, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(attr.type, SBDraft2CommandOutputParameterModel, `${this.id}_field`,`${this.loc}.type`);
         this.type.setValidationCallback(err => this.updateValidity(err));
+
+        if (isType(this, ["record", "enum"]) && !this.type.name) {
+            this.type.name = this.id;
+        }
 
         spreadSelectProps(attr, this.customProps, serializedAttr);
     }

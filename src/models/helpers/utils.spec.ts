@@ -328,4 +328,4 @@ describe("charSeparatedToArray", () => {
         const arr = charSeparatedToArray("string", /\s+/);
         expect(arr).to.deep.equal(["string"]);
     })
-})
+});

@@ -29,7 +29,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
                     message: "Glob should be specified",
                     type: "warning"
                 }
-            });
+            }, true);
         }
     }
 

@@ -60,4 +60,8 @@ export class V1ResourceRequirementModel extends ResourceRequirementModel {
 
         spreadSelectProps(attr, this.customProps, ["class", "ramMin", "coresMin"]);
     }
+
+    validate(context): Promise<any> {
+        return Promise.all([this.mem.validate(context), this.cores.validate(context)]);
+    }
 }

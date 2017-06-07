@@ -5,7 +5,7 @@ import {CommandInputParameterModel} from "../generic/CommandInputParameterModel"
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {ID_REGEX} from "../helpers/constants";
 import {EventHub} from "../helpers/EventHub";
-import {ensureArray, incrementLastLoc, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, incrementLastLoc, isType, spreadSelectProps} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
@@ -83,10 +83,13 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
             }
         }
 
-        this.type = new ParameterTypeModel(input.type, SBDraft2CommandInputParameterModel, `${this.loc}.type`, this.eventHub);
+        this.type = new ParameterTypeModel(input.type, SBDraft2CommandInputParameterModel, `${this.id}_field`, `${this.loc}.type`, this.eventHub);
         this.type.setValidationCallback((err) => {
             this.updateValidity(err);
         });
+        if (isType(this, ["record", "enum"]) && !this.type.name) {
+            this.type.name = this.id;
+        }
 
         // populates object with all custom attributes not covered in model
         spreadSelectProps(input, this.customProps, serializedAttr);
@@ -95,7 +98,6 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
     public updateInputBinding(binding: SBDraft2CommandLineBindingModel) {
         if (binding instanceof SBDraft2CommandLineBindingModel) {
             //@todo breaks here for serialize of undefined
-            // this.updateSecondaryFiles(ensureArray(binding.secondaryFiles));
             this.inputBinding.setValidationCallback(err => this.updateValidity(err));
             this.inputBinding.cloneStatus(binding);
         }
@@ -143,7 +145,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
             promises.push(this.inputBinding.validate(context));
         }
 
-        promises.push(this.type.validate());
+        promises.push(this.type.validate(context));
 
         if (this.secondaryFiles) {
             promises.concat(this.secondaryFiles.map(file => file.validate(context)));

@@ -86,7 +86,7 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
 
         // type
         if (this.type) {
-            promises.push(this.type.validate());
+            promises.push(this.type.validate(context));
         }
 
         // secondaryFiles

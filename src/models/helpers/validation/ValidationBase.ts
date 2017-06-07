@@ -9,7 +9,7 @@ export abstract class ValidationBase implements Validatable {
     public errors: Issue[] = [];
     public warnings: Issue[] = [];
 
-    public updateValidity(issue: {[key: string]: Issue}) {
+    public updateValidity(issue: {[key: string]: Issue}, stopPropagation = false) {
         this.issues = {...this.issues, ...issue};
 
         this.errors = this.filterIssues("error");
@@ -17,7 +17,10 @@ export abstract class ValidationBase implements Validatable {
         this.hasErrors = !!this.errors.length;
         this.hasWarnings = !!this.warnings.length;
 
-        this.updateParentValidation(this.issues);
+        // sometimes we want to contain warnings/info to the objects where they occur
+        if (!stopPropagation) {
+            this.updateParentValidation(this.issues);
+        }
     }
 
     public cleanValidity() {
@@ -46,9 +49,13 @@ export abstract class ValidationBase implements Validatable {
     };
 
     public filterIssues(type: "warning" | "error" | "info" = "error") {
-        return Object.keys(this.issues)
-            .filter(key => this.issues[key] && this.issues[key].type === type)
-            .map(key => ({...this.issues[key], ...{loc: key}}));
+        const res = [];
+        for (let key in this.issues) {
+            if (this.issues[key] && this.issues[key].type === type) {
+                res.push({...this.issues[key], ...{loc: key}});
+            }
+        }
+        return res;
     }
 
     public validate(...args: any[]): Promise<any> {

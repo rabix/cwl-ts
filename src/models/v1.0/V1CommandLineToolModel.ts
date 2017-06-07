@@ -105,71 +105,11 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public addOutput(output?: CommandOutputParameter): V1CommandOutputParameterModel {
-        const loc = incrementLastLoc(this.outputs, `${this.loc}.outputs`);
-
-        const o = new V1CommandOutputParameterModel(output, loc, this.eventHub);
-
-        o.setValidationCallback(err => this.updateValidity(err));
-
-        if (!o.id) {
-            o.updateValidity({
-                [o.loc + ".id"]: {
-                    type: "info",
-                    message: `Output had no id, setting id to "${this.getNextAvailableId("output")}"`
-                }
-            });
-        }
-
-        o.id = o.id || this.getNextAvailableId("output");
-
-        try {
-            this.checkIdValidity(o.id)
-        } catch (ex) {
-            this.updateValidity({
-                [o.loc + ".id"]: {
-                    type: "error",
-                    message: ex.message
-                }
-            });
-        }
-
-        this.outputs.push(o);
-        return o;
+        return super._addOutput(V1CommandOutputParameterModel, output);
     }
 
     public addInput(input?): V1CommandInputParameterModel {
-        const loc = incrementLastLoc(this.inputs, `${this.loc}.inputs`);
-
-        const i = new V1CommandInputParameterModel(input, loc, this.eventHub);
-
-        i.setValidationCallback(err => this.updateValidity(err));
-
-        if (!i.id) {
-            i.updateValidity({
-                [i.loc + ".id"]: {
-                    type: "info",
-                    message: `Input had no id, setting id to "${this.getNextAvailableId("input")}"`
-                }
-            });
-        }
-
-        i.id = i.id || this.getNextAvailableId("input");
-
-        try {
-            this.checkIdValidity(i.id)
-        } catch (ex) {
-            this.updateValidity({
-                [i.loc + ".id"]: {
-                    type: "error",
-                    message: ex.message
-                }
-            });
-        }
-
-        this.inputs.push(i);
-        this.eventHub.emit("input.create", i);
-
-        return i;
+        return super._addInput(V1CommandInputParameterModel, input);
     }
 
     public addArgument(arg?: CommandLineBinding | string): V1CommandArgumentModel {
@@ -238,43 +178,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public validate(): Promise<any> {
         this.cleanValidity();
-        const map = {};
-
         const promises: Promise<any>[] = [];
 
-        // validate inputs and make sure IDs are unique
-        for (let i = 0; i < this.inputs.length; i++) {
-            const input = this.inputs[i];
-            promises.push(input.validate(this.getContext(input.id)));
+        this.checkToolIdUniqueness();
 
-            if (!map[input.id]) {
-                map[input.id] = true
-            } else {
-                input.updateValidity({
-                    [`${input.loc}.id`]: {
-                        type: "error",
-                        message: `Duplicate id "${input.id}"`
-                    }
-                });
-            }
-        }
-
-        // validate outputs and make sure IDs are unique
-        for (let i = 0; i < this.outputs.length; i++) {
-            const output = this.outputs[i];
-            promises.push(output.validate(this.getContext()));
-
-            if (!map[output.id]) {
-                map[output.id] = true
-            } else {
-                output.updateValidity({
-                    [`${output.loc}.id`]: {
-                        type: "error",
-                        message: `Duplicate id "${output.id}"`
-                    }
-                });
-            }
-        }
 
         for (let i = 0; i < this.arguments.length; i++) {
             const argument = this.arguments[i];

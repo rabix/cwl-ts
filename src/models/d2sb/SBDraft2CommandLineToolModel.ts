@@ -128,52 +128,11 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     }
 
     public addInput(input?: CommandInputParameter): SBDraft2CommandInputParameterModel {
-        const loc = incrementLastLoc(this.inputs, `${this.loc}.inputs`);
-
-        const i = new SBDraft2CommandInputParameterModel(input, loc, this.eventHub);
-        i.self  = JobHelper.generateMockJobData(i);
-
-        i.id = i.id || this.getNextAvailableId("input");
-
-        try {
-            this.checkIdValidity(i.id);
-        } catch (ex) {
-            console.warn(`${i.loc}: ${ex.message}`);
-            //@todo set error on input about duplicate id;
-        }
-
-
-        this.inputs.push(i);
-
-        i.setValidationCallback((err) => this.updateValidity(err));
-
-        this.eventHub.emit("input.create", i);
-
-        return i;
+        return super._addInput(SBDraft2CommandInputParameterModel, input);
     }
 
-
     public addOutput(output: CommandOutputParameter): SBDraft2CommandOutputParameterModel {
-        const loc = incrementLastLoc(this.outputs, `${this.loc}.outputs`);
-
-        const o = new SBDraft2CommandOutputParameterModel(output, loc, this.eventHub);
-
-        o.id = o.id || this.getNextAvailableId("output");
-
-        try {
-            this.checkIdValidity(o.id);
-        } catch (ex) {
-            console.warn(`${o.loc}: ${ex.message}`);
-            //@todo set error on output about duplicate id;
-        }
-
-        this.outputs.push(o);
-
-        o.setValidationCallback((err) => this.updateValidity(err));
-
-        this.eventHub.emit("output.create", o);
-
-        return o;
+        return super._addOutput(SBDraft2CommandOutputParameterModel, output);
     }
 
     public setRequirement(req: ProcessRequirement, hint?: boolean) {
@@ -198,6 +157,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     validate(): Promise<any> {
         this.cleanValidity();
         const promises = [];
+
+        this.checkToolIdUniqueness();
 
         // validate baseCommand
         promises.concat(this.baseCommand.map(cmd => cmd.validate(this.getContext())));

@@ -22,13 +22,11 @@ export class SBDraft2CommandArgumentModel extends CommandArgumentModel implement
         this.binding.itemSeparator = binding.itemSeparator;
     }
 
-
     updatePrimitive(str: string) {
         this.hasBinding = false;
         this.binding    = undefined;
         this.primitive  = str;
     }
-
 
     toggleBinding(state: boolean): void {
         if (state) {

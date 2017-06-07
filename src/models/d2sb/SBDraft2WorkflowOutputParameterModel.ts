@@ -40,7 +40,7 @@ export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParamete
         }
 
         this.source      = ensureArray(output.source);
-        this.type        = new ParameterTypeModel(output.type, SBDraft2WorkflowOutputParameterModel, `${this.loc}.type`);
+        this.type        = new ParameterTypeModel(output.type, SBDraft2WorkflowOutputParameterModel, `${this.id}_field`,`${this.loc}.type`);
         this._label       = output.label;
         this.description = output.description;
 

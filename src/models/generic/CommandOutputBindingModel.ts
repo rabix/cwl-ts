@@ -41,13 +41,13 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
         this.cleanValidity();
         const promises = [];
 
-        if (!this._glob || (this._glob && this._glob.serialize() === undefined)) {
-            this.updateValidity({
+        if (this._glob && this._glob.serialize() === undefined) {
+            this._glob.updateValidity({
                 [`${this.loc}.glob`]: {
                     message: "Glob should be specified",
                     type: "warning"
                 }
-            });
+            }, true);
         } else {
             promises.push(this._glob.validate(context));
         }

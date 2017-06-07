@@ -1,9 +1,13 @@
 import {ID_REGEX} from "./constants";
+import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
+import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
+import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
+import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
 export const ensureArray = (map: { [key: string]: any }
-                                | any[]
-                                | string
-                                | number
-                                | boolean, key?: string, valueKey?: string): any[] => {
+    | any[]
+    | string
+    | number
+    | boolean, key?: string, valueKey?: string): any[] => {
     // object is not defined or is null, return an empty array
     if (map === undefined || map === null) return [];
 
@@ -189,7 +193,7 @@ export const cleanupNull = (obj: Object): any => {
 
 export const nullifyObjValues = (obj: Object): any => {
     const keys = Object.keys(obj);
-    let tmp = {...obj};
+    let tmp    = {...obj};
     for (let i = 0; i < keys.length; i++) {
         tmp[keys[i]] = null;
     }
@@ -207,18 +211,38 @@ export const validateID = (id: string) => {
     }
 };
 
-export const incrementLastLoc = (items: {loc: string}[] = [], prefix: string) => {
-    if (items.length === 0){
+export const incrementLastLoc = (items: { loc: string }[] = [], prefix: string) => {
+    if (items.length === 0) {
         return `${prefix}[0]`
     }
 
     const lastItem = items[items.length - 1];
 
-    let match:any = ((lastItem.loc.match(/\[(\d+)]$/g) || [""])[0].match(/\d+/g) || [""])[0];
+    let match: any = ((lastItem.loc.match(/\[(\d+)]$/g) || [""])[0].match(/\d+/g) || [""])[0];
 
     if (!match) return null;
 
     match = parseInt(match);
 
     return `${prefix}[${++match}]`;
+};
+
+/**
+ * Returns true if port is of type or type[]
+ * If type is an array, will check if port is single item or array of any of types
+ * @param port
+ * @param type
+ */
+export const isType = (port: CommandInputParameterModel |
+                            CommandOutputParameterModel |
+                            WorkflowInputParameterModel |
+                            WorkflowOutputParameterModel, type: string | string[]): boolean => {
+
+    if (!port.type || !port.type.type) {
+        return false;
+    }
+
+    if (typeof type === "string") type = [type];
+
+    return type.filter(t => port.type.type === t || port.type.items === t).length > 0;
 };

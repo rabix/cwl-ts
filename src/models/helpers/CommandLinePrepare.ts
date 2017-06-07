@@ -66,7 +66,7 @@ export class CommandLinePrepare {
                         {pos: ~~a.inputBinding.position, id: a.id};
                 });
 
-                return ~~c1.pos - ~~c2.pos || c1.id.localeCompare(c2.id);
+                return ~~c1.pos - ~~c2.pos || (c1.id ? c1.id.localeCompare(c2.id) : -1);
             };
 
             if (input instanceof CommandInputParameterModel) {

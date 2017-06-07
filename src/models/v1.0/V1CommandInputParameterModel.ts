@@ -3,7 +3,7 @@ import {CommandInputParameterModel} from "../generic/CommandInputParameterModel"
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {Serializable} from "../interfaces/Serializable";
 import {
-    commaSeparatedToArray, ensureArray, incrementLastLoc, spreadSelectProps
+    commaSeparatedToArray, ensureArray, incrementLastLoc, isType, spreadSelectProps
 } from "../helpers/utils";
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
@@ -106,9 +106,12 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
             serializedKeys.push("id");
         }
 
-        this.type = new ParameterTypeModel(attr.type, V1CommandInputParameterModel, `${this.loc}.type`, this.eventHub);
+        this.type = new ParameterTypeModel(attr.type, V1CommandInputParameterModel, `${this.id}_field`,`${this.loc}.type`, this.eventHub);
         this.type.setValidationCallback(err => this.updateValidity(err));
         this.type.hasDirectoryType = true;
+        if (isType(this, ["record", "enum"]) && !this.type.name) {
+            this.type.name = this.id;
+        }
 
         if (attr.inputBinding) {
             this.inputBinding = new V1CommandLineBindingModel(attr.inputBinding, `${this.loc}.inputBinding`, this.eventHub);

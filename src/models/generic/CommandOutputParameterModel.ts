@@ -63,7 +63,7 @@ export abstract class CommandOutputParameterModel extends ValidationBase impleme
         const promises = [];
 
         promises.push(this.outputBinding.validate(context));
-        promises.push(this.type.validate());
+        promises.push(this.type.validate(context));
 
         promises.concat(this.secondaryFiles.map(f => f.validate(context)));
 

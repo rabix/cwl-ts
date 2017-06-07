@@ -33,7 +33,7 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
                 || (<RecordField> input).name || ""; // for record fields
         }
 
-        this.type = new ParameterTypeModel(input.type, SBDraft2WorkflowInputParameterModel, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(input.type, SBDraft2WorkflowInputParameterModel, `${this.id}_field`, `${this.loc}.type`);
 
         this.fileTypes   = commaSeparatedToArray(input["sbg:fileTypes"]);
         this._label       = (input as SBGWorkflowInputParameter).label;

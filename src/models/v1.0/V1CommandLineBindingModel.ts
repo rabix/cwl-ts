@@ -73,4 +73,13 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
 
         return spreadAllProps(base, this.customProps);
     }
+
+    validate(context): Promise<any> {
+        this.cleanValidity();
+        const promises = [];
+
+        promises.push(this.valueFrom.validate(context));
+
+        return Promise.all(promises).then(() => this.issues);
+    }
 }

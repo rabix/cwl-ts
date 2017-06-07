@@ -12,7 +12,7 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
 
     primitive: V1ExpressionModel;
     hasExprPrimitive = true;
-    hasShellQuote = true;
+    hasShellQuote    = true;
 
     constructor(arg?: CommandLineBinding | string, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
@@ -92,5 +92,15 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
             this.binding    = new V1CommandLineBindingModel(attr, this.loc, this.eventHub);
             this.binding.setValidationCallback(err => this.updateValidity(err));
         }
+    }
+
+    validate(context): Promise<any> {
+        this.cleanValidity();
+
+        if (this.hasBinding) {
+            return this.binding.validate(context);
+        }
+
+        return new Promise(res => {res(this.issues)});
     }
 }

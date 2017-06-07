@@ -243,7 +243,7 @@ export class TypeResolver {
                             return field;
                         }
                     }),
-                    name: type.name
+                    name: type.name || ""
                 };
                 if (type.typeBinding) t.inputBinding = type.typeBinding;
                 break;
@@ -252,7 +252,7 @@ export class TypeResolver {
                 t = {
                     type: "enum",
                     symbols: type.symbols,
-                    name: type.name
+                    name: type.name || ""
                 };
 
                 if (type.typeBinding) t.inputBinding = type.typeBinding;

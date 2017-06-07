@@ -13,7 +13,10 @@ import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {RequirementBaseModel} from "./RequirementBaseModel";
 import {ResourceRequirementModel} from "./ResourceRequirementModel";
 import {EventHub} from "../helpers/EventHub";
-import {fetchByLoc, incrementString, isEmpty, validateID} from "../helpers/utils";
+import {
+    fetchByLoc, incrementLastLoc, incrementString, isEmpty, isType,
+    validateID
+} from "../helpers/utils";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {JobHelper} from "../helpers/JobHelper";
@@ -73,8 +76,11 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             "io.change.type",
             "output.create",
             "output.remove",
+            "output.change.id",
             "argument.create",
             "argument.remove",
+            "field.create",
+            "field.remove",
             "validate",
             "binding.shellQuote",
             "expression.serialize"
@@ -91,11 +97,11 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.eventHub.off(event, handler);
     }
 
-    protected getNextAvailableId(id: string) {
+    protected getNextAvailableId(id: string, set?: Array<CommandOutputParameterModel | CommandInputParameterModel>) {
         let hasId  = true;
         let result = id;
 
-        const set = [...this.inputs, ...this.outputs];
+        set = set || [...this.outputs, ...this.inputs];
         const len = set.length;
 
         while (hasId) {
@@ -114,10 +120,10 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         return result;
     }
 
-    protected checkIdValidity(id: string) {
+    protected checkIdValidity(id: string, scope?: Array<CommandInputParameterModel | CommandOutputParameterModel>) {
         validateID(id);
 
-        const next = this.getNextAvailableId(id);
+        const next = this.getNextAvailableId(id, scope);
         if (next !== id) {
             throw new Error(`ID "${id}" already exists in this tool, the next available id is "${next}"`);
         }
@@ -130,6 +136,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
         const oldId = port.id;
         let type;
+        let scope;
         // emit set proper type so event can be emitted and validity can be scoped
         if (port instanceof CommandInputParameterModel) {
             type = "input";
@@ -137,10 +144,18 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             type = "output";
         }
 
+        if (port.isField) {
+            const loc = port.loc.substr(this.loc.length).replace(/fields\[\d+]$/, "");
+            scope = fetchByLoc(this, loc).fields;
+        }
+
         // verify that the new ID can be set
-        this.checkIdValidity(id);
+        this.checkIdValidity(id, scope);
 
         port.id = id;
+        if (isType(port, ["record", "enum"])) {
+            port.type.name = id;
+        }
 
         // emit change event so CLT subclasses can change job values
         this.eventHub.emit(`${type}.change.id`, {port, oldId, newId: port.id});
@@ -151,7 +166,6 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             this.jobInputs[data.newId] = this.jobInputs[data.oldId] || JobHelper.generateMockJobData(data.port);
             delete this.jobInputs[data.oldId];
             this.updateCommandLine();
-            console.log('input id changed');
         });
 
         this.eventHub.on("io.change.type", (loc: string) => {
@@ -190,6 +204,35 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         new UnimplementedMethodException("updateStream", "CommandLineToolModel");
     }
 
+    _addOutput(outputConstructor, output?) {
+        const loc = incrementLastLoc(this.outputs, `${this.loc}.outputs`);
+        const id  = this.getNextAvailableId("output");
+
+        if (output) {
+            output.id = output.id || id;
+        } else {
+            output = {id};
+        }
+
+        const o = new outputConstructor(output, loc, this.eventHub);
+
+        o.setValidationCallback(err => this.updateValidity(err));
+
+        try {
+            this.checkIdValidity(o.id)
+        } catch (ex) {
+            this.updateValidity({
+                [o.loc + ".id"]: {
+                    type: "error",
+                    message: ex.message
+                }
+            });
+        }
+
+        this.outputs.push(o);
+        return o;
+    }
+
     public addOutput(output?): CommandOutputParameterModel {
         new UnimplementedMethodException("addOutput", "CommandLineToolModel");
         return null;
@@ -203,6 +246,37 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.outputs[index].cleanValidity();
         this.outputs.splice(index, 1);
         this.eventHub.emit("output.remove", output);
+    }
+
+    protected _addInput(inputConstructor, input?) {
+        const loc = incrementLastLoc(this.inputs, `${this.loc}.inputs`);
+        const id  = this.getNextAvailableId("input");
+
+        if (input) {
+            input.id = input.id || id;
+        } else {
+            input = {id};
+        }
+
+        const i = new inputConstructor(input, loc, this.eventHub);
+
+        i.setValidationCallback(err => this.updateValidity(err));
+
+        try {
+            this.checkIdValidity(i.id)
+        } catch (ex) {
+            this.updateValidity({
+                [i.loc + ".id"]: {
+                    type: "error",
+                    message: ex.message
+                }
+            });
+        }
+
+        this.inputs.push(i);
+        this.eventHub.emit("input.create", i);
+
+        return i;
     }
 
     public addInput(input?): CommandInputParameterModel {
@@ -315,4 +389,32 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         });
     }
 
+    protected checkToolIdUniqueness(): void {
+        const map       = {};
+        const duplicate = [];
+        const ports     = [...this.inputs, ...this.outputs];
+
+        for (let i = 0; i < ports.length; i++) {
+            const p = ports[i];
+
+            if (map[p.id]) {
+                duplicate.push(p);
+            } else {
+                map[p.id] = true;
+            }
+        }
+
+        if (duplicate.length > 0) {
+            for (let i = 0; i < duplicate.length; i++) {
+                const port = duplicate[i];
+
+                port.updateValidity({
+                    [`${port.loc}.id`]: {
+                        type: "error",
+                        message: `Duplicate id found: “${port.id}”`
+                    }
+                });
+            }
+        }
+    }
 }
