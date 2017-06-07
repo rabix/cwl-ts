@@ -1,3 +1,4 @@
+import {isUndefined} from "util";
 import {CommandOutputBinding} from "../../mappings/d2sb/CommandOutputBinding";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {CommandOutputBindingModel} from "../generic/CommandOutputBindingModel";
@@ -73,8 +74,11 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
 
         if (Object.keys(this.metadata).length) {
             base["sbg:metadata"] = {};
-            Object.keys(this.metadata).forEach(key => {
-                base["sbg:metadata"][key] = <string | Expression> this.metadata[key].serialize();
+            Object.keys(this.metadata).filter(key => key).forEach(key => {
+                const serialized = this.metadata[key].serialize();
+                if (!isUndefined(serialized)) {
+                    base["sbg:metadata"][key] = <string | Expression> serialized;
+                }
             });
         }
 
@@ -122,9 +126,12 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
             this._outputEval.setValidationCallback(err => this.updateValidity(err));
 
             if (binding["sbg:metadata"] && binding["sbg:metadata"].constructor === Object) {
-                Object.keys(binding["sbg:metadata"]).forEach(key => {
-                    this.metadata[key] = new SBDraft2ExpressionModel(binding["sbg:metadata"][key], `${this.loc}["sbg:metadata"].${key}`, this.eventHub);
-                    this.metadata[key].setValidationCallback(err => this.updateValidity(err));
+                Object.keys(binding["sbg:metadata"]).filter(key => key).forEach(key => {
+                    const metadata = binding["sbg:metadata"][key];
+                    if (!isUndefined(metadata)) {
+                        this.metadata[key] = new SBDraft2ExpressionModel(metadata, `${this.loc}["sbg:metadata"].${key}`, this.eventHub);
+                        this.metadata[key].setValidationCallback(err => this.updateValidity(err));
+                    }
                 });
             }
 

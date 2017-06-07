@@ -41,6 +41,26 @@ describe("SBDraft2CommandOutputBindingModel", () => {
         });
     });
 
+    describe("metadata", () => {
+        it("should not serialize metadata if key or value is blank", () => {
+
+            let bind = new SBDraft2CommandOutputBindingModel({}, "binding");
+            bind.metadata = {"": new SBDraft2ExpressionModel("text"), "data": new SBDraft2ExpressionModel("")};
+
+            expect(Object.keys(bind.serialize()["sbg:metadata"])).empty;
+        });
+
+        it("should not deserialize metadata if key or value is blank", () => {
+
+            let bind = new SBDraft2CommandOutputBindingModel({}, "binding");
+
+            const metadata = {"": new SBDraft2ExpressionModel("text"), "data": new SBDraft2ExpressionModel("")};
+            bind.deserialize(metadata);
+
+            expect(Object.keys(bind.metadata)).empty;
+        });
+    });
+
     describe("secondaryFiles", () => {
         it("should not serialize secondaryFiles if array is blank", () => {
             const obj = {
