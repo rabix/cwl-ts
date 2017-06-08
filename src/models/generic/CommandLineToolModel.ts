@@ -101,7 +101,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         let hasId  = true;
         let result = id;
 
-        set = set || [...this.outputs, ...this.inputs];
+        set       = set || [...this.outputs, ...this.inputs];
         const len = set.length;
 
         while (hasId) {
@@ -145,8 +145,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         }
 
         if (port.isField) {
-            const loc = port.loc.substr(this.loc.length).replace(/fields\[\d+]$/, "");
-            scope = fetchByLoc(this, loc).fields;
+            scope = this.findFieldParent(port.loc);
         }
 
         // verify that the new ID can be set
@@ -162,9 +161,43 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     }
 
     protected initializeJobWatchers() {
+        const findFieldRoot = (port, base): any => {
+            // find ancestor that is in the inputs root, save ancestors
+            let isField = true;
+            // creating a path to the input inside the job, ignoring the id of the actual input for now
+            const path  = [];
+            // location of the current port we're looking at
+            let loc = port.loc;
+            while (isField) {
+                const parent = this.findFieldParent(loc);
+                // add parent id to the beginning of the path, we're traversing up the tree
+                path.unshift(parent.id);
+                // continue traversing if parent is a field
+                isField = parent.isField;
+                // parent becomes port we're looking at
+                loc = parent.loc;
+            }
+
+            // traverse jobInputs with the ids generated from field parents, find root of field
+            for (let i = 0; i < path.length; i++) {
+                base = base[path[i]];
+            }
+
+            return base;
+        };
+
         this.eventHub.on("input.change.id", (data) => {
-            this.jobInputs[data.newId] = this.jobInputs[data.oldId] || JobHelper.generateMockJobData(data.port);
-            delete this.jobInputs[data.oldId];
+            let root = this.jobInputs;
+
+            // check if port is a field (nested structure)
+            if (data.port.isField) {
+                root = findFieldRoot(data.port, root);
+            }
+
+            // root is the object which holds changed input, either jobInputs or a record
+            root[data.newId] = root[data.oldId] || JobHelper.generateMockJobData(data.port);
+            delete root[data.oldId];
+
             this.updateCommandLine();
         });
 
@@ -172,14 +205,20 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             // make sure loc is within this tree and that belongs to one of the inputs
             if (loc.search(this.loc) === 0 && loc.search("inputs") > -1) {
                 // remove root part of loc and ignore type part of loc
-                loc                                    = loc.substr(this.loc.length).replace("type", "");
+                loc                                    = loc.substr(this.loc.length).replace(/type$/, "");
                 // find port based on its loc
                 const port: CommandInputParameterModel = fetchByLoc(this, loc);
                 if (!port) {
                     // newly added inputs will trigger this event before they are added to tool
                     return;
                 }
-                this.jobInputs[port.id] = JobHelper.generateMockJobData(port);
+                let root = this.jobInputs;
+
+                if(port.isField) {
+                    root = findFieldRoot(port, root);
+                }
+
+                root[port.id] = JobHelper.generateMockJobData(port);
                 this.updateCommandLine();
             }
         });
@@ -193,6 +232,13 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             this.jobInputs[port.id] = JobHelper.generateMockJobData(port);
             this.updateCommandLine();
         });
+
+        this.eventHub.on("field.create", (port: CommandInputParameterModel | CommandOutputParameterModel) => {
+            if (port instanceof CommandInputParameterModel) {
+                let root = findFieldRoot(port, this.jobInputs);
+                root[port.id] = JobHelper.generateMockJobData(port);
+            }
+        });
     }
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
@@ -202,6 +248,11 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public updateStream(stream: ExpressionModel, type: "stderr" | "stdin" | "stdout") {
         new UnimplementedMethodException("updateStream", "CommandLineToolModel");
+    }
+
+    findFieldParent(loc: string): CommandOutputParameterModel | CommandOutputParameterModel {
+        loc = loc.substr(this.loc.length).replace(/\.fields\[\d+]$/, "").replace(/\.type$/, "");
+        return fetchByLoc(this, loc);
     }
 
     _addOutput(outputConstructor, output?) {

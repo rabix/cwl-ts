@@ -276,6 +276,10 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 this.symbols = null;
                 break;
         }
+
+        if (this.eventHub) {
+            this.eventHub.emit("io.change.type", this.loc);
+        }
     }
 
     private getNextAvailableName(id: string) {

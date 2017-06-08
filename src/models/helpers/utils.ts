@@ -151,7 +151,7 @@ export const isEmpty = (obj: Object | any[]): boolean => {
 
 export const fetchByLoc = (obj: any, loc: string): any => {
     // change "foo.bar[3]['baz']" to "foo.bar.3.'baz'"
-    loc             = loc.replace("[", ".[").replace(/[\[\]]/g, "");
+    loc             = loc.replace(/\[/g, ".[").replace(/[\[\]]/g, "");
     // to ["foo", "bar", "3", "'baz'"]
     const tokens    = loc.split(".").filter(tok => tok.length);
     let result: any = obj;

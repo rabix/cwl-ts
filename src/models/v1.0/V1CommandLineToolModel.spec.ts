@@ -183,6 +183,99 @@ describe("V1CommandLineToolModel", () => {
             expect(context.inputs.newId).to.not.be.undefined;
 
         });
+
+        it("should change job key when changing a field id", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    input: {
+                        type: {
+                            type: "record",
+                            fields: {
+                                field: "string"
+                            }
+                        }
+                    }
+                }
+            });
+
+            const context = model.getContext();
+
+            expect(context.inputs).to.deep.equal({
+                input: {
+                    field: "field-string-value"
+                }
+            });
+
+            model.changeIOId(model.inputs[0].type.fields[0], "newId");
+
+            expect(context.inputs).to.deep.equal({
+                input: {
+                    newId: "field-string-value"
+                }
+            });
+        });
+
+        it("should change job value when changing a field type", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    input: {
+                        type: {
+                            type: "record",
+                            fields: {
+                                field: "string"
+                            }
+                        }
+                    }
+                }
+            });
+
+            const context = model.getContext();
+
+            expect(context.inputs).to.deep.equal({
+                input: {
+                    field: "field-string-value"
+                }
+            });
+
+            model.inputs[0].type.fields[0].type.type = "File";
+            expect(context.inputs).to.deep.equal({
+                input: {
+                    field: {
+                        path: "/path/to/field.ext",
+                        "class": "File",
+                        size: 0,
+                        secondaryFiles: []
+                    }
+                }
+            });
+        });
+
+        it("should add mock field to job when adding field", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    input: {
+                        type: {
+                            type: "record",
+                            fields: []
+                        }
+                    }
+                }
+            });
+
+            let context = model.getContext();
+            expect(context.inputs).to.deep.equal({
+                input: {}
+            });
+
+            model.inputs[0].type.addField({name: "field", type: "string"});
+            expect(context.inputs).to.deep.equal({
+                input: {
+                    field: "field-string-value"
+                }
+            });
+            expect(context.inputs.input).to.have.all.keys("field");
+            expect(typeof context.inputs.input.field).to.equal("string");
+        });
     });
 
     describe("ShellCommandRequirement", () => {
