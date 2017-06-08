@@ -64,9 +64,10 @@ export class JobHelper {
         if (type === "array") {
             val = val[items];
 
-            if (items === "record") {
+            if (items === "record" && input.type.fields) {
                 val = [];
                 const obj = {};
+
                 input.type.fields.forEach(field => {
                     obj[field.id] = JobHelper.generateMockJobData(field);
                 });
@@ -75,7 +76,7 @@ export class JobHelper {
                 val.push(obj);
             }
         }
-        if (type === "record") {
+        if (type === "record" && input.type.fields) {
             input.type.fields.forEach(field => {
                 val[field.id] = JobHelper.generateMockJobData(field);
             });
