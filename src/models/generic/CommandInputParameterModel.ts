@@ -55,7 +55,9 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
     }
 
     public removeInputBinding() {
-        this.inputBinding.cleanValidity();
+        if (this.inputBinding) {
+            this.inputBinding.cleanValidity();
+        }
         this.inputBinding = null;
     }
 
