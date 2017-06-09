@@ -146,7 +146,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         }
 
         if (port.isField) {
-            scope = this.findFieldParent(port.loc);
+            scope = this.findFieldParent(port.loc).type.fields;
         }
 
         // verify that the new ID can be set
