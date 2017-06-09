@@ -246,3 +246,20 @@ export const isType = (port: CommandInputParameterModel |
 
     return type.filter(t => port.type.type === t || port.type.items === t).length > 0;
 };
+
+export const flatten = (arr: any[]) => {
+    const _flatten = (arr: any[], res: any[]) => {
+        for(let i = 0; i < arr.length; i++) {
+            const a = arr[i];
+           if(Array.isArray(a)) {
+               _flatten(a, res);
+           } else {
+               res.push(a);
+           }
+        }
+    };
+
+    const res = [];
+    _flatten(arr, res);
+    return res;
+};

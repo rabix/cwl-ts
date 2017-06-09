@@ -180,8 +180,17 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.cleanValidity();
         const promises: Promise<any>[] = [];
 
-        this.checkToolIdUniqueness();
+        for (let i = 0; i < this.inputs.length; i++) {
+            const input = this.inputs[i];
+            promises.push(input.validate(this.getContext(input.id)));
+        }
 
+        for (let i = 0; i < this.outputs.length; i++) {
+            const output = this.outputs[i];
+            promises.push(output.validate(this.getContext()));
+        }
+
+        this.checkPortIdUniqueness();
 
         for (let i = 0; i < this.arguments.length; i++) {
             const argument = this.arguments[i];

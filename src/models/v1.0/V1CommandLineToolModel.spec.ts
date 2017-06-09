@@ -276,6 +276,671 @@ describe("V1CommandLineToolModel", () => {
             expect(context.inputs.input).to.have.all.keys("field");
             expect(typeof context.inputs.input.field).to.equal("string");
         });
+
+        it("should remove field from record value", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    input: {
+                        type: {
+                            type: "record",
+                            fields: {
+                                field: "string"
+                            }
+                        }
+                    }
+                }
+            });
+
+            const context = model.getContext();
+
+            expect(context.inputs).to.deep.equal({
+                input: {
+                    field: "field-string-value"
+                }
+            });
+
+            model.inputs[0].type.removeField(model.inputs[0].type.fields[0]);
+            expect(context.inputs).to.deep.equal({
+                input: {}
+            });
+        });
+
+        it("should add mock field to job when adding field to record[]", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    input: {
+                        type: {
+                            type: "array",
+                            items: {
+                                type: "record",
+                                fields: []
+                            }
+                        }
+                    }
+                }
+            });
+
+            let context = model.getContext();
+            expect(context.inputs).to.deep.equal({
+                input: [{}, {}]
+            });
+
+            model.inputs[0].type.addField({name: "field", type: "string"});
+            expect(context.inputs).to.deep.equal({
+                input: [{
+                    field: "field-string-value"
+                }, {
+                    field: "field-string-value"
+                }]
+            });
+        });
+
+        it("should change job key when changing field id in record[]", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    input: {
+                        type: {
+                            type: "array",
+                            items: {
+                                type: "record",
+                                fields: [
+                                    {
+                                        type: "string",
+                                        name: "field"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            });
+
+            let context = model.getContext();
+            expect(context.inputs).to.deep.equal({
+                input: [{
+                    field: "field-string-value"
+                }, {
+                    field: "field-string-value"
+                }]
+            });
+
+            model.changeIOId(model.inputs[0].type.fields[0], "newId");
+
+            expect(context.inputs).to.deep.equal({
+                input: [{
+                    newId: "field-string-value"
+                }, {
+                    newId: "field-string-value"
+                }]
+            });
+        });
+
+        it("should remove field from record[] value", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    input: {
+                        type: {
+                            type: "array",
+                            items: {
+                                type: "record",
+                                fields: [
+                                    {
+                                        type: "string",
+                                        name: "field"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            });
+
+            let context = model.getContext();
+            expect(context.inputs).to.deep.equal({
+                input: [{
+                    field: "field-string-value"
+                }, {
+                    field: "field-string-value"
+                }]
+            });
+
+            model.inputs[0].type.removeField(model.inputs[0].type.fields[0]);
+            expect(context.inputs).to.deep.equal({
+                input: [{}, {}]
+            });
+        });
+
+        it("should change value of field in record[] when changing type", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    input: {
+                        type: {
+                            type: "array",
+                            items: {
+                                type: "record",
+                                fields: [
+                                    {
+                                        type: "string",
+                                        name: "field"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            });
+
+            let context = model.getContext();
+            expect(context.inputs).to.deep.equal({
+                input: [{
+                    field: "field-string-value"
+                }, {
+                    field: "field-string-value"
+                }]
+            });
+
+            model.inputs[0].type.fields[0].type.type = "boolean";
+            expect(context.inputs).to.deep.equal({
+                input: [{field: true}, {field: true}]
+            });
+        });
+
+        it("should add mock value for nested record in record[]", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    input: {
+                        type: {
+                            type: "array",
+                            items: {
+                                type: "record",
+                                fields: [
+                                    {name: "field", type: {type: "record", fields: []}}
+                                ]
+                            }
+                        }
+                    }
+                }
+            });
+
+            let context = model.getContext();
+            expect(context.inputs).to.deep.equal({
+                input: [{
+                    field: {}
+                }, {
+                    field: {}
+                }]
+            });
+
+            model.inputs[0].type.fields[0].type.addField({name: "nested", type: "string"});
+            expect(context.inputs).to.deep.equal({
+                input: [
+                    {
+                        field: {
+                            nested: "nested-string-value"
+                        }
+                    },
+                    {
+                        field: {
+                            nested: "nested-string-value"
+                        }
+                    }
+                ]
+            });
+        });
+
+        it("should remove nested field in record[]", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    input: {
+                        type: {
+                            type: "array",
+                            items: {
+                                type: "record",
+                                fields: [
+                                    {
+                                        name: "field",
+                                        type: {
+                                            type: "record", fields: [
+                                                {name: "nested", type: "string"}
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            });
+
+            let context = model.getContext();
+            expect(context.inputs).to.deep.equal({
+                input: [
+                    {
+                        field: {
+                            nested: "nested-string-value"
+                        }
+                    },
+                    {
+                        field: {
+                            nested: "nested-string-value"
+                        }
+                    }
+                ]
+            });
+
+            model.inputs[0].type.fields[0].type.removeField(model.inputs[0].type.fields[0].type.fields[0]);
+            expect(context.inputs).to.deep.equal({
+                input: [
+                    {
+                        field: {}
+                    },
+                    {
+                        field: {}
+                    }
+                ]
+            });
+        });
+
+        it("should change type for nested record in record[]", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    input: {
+                        type: {
+                            type: "array",
+                            items: {
+                                type: "record",
+                                fields: [
+                                    {
+                                        name: "field",
+                                        type: {
+                                            type: "record", fields: [
+                                                {name: "nested", type: "string"}
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            });
+
+            let context = model.getContext();
+            expect(context.inputs).to.deep.equal({
+                input: [
+                    {
+                        field: {
+                            nested: "nested-string-value"
+                        }
+                    },
+                    {
+                        field: {
+                            nested: "nested-string-value"
+                        }
+                    }
+                ]
+            });
+
+            model.inputs[0].type.fields[0].type.fields[0].type.type = "boolean";
+            expect(context.inputs).to.deep.equal({
+                input: [
+                    {
+                        field: {
+                            nested: true
+                        }
+                    },
+                    {
+                        field: {
+                            nested: true
+                        }
+                    }
+                ]
+            });
+        });
+
+        it("should create mock value for nested record[] in record[]", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                "inputs": [
+                    {
+                        "id": "parent",
+                        "type": [
+                            "null",
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "record",
+                                    "fields": [
+                                        {
+                                            "name": "child",
+                                            "type": [
+                                                "null",
+                                                {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "record",
+                                                        "fields": [
+                                                            {
+                                                                "name": "grand-child",
+                                                                "type": [
+                                                                    "null",
+                                                                    {
+                                                                        "type": "record",
+                                                                        "fields": [
+                                                                            {
+                                                                                "name": "great-grand-child",
+                                                                                "type": "string?",
+                                                                                "inputBinding": {
+                                                                                    "position": 0
+                                                                                }
+                                                                            }
+                                                                        ],
+                                                                        "name": "grand-child"
+                                                                    }
+                                                                ],
+                                                                "inputBinding": {
+                                                                    "position": 0
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ],
+                                            "inputBinding": {
+                                                "position": 0
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "inputBinding": {
+                            "position": 0
+                        },
+                        "secondaryFiles": []
+                    }
+                ]
+            });
+
+            let context = model.getContext();
+            expect(context.inputs).to.deep.equal({
+                parent: [
+                    {
+                        child: [
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            },
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        child: [
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            },
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            });
+        });
+
+        it("should change id for nested record[] in record[]", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                "inputs": [
+                    {
+                        "id": "parent",
+                        "type": [
+                            "null",
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "record",
+                                    "fields": [
+                                        {
+                                            "name": "child",
+                                            "type": [
+                                                "null",
+                                                {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "record",
+                                                        "fields": [
+                                                            {
+                                                                "name": "grand-child",
+                                                                "type": [
+                                                                    "null",
+                                                                    {
+                                                                        "type": "record",
+                                                                        "fields": [
+                                                                            {
+                                                                                "name": "great-grand-child",
+                                                                                "type": "string?",
+                                                                                "inputBinding": {
+                                                                                    "position": 0
+                                                                                }
+                                                                            }
+                                                                        ],
+                                                                        "name": "grand-child"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            let context = model.getContext();
+            expect(context.inputs).to.deep.equal({
+                parent: [
+                    {
+                        child: [
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            },
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        child: [
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            },
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            model.changeIOId(model.inputs[0].type.fields[0].type.fields[0].type.fields[0], "nestedRecArr");
+
+            expect(context.inputs).to.deep.equal({
+                parent: [
+                    {
+                        child: [
+                            {
+                                "grand-child": {
+                                    nestedRecArr: "great-grand-child-string-value"
+                                }
+                            },
+                            {
+                                "grand-child": {
+                                    nestedRecArr: "great-grand-child-string-value"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        child: [
+                            {
+                                "grand-child": {
+                                    nestedRecArr: "great-grand-child-string-value"
+                                }
+                            },
+                            {
+                                "grand-child": {
+                                    nestedRecArr: "great-grand-child-string-value"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            });
+        });
+
+        it("should change type for nested record[] in record[]", () => {
+            const model = new V1CommandLineToolModel(<any> {
+                "inputs": [
+                    {
+                        "id": "parent",
+                        "type": [
+                            "null",
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "record",
+                                    "fields": [
+                                        {
+                                            "name": "child",
+                                            "type": [
+                                                "null",
+                                                {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "record",
+                                                        "fields": [
+                                                            {
+                                                                "name": "grand-child",
+                                                                "type": [
+                                                                    "null",
+                                                                    {
+                                                                        "type": "record",
+                                                                        "fields": [
+                                                                            {
+                                                                                "name": "great-grand-child",
+                                                                                "type": "string?",
+                                                                                "inputBinding": {
+                                                                                    "position": 0
+                                                                                }
+                                                                            }
+                                                                        ],
+                                                                        "name": "grand-child"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            let context = model.getContext();
+            expect(context.inputs).to.deep.equal({
+                parent: [
+                    {
+                        child: [
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            },
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        child: [
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            },
+                            {
+                                "grand-child": {
+                                    "great-grand-child": "great-grand-child-string-value"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            model.inputs[0].type.fields[0].type.fields[0].type.fields[0].type.type = "boolean";
+            expect(context.inputs).to.deep.equal({
+                parent: [
+                    {
+                        child: [
+                            {
+                                "grand-child": {
+                                    "great-grand-child": true
+                                }
+                            },
+                            {
+                                "grand-child": {
+                                    "great-grand-child": true
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        child: [
+                            {
+                                "grand-child": {
+                                    "great-grand-child": true
+                                }
+                            },
+                            {
+                                "grand-child": {
+                                    "great-grand-child": true
+                                }
+                            }
+                        ]
+                    }
+                ]
+            });
+        });
+
     });
 
     describe("ShellCommandRequirement", () => {

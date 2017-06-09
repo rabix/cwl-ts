@@ -14,12 +14,13 @@ import {RequirementBaseModel} from "./RequirementBaseModel";
 import {ResourceRequirementModel} from "./ResourceRequirementModel";
 import {EventHub} from "../helpers/EventHub";
 import {
-    fetchByLoc, incrementLastLoc, incrementString, isEmpty, isType,
+    fetchByLoc, flatten, incrementLastLoc, incrementString, isEmpty, isType,
     validateID
 } from "../helpers/utils";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {JobHelper} from "../helpers/JobHelper";
+import {validate} from "jsonschema";
 
 export abstract class CommandLineToolModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -167,23 +168,37 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             // creating a path to the input inside the job, ignoring the id of the actual input for now
             const path  = [];
             // location of the current port we're looking at
-            let loc = port.loc;
+            let loc     = port.loc;
             while (isField) {
                 const parent = this.findFieldParent(loc);
                 // add parent id to the beginning of the path, we're traversing up the tree
-                path.unshift(parent.id);
+                // keeping track if type is array so we can gather all child nodes where port has a value
+                path.unshift({id: parent.id, isArray: parent.type.type === "array"});
                 // continue traversing if parent is a field
                 isField = parent.isField;
                 // parent becomes port we're looking at
-                loc = parent.loc;
+                loc     = parent.loc;
             }
 
             // traverse jobInputs with the ids generated from field parents, find root of field
-            for (let i = 0; i < path.length; i++) {
-                base = base[path[i]];
-            }
+            const traversePath = (path: { id: string, isArray: boolean }[], root: any[]) => {
+                // starting from the root of the tree, going down each level till we find the port
+                if (path.length === 0) {
+                    return root;
+                }
+                // if node is an array, recursively traverse all it's elements
+                const part = path[0];
 
-            return base;
+                if (part.isArray) {
+                    // flatten the nested array, if it contains arrays itself
+                    return flatten(root[part.id].map(obj => traversePath(path.slice(1), obj)));
+                }
+
+                // traverse the path for the root element
+                return traversePath(path.slice(1), root[part.id]);
+            };
+
+            return traversePath(path, base);
         };
 
         this.eventHub.on("input.change.id", (data) => {
@@ -192,6 +207,14 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             // check if port is a field (nested structure)
             if (data.port.isField) {
                 root = findFieldRoot(data.port, root);
+
+                if (Array.isArray(root)) {
+                    root.forEach(obj => {
+                        obj[data.newId] = obj[data.oldId] || JobHelper.generateMockJobData(data.port);
+                        delete obj[data.oldId];
+                    });
+                    return;
+                }
             }
 
             // root is the object which holds changed input, either jobInputs or a record
@@ -214,11 +237,22 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
                 }
                 let root = this.jobInputs;
 
-                if(port.isField) {
+                if (port.isField) {
                     root = findFieldRoot(port, root);
+
+                    if (Array.isArray(root)) {
+                        for (let i = 0; i < root.length; i++) {
+                            // add mock value of field to each record in array
+                            root[i][port.id] = JobHelper.generateMockJobData(port);
+                        }
+
+                        this.updateCommandLine();
+                        return;
+                    }
                 }
 
                 root[port.id] = JobHelper.generateMockJobData(port);
+
                 this.updateCommandLine();
             }
         });
@@ -226,6 +260,19 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.eventHub.on("input.remove", (port: CommandInputParameterModel) => {
             delete this.jobInputs[port.id];
             this.updateCommandLine();
+        });
+
+        this.eventHub.on("field.remove", (port: CommandInputParameterModel | CommandOutputParameterModel) => {
+            if (port instanceof CommandInputParameterModel) {
+                const root = findFieldRoot(port, this.jobInputs);
+                if (Array.isArray(root)) {
+                    root.forEach(obj => delete obj[port.id]);
+                } else {
+                    delete root[port.id];
+                }
+
+                this.updateCommandLine();
+            }
         });
 
         this.eventHub.on("input.create", (port: CommandInputParameterModel) => {
@@ -236,7 +283,18 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.eventHub.on("field.create", (port: CommandInputParameterModel | CommandOutputParameterModel) => {
             if (port instanceof CommandInputParameterModel) {
                 let root = findFieldRoot(port, this.jobInputs);
-                root[port.id] = JobHelper.generateMockJobData(port);
+                // in case parent is array of records, not a single record
+                if (Array.isArray(root)) {
+                    for (let i = 0; i < root.length; i++) {
+                        // add mock value of field to each record in array
+                        root[i][port.id] = JobHelper.generateMockJobData(port);
+                    }
+                } else {
+                    // parent is single record, add mock value of field to that record
+                    root[port.id] = JobHelper.generateMockJobData(port);
+                }
+
+                this.updateCommandLine();
             }
         });
     }
@@ -440,7 +498,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         });
     }
 
-    protected checkToolIdUniqueness(): void {
+    protected checkPortIdUniqueness(): void {
         const map       = {};
         const duplicate = [];
         const ports     = [...this.inputs, ...this.outputs];

@@ -158,7 +158,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.cleanValidity();
         const promises = [];
 
-        this.checkToolIdUniqueness();
+        this.checkPortIdUniqueness();
 
         // validate baseCommand
         promises.concat(this.baseCommand.map(cmd => cmd.validate(this.getContext())));

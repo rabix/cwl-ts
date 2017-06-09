@@ -67,12 +67,12 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
     public serialize(): CommandInputParameter | CommandInputRecordField {
         let base: CommandInputParameter | CommandInputRecordField = {...this.customProps};
 
-        base.type = this.type.serialize("v1.0");
         if (this.isField) {
             (base as CommandInputRecordField).name = this.id;
         } else {
             (base as CommandInputParameter).id = this.id;
         }
+        base.type = this.type.serialize("v1.0");
 
         if (this.inputBinding) base.inputBinding = this.inputBinding.serialize();
 

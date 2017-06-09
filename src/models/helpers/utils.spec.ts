@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {
     ensureArray, checkMapValueType, incrementString, spreadSelectProps,
-    snakeCase, fetchByLoc, cleanupNull, incrementLastLoc, charSeparatedToArray
+    snakeCase, fetchByLoc, cleanupNull, incrementLastLoc, charSeparatedToArray, flatten
 } from "./utils";
 
 describe("ensureArray", () => {
@@ -328,4 +328,13 @@ describe("charSeparatedToArray", () => {
         const arr = charSeparatedToArray("string", /\s+/);
         expect(arr).to.deep.equal(["string"]);
     })
+});
+
+describe("flatten", () => {
+   it("should flatten nested array", () => {
+       const arr = [1, 2, [3, 4, [5, [6]]]];
+       const flat = flatten(arr);
+
+       expect(flat).to.deep.equal([1, 2, 3, 4, 5, 6]);
+   })
 });

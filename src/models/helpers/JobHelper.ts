@@ -72,8 +72,11 @@ export class JobHelper {
                     obj[field.id] = JobHelper.generateMockJobData(field);
                 });
 
-                val.push(obj);
-                val.push(obj);
+                // Objects must be cloned because of job management and later manipulation
+                const obj1 = JSON.parse(JSON.stringify(obj));
+                const obj2 = JSON.parse(JSON.stringify(obj));
+                val.push(obj1);
+                val.push(obj2);
             }
         }
         if (type === "record" && input.type.fields) {
