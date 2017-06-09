@@ -27,6 +27,16 @@ export type PrimitiveParameterType =
     | "map";
 
 export class ParameterTypeModel extends ValidationBase implements Serializable<any>, TypeResolution {
+    get symbols(): string[] {
+        return this._symbols;
+    }
+
+    set symbols(value: string[]) {
+        this._symbols = value;
+        if (this.eventHub) {
+            this.eventHub.emit("io.change.type", this.loc);
+        }
+    }
     public customProps: any = {};
 
     public hasDirectoryType = false;
@@ -43,7 +53,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         } else {
             switch (t) {
                 case "enum":
-                    this.symbols = [];
+                    this._symbols = [];
                     break;
                 case "record":
                     this.fields = [];
@@ -68,23 +78,23 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
 
         switch (t) {
             case "array":
-                this.symbols = null;
-                this.fields  = null;
+                this._symbols = null;
+                this.fields   = null;
                 break;
             case "enum":
-                this._items  = null;
-                this.fields  = null;
-                this.symbols = this.symbols || [];
+                this._items   = null;
+                this.fields   = null;
+                this._symbols = this._symbols || [];
                 break;
             case "record":
-                this._items  = null;
-                this.symbols = null;
-                this.fields  = this.fields || [];
+                this._items   = null;
+                this._symbols = null;
+                this.fields   = this.fields || [];
                 break;
             default:
-                this._items  = null;
-                this.symbols = null;
-                this.fields  = null;
+                this._items   = null;
+                this._symbols = null;
+                this.fields   = null;
         }
 
         if (this.eventHub) {
@@ -96,11 +106,11 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     public isItemOrArray: boolean          = false;
     public typeBinding: CommandLineBinding = null;
     public fields: Array<any>              = null;
-    public symbols: string[]               = null;
+    private _symbols: string[]             = null;
     public name: string                    = null;
     private fieldConstructor;
     private eventHub: EventHub;
-    private nameBase = "field";
+    private nameBase                       = "field";
 
     constructor(type: SBDraft2CommandInputParameterType |
         SBDraft2CommandOutputParameterType |
@@ -128,7 +138,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     }
                 });
             }
-            if (this.symbols && this.items !== "enum") {
+            if (this._symbols && this.items !== "enum") {
                 this.updateValidity({
                     [`${this.loc}.symbols`]: {
                         type: "error",
@@ -156,7 +166,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     }
                 });
             }
-            if (!this.symbols) {
+            if (!this._symbols) {
                 this.updateValidity({
                     [this.loc]: {
                         type: "error",
@@ -193,7 +203,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     }
                 });
             }
-            if (this.symbols) {
+            if (this._symbols) {
                 this.updateValidity({
                     [`${this.loc}.symbols`]: {
                         type: "error",
@@ -238,7 +248,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     }
 
     deserialize(attr: any): void {
-        const serializedKeys = ["type", "name", "symbols", "fields", "items", "inputBinding", "outputBinding"];
+        const serializedKeys = ["type", "name", "_symbols", "fields", "items", "inputBinding", "outputBinding"];
 
         TypeResolver.resolveType(attr, this);
 
@@ -264,16 +274,16 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
 
         switch (t) {
             case "array":
-                this.symbols = null;
-                this.fields  = null;
+                this._symbols = null;
+                this.fields   = null;
                 break;
             case "enum":
                 this._items = null;
                 this.fields = null;
                 break;
             case "record":
-                this._items  = null;
-                this.symbols = null;
+                this._items   = null;
+                this._symbols = null;
                 break;
         }
 
