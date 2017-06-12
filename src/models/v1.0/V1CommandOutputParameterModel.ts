@@ -80,10 +80,9 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
     }
 
     deserialize(attr: CommandOutputParameter | CommandOutputRecordField): void {
-        const serializedKeys = ["id", "type", "outputBinding", "label", "doc", "secondaryFiles", "format", "streamable"];
+        const serializedKeys = ["type", "outputBinding", "label", "doc", "secondaryFiles", "format", "streamable"];
 
         this.isField = !!(<CommandOutputRecordField> attr).name; // record fields don't have ids
-        this.isField ? serializedKeys.push("name") : serializedKeys.push("id");
 
         this.id = (<CommandOutputParameter> attr).id || (<CommandOutputRecordField> attr).name;
 
