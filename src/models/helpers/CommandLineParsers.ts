@@ -2,6 +2,8 @@ import {ExpressionModel} from "../generic/ExpressionModel";
 import {CommandLinePart} from "./CommandLinePart";
 import {CommandLinePrepare} from "./CommandLinePrepare";
 import {TypeResolver} from "./TypeResolver";
+import {V1CommandArgumentModel} from "../v1.0/V1CommandArgumentModel";
+import {V1ExpressionModel} from "../v1.0/V1ExpressionModel";
 
 export class CommandLineParsers {
 
@@ -19,10 +21,15 @@ export class CommandLineParsers {
             }
         }
 
-        // if (input.inputBinding.valueFrom &&  input.inputBinding.valueFrom) {
-        //     return CommandLinePrepare.prepare(input.inputBinding.valueFrom, job, context.$job, cmdType).then(suc => {
-        //     });
-        // }
+        if (input.inputBinding.valueFrom && input.inputBinding.valueFrom.serialize() !== undefined) {
+            return input.inputBinding.valueFrom.evaluate(context)
+                .then(res => {
+                    return new CommandLinePart(prefix + separator + res, cmdType, loc);
+                }, err => {
+                    return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, loc);
+                });
+        }
+
         return new Promise(res => {
             res(new CommandLinePart(prefix + separator + value, cmdType, loc));
         });
@@ -47,7 +54,7 @@ export class CommandLineParsers {
         if (value) {
             prefix = input.type.items === "boolean" ? itemsPrefix : prefix;
 
-            if (input.inputBinding.valueFrom) {
+            if (input.inputBinding.valueFrom && input.inputBinding.valueFrom.serialize() !== undefined) {
                 return input.inputBinding.valueFrom.evaluate(context)
                     .then(res => {
                         return new CommandLinePart(prefix + separator + res, type, loc);
@@ -109,6 +116,16 @@ export class CommandLineParsers {
 
     static argument(arg, job, value, context, cmdType, loc): Promise<CommandLinePart> {
         if (arg.primitive) {
+            if (arg instanceof V1CommandArgumentModel) {
+                const expr = new V1ExpressionModel(arg.primitive, arg.loc);
+                if (expr.isExpression) {
+                    return CommandLineParsers.expression(expr, job, value, context, cmdType, loc).then(res => {
+                        if (res instanceof CommandLinePart) return res;
+                        return new CommandLinePart(res, "argument", loc);
+                    });
+                }
+            }
+
             return new Promise(res => {
                 res(new CommandLinePart(arg.primitive, "argument", loc));
             });

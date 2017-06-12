@@ -47,6 +47,55 @@ describe("V1CommandLineToolModel", () => {
         makeTests(specPath);
     });
 
+    describe("generateCommandLineParts", () => {
+       it("should evaluate valueFrom in input", (done) => {
+           const model = new V1CommandLineToolModel(<any> {
+               inputs: {
+                   first: {
+                       type: {
+                           type: "enum",
+                           symbols: ["First", "Second", "Third"]
+                       },
+                       inputBinding: {
+                           valueFrom: "${ return self.toLowerCase() }"
+                       }
+                   }
+               }
+           });
+
+           model.generateCommandLineParts().then(res => {
+               expect(res[0].type).to.equal("input");
+               expect(res[0].value).to.equal("first");
+           }).then(done, done);
+       });
+
+       it("should evaluate argument that is an expression", (done) => {
+           const model = new V1CommandLineToolModel(<any> {
+               arguments: [
+                  "${ return 3 + 4 }"
+               ]
+           });
+
+           model.generateCommandLineParts().then(res => {
+               expect(res[0].type).to.equal("argument");
+               expect(res[0].value).to.equal("7");
+           }).then(done, done);
+       });
+
+       it("should show error in command line if argument expression has an error", (done) => {
+           const model = new V1CommandLineToolModel(<any> {
+               arguments: [
+                   "${ return !!!! }"
+               ]
+           }, "document");
+
+           model.generateCommandLineParts().then(res => {
+               expect(res[0].type).to.equal("error");
+               expect(res[0].value).to.equal("<error at document.arguments[0]>");
+           }).then(done, done);
+       });
+    });
+
     describe("serialize", () => {
         let model: V1CommandLineToolModel;
 

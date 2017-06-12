@@ -4,7 +4,7 @@ import {InputParameterModel} from "./InputParameterModel";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {V1CommandInputParameterModel} from "../v1.0/V1CommandInputParameterModel";
 import {V1CommandOutputParameterModel} from "../v1.0/V1CommandOutputParameterModel";
-import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 
 export class ExpressionToolModel extends ValidationBase implements Serializable<any> {
     id: string;
@@ -26,8 +26,8 @@ export class ExpressionToolModel extends ValidationBase implements Serializable<
     }
 
     deserialize(attr: any): void {
-        this.inputs = attr.inputs.map(i => new V1CommandInputParameterModel(i));
-        this.outputs = attr.outputs.map(o => new V1CommandOutputParameterModel(o));
+        this.inputs = ensureArray(attr.inputs, "id", "type").map(i => new V1CommandInputParameterModel(i));
+        this.outputs = ensureArray(attr.outputs, "id", "type").map(o => new V1CommandOutputParameterModel(o));
         this.id = attr.id;
         this.label = attr.label;
         this.description = attr.doc || attr.description;
