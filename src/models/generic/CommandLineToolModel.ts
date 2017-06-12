@@ -308,7 +308,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         new UnimplementedMethodException("updateStream", "CommandLineToolModel");
     }
 
-    findFieldParent(loc: string): CommandOutputParameterModel | CommandOutputParameterModel {
+    private findFieldParent(loc: string): CommandOutputParameterModel | CommandOutputParameterModel {
         loc = loc.substr(this.loc.length).replace(/\.fields\[\d+]$/, "").replace(/\.type$/, "");
         return fetchByLoc(this, loc);
     }
@@ -354,6 +354,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         }
         this.outputs[index].cleanValidity();
         this.outputs.splice(index, 1);
+
+        // start at the index and update location of all arguments after it
+        for (let i = index; i < this.outputs.length; i++) {
+            this.outputs[i].updateLoc(`${this.loc}.outputs[${i}]`);
+        }
+
         this.eventHub.emit("output.remove", output);
     }
 
@@ -400,6 +406,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         }
         this.inputs[index].cleanValidity();
         this.inputs.splice(index, 1);
+
+        // start at the index and update location of all arguments after it
+        for (let i = index; i < this.inputs.length; i++) {
+            this.inputs[i].updateLoc(`${this.loc}.inputs[${i}]`);
+        }
+
         this.eventHub.emit("input.remove", input);
     }
 
@@ -415,6 +427,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         }
         this.arguments[index].cleanValidity();
         this.arguments.splice(index, 1);
+
+        // start at the index and update location of all arguments after it
+        for (let i = index; i < this.arguments.length; i++) {
+            this.arguments[i].updateLoc(`${this.loc}.arguments[${i}]`);
+        }
+
         this.eventHub.emit("argument.remove", arg);
     }
 

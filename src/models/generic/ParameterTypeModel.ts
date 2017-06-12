@@ -382,6 +382,10 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
 
         this.fields.splice(index, 1);
 
+        for (let i = index; i < this.fields.length; i++) {
+            this.fields[i].updateLoc(`${this.loc}.fields[${i}]`);
+        }
+
         if (this.eventHub) {
             this.eventHub.emit("field.remove", found);
         }

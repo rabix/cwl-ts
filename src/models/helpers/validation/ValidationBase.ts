@@ -40,9 +40,22 @@ export abstract class ValidationBase implements Validatable {
         this.issues[this.loc] = null;
     }
 
+    /**
+     * Updates location and propagates validity up the tree
+     * @param newLoc
+     */
+    public updateLoc(newLoc: string) {
+        const oldLoc = this.loc;
+        this.issues[newLoc] = this.issues[oldLoc];
+        delete this.issues[oldLoc];
+
+        this.loc = newLoc;
+        // @todo this doesn't change the location of all nested children!
+        this.updateValidity(this.issues);
+    }
+
     public setValidationCallback(fn: (err: { [key: string]: Issue }) => void): void {
         this.updateParentValidation = fn;
-        this.updateParentValidation(this.issues);
     }
 
     protected updateParentValidation = (err: { [key: string]: Issue }) => {

@@ -55,7 +55,8 @@ export class JobHelper {
                 float: [getRandomFloat(0, 11), getRandomFloat(0, 11)],
                 record: [{}],
                 map: [{}],
-                'enum': [symbols ? symbols[0] : name]
+                'enum': [symbols ? symbols[0] : name],
+                boolean: [true, true],
             }
         };
 
