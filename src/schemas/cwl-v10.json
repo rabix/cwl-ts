@@ -517,11 +517,18 @@
             ]
         },
         "ScatterMethod": {
-            "type": "string",
-            "enum": [
-                "dotproduct",
-                "nested_crossproduct",
-                "flat_crossproduct"
+            "anyOf": [
+                {
+                    "type": "string",
+                    "enum": [
+                        "dotproduct",
+                        "nested_crossproduct",
+                        "flat_crossproduct"
+                    ]
+                },
+                {
+                    "type": "null"
+                }
             ]
         },
         "WorkflowStep": {
@@ -582,7 +589,15 @@
                     ]
                 },
                 "scatter": {
-                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                    "anyOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "$ref": "#/definitions/StringOrArrayOfStrings"
+                        }
+                    ]
+
                 },
                 "scatterMethod": {
                     "$ref": "#/definitions/ScatterMethod",
