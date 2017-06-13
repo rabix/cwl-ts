@@ -35,7 +35,7 @@ export class RequirementBaseModel extends ProcessRequirementModel implements Ser
 
         let base = <ProcessRequirement>{};
         if (this.class) base.class = this.class;
-        if (this.value) {
+        if (this.value && typeof this.value.serialize === "function" && this.value.serialize() !== undefined) {
             base["value"] = this.value instanceof ExpressionModel ?
                 (<ExpressionModel> this.value).serialize() :
                 this.value;
@@ -53,7 +53,7 @@ export class RequirementBaseModel extends ProcessRequirementModel implements Ser
 
         this.class = attr.class;
 
-        if (attr["value"] !== undefined) {
+        if (attr["value"] !== undefined && attr["value"] !== null) {
             this.value = attr["value"];
             if (typeof this.value === "string" || (this.value["script"] && this.exprConstructor === SBDraft2ExpressionModel)) {
                 this.value = new this.exprConstructor(attr["value"], `${this.loc}.value`);
