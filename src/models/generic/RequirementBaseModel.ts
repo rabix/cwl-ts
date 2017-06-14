@@ -35,12 +35,17 @@ export class RequirementBaseModel extends ProcessRequirementModel implements Ser
 
         let base = <ProcessRequirement>{};
         if (this.class) base.class = this.class;
-        if (this.value) {
-            if (this.value instanceof ExpressionModel && this.value.serialize() !== undefined) {
-                base["value"] = this.value.serialize();
-            } else {
-                base["value"] = this.value;
-            }
+
+        let value;
+
+        if (this.value instanceof ExpressionModel) {
+            value = this.value.serialize();
+        } else {
+            value = this.value;
+        }
+
+        if (value) {
+            base["value"] = value;
         }
 
         return Object.assign({}, base, this.customProps);
