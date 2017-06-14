@@ -70,4 +70,15 @@ export abstract class CommandArgumentModel extends ValidationBase implements Ser
     deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "CommandArgumentModel");
     }
+
+    validate(context): Promise<any> {
+        console.log("Validate");
+        this.cleanValidity();
+
+        if (this.hasBinding) {
+            return this.binding.validate(context);
+        }
+
+        return new Promise(res => {res(this.issues)});
+    }
 }

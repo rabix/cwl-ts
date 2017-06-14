@@ -68,7 +68,7 @@ export class SBDraft2CommandArgumentModel extends CommandArgumentModel implement
     serialize(): string | CommandLineBinding {
         if (this.primitive) {
             return this.primitive;
-        } else {
+        } else if (this.binding) {
             return this.binding.serialize();
         }
     }

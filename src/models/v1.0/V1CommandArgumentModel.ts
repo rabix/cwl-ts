@@ -53,6 +53,8 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
         this.binding.separate      = binding.separate;
         this.binding.itemSeparator = binding.itemSeparator;
         this.binding.shellQuote    = binding.shellQuote;
+        this.binding.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`);
+        this.binding.valueFrom.setValidationCallback(err => this.updateValidity(err));
 
         this.primitive  = undefined;
         this.hasBinding = true;
@@ -94,13 +96,5 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
         }
     }
 
-    validate(context): Promise<any> {
-        this.cleanValidity();
 
-        if (this.hasBinding) {
-            return this.binding.validate(context);
-        }
-
-        return new Promise(res => {res(this.issues)});
-    }
 }

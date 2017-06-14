@@ -272,7 +272,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         // ARGUMENTS
         if (this.arguments.length) {
-            base.arguments = this.arguments.map(arg => arg.serialize());
+            base.arguments = this.arguments.map(arg => arg.serialize()).filter(arg => !!arg);
         }
 
         // STREAM

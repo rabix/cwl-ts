@@ -328,7 +328,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (this.label) base.label = this.label;
 
         if (this.arguments.length) {
-            base.arguments = this.arguments.map(a => a.serialize());
+            base.arguments = this.arguments.map(a => a.serialize()).filter(a => !!a);
         }
 
         // Add ShellCommandRequirement if any CommandLineBinding has shellQuote
