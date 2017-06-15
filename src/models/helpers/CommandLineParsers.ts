@@ -135,7 +135,7 @@ export class CommandLineParsers {
         const separator = arg.separate !== false ? " " : "";
 
         if (arg.valueFrom) {
-            return CommandLinePrepare.prepare(arg.valueFrom, job, context).then(res => {
+            return CommandLinePrepare.prepare(arg.valueFrom, job, context, loc).then(res => {
                 if (res instanceof CommandLinePart) {
                     return res;
                 }
