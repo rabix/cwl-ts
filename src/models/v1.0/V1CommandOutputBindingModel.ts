@@ -50,6 +50,8 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
             glob = binding.glob[0];
         }
 
+        this.loadContents = binding.loadContents === true;
+
         this._glob = new V1ExpressionModel(<string> glob, `${this.loc}.glob`, this.eventHub);
         this._glob.setValidationCallback(err => this.updateValidity(err));
 
@@ -59,6 +61,8 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
 
     public serialize(): CommandOutputBinding {
         let base: CommandOutputBinding = <CommandOutputBinding> {};
+
+        if (this.loadContents) base.loadContents = true;
 
         if (this._glob && this._glob.serialize() !== undefined) base.glob = this._glob.serialize();
         if (this._outputEval && this._outputEval.serialize() !== undefined) base.outputEval = this._outputEval.serialize();
