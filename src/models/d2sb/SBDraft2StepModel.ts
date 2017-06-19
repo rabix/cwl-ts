@@ -142,11 +142,11 @@ export class SBDraft2StepModel extends StepModel {
         return this._serialize(false);
     }
 
-    serializeEmbedded(): WorkflowStep {
-        return this._serialize(true);
+    serializeEmbedded(retainSource: boolean = false): WorkflowStep {
+        return this._serialize(true, retainSource);
     }
 
-    _serialize(embed: boolean): WorkflowStep {
+    _serialize(embed: boolean, retainSource: boolean = false): WorkflowStep {
         let base: WorkflowStep = <WorkflowStep> {};
 
         base.id = "#" + this.id;
@@ -165,8 +165,11 @@ export class SBDraft2StepModel extends StepModel {
         }
 
         const temp =  {... this.customProps};
-        delete temp["sbg:rdfId"];
-        delete temp["sbg:rdfSource"];
+
+        if (!retainSource) {
+            delete temp["sbg:rdfId"];
+            delete temp["sbg:rdfSource"];
+        }
 
         if (this._label) base.label = this._label;
         if (this.description) base.description = this.description;

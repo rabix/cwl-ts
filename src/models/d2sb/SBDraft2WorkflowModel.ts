@@ -115,8 +115,8 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         this.batchByValue = value;
     }
 
-    public serializeEmbedded(): Workflow {
-        return this._serialize(false);
+    public serializeEmbedded(retainSource: boolean = false): Workflow {
+        return this._serialize(true, retainSource);
     }
 
 
@@ -124,7 +124,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         return this._serialize(false);
     }
 
-    _serialize(embed: boolean): Workflow {
+    _serialize(embed: boolean, retainSource: boolean = false): Workflow {
         const base: Workflow = <Workflow>{};
 
         base.class = "Workflow";
@@ -141,7 +141,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         base.outputs = <WorkflowOutputParameter[]>this.outputs.map(o => o.serialize());
         base.steps = this.steps.map(s => {
             if (embed) {
-                return s.serializeEmbedded();
+                return s.serializeEmbedded(retainSource);
             } else {
                 return s.serialize();
             }

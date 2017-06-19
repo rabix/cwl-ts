@@ -83,7 +83,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.eventHub.off(event, handler);
     }
 
-    public serializeEmbedded(): any {
+    public serializeEmbedded(retainSource: boolean = false): any {
         new UnimplementedMethodException("serializeEmbedded", "WorkflowModel");
     }
 

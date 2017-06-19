@@ -142,15 +142,15 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     }
 
 
-    public serializeEmbedded(): Workflow {
-        return this._serialize(true);
+    public serializeEmbedded(retainSource: boolean = false): Workflow {
+        return this._serialize(true, retainSource);
     }
 
     serialize(): Workflow {
         return this._serialize(false);
     }
 
-    _serialize(embed: boolean): Workflow {
+    _serialize(embed: boolean, retainSource: boolean = false): Workflow {
         const base: Workflow = <Workflow>{};
 
         base.class      = "Workflow";
@@ -169,7 +169,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         base.outputs = <Array<WorkflowOutputParameter>> this.outputs.map(output => output.serialize());
         base.steps   = this.steps.map(step => {
             if (embed) {
-                return step.serializeEmbedded();
+                return step.serializeEmbedded(retainSource);
             } else {
                 return step.serialize();
             }

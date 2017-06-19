@@ -24,15 +24,15 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         if (step) this.deserialize(step);
     }
 
-    serializeEmbedded(): WorkflowStep {
-        return this._serialize(true);
+    serializeEmbedded(retainSource: boolean = false): WorkflowStep {
+        return this._serialize(true, retainSource);
     }
 
     serialize(): WorkflowStep {
         return this._serialize(false);
     }
 
-    _serialize(embed: boolean): WorkflowStep {
+    _serialize(embed: boolean, retainSource: boolean = false): WorkflowStep {
         let base: WorkflowStep = <WorkflowStep> {};
         base.id                = this.id;
         base.in                = this.in.map(i => i.serialize()).filter(i => {
@@ -51,8 +51,11 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
         // to preserve rdfId and rdfSource in the model
         const temp = {...this.customProps};
-        delete temp["sbg:rdfId"];
-        delete temp["sbg:rdfSource"];
+
+        if (!retainSource) {
+            delete temp["sbg:rdfId"];
+            delete temp["sbg:rdfSource"];
+        }
 
         if (this._label) base.label = this.label;
         if (this.description) base.doc = this.description;
