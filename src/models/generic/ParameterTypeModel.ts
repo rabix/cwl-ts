@@ -24,6 +24,7 @@ export type PrimitiveParameterType =
     | "long"
     | "double"
     | "bytes"
+    | "Directory"
     | "map";
 
 export class ParameterTypeModel extends ValidationBase implements Serializable<any>, TypeResolution {
@@ -50,7 +51,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     set items(t: PrimitiveParameterType) {
         if (t && this._type !== "array") {
             throw("ParameterTypeModel: Items can only be set to inputs type Array");
-        } else {
+        } else if (t !== undefined && this._items !== t){
             switch (t) {
                 case "enum":
                     this._symbols = [];
@@ -74,6 +75,9 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     }
 
     set type(t: PrimitiveParameterType) {
+        if (t !== undefined && this._type === t) {
+            return;
+        }
         this._type = t;
 
         switch (t) {

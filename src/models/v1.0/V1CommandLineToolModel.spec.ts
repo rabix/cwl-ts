@@ -292,6 +292,9 @@ describe("V1CommandLineToolModel", () => {
                     field: {
                         path: "/path/to/field.ext",
                         "class": "File",
+                        nameroot: "field",
+                        basename: "field.ext",
+                        nameext: ".ext",
                         size: 0,
                         secondaryFiles: []
                     }

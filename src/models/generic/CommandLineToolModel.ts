@@ -161,52 +161,52 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.eventHub.emit(`${type}.change.id`, {port, oldId, newId: port.id});
     }
 
-    protected initializeJobWatchers() {
-        const findFieldRoot = (port, base): any => {
-            // find ancestor that is in the inputs root, save ancestors
-            let isField = true;
-            // creating a path to the input inside the job, ignoring the id of the actual input for now
-            const path  = [];
-            // location of the current port we're looking at
-            let loc     = port.loc;
-            while (isField) {
-                const parent = this.findFieldParent(loc);
-                // add parent id to the beginning of the path, we're traversing up the tree
-                // keeping track if type is array so we can gather all child nodes where port has a value
-                path.unshift({id: parent.id, isArray: parent.type.type === "array"});
-                // continue traversing if parent is a field
-                isField = parent.isField;
-                // parent becomes port we're looking at
-                loc     = parent.loc;
+    protected findFieldRoot(port, base): any {
+        // find ancestor that is in the inputs root, save ancestors
+        let isField = true;
+        // creating a path to the input inside the job, ignoring the id of the actual input for now
+        const path  = [];
+        // location of the current port we're looking at
+        let loc     = port.loc;
+        while (isField) {
+            const parent = this.findFieldParent(loc);
+            // add parent id to the beginning of the path, we're traversing up the tree
+            // keeping track if type is array so we can gather all child nodes where port has a value
+            path.unshift({id: parent.id, isArray: parent.type.type === "array"});
+            // continue traversing if parent is a field
+            isField = parent.isField;
+            // parent becomes port we're looking at
+            loc     = parent.loc;
+        }
+
+        // traverse jobInputs with the ids generated from field parents, find root of field
+        const traversePath = (path: { id: string, isArray: boolean }[], root: any[]) => {
+            // starting from the root of the tree, going down each level till we find the port
+            if (path.length === 0) {
+                return root;
+            }
+            // if node is an array, recursively traverse all it's elements
+            const part = path[0];
+
+            if (part.isArray) {
+                // flatten the nested array, if it contains arrays itself
+                return flatten(root[part.id].map(obj => traversePath(path.slice(1), obj)));
             }
 
-            // traverse jobInputs with the ids generated from field parents, find root of field
-            const traversePath = (path: { id: string, isArray: boolean }[], root: any[]) => {
-                // starting from the root of the tree, going down each level till we find the port
-                if (path.length === 0) {
-                    return root;
-                }
-                // if node is an array, recursively traverse all it's elements
-                const part = path[0];
-
-                if (part.isArray) {
-                    // flatten the nested array, if it contains arrays itself
-                    return flatten(root[part.id].map(obj => traversePath(path.slice(1), obj)));
-                }
-
-                // traverse the path for the root element
-                return traversePath(path.slice(1), root[part.id]);
-            };
-
-            return traversePath(path, base);
+            // traverse the path for the root element
+            return traversePath(path.slice(1), root[part.id]);
         };
 
+        return traversePath(path, base);
+    }
+
+    protected initializeJobWatchers() {
         this.eventHub.on("input.change.id", (data) => {
             let root = this.jobInputs;
 
             // check if port is a field (nested structure)
             if (data.port.isField) {
-                root = findFieldRoot(data.port, root);
+                root = this.findFieldRoot(data.port, root);
 
                 if (Array.isArray(root)) {
                     root.forEach(obj => {
@@ -238,7 +238,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
                 let root = this.jobInputs;
 
                 if (port.isField) {
-                    root = findFieldRoot(port, root);
+                    root = this.findFieldRoot(port, root);
 
                     if (Array.isArray(root)) {
                         for (let i = 0; i < root.length; i++) {
@@ -264,7 +264,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
         this.eventHub.on("field.remove", (port: CommandInputParameterModel | CommandOutputParameterModel) => {
             if (port instanceof CommandInputParameterModel) {
-                const root = findFieldRoot(port, this.jobInputs);
+                const root = this.findFieldRoot(port, this.jobInputs);
                 if (Array.isArray(root)) {
                     root.forEach(obj => delete obj[port.id]);
                 } else {
@@ -282,7 +282,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
         this.eventHub.on("field.create", (port: CommandInputParameterModel | CommandOutputParameterModel) => {
             if (port instanceof CommandInputParameterModel) {
-                let root = findFieldRoot(port, this.jobInputs);
+                let root = this.findFieldRoot(port, this.jobInputs);
                 // in case parent is array of records, not a single record
                 if (Array.isArray(root)) {
                     for (let i = 0; i < root.length; i++) {
@@ -308,7 +308,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         new UnimplementedMethodException("updateStream", "CommandLineToolModel");
     }
 
-    private findFieldParent(loc: string): CommandOutputParameterModel | CommandOutputParameterModel {
+    protected findFieldParent(loc: string): CommandOutputParameterModel | CommandOutputParameterModel {
         loc = loc.substr(this.loc.length).replace(/\.fields\[\d+]$/, "").replace(/\.type$/, "");
         return fetchByLoc(this, loc);
     }
@@ -457,7 +457,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         new UnimplementedMethodException("setRuntime", "CommandLineToolModel");
     }
 
-    public getContext(id?: string): any {
+    public getContext(input?: any): any {
         new UnimplementedMethodException("getContext", "CommandLineToolModel");
     };
 
@@ -501,7 +501,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         });
 
         const inputPromise = flatInputs.map(input => {
-            return CommandLinePrepare.prepare(input, flatJobInputs, this.getContext(input["id"]), input.loc)
+            return CommandLinePrepare.prepare(input, flatJobInputs, this.getContext(input), input.loc)
         }).filter(i => i instanceof Promise).map(promise => {
             return promise.then(succ => succ, err => {
                 return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type);

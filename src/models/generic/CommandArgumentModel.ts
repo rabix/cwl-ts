@@ -72,7 +72,6 @@ export abstract class CommandArgumentModel extends ValidationBase implements Ser
     }
 
     validate(context): Promise<any> {
-        console.log("Validate");
         this.cleanValidity();
 
         if (this.hasBinding) {

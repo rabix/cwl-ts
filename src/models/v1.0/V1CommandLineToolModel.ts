@@ -24,6 +24,7 @@ import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1InitialWorkDirRequirementModel} from "./V1InitialWorkDirRequirementModel";
 import {V1ResourceRequirementModel} from "./V1ResourceRequirementModel";
+import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
 
@@ -73,17 +74,21 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.updateCommandLine();
     }
 
-    public getContext(id?: string): any {
+    public getContext(input?: any): any {
         const context: any = {
             runtime: this.runtime,
             inputs: this.jobInputs
         };
 
-        if (id) {
-            context.self = this.jobInputs[id];
-        }
+        if (input && input instanceof CommandInputParameterModel) {
+            if (input.isField) {
+                const root = this.findFieldRoot(input, this.jobInputs);
+                context.self = root[input.id];
+            } else {
+                context.self = this.jobInputs[input.id];
 
-        // console.log("sending context", context.inputs);
+            }
+        }
 
         return context;
     };
@@ -182,7 +187,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         for (let i = 0; i < this.inputs.length; i++) {
             const input = this.inputs[i];
-            promises.push(input.validate(this.getContext(input.id)));
+            promises.push(input.validate(this.getContext(input)));
         }
 
         for (let i = 0; i < this.outputs.length; i++) {

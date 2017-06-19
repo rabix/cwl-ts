@@ -15,6 +15,7 @@ export type PrimitiveType =
     | "long"
     | "double"
     | "bytes"
+    | "Directory"
     | "map";
 
 export interface TypeResolution {
@@ -155,6 +156,7 @@ export class TypeResolver {
                     case "boolean":
                     case "int":
                     case "long":
+                    case "Directory":
                     case "double":
                         return result;
                     default:
@@ -181,6 +183,7 @@ export class TypeResolver {
                     return typeof value === 'number';
                 case 'File':
                 case 'record':
+                case "Directory":
                     return typeof value === 'object' && !Array.isArray(value);
                 case 'array':
                     return Array.isArray(value);

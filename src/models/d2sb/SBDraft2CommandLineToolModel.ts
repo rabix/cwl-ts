@@ -24,6 +24,7 @@ import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParame
 import {SBDraft2CreateFileRequirementModel} from "./SBDraft2CreateFileRequirementModel";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {SBDraft2ResourceRequirementModel} from "./SBDraft2ResourceRequirementModel";
+import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 
 export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
     public id: string;
@@ -69,7 +70,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.runtime = runtime;
     }
 
-    public getContext(id?: string): { $job?: { inputs?: any, allocatedResources?: any }, $self?: any } {
+    public getContext(input?: any): { $job?: { inputs?: any, allocatedResources?: any }, $self?: any } {
         const context: any = {
             $job: {
                 inputs: this.jobInputs,
@@ -77,8 +78,14 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             }
         };
 
-        if (id) {
-            context.$self = this.jobInputs[id];
+        if (input && input instanceof CommandInputParameterModel) {
+            if (input.isField) {
+                const root = this.findFieldRoot(input, this.jobInputs);
+                context.$self = root[input.id];
+            } else {
+                context.$self = this.jobInputs[input.id];
+
+            }
         }
 
         return context;
@@ -164,7 +171,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         promises.concat(this.baseCommand.map(cmd => cmd.validate(this.getContext())));
 
         // validate inputs
-        promises.concat(this.inputs.map(input => input.validate(this.getContext(input.id))));
+        promises.concat(this.inputs.map(input => input.validate(this.getContext(input))));
 
         // validate outputs
         promises.concat(this.outputs.map(output => output.validate(this.getContext())));

@@ -1,13 +1,16 @@
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
+import {V1CommandInputParameterModel} from "../v1.0/V1CommandInputParameterModel";
 
 export class JobHelper {
 
     public static generateMockJobData(input: CommandInputParameterModel) {
-        const type = <any> input.type.type;
-        const items = <any> input.type.items;
-        const name: string = input.id;
+        const type              = <any> input.type.type;
+        const items             = <any> input.type.items;
+        const name: string      = input.id;
         const symbols: string[] = input.type.symbols;
+
+        const version = input instanceof V1CommandInputParameterModel ? "v1.0" : "sbg:draft-2";
 
         /**
          * Returns a random integer between min (included) and max (excluded)
@@ -32,26 +35,44 @@ export class JobHelper {
         }
 
         let map = {
-            file: {path: '/path/to/' + name + '.ext', 'class': 'File', size: 0, secondaryFiles: []},
             File: {path: '/path/to/' + name + '.ext', 'class': 'File', size: 0, secondaryFiles: []},
+            Directory: {path: "/path/to/" + name, "class": "Directory", basename: name},
             'enum': symbols ? symbols[0] : name,
             string: name + '-string-value',
-            int: getRandomInt(0,11),
+            int: getRandomInt(0, 11),
             float: getRandomFloat(0, 11),
             boolean: true,
             record: {},
             map: {},
             array: {
-                file: [
-                    {path: '/path/to/' + name + '-1.ext', 'class': 'File', size: 0, secondaryFiles: []},
-                    {path: '/path/to/' + name + '-2.ext', 'class': 'File', size: 0, secondaryFiles: []}
-                ],
                 File: [
-                    {path: '/path/to/' + name + '-1.ext', 'class': 'File', size: 0, secondaryFiles: []},
-                    {path: '/path/to/' + name + '-2.ext', 'class': 'File', size: 0, secondaryFiles: []}
+                    {
+                        path: '/path/to/' + name + '-1.ext',
+                        'class': 'File',
+                        size: 0,
+                        secondaryFiles: []
+                    },
+                    {
+                        path: '/path/to/' + name + '-2.ext',
+                        'class': 'File',
+                        size: 0,
+                        secondaryFiles: []
+                    }
                 ],
-                string: [name+'-string-value-1', name+'-string-value-2'],
-                int: [getRandomInt(0,11), getRandomInt(0,11)],
+                Directory: [
+                    {
+                        path: "/path/to/" + name,
+                        "class": "Directory",
+                        basename: name
+                    },
+                    {
+                        path: "/path/to/" + name,
+                        "class": "Directory",
+                        basename: name
+                    }
+                ],
+                string: [name + '-string-value-1', name + '-string-value-2'],
+                int: [getRandomInt(0, 11), getRandomInt(0, 11)],
                 float: [getRandomFloat(0, 11), getRandomFloat(0, 11)],
                 record: [{}],
                 map: [{}],
@@ -66,7 +87,7 @@ export class JobHelper {
             val = val[items];
 
             if (items === "record" && input.type.fields) {
-                val = [];
+                val       = [];
                 const obj = {};
 
                 input.type.fields.forEach(field => {
@@ -86,6 +107,10 @@ export class JobHelper {
             });
         }
 
+        if (type === "File" && version === "v1.0") {
+            val = {...val, ...{basename: name + ".ext", nameroot: name, nameext: ".ext"}};
+        }
+
         return val !== undefined ? val : null;
     }
 
@@ -103,7 +128,7 @@ export class JobHelper {
         let job = {};
 
         tool.inputs.forEach(input => {
-           job[input.id] = JobHelper.nullifyInput(input);
+            job[input.id] = JobHelper.nullifyInput(input);
         });
 
         return job;

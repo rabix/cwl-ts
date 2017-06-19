@@ -16,7 +16,7 @@ export class CommandLinePrepare {
 
         if (input instanceof CommandInputParameterModel || input.type === "record") {
             const value = flatJobInputs[input.id] || null;
-            cmdType = "input";
+            cmdType     = "input";
 
             if (value === null) {
                 inputType = "nullValue";
@@ -24,14 +24,14 @@ export class CommandLinePrepare {
                 inputType = "array";
             } else if (typeof value === "boolean") {
                 inputType = "boolean";
-            } else if (typeof value === "object" && value.class !== "File") {
+            } else if (typeof value === "object" && value.class !== "File" && value.class !== "Directory") {
                 inputType = "record";
             }
         }
 
         if (input instanceof CommandArgumentModel) {
             inputType = "argument";
-            cmdType = "argument";
+            cmdType   = "argument";
         }
 
         if (input instanceof ExpressionModel) {

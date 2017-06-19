@@ -205,6 +205,22 @@ describe("TypeResolver", () => {
             expect(resolved.isNullable).to.be.true;
             expect(resolved.isItemOrArray).to.be.true;
         });
+
+        it("Should resolve Directory type", () => {
+            let resolved = TypeResolver.resolveType("Directory");
+
+            expect(resolved).to.not.be.undefined;
+            expect(resolved.type).to.equal("Directory");
+            expect(resolved.isNullable).to.be.false;
+        });
+
+        it("Should resolve Directory type", () => {
+            let resolved = TypeResolver.resolveType({type: "Directory"});
+
+            expect(resolved).to.not.be.undefined;
+            expect(resolved.type).to.equal("Directory");
+            expect(resolved.isNullable).to.be.false;
+        });
     });
 
     describe("doesTypeMatch", () => {
