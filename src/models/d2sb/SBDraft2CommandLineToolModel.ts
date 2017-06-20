@@ -51,11 +51,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     public stdin: SBDraft2ExpressionModel;
     public stdout: SBDraft2ExpressionModel;
-    public hasStdErr = false;
 
-    public successCodes: number[];
-    public temporaryFailCodes: number[];
-    public permanentFailCodes: number[];
+    public hasStdErr = false;
+    public hasPermanentFailCodes = false;
 
     public customProps: any = {};
 
@@ -291,6 +289,14 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             base.stdout = <string | Expression> this.stdout.serialize();
         }
 
+        if (this.successCodes.length) {
+            base.successCodes = this.successCodes;
+        }
+
+        if (this.temporaryFailCodes.length) {
+            base.temporaryFailCodes = this.temporaryFailCodes;
+        }
+
         const exprReqIndex = this.requirements.findIndex((req => req.class === "ExpressionEngineRequirement"));
         if (hasExpression) {
             base.requirements = base.requirements || [];
@@ -337,6 +343,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             "outputs",
             "stdin",
             "stdout",
+            "successCodes",
+            "temporaryFailCodes",
             "cwlVersion",
             "sbg:job"
         ];
@@ -383,9 +391,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.updateStream(new SBDraft2ExpressionModel(tool.stdin, `${this.loc}.stdin`, this.eventHub), "stdin");
         this.updateStream(new SBDraft2ExpressionModel(tool.stdout, `${this.loc}.stdout`, this.eventHub), "stdout");
 
-        this.successCodes       = tool.successCodes || [];
-        this.temporaryFailCodes = tool.temporaryFailCodes || [];
-        this.permanentFailCodes = tool.permanentFailCodes || [];
+        this.successCodes       = ensureArray(tool.successCodes);
+        this.temporaryFailCodes = ensureArray(tool.temporaryFailCodes);
+
         tool.baseCommand        = tool.baseCommand || [''];
 
         // wrap to array

@@ -47,6 +47,11 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     public stderr: ExpressionModel;
     public hasStdErr: boolean;
 
+    public successCodes: number[] = [];
+    public temporaryFailCodes: number[] = [];
+    public permanentFailCodes: number[] = [];
+    public hasPermanentFailCodes: boolean;
+
     public fileRequirement: CreateFileRequirementModel;
 
     public resources: ResourceRequirementModel;

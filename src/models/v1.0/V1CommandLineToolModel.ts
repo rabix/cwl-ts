@@ -45,10 +45,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public stderr: V1ExpressionModel;
 
     public hasStdErr = true;
+    public hasPermanentFailCodes = true;
 
-    public successCodes: Array<number>;
-    public temporaryFailCodes: Array<number>;
-    public permanentFailCodes: Array<number>;
 
     public docker: DockerRequirementModel;
 
@@ -211,6 +209,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             promises.push(this.stdout.validate(this.getContext()));
         }
 
+        if (this.stderr) {
+            promises.push(this.stderr.validate(this.getContext()));
+        }
+
         if (this.resources) {
             promises.push(this.resources.validate(this.getContext()));
         }
@@ -230,6 +232,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             "stdout",
             "stdin",
             "stderr",
+            "successCodes",
+            "temporaryFailCodes",
+            "permanentFailCodes",
             "inputs",
             "outputs",
             "id",
@@ -298,9 +303,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         this.sbgId = tool["sbg:id"];
 
-        // this.successCodes       = ensureArray(tool.successCodes);
-        // this.temporaryFailCodes = ensureArray(tool.temporaryFailCodes);
-        // this.permanentFailCodes = ensureArray(tool.permanentFailCodes);
+        this.successCodes       = ensureArray(tool.successCodes);
+        this.temporaryFailCodes = ensureArray(tool.temporaryFailCodes);
+        this.permanentFailCodes = ensureArray(tool.permanentFailCodes);
 
         spreadSelectProps(tool, this.customProps, serializedKeys);
     }
@@ -386,6 +391,18 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (this.stdin.serialize() !== undefined) base.stdin = this.stdin.serialize();
         if (this.stdout.serialize() !== undefined) base.stdout = this.stdout.serialize();
         if (this.stderr.serialize() !== undefined) base.stderr = this.stderr.serialize();
+
+        if (this.successCodes.length) {
+            base.successCodes = this.successCodes;
+        }
+
+        if (this.temporaryFailCodes.length) {
+            base.temporaryFailCodes = this.temporaryFailCodes;
+        }
+
+        if (this.permanentFailCodes.length) {
+            base.permanentFailCodes = this.permanentFailCodes;
+        }
 
         const exprReqIndex = this.requirements.findIndex((req => req.class === "InlineJavascriptRequirement"));
         if (hasExpression) {
