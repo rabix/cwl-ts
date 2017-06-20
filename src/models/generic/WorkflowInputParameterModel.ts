@@ -54,6 +54,15 @@ export class WorkflowInputParameterModel extends ValidationBase implements Input
 
     customProps: any = {};
 
+    updateLoc(loc: string) {
+        // must update location of self first
+        super.updateLoc(loc);
+
+        // update location of type, so that in case the input is a field,
+        // newly created fields will have correct loc
+        this.type.updateLoc(`${loc}.type`);
+    }
+
     serialize(): any {
         new UnimplementedMethodException("serialize", "WorkflowInputParameterModel");
     }

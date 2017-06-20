@@ -61,6 +61,15 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
         this.inputBinding = null;
     }
 
+    updateLoc(loc: string) {
+        // must update location of self first
+        super.updateLoc(loc);
+
+        // update location of type, so that in case the input is a field,
+        // newly created fields will have correct loc
+        this.type.updateLoc(`${loc}.type`);
+    }
+
     abstract addSecondaryFile(file: V1Expression | SBDraft2Expression | string): ExpressionModel;
 
     abstract updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>);

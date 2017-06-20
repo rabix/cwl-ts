@@ -47,6 +47,15 @@ export class WorkflowOutputParameterModel extends ValidationBase implements Seri
         return `${STEP_INPUT_CONNECTION_PREFIX}${this.id}/${this.id}`;
     }
 
+    updateLoc(loc: string) {
+        // must update location of self first
+        super.updateLoc(loc);
+
+        // update location of type, so that in case the input is a field,
+        // newly created fields will have correct loc
+        this.type.updateLoc(`${loc}.type`);
+    }
+
     customProps: any = {};
 
     serialize(): any {

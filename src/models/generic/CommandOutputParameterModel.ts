@@ -58,6 +58,15 @@ export abstract class CommandOutputParameterModel extends ValidationBase impleme
         new UnimplementedMethodException("deserialize", "CommandOutputParameterModel");
     }
 
+    updateLoc(loc: string) {
+        // must update location of self first
+        super.updateLoc(loc);
+
+        // update location of type, so that in case the input is a field,
+        // newly created fields will have correct loc
+        this.type.updateLoc(`${loc}.type`);
+    }
+
     validate(context): Promise<any> {
         this.cleanValidity();
         const promises = [];
