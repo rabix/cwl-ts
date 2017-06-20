@@ -45,8 +45,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public stderr: V1ExpressionModel;
 
     public hasStdErr = true;
-    public hasPermanentFailCodes = true;
-
 
     public docker: DockerRequirementModel;
 

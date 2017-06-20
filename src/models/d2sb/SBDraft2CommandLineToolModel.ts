@@ -53,7 +53,6 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public stdout: SBDraft2ExpressionModel;
 
     public hasStdErr = false;
-    public hasPermanentFailCodes = false;
 
     public customProps: any = {};
 
