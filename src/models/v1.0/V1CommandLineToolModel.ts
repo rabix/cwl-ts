@@ -25,6 +25,7 @@ import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1InitialWorkDirRequirementModel} from "./V1InitialWorkDirRequirementModel";
 import {V1ResourceRequirementModel} from "./V1ResourceRequirementModel";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
+import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
 
@@ -70,20 +71,24 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.updateCommandLine();
     }
 
-    public getContext(input?: any): any {
+    public getContext(port?: any): any {
         const context: any = {
             runtime: this.runtime,
             inputs: this.jobInputs
         };
 
-        if (input && input instanceof CommandInputParameterModel) {
-            if (input.isField) {
-                const root = this.findFieldRoot(input, this.jobInputs);
-                context.self = root[input.id];
+        if (port && port instanceof CommandInputParameterModel) {
+            if (port.isField) {
+                const root = this.findFieldRoot(port, this.jobInputs);
+                context.self = root[port.id];
             } else {
-                context.self = this.jobInputs[input.id];
+                context.self = this.jobInputs[port.id];
 
             }
+        }
+
+        if (port && port instanceof CommandOutputParameterModel) {
+            context.self = JobHelper.generateMockJobData(<any> {type: {type: "array", items: "File"}});
         }
 
         return context;
