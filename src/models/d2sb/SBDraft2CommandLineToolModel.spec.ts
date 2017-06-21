@@ -673,6 +673,25 @@ describe("SBDraft2CommandLineToolModel", () => {
             delete target["sbg:job"];
             expect(target).to.deep.equal(tool);
         });
+
+        it("should serialize success/permanentFail/temporaryFail codes", () => {
+            const tool = {
+                "baseCommand": [],
+                cwlVersion: "sbg:draft-2",
+                "inputs": [],
+                "outputs": [],
+                "class": "CommandLineTool",
+                "successCodes": [123, 456 , 789],
+                "permanentFailCodes": [11],
+                "temporaryFailCodes": [34, 23, 221]
+            };
+
+            const model = new SBDraft2CommandLineToolModel(<CommandLineTool>tool);
+
+            const target = model.serialize();
+            delete target["sbg:job"];
+            expect(target).to.deep.equal(tool);
+        });
     });
 
     describe("updateValidity", () => {

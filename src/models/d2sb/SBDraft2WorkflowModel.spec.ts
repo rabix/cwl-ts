@@ -622,7 +622,7 @@ describe("SBDraft2WorkflowModel", () => {
                                     "class": "DockerRequirement"
                                 }
                             ],
-                            "successCodes": [],
+                            "successCodes": [123, 1, 23],
                             "stdin": {
                                 "script": "$job.inputs.inFile.path",
                                 "engine": "#cwl-js-engine",
@@ -709,7 +709,8 @@ describe("SBDraft2WorkflowModel", () => {
                                     "id": "#result"
                                 }
                             ],
-                            "temporaryFailCodes": [],
+                            "temporaryFailCodes": [12],
+                            "permanentFailCodes": [2222, 4167],
                             "class": "CommandLineTool",
                             "x": 450,
                             "y": 385
@@ -765,7 +766,7 @@ describe("SBDraft2WorkflowModel", () => {
                                     "class": "DockerRequirement"
                                 }
                             ],
-                            "successCodes": [],
+                            "successCodes": [123, 456, 789],
                             "stdin": {
                                 "script": "$job.inputs.inFile.path",
                                 "engine": "#cwl-js-engine",
@@ -852,7 +853,8 @@ describe("SBDraft2WorkflowModel", () => {
                                     "id": "#result"
                                 }
                             ],
-                            "temporaryFailCodes": [],
+                            "temporaryFailCodes": [13, 4867],
+                            "permanentFailCodes": [1222, 462337],
                             "class": "CommandLineTool",
                             "x": 793,
                             "y": 368

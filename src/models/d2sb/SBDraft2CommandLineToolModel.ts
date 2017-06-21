@@ -296,6 +296,10 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             base.temporaryFailCodes = this.temporaryFailCodes;
         }
 
+        if (this.permanentFailCodes.length) {
+            base.permanentFailCodes = this.permanentFailCodes;
+        }
+
         const exprReqIndex = this.requirements.findIndex((req => req.class === "ExpressionEngineRequirement"));
         if (hasExpression) {
             base.requirements = base.requirements || [];
@@ -344,6 +348,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             "stdout",
             "successCodes",
             "temporaryFailCodes",
+            "permanentFailCodes",
             "cwlVersion",
             "sbg:job"
         ];
@@ -392,6 +397,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         this.successCodes       = ensureArray(tool.successCodes);
         this.temporaryFailCodes = ensureArray(tool.temporaryFailCodes);
+        this.permanentFailCodes = ensureArray(tool.permanentFailCodes);
 
         tool.baseCommand        = tool.baseCommand || [''];
 
