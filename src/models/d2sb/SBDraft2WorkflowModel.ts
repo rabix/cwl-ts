@@ -44,7 +44,9 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
     public createInputFromPort(inPort: SBDraft2WorkflowStepInputModel
                                    | string): SBDraft2WorkflowInputParameterModel {
-        return super._createInputFromPort(inPort, SBDraft2WorkflowInputParameterModel);
+        const port = super._createInputFromPort(inPort, SBDraft2WorkflowInputParameterModel);
+        port.customProps["sbg:includeInPorts"] = true;
+        return port;
     }
 
     public createOutputFromPort(outPort: SBDraft2WorkflowStepOutputModel
@@ -180,6 +182,9 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         this.sbgId = workflow["sbg:id"];
 
         this.steps = ensureArray(workflow.steps).map((step, index) => {
+            if (step.run && typeof step.run !== "string") {
+                step.run.cwlVersion = step.run.cwlVersion || "sbg:draft-2";
+            }
             const stepModel = new SBDraft2StepModel(step, `${this.loc}.steps[${index}]`, this.eventHub);
             stepModel.setValidationCallback(err => {
                 this.updateValidity(err)

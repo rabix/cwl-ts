@@ -66,10 +66,21 @@
                 "Directory"
             ]
         },
+        "AvroPrimitiveType": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/PrimitiveCwlType"
+                }
+            }
+        },
         "CwlType": {
             "anyOf": [
                 {
                     "$ref": "#/definitions/PrimitiveCwlType"
+                },
+                {
+                    "$ref": "#/definitions/AvroPrimitiveType"
                 },
                 {
                     "$ref": "#/definitions/OutputRecordSchema"

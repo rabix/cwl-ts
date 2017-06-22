@@ -100,8 +100,14 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         }
 
         this.in.forEach(i => {
-            // if in type is a required file or required array of files, include it by default
-            if (i.type && !i.type.isNullable && (i.type.type === "File" || i.type.items === "File")) {
+            // if in type is a required file/directory or required array of files/directories
+            // include it by default
+            if (i.type &&
+                !i.type.isNullable &&
+                (i.type.type === "File" ||
+                i.type.items === "File" ||
+                i.type.type === "Directory" ||
+                i.type.items === "Directory")) {
                 i.isVisible = true;
             }
         });
@@ -181,8 +187,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             // here will set source and default if they exist
             return new V1WorkflowStepInputModel({
                 type: input.type,
-                fileTypes: input.fileTypes || [],
-                description: input.description,
+                format: input.fileTypes || [],
+                doc: input.description,
                 label: input.label,
                 ...match
             }, this, `${this.loc}.in[${index}]`);
@@ -199,8 +205,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
             return new V1WorkflowStepOutputModel({
                 type: output.type,
-                fileTypes: output.fileTypes || [],
-                description: output.description,
+                format: output.fileTypes || [],
+                doc: output.description,
                 label: output.label,
                 ...match
             }, this, `${this.loc}.out[${index}]`);

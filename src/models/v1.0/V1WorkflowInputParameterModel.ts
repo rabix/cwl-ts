@@ -38,6 +38,8 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
         this.fileTypes = commaSeparatedToArray((attr as InputParameter).format);
 
+        this.isVisible = !attr["sbg:exposed"];
+
         spreadSelectProps(attr, this.customProps, serializedKeys);
     }
 

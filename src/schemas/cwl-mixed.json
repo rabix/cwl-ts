@@ -1,0 +1,2204 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "anyOf": [
+        {
+            "$ref": "#/definitions/V1Process"
+        },
+        {
+            "$ref": "#/definitions/Draft2Process"
+        }
+    ],
+    "definitions": {
+        "V1Process": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "requirements": {
+                    "$ref": "#/definitions/Requirements"
+                },
+                "hints": {
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {}
+                        },
+                        {
+                            "type": "object"
+                        }
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                },
+                "doc": {
+                    "type": "string"
+                },
+                "CWLVersion": {
+                    "type": "string",
+                    "enum": [
+                        "v1.0"
+                    ]
+                }
+            },
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/V1CommandLineTool"
+                },
+                {
+                    "$ref": "#/definitions/V1Workflow"
+                },
+                {
+                    "$ref": "#/definitions/V1ExpressionTool"
+                }
+            ]
+        },
+        "Draft2Process": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "requirements": {
+                    "$ref": "#/definitions/Requirements"
+                },
+                "hints": {
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {}
+                        },
+                        {
+                            "type": "object"
+                        }
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "CWLVersion": {
+                    "type": "string",
+                    "enum": [
+                        "sbg:draft-2"
+                    ]
+                }
+            },
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/Draft2CommandLineTool"
+                },
+                {
+                    "$ref": "#/definitions/Draft2Workflow"
+                },
+                {
+                    "$ref": "#/definitions/Draft2ExpressionTool"
+                }
+            ]
+        },
+        "PrimitiveCwlType": {
+            "type": "string",
+            "enum": [
+                "null",
+                "boolean",
+                "int",
+                "long",
+                "float",
+                "string",
+                "File",
+                "Directory"
+            ]
+        },
+        "AvroPrimitiveType": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/PrimitiveCwlType"
+                }
+            }
+        },
+        "CwlType": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/PrimitiveCwlType"
+                },
+                {
+                    "$ref": "#/definitions/AvroPrimitiveType"
+                },
+                {
+                    "$ref": "#/definitions/OutputRecordSchema"
+                },
+                {
+                    "$ref": "#/definitions/OutputEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/OutputArraySchema"
+                },
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CwlType"
+                    }
+                }
+            ]
+        },
+        "StringOrArrayOfStrings": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "ObjectWithId": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id"
+            ]
+        },
+        "ObjectWithClass": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "class"
+            ]
+        },
+        "ProcessRequirement": {
+            "type": "object",
+            "properties": {}
+        },
+        "CWLVersion": {
+            "type": "string",
+            "enum": [
+                "v1.0"
+            ]
+        },
+        "Requirements": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/ProcessRequirement"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithClass"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/ProcessRequirement"
+                    }
+                }
+            ]
+        },
+        "Parameter": {
+            "type": "object",
+            "properties": {
+                "secondaryFiles": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "format": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "streamable": {
+                    "type": "boolean"
+                },
+                "doc": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
+        "OutputRecordSchema": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/OutputRecordField"
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "record"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "OutputRecordField": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/OutputBinding"
+                },
+                "type": {
+                    "$ref": "#/definitions/CwlType"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "doc": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "name"
+            ]
+        },
+        "OutputBinding": {
+            "type": "object",
+            "properties": {}
+        },
+        "OutputEnumSchema": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/OutputBinding"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "enum"
+                    ]
+                },
+                "symbols": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "symbols"
+            ]
+        },
+        "OutputArraySchema": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/OutputBinding"
+                },
+                "items": {
+                    "$ref": "#/definitions/CwlType"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "array"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "items",
+                "type"
+            ]
+        },
+        "InputParameter": {
+            "allOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "inputBinding": {
+                            "$ref": "#/definitions/InputBinding"
+                        },
+                        "default": {
+                        },
+                        "type": {
+                            "$ref": "#/definitions/CwlType"
+                        },
+                        "secondaryFiles": {
+                            "$ref": "#/definitions/StringOrArrayOfStrings"
+                        }
+                    }
+                },
+                {
+                    "$ref": "#/definitions/Parameter"
+                }
+            ]
+        },
+        "InputBinding": {
+            "type": "object",
+            "properties": {
+                "loadContents": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "InputRecordSchema": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/InputRecordField"
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "record"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "InputRecordField": {
+            "type": "object",
+            "properties": {
+                "inputBinding": {
+                    "$ref": "#/definitions/InputBinding"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/CwlType"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "doc": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "name"
+            ]
+        },
+        "InputEnumSchema": {
+            "type": "object",
+            "properties": {
+                "inputBinding": {
+                    "$ref": "#/definitions/InputBinding"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "enum"
+                    ]
+                },
+                "symbols": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "symbols"
+            ]
+        },
+        "InputArraySchema": {
+            "type": "object",
+            "properties": {
+                "inputBinding": {
+                    "$ref": "#/definitions/InputBinding"
+                },
+                "items": {
+                    "$ref": "#/definitions/CwlType"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "array"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "items",
+                "type"
+            ]
+        },
+        "Inputs": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/InputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/InputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/CwlType"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "ExpressionToolOutputParameter": {
+            "allOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "$ref": "#/definitions/CwlType"
+                        },
+                        "outputBinding": {
+                            "$ref": "#/definitions/OutputBinding"
+                        }
+                    }
+                },
+                {
+                    "$ref": "#/definitions/Parameter"
+                }
+            ]
+        },
+        "ExpressionToolOutputParameters": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/ExpressionToolOutputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/ExpressionToolOutputParameter"
+                    }
+                }
+            ]
+        },
+        "ScatterMethod": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "enum": [
+                        "dotproduct",
+                        "nested_crossproduct",
+                        "flat_crossproduct"
+                    ]
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "WorkflowStep": {
+            "type": "object",
+            "properties": {
+                "in": {
+                    "$ref": "#/definitions/WorkflowStepInputs"
+                },
+                "out": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "$ref": "#/definitions/WorkflowStepOutput"
+                            }
+                        ]
+                    }
+                },
+                "requirements": {
+                    "$ref": "#/definitions/Requirements"
+                },
+                "hints": {
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {}
+                        },
+                        {
+                            "type": "object"
+                        }
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                },
+                "doc": {
+                    "type": "string"
+                },
+                "run": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#"
+                        }
+                    ]
+                },
+                "scatter": {
+                    "anyOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "$ref": "#/definitions/StringOrArrayOfStrings"
+                        }
+                    ]
+                },
+                "scatterMethod": {
+                    "$ref": "#/definitions/ScatterMethod"
+                }
+            },
+            "required": [
+                "in",
+                "out",
+                "run"
+            ]
+        },
+        "WorkflowStepInput": {
+            "type": "object",
+            "properties": {
+                "default": {
+                },
+                "valueFrom": {
+                    "type": "string"
+                },
+                "source": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "linkMerge": {
+                    "$ref": "#/definitions/LinkMergeMethod"
+                }
+            }
+        },
+        "LinkMergeMethod": {
+            "type": "string",
+            "enum": [
+                "merge_nested",
+                "merge_flattened"
+            ]
+        },
+        "WorkflowStepOutput": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id"
+            ]
+        },
+        "WorkflowOutputParameter": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/Parameter"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "outputSource": {
+                            "$ref": "#/definitions/StringOrArrayOfStrings"
+                        },
+                        "linkMerge": {
+                            "$ref": "#/definitions/LinkMergeMethod"
+                        }
+                    }
+                }
+            ]
+        },
+        "WorkflowOutputParameters": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/WorkflowOutputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/WorkflowOutputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/CwlType"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "WorkflowStepInputs": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/WorkflowStepInput"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/WorkflowStepInput"
+                            },
+                            {
+                                "$ref": "#/definitions/StringOrArrayOfStrings"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "WorkflowSteps": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/WorkflowStep"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/WorkflowStep"
+                    }
+                }
+            ]
+        },
+        "CommandInputType": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/CwlType"
+                },
+                {
+                    "$ref": "#/definitions/CommandInputRecordSchema"
+                },
+                {
+                    "$ref": "#/definitions/CommandInputEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/CommandInputArraySchema"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CommandInputType"
+                    }
+                }
+            ]
+        },
+        "CommandOutputType": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/CwlType"
+                },
+                {
+                    "$ref": "#/definitions/CommandOutputRecordSchema"
+                },
+                {
+                    "$ref": "#/definitions/CommandOutputEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/CommandOutputArraySchema"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CommandOutputType"
+                    }
+                }
+            ]
+        },
+        "CommandLineBinding": {
+            "type": "object",
+            "properties": {
+                "position": {
+                    "type": "number"
+                },
+                "prefix": {
+                    "type": "string"
+                },
+                "separate": {
+                    "type": "boolean"
+                },
+                "itemSeparator": {
+                    "type": "string"
+                },
+                "valueFrom": {
+                    "type": "string"
+                },
+                "shellQuote": {
+                    "type": "boolean"
+                },
+                "loadContents": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "CommandInputParameter": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/InputParameter"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "inputBinding": {
+                            "$ref": "#/definitions/CommandLineBinding"
+                        },
+                        "type": {
+                            "$ref": "#/definitions/CommandInputType"
+                        }
+                    }
+                }
+            ]
+        },
+        "CommandInputParameters": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/CommandInputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/CommandInputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/CommandInputType"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "CommandInputRecordSchema": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CommandInputType"
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "record"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "CommandInputRecordField": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/InputRecordField"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "inputBinding": {
+                            "$ref": "#/definitions/CommandLineBinding"
+                        },
+                        "type": {
+                            "$ref": "#/definitions/CommandInputType"
+                        }
+                    }
+                }
+            ]
+        },
+        "CommandInputEnumSchema": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/InputEnumSchema"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "inputBinding": {
+                            "$ref": "#/definitions/CommandLineBinding"
+                        }
+                    }
+                }
+            ]
+        },
+        "CommandInputArraySchema": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/InputArraySchema"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "items": {
+                            "$ref": "#/definitions/CommandInputType"
+                        },
+                        "inputBinding": {
+                            "$ref": "#/definitions/CommandLineBinding"
+                        }
+                    }
+                }
+            ]
+        },
+        "CommandOutputParameter": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/CommandOutputBinding"
+                },
+                "type": {
+                    "$ref": "#/definitions/CommandOutputType"
+                },
+                "secondaryFiles": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "format": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "streamable": {
+                    "type": "boolean"
+                },
+                "doc": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
+        "CommandOutputParameters": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/CommandOutputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/ObjectWithId"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/CommandOutputParameter"
+                            },
+                            {
+                                "$ref": "#/definitions/CommandOutputType"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "CommandOutputRecordSchema": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CommandOutputRecordField"
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "record"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "CommandOutputRecordField": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/OutputRecordField"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "outputBinding": {
+                            "$ref": "#/definitions/CommandOutputBinding"
+                        },
+                        "type": {
+                            "$ref": "#/definitions/CommandOutputType"
+                        }
+                    }
+                }
+            ]
+        },
+        "CommandOutputBinding": {
+            "type": "object",
+            "properties": {
+                "glob": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "loadContents": {
+                    "type": "boolean"
+                },
+                "outputEval": {
+                    "type": "string"
+                }
+            }
+        },
+        "CommandOutputEnumSchema": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/CommandOutputBinding"
+                }
+            }
+        },
+        "CommandOutputArraySchema": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/CommandOutputBinding"
+                },
+                "items": {
+                    "$ref": "#/definitions/CommandOutputType"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "array"
+                    ]
+                }
+            }
+        },
+        "V1CommandLineTool": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "enum": [
+                        "CommandLineTool"
+                    ]
+                },
+                "baseCommand": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "arguments": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "ExpressionPlaceholder"
+                                ]
+                            },
+                            {
+                                "$ref": "#/definitions/CommandLineBinding"
+                            }
+                        ]
+                    }
+                },
+                "stdin": {
+                    "type": "string"
+                },
+                "stderr": {
+                    "type": "string"
+                },
+                "stdout": {
+                    "type": "string"
+                },
+                "successCodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "temporaryFailCodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "permanentFailCodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "inputs": {
+                    "$ref": "#/definitions/CommandInputParameters"
+                },
+                "outputs": {
+                    "$ref": "#/definitions/CommandOutputParameters"
+                }
+            },
+            "required": [
+                "class",
+                "inputs",
+                "outputs"
+            ]
+        },
+        "V1ExpressionTool": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "enum": [
+                        "ExpressionTool"
+                    ]
+                },
+                "expression": {
+                    "type": "string"
+                },
+                "outputs": {
+                    "$ref": "#/definitions/ExpressionToolOutputParameters"
+                },
+                "inputs": {
+                    "$ref": "#/definitions/Inputs"
+                }
+            },
+            "required": [
+                "class",
+                "expression",
+                "outputs",
+                "inputs"
+            ]
+        },
+        "V1Workflow": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "enum": [
+                        "Workflow"
+                    ]
+                },
+                "steps": {
+                    "$ref": "#/definitions/WorkflowSteps"
+                },
+                "outputs": {
+                    "$ref": "#/definitions/WorkflowOutputParameters"
+                },
+                "inputs": {
+                    "$ref": "#/definitions/Inputs"
+                }
+            },
+            "required": [
+                "class",
+                "steps",
+                "outputs",
+                "inputs"
+            ]
+        },
+        "Draft2PrimitiveCwlType": {
+            "type": "string",
+            "enum": [
+                "null",
+                "boolean",
+                "int",
+                "long",
+                "float",
+                "string",
+                "File"
+            ]
+        },
+        "Draft2CwlOutputType": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/Draft2PrimitiveCwlType"
+                },
+                {
+                    "$ref": "#/definitions/AvroPrimitiveType"
+                },
+                {
+                    "$ref": "#/definitions/Draft2OutputRecordSchema"
+                },
+                {
+                    "$ref": "#/definitions/Draft2OutputEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/Draft2OutputArraySchema"
+                },
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2CwlOutputType"
+                    }
+                }
+            ]
+        },
+        "Draft2CwlInputType": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/Draft2PrimitiveCwlType"
+                },
+                {
+                    "$ref": "#/definitions/AvroPrimitiveType"
+                },
+                {
+                    "$ref": "#/definitions/Draft2InputRecordSchema"
+                },
+                {
+                    "$ref": "#/definitions/Draft2InputEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/Draft2InputArraySchema"
+                },
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2CwlInputType"
+                    }
+                }
+            ]
+        },
+        "Draft2ProcessRequirement": {
+            "type": "object",
+            "properties": {}
+        },
+        "Draft2Requirements": {
+            "type": "array",
+            "items": {
+                "allOf": [
+                    {
+                        "$ref": "#/definitions/Draft2ProcessRequirement"
+                    },
+                    {
+                        "$ref": "#/definitions/ObjectWithClass"
+                    }
+                ]
+            }
+        },
+        "Draft2Parameter": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id"
+            ]
+        },
+        "Draft2OutputRecordSchema": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2OutputRecordField"
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "record"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "Draft2OutputRecordField": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/Draft2OutputBinding"
+                },
+                "type": {
+                    "$ref": "#/definitions/Draft2CwlOutputType"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "doc": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "name"
+            ]
+        },
+        "Draft2OutputBinding": {
+            "type": "object",
+            "properties": {}
+        },
+        "Draft2OutputEnumSchema": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/Draft2OutputBinding"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "enum"
+                    ]
+                },
+                "symbols": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "symbols"
+            ]
+        },
+        "Draft2OutputArraySchema": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/Draft2OutputBinding"
+                },
+                "items": {
+                    "$ref": "#/definitions/Draft2CwlOutputType"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "array"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "items",
+                "type"
+            ]
+        },
+        "Draft2InputParameter": {
+            "allOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "inputBinding": {
+                            "$ref": "#/definitions/Draft2CommandLineBinding"
+                        },
+                        "type": {
+                            "$ref": "#/definitions/Draft2CwlInputType"
+                        }
+                    }
+                },
+                {
+                    "$ref": "#/definitions/Draft2Parameter"
+                }
+            ]
+        },
+        "Draft2InputRecordSchema": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2InputRecordField"
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "record"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "Draft2InputRecordField": {
+            "type": "object",
+            "properties": {
+                "inputBinding": {
+                    "$ref": "#/definitions/Draft2CommandLineBinding"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/Draft2CwlInputType"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "doc": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "name"
+            ]
+        },
+        "Draft2InputEnumSchema": {
+            "type": "object",
+            "properties": {
+                "inputBinding": {
+                    "$ref": "#/definitions/Draft2CommandLineBinding"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "enum"
+                    ]
+                },
+                "symbols": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "symbols"
+            ]
+        },
+        "Draft2InputArraySchema": {
+            "type": "object",
+            "properties": {
+                "inputBinding": {
+                    "$ref": "#/definitions/Draft2CommandLineBinding"
+                },
+                "items": {
+                    "$ref": "#/definitions/Draft2CwlInputType"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "array"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "items",
+                "type"
+            ]
+        },
+        "Draft2ExpressionToolOutputParameter": {
+            "allOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "$ref": "#/definitions/Draft2CwlOutputType"
+                        },
+                        "outputBinding": {
+                            "$ref": "#/definitions/Draft2OutputBinding"
+                        }
+                    }
+                },
+                {
+                    "$ref": "#/definitions/Draft2Parameter"
+                }
+            ]
+        },
+        "Draft2WorkflowStep": {
+            "type": "object",
+            "properties": {
+                "inputs": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "$ref": "#/definitions/Draft2WorkflowStepInput"
+                            }
+                        ]
+                    }
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "$ref": "#/definitions/Draft2WorkflowStepOutput"
+                            }
+                        ]
+                    }
+                },
+                "requirements": {
+                    "$ref": "#/definitions/Draft2Requirements"
+                },
+                "hints": {
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {}
+                        }
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "run": {
+                    "oneOf": [
+                        {
+                            "$ref": "#"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                },
+                "scatter": {
+                    "anyOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "$ref": "#/definitions/StringOrArrayOfStrings"
+                        }
+                    ]
+                },
+                "scatterMethod": {
+                    "type": "string",
+                    "enum": [
+                        "dotproduct",
+                        "nested_crossproduct",
+                        "flat_crossproduct"
+                    ]
+                }
+
+            },
+            "required": [
+                "inputs",
+                "outputs",
+                "run"
+            ]
+        },
+        "Draft2WorkflowStepInput": {
+            "type": "object",
+            "properties": {
+                "default": {},
+                "id": {
+                    "type": "string"
+                },
+                "valueFrom": {
+                    "type": "string"
+                },
+                "source": {
+                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                },
+                "linkMerge": {
+                    "$ref": "#/definitions/Draft2LinkMergeMethod"
+                }
+            },
+            "required": [
+                "id"
+            ]
+        },
+        "Draft2LinkMergeMethod": {
+            "type": "string",
+            "enum": [
+                "merge_nested",
+                "merge_flattened"
+            ]
+        },
+        "Draft2WorkflowStepOutput": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id"
+            ]
+        },
+        "Draft2WorkflowOutputParameter": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/Draft2Parameter"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "source": {
+                            "$ref": "#/definitions/StringOrArrayOfStrings"
+                        },
+                        "linkMerge": {
+                            "$ref": "#/definitions/Draft2LinkMergeMethod"
+                        },
+                        "type": {
+                            "$ref": "#/definitions/Draft2CommandOutputType"
+                        },
+                        "streamable": {
+                            "type": "boolean"
+                        },
+                        "default": {}
+                    }
+                }
+            ]
+        },
+        "Draft2CommandInputType": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/Draft2CwlInputType"
+                },
+                {
+                    "$ref": "#/definitions/Draft2CommandInputRecordSchema"
+                },
+                {
+                    "$ref": "#/definitions/Draft2CommandInputEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/Draft2CommandInputArraySchema"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2CommandInputType"
+                    }
+                }
+            ]
+        },
+        "Draft2CommandOutputType": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/Draft2CwlOutputType"
+                },
+                {
+                    "$ref": "#/definitions/Draft2CommandOutputRecordSchema"
+                },
+                {
+                    "$ref": "#/definitions/Draft2CommandOutputEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/Draft2CommandOutputArraySchema"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2CommandOutputType"
+                    }
+                }
+            ]
+        },
+        "Draft2CommandLineBinding": {
+            "type": "object",
+            "properties": {
+                "position": {
+                    "type": "number"
+                },
+                "prefix": {
+                    "type": "string"
+                },
+                "separate": {
+                    "type": "boolean"
+                },
+                "itemSeparator": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "valueFrom": {
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/Draft2Expression"
+                        }
+                    ]
+                },
+                "loadContents": {
+                    "type": "boolean"
+                },
+                "secondaryFiles": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/Draft2Expression"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/Draft2Expression"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Draft2CommandInputParameter": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/Draft2InputParameter"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "$ref": "#/definitions/Draft2CommandInputType"
+                        }
+                    }
+                }
+            ]
+        },
+        "Draft2CommandInputRecordSchema": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2CommandInputParameter"
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "record"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "Draft2CommandInputEnumSchema": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/Draft2InputEnumSchema"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "inputBinding": {
+                            "$ref": "#/definitions/Draft2CommandLineBinding"
+                        }
+                    }
+                }
+            ]
+        },
+        "Draft2CommandInputArraySchema": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/Draft2InputArraySchema"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "items": {
+                            "$ref": "#/definitions/Draft2CommandInputType"
+                        },
+                        "inputBinding": {
+                            "$ref": "#/definitions/Draft2CommandLineBinding"
+                        }
+                    }
+                }
+            ]
+        },
+        "Draft2CommandOutputParameter": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/Draft2Parameter"
+                }, {
+                    "type": "object",
+                    "properties": {
+                        "outputBinding": {
+                            "$ref": "#/definitions/Draft2CommandOutputBinding"
+                        },
+                        "type": {
+                            "$ref": "#/definitions/Draft2CommandOutputType"
+                        }
+                    }
+                }
+            ]
+        },
+        "Draft2CommandOutputRecordSchema": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2CommandOutputRecordField"
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "record"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "Draft2CommandOutputRecordField": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/Draft2OutputRecordField"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "outputBinding": {
+                            "$ref": "#/definitions/CommandOutputBinding"
+                        },
+                        "type": {
+                            "$ref": "#/definitions/Draft2CommandOutputType"
+                        }
+                    }
+                }
+            ]
+        },
+        "Draft2CommandOutputBinding": {
+            "type": "object",
+            "properties": {
+                "glob": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/Draft2Expression"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "loadContents": {
+                    "type": "boolean"
+                },
+                "outputEval": {
+                    "$ref": "#/definitions/Draft2Expression"
+                },
+                "secondaryFiles": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/Draft2Expression"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/Draft2Expression"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Draft2CommandOutputEnumSchema": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/Draft2CommandOutputBinding"
+                }
+            }
+        },
+        "Draft2CommandOutputArraySchema": {
+            "type": "object",
+            "properties": {
+                "outputBinding": {
+                    "$ref": "#/definitions/Draft2CommandOutputBinding"
+                },
+                "items": {
+                    "$ref": "#/definitions/Draft2CommandOutputType"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "array"
+                    ]
+                }
+            }
+        },
+        "Draft2CommandLineTool": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "enum": [
+                        "CommandLineTool"
+                    ]
+                },
+                "baseCommand": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/Draft2Expression"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "oneOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/Draft2Expression"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "arguments": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "$ref": "#/definitions/Draft2CommandLineBinding"
+                            }
+                        ]
+                    }
+                },
+                "stdin": {
+                    "$ref": "#/definitions/StringOrExpression"
+                },
+                "stdout": {
+                    "$ref": "#/definitions/StringOrExpression"
+                },
+                "successCodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "temporaryFailCodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "permanentFailCodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "inputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2CommandInputParameter"
+                    }
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2CommandOutputParameter"
+                    }
+                }
+            },
+            "required": [
+                "class",
+                "inputs",
+                "outputs"
+            ]
+        },
+        "StringOrExpression": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "$ref": "#/definitions/Draft2Expression"
+                }
+            ]
+        },
+        "Draft2Expression": {
+            "type": "object",
+            "properties": {
+                "engine": {
+                    "type": "string"
+                },
+                "script": {
+                    "type": "string"
+                },
+                "class": {
+                    "type": "string",
+                    "enum": [
+                        "Expression"
+                    ]
+                }
+            },
+            "required": [
+                "engine",
+                "script",
+                "class"
+            ]
+        },
+        "Draft2ExpressionTool": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "enum": [
+                        "ExpressionTool"
+                    ]
+                },
+                "expression": {
+                    "$ref": "#/definitions/Draft2Expression"
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2ExpressionToolOutputParameter"
+                    }
+                },
+                "inputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2CommandInputParameter"
+                    }
+                }
+            },
+            "required": [
+                "class",
+                "expression",
+                "outputs",
+                "inputs"
+            ]
+        },
+        "Draft2Workflow": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "enum": [
+                        "Workflow"
+                    ]
+                },
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2WorkflowStep"
+                    }
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2WorkflowOutputParameter"
+                    }
+                },
+                "inputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Draft2InputParameter"
+                    }
+                }
+            },
+            "required": [
+                "class",
+                "steps",
+                "outputs",
+                "inputs"
+            ]
+        }
+    }
+}

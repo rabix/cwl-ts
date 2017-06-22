@@ -113,7 +113,9 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     }
 
     public exposePort(inPort: V1WorkflowStepInputModel) {
-        super._exposePort(inPort, V1WorkflowInputParameterModel);
+        const port = super._exposePort(inPort, V1WorkflowInputParameterModel);
+        port.customProps["sbg:exposed"] = true;
+        port.isVisible = false;
     }
 
     protected getSourceConnectionId(source: string): string {
@@ -211,7 +213,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         ensureArray(workflow.steps, "id").forEach((step, i) => {
             if (step.run && typeof step.run !== "string") {
-                step.run.cwlVersion = "v1.0";
+                step.run.cwlVersion = step.run.cwlVersion || "v1.0";
             }
             this.addEntry(new V1StepModel(step, `${this.loc}.steps[${i}]`, this.eventHub), "steps");
         });

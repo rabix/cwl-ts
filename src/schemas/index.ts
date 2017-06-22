@@ -20,6 +20,7 @@ export = {
             cltSchema: require('./cwl-v10.json'),
             wfSchema: require('./cwl-v10.json'),
             etSchema: require('./cwl-v10.json')
-        }
+        },
+        mixed: require("./cwl-mixed.json")
     }
 };

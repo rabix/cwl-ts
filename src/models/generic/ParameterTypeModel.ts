@@ -264,6 +264,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         if (this.fields) {
             this.fields = ensureArray(this.fields, "name", "type").map((field, index) => {
                 const f = new this.fieldConstructor(field, `${this.loc}.fields[${index}]`, this.eventHub);
+                f.isField = true;
                 f.setValidationCallback((err) => {
                     this.updateValidity(err)
                 });

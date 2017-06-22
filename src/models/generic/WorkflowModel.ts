@@ -101,11 +101,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return this.graph.getVertexData(connectionId);
     }
 
-    protected _exposePort(inPort: WorkflowStepInputModel, inputConstructor) {
+    protected _exposePort(inPort: WorkflowStepInputModel, inputConstructor): WorkflowInputParameterModel {
         // remove extraneous connections to this port and set it as invisible
         this.clearPort(inPort);
 
-        this._createInputFromPort(inPort, inputConstructor, false, true);
+        return this._createInputFromPort(inPort, inputConstructor, false, true);
     }
 
     /**
