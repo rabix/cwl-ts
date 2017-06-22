@@ -399,7 +399,7 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
                     fields: [
                         {
                             type: ["string"],
-                            id: "#a",
+                            name: "#a",
                             label: "field"
                         }
                     ]

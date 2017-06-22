@@ -42,9 +42,9 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
         if (!this.type) this.type = new ParameterTypeModel(null);
         this.type.hasDirectoryType = true;
 
-        this.description = attr["description"];
+        this.description = attr["doc"];
         this.label       = attr["label"];
 
-        this.fileTypes = attr["fileTypes"];
+        this.fileTypes = attr["format"];
     }
 }

@@ -32,9 +32,9 @@ export class V1WorkflowStepOutputModel extends WorkflowStepOutputModel implement
         if (!this.type) this.type = new ParameterTypeModel(null);
         this.type.hasDirectoryType = true;
 
-        this.description = output["description"];
+        this.description = output["doc"];
         this.label = output["label"];
 
-        this.fileTypes = output["fileTypes"];
+        this.fileTypes = output["format"];
     }
 }
