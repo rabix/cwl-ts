@@ -11,6 +11,7 @@ mkdir lib/schemas
 cp -R src/schemas/d2sb/ lib/schemas/d2sb/
 cp -R src/schemas/draft-3/ lib/schemas/draft-3/
 cp src/schemas/cwl-v10.json lib/schemas/cwl-v10.json
+cp src/schemas/cwl-mixed.json lib/schemas/cwl-mixed.json
 
 # compiles ts and generates declarations for mappings and model
 tsc -p tsconfig.json
