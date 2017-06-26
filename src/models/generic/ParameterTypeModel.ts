@@ -274,6 +274,14 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
 
     }
 
+    updateLoc(loc: string) {
+        super.updateLoc(loc);
+
+        if (this.fields && this.fields.length) {
+            this.fields.forEach((f, i) => f.updateLoc(`${this.loc}.fields[${i}]`));
+        }
+    }
+
     setType(t: PrimitiveParameterType): void {
         this._type = t;
 
