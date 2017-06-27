@@ -17,6 +17,9 @@ import {WorkflowInputParameterModel} from "./WorkflowInputParameterModel";
 import {WorkflowOutputParameterModel} from "./WorkflowOutputParameterModel";
 import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
 import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
+import {RequirementBaseModel} from "./RequirementBaseModel";
+import {ProcessRequirement} from "./ProcessRequirement";
+import {ProcessRequirementModel} from "./ProcessRequirementModel";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -34,6 +37,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     public steps: StepModel[]                      = [];
     public inputs: WorkflowInputParameterModel[]   = [];
     public outputs: WorkflowOutputParameterModel[] = [];
+
+    public hints: Array<ProcessRequirementModel> = [];
 
     protected readonly eventHub: EventHub;
 
@@ -93,6 +98,25 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     public deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "WorkflowModel");
+    }
+
+    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+        new UnimplementedMethodException("addHint", "WorkflowModel");
+        return null;
+    }
+
+    protected createReq(req: ProcessRequirement, constructor, loc?: string, hint = false): RequirementBaseModel {
+        let reqModel: RequirementBaseModel;
+        const property = hint ? "hints" : "requirements";
+        loc            = loc || `${this.loc}.${property}[${this[property].length}]`;
+
+        reqModel        = new RequirementBaseModel(req, constructor, loc);
+        reqModel.isHint = hint;
+
+        (this[property] as Array<ProcessRequirementModel>).push(reqModel);
+        reqModel.setValidationCallback((err) => this.updateValidity(err));
+
+        return reqModel;
     }
 
     public setBatch(input, type): void {};

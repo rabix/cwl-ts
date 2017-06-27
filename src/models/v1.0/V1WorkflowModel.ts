@@ -13,6 +13,8 @@ import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {Process} from "../generic/Process";
 import {V1WorkflowStepOutputModel} from "./V1WorkflowStepOutputModel";
+import {ProcessRequirement} from "../generic/ProcessRequirement";
+import {V1ExpressionModel} from "./V1ExpressionModel";
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -24,8 +26,6 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     public inputs: V1WorkflowInputParameterModel[] = [];
 
     public outputs: V1WorkflowOutputParameterModel[] = [];
-
-    public hints: RequirementBaseModel[] = [];
 
     public requirements: RequirementBaseModel[] = [];
 
@@ -143,6 +143,9 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         return null;
     }
 
+    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+        return this.createReq(hint, V1ExpressionModel, undefined,  true);
+    }
 
     public serializeEmbedded(retainSource: boolean = false): Workflow {
         return this._serialize(true, retainSource);
@@ -177,6 +180,8 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
             }
         });
 
+        if (this.hints.length) { base.hints = this.hints.map((hint) => hint.serialize())}
+
         return spreadAllProps(base, this.customProps);
     }
 
@@ -189,7 +194,8 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
             "steps",
             "cwlVersion",
             "doc",
-            "label"
+            "label",
+            "hints"
         ];
 
         //@todo DESERIALIZING HINTS AND REQUIREMENTS
@@ -216,6 +222,10 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
                 step.run.cwlVersion = step.run.cwlVersion || "v1.0";
             }
             this.addEntry(new V1StepModel(step, `${this.loc}.steps[${i}]`, this.eventHub), "steps");
+        });
+
+        this.hints = ensureArray(workflow.hints).map((hint, i) => {
+            return this.createReq(hint, V1ExpressionModel, `${this.loc}.hints[${i}]`, true);
         });
 
         // populates object with all custom attributes not covered in model

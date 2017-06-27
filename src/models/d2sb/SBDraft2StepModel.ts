@@ -13,6 +13,9 @@ import {Workflow} from "../../mappings/d2sb/Workflow";
 import {CommandLineTool} from "../../mappings/d2sb/CommandLineTool";
 import {InputParameterModel} from "../generic/InputParameterModel";
 import {EventHub} from "../helpers/EventHub";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
+import {ProcessRequirement} from "../generic/ProcessRequirement";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 
 export class SBDraft2StepModel extends StepModel {
     run: WorkflowModel | CommandLineToolModel | ExpressionToolModel;
@@ -34,6 +37,10 @@ export class SBDraft2StepModel extends StepModel {
             this.compareInPorts();
             this.compareOutPorts();
         }
+    }
+
+    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+        return this.createReq(hint, SBDraft2ExpressionModel, undefined,  true);
     }
 
     protected compareInPorts() {
@@ -164,6 +171,8 @@ export class SBDraft2StepModel extends StepModel {
             base.run = this.runPath;
         }
 
+        if (this.hints.length) { base.hints = this.hints.map((hint) => hint.serialize())}
+
         const temp =  {... this.customProps};
 
         if (!retainSource) {
@@ -187,13 +196,18 @@ export class SBDraft2StepModel extends StepModel {
             "run",
             "scatter",
             "inputs",
-            "outputs"
+            "outputs",
+            "hints"
         ];
 
         this.id          = step.id || "";
         this.description = step.description;
         this._label       = step.label;
         this.scatter     = step.scatter ? step.scatter.split(".")[1] : null;
+
+        this.hints = ensureArray(step.hints).map((hint, i) => {
+            return this.createReq(hint, SBDraft2ExpressionModel, `${this.loc}.hints[${i}]`, true);
+        });
 
         if (step.run && typeof step.run === "string") {
             this.runPath = step.run;

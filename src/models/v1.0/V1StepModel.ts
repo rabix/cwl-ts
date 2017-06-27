@@ -11,6 +11,9 @@ import {OutputParameter} from "../generic/OutputParameter";
 import {InputParameterModel} from "../generic/InputParameterModel";
 import {EventHub} from "../helpers/EventHub";
 import {ExpressionToolModel} from "../generic/ExpressionToolModel";
+import {ProcessRequirement} from "../generic/ProcessRequirement";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
+import {V1ExpressionModel} from "./V1ExpressionModel";
 
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
     public "in": V1WorkflowStepInputModel[] = [];
@@ -22,6 +25,10 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
     constructor(step?, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
         if (step) this.deserialize(step);
+    }
+
+    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+        return this.createReq(hint, V1ExpressionModel, undefined,  true);
     }
 
     serializeEmbedded(retainSource: boolean = false): WorkflowStep {
@@ -62,6 +69,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         if (this.scatter.length) base.scatter = this.scatter;
         if (this.scatterMethod) base.scatterMethod = this.scatterMethod;
 
+        if (this.hints.length) { base.hints = this.hints.map((hint) => hint.serialize())}
+
         return spreadAllProps(base, temp);
     }
 
@@ -74,7 +83,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             "scatter",
             "scatterMethod",
             "in",
-            "out"
+            "out",
+            "hints"
         ];
 
         this.id          = step.id || "";
@@ -114,7 +124,10 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
         //@todo: generalize and parse requirements and hints
         this.requirements = ensureArray(step.requirements, "class");
-        this.hints        = ensureArray(step.hints, "class");
+
+        this.hints = ensureArray(step.hints).map((hint, i) => {
+            return this.createReq(hint, V1ExpressionModel, `${this.loc}.hints[${i}]`, true);
+        });
 
         this.scatter       = ensureArray(step.scatter);
         this.scatterMethod = step.scatterMethod;

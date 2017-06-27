@@ -941,7 +941,6 @@ describe("SBDraft2WorkflowModel", () => {
                 "sbg:project": "maya/test",
                 "id": "maya/test/two-step-wf/1",
                 "label": "two-step-wf",
-                "hints": [],
                 "sbg:batchBy": {
                     type: "criteria",
                     criteria: ["value1"]

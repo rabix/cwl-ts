@@ -13,6 +13,9 @@ import {SBDraft2WorkflowStepOutputModel} from "./SBDraft2WorkflowStepOutputModel
 import {SBGWorkflowInputParameter} from "../../mappings/d2sb/SBGWorkflowInputParameter";
 import {WorkflowOutputParameter} from "../../mappings/d2sb/WorkflowOutputParameter";
 import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
+import {ProcessRequirement} from "../generic/ProcessRequirement";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 
 export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -117,6 +120,10 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         this.batchByValue = value;
     }
 
+    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+        return this.createReq(hint, SBDraft2ExpressionModel, undefined, true);
+    }
+
     public serializeEmbedded(retainSource: boolean = false): Workflow {
         return this._serialize(true, retainSource);
     }
@@ -149,6 +156,8 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
             }
         });
 
+        if (this.hints.length) { base.hints = this.hints.map((hint) => hint.serialize())}
+
         if (this.batchInput) base["sbg:batchInput"] = "#" + this.batchInput;
 
         if (this.batchByValue) {
@@ -170,7 +179,19 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     }
 
     deserialize(workflow: Workflow): void {
-        const serializedKeys = ["id", "class", "cwlVersion", "steps", "inputs", "outputs", "label", "description", "sbg:batchBy", "sbg:batchInput"];
+        const serializedKeys = [
+            "id",
+            "class",
+            "cwlVersion",
+            "steps",
+            "inputs",
+            "outputs",
+            "label",
+            "hints",
+            "description",
+            "sbg:batchBy",
+            "sbg:batchInput"
+        ];
 
         this.label       = workflow.label;
         this.description = workflow.description;
@@ -206,6 +227,10 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
                 this.updateValidity(err)
             });
             return outputParameterModel;
+        });
+
+        this.hints = ensureArray(workflow.hints).map((hint, i) => {
+            return this.createReq(hint, SBDraft2ExpressionModel, `${this.loc}.hints[${i}]`, true);
         });
 
         if (workflow["sbg:batchInput"]) {

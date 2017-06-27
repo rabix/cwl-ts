@@ -11,6 +11,8 @@ import {Plottable} from "./Plottable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {Process} from "./Process";
 import {EventHub} from "../helpers/EventHub";
+import {ProcessRequirement} from "./ProcessRequirement";
+import {RequirementBaseModel} from "./RequirementBaseModel";
 
 export class StepModel extends ValidationBase implements Serializable<any>, Plottable {
 
@@ -56,7 +58,7 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
     }
 
     requirements?: ProcessRequirementModel[];
-    hints?: any[];
+    hints: Array<ProcessRequirementModel> = [];
     scatter?: string | string[];
     scatterMethod?: ScatterMethod;
 
@@ -72,6 +74,25 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
 
     public serializeEmbedded(): any {
         new UnimplementedMethodException("serializeEmbedded", "StepModel");
+    }
+
+    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+        new UnimplementedMethodException("addHint", "WorkflowModel");
+        return null;
+    }
+
+    protected createReq(req: ProcessRequirement, constructor, loc?: string, hint = false): RequirementBaseModel {
+        let reqModel: RequirementBaseModel;
+        const property = hint ? "hints" : "requirements";
+        loc            = loc || `${this.loc}.${property}[${this[property].length}]`;
+
+        reqModel        = new RequirementBaseModel(req, constructor, loc);
+        reqModel.isHint = hint;
+
+        (this[property] as Array<ProcessRequirementModel>).push(reqModel);
+        reqModel.setValidationCallback((err) => this.updateValidity(err));
+
+        return reqModel;
     }
 
     serialize(): any {
