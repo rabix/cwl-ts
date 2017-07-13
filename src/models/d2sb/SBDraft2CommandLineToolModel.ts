@@ -64,8 +64,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.jobInputs = inputs;
     }
 
-    public setRuntime(runtime: any): void {
-        this.runtime = runtime;
+    public setRuntime(runtime: any = {}): void {
+        this.runtime.cpu = runtime.cpu !== undefined ? runtime.cpu : this.runtime.cpu;
+        this.runtime.mem   = runtime.mem !== undefined ? runtime.mem : this.runtime.mem;
     }
 
     public getContext(port?: any): { $job?: { inputs?: any, allocatedResources?: any }, $self?: any } {

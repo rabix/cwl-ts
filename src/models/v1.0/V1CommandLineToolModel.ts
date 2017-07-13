@@ -60,9 +60,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.jobInputs = inputs;
     }
 
-    public setRuntime(runtime: any): void {
-        this.runtime.cores = runtime.cores || runtime.cpu;
-        this.runtime.ram   = runtime.ram || runtime.mem;
+    public setRuntime(runtime: any = {}): void {
+        this.runtime.cores = runtime.cores !== undefined ? runtime.cores : this.runtime.cores;
+        this.runtime.ram   = runtime.ram !== undefined ? runtime.ram : this.runtime.ram;
     }
 
 
