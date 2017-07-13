@@ -288,6 +288,10 @@ export class TypeResolver {
             t = [t];
         }
 
+        if (type.type === null || type.type === undefined) {
+            return null;
+        }
+
         return t;
     }
 }

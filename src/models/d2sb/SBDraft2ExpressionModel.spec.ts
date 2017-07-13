@@ -12,7 +12,7 @@ describe("SBDraft2ExpressionModel", () => {
 
     describe("constructor", () => {
 
-        it("Should instantiate create a model with the given properties", () => {
+        it("Should instantiate a model with the given properties", () => {
             const expressionModel1 = new SBDraft2ExpressionModel("123");
 
             expect(expressionModel1.serialize()).to.equal("123");
@@ -32,6 +32,12 @@ describe("SBDraft2ExpressionModel", () => {
 
             expect(JSON.stringify(expressionModel2.serialize())).to.equal(expectedExpression);
             expect(expressionModel2.toString()).to.equal("1 + 2");
+        });
+
+        it("Should instantiate a model from null", () => {
+            const exprModel = new SBDraft2ExpressionModel(null);
+
+            expect(exprModel.serialize()).to.equal(undefined);
         });
     });
 

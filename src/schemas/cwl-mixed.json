@@ -34,10 +34,10 @@
                     ]
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "doc": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "CWLVersion": {
                     "type": "string",
@@ -82,10 +82,10 @@
                     ]
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "description": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "CWLVersion": {
                     "type": "string",
@@ -107,16 +107,23 @@
             ]
         },
         "PrimitiveCwlType": {
-            "type": "string",
-            "enum": [
-                "null",
-                "boolean",
-                "int",
-                "long",
-                "float",
-                "string",
-                "File",
-                "Directory"
+            "anyOf": [
+                {
+                    "type": "string",
+                    "enum": [
+                        "null",
+                        "boolean",
+                        "int",
+                        "long",
+                        "float",
+                        "string",
+                        "File",
+                        "Directory"
+                    ]
+                },
+                {
+                    "type": "null"
+                }
             ]
         },
         "AvroPrimitiveType": {
@@ -239,7 +246,7 @@
                     "$ref": "#/definitions/StringOrArrayOfStrings"
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             }
         },
@@ -259,7 +266,7 @@
                     ]
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             },
             "required": [
@@ -279,7 +286,7 @@
                     "type": "string"
                 },
                 "doc": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             },
             "required": [
@@ -310,7 +317,7 @@
                     }
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             },
             "required": [
@@ -334,7 +341,7 @@
                     ]
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             },
             "required": [
@@ -389,7 +396,7 @@
                     ]
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             },
             "required": [
@@ -409,10 +416,10 @@
                     "$ref": "#/definitions/CwlType"
                 },
                 "name": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "doc": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             },
             "required": [
@@ -439,7 +446,7 @@
                     }
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             },
             "required": [
@@ -463,7 +470,7 @@
                     ]
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             },
             "required": [
@@ -591,10 +598,10 @@
                     ]
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "doc": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "run": {
                     "anyOf": [
@@ -818,7 +825,7 @@
                     "type": "boolean"
                 },
                 "itemSeparator": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "valueFrom": {
                     "type": "string"
@@ -1134,13 +1141,13 @@
                     }
                 },
                 "stdin": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "stderr": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "stdout": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "successCodes": {
                     "type": "array",
@@ -1226,15 +1233,22 @@
             ]
         },
         "Draft2PrimitiveCwlType": {
-            "type": "string",
-            "enum": [
-                "null",
-                "boolean",
-                "int",
-                "long",
-                "float",
-                "string",
-                "File"
+            "anyOf": [
+                {
+                    "type": "string",
+                    "enum": [
+                        "null",
+                        "boolean",
+                        "int",
+                        "long",
+                        "float",
+                        "string",
+                        "File"
+                    ]
+                },
+                {
+                    "type": "null"
+                }
             ]
         },
         "Draft2CwlOutputType": {
