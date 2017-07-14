@@ -60,7 +60,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
                 (<WorkflowOutputParameter> base).outputSource = this.source.slice();
             }
             if (this.fileTypes.length) {
-                (base as WorkflowOutputParameter)["sbg:fileTypes"] = this.fileTypes;
+                (base as WorkflowOutputParameter)["sbg:fileTypes"] = this.fileTypes.join(", ");
             }
 
         } else {

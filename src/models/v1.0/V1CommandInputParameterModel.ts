@@ -80,7 +80,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         if (this.description) base.doc = this.description;
 
         if (this.fileTypes.length && !this.isField) {
-            (base as CommandInputParameter)["sbg:fileTypes"] = this.fileTypes;
+            (base as CommandInputParameter)["sbg:fileTypes"] = this.fileTypes.join(", ");
         }
 
         if (this.streamable !== undefined && !this.isField) {

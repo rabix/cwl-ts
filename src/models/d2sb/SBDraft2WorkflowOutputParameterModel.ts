@@ -1,7 +1,10 @@
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
 import {WorkflowOutputParameter} from "../../mappings/d2sb/WorkflowOutputParameter";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
-import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {
+    commaSeparatedToArray, ensureArray, spreadAllProps,
+    spreadSelectProps
+} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParameterModel {
@@ -26,12 +29,13 @@ export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParamete
 
         base.source = ensureArray(this.source);
         if (this.type) base.type = this.type.serialize();
+        if (this.fileTypes.length) base["sbg:fileTypes"] = this.fileTypes.join(", ");
 
         return spreadAllProps(base, this.customProps);
     }
 
     deserialize(output: WorkflowOutputParameter): void {
-        const serializedKeys = ["id", "type", "source", "label", "description"];
+        const serializedKeys = ["id", "type", "source", "label", "description", "sbg:fileTypes"];
 
         if (output.id && output.id.charAt(0) === "#") {
             this.id = output.id.substr(1);
@@ -40,9 +44,10 @@ export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParamete
         }
 
         this.source      = ensureArray(output.source);
-        this.type        = new ParameterTypeModel(output.type, SBDraft2WorkflowOutputParameterModel, `${this.id}_field`,`${this.loc}.type`);
-        this._label       = output.label;
+        this.type        = new ParameterTypeModel(output.type, SBDraft2WorkflowOutputParameterModel, `${this.id}_field`, `${this.loc}.type`);
+        this._label      = output.label;
         this.description = output.description;
+        this.fileTypes   = commaSeparatedToArray(output["sbg:fileTypes"]);
 
         spreadSelectProps(output, this.customProps, serializedKeys);
     }

@@ -5,7 +5,10 @@ import {CommandInputParameterModel} from "../generic/CommandInputParameterModel"
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {ID_REGEX} from "../helpers/constants";
 import {EventHub} from "../helpers/EventHub";
-import {ensureArray, incrementLastLoc, isType, spreadSelectProps} from "../helpers/utils";
+import {
+    commaSeparatedToArray, ensureArray, incrementLastLoc, isType,
+    spreadSelectProps
+} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
@@ -15,9 +18,9 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
     /** Binding for inclusion in command line */
     public inputBinding: SBDraft2CommandLineBindingModel = null;
 
-    public hasSecondaryFiles = false;
-    public hasSecondaryFilesInRoot = false;
-    public hasStageInput     = true;
+    public hasSecondaryFiles                         = false;
+    public hasSecondaryFilesInRoot                   = false;
+    public hasStageInput                             = true;
     public secondaryFiles: SBDraft2ExpressionModel[] = [];
 
 
@@ -45,6 +48,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
 
         if (this.label) base.label = this.label;
         if (this.description) base.description = this.description;
+        if (this.fileTypes.length) base["sbg:fileTypes"] = this.fileTypes.join(", ");
 
         if (this.isField) {
             base.name = this.id;
@@ -56,7 +60,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
     }
 
     deserialize(input: CommandInputParameter | CommandInputRecordField): void {
-        const serializedAttr = ["label", "description", "inputBinding", "type"];
+        const serializedAttr = ["label", "description", "inputBinding", "type", "sbg:fileTypes"];
 
         input = input || <CommandInputParameter | CommandInputRecordField>{};
 
@@ -72,6 +76,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
 
         this.label       = input.label;
         this.description = input.description;
+        this.fileTypes   = commaSeparatedToArray(input["sbg:fileTypes"]);
 
         // if inputBinding isn't defined in input, it shouldn't exist as an object in model
         if (input.inputBinding !== undefined) {

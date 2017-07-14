@@ -482,7 +482,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                         "sbg:category": "File input",
                         "id": "#reference",
                         "label": "Reference",
-                        "sbg:fileTypes": "FASTA,FA,FA.GZ,FASTA.GZ,TAR"
+                        "sbg:fileTypes": "FASTA, FA, FA.GZ, FASTA.GZ, TAR"
                     },
                     {
                         "description": "Total memory [GB] to be reserved for the tool (Default value is 1.5 x size_of_the_reference).",

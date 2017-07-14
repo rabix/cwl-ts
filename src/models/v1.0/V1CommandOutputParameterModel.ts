@@ -69,7 +69,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         }
 
         if (!this.isField && this.fileTypes.length) {
-            (<CommandOutputParameter> base)["sbg:fileTypes"] = this.fileTypes;
+            (<CommandOutputParameter> base)["sbg:fileTypes"] = this.fileTypes.join(", ");
         }
 
         if (!this.isField && this.streamable) {
