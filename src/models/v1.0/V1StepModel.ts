@@ -14,6 +14,8 @@ import {ExpressionToolModel} from "../generic/ExpressionToolModel";
 import {ProcessRequirement} from "../generic/ProcessRequirement";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
+import {WorkflowModel} from "../generic/WorkflowModel";
+import {CommandLineToolModel} from "../generic/CommandLineToolModel";
 
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
     public "in": V1WorkflowStepInputModel[] = [];
@@ -50,6 +52,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
         if (this.customProps["sbg:rdfId"] && !embed) {
             base.run = this.customProps["sbg:rdfId"];
+        } else if (this.run &&  this.run instanceof WorkflowModel) {
+            base.run = this.run.serializeEmbedded();
         } else if (this.run && typeof this.run.serialize === "function") {
             base.run = this.run.serialize();
         } else {
