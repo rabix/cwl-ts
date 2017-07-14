@@ -845,7 +845,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const input = new inputConstructor(<InputParameter>{
             id: this.getNextAvailableId(`${STEP_OUTPUT_CONNECTION_PREFIX}${inPort.id}/${inPort.id}`, true), // might change later in case input is already taken
             type: inPort.type ? inPort.type.serialize() : "null",
-            fileTypes: inPort.fileTypes,
+            ["sbg:fileTypes"]: inPort.fileTypes,
             inputBinding: inPort["inputBinding"]
         }, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
 
@@ -903,7 +903,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const output = new outputConstructor(<OutputParameter>{
             id: this.getNextAvailableId(`${STEP_INPUT_CONNECTION_PREFIX}${outPort.id}/${outPort.id}`, true), // might change later in case output is already taken
             type: outPort.type ? outPort.type.serialize() : "null",
-            fileTypes: outPort.fileTypes
+            ["sbg:fileTypes"]: outPort.fileTypes
         }, `${this.loc}.outputs[${this.outputs.length}]`, this.eventHub);
 
 

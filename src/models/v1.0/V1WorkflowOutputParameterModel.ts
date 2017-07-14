@@ -23,7 +23,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
     }
 
     deserialize(output: WorkflowOutputParameter | OutputRecordField) {
-        const serializedKeys = ["id", "name", "outSource", "type", "label", "doc", "format"];
+        const serializedKeys = ["id", "name", "outSource", "type", "label", "doc", "sbg:fileTypes"];
         //@todo deserialization of outputBinding, streamable, linkMerge, secondaryFiles
 
         this.isField = !!(<OutputRecordField> output).name; // record fields don't have ids
@@ -47,7 +47,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
         this.description = ensureArray(output.doc).join("\n\n");
 
         if (!this.isField) {
-            this.fileTypes = commaSeparatedToArray((output as WorkflowOutputParameter).format);
+            this.fileTypes = commaSeparatedToArray((output as WorkflowOutputParameter)["sbg:fileTypes"]);
         }
         spreadSelectProps(output, this.customProps, serializedKeys);
     }
@@ -60,7 +60,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
                 (<WorkflowOutputParameter> base).outputSource = this.source.slice();
             }
             if (this.fileTypes.length) {
-                (base as WorkflowOutputParameter).format = this.fileTypes;
+                (base as WorkflowOutputParameter)["sbg:fileTypes"] = this.fileTypes;
             }
 
         } else {

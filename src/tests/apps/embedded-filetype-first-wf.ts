@@ -5,7 +5,7 @@ export default JSON.parse(`{
     {
       "id": "inp",
       "type": "File",
-      "format": "ZIP"
+      "sbg:fileTypes": "ZIP"
     },
     {
       "id": "ex",
@@ -32,7 +32,7 @@ export default JSON.parse(`{
           {
             "id": "tarfile",
             "type": "File",
-            "format": "TXT",
+            "sbg:fileTypes": "TXT",
             "inputBinding": {
               "position": 1
             }
@@ -101,7 +101,7 @@ export default JSON.parse(`{
           {
             "id": "classfile",
             "type": "File",
-            "format": "TXT",
+            "sbg:fileTypes": "TXT",
             "outputBinding": {
               "glob": "*.class"
             }

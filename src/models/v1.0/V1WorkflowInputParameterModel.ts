@@ -23,7 +23,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
     }
 
     deserialize(attr: InputParameter | RecordField) {
-        const serializedKeys = ["id", "name", "type", "label", "doc"];
+        const serializedKeys = ["id", "name", "type", "label", "doc", "sbg:fileTypes"];
 
         // @todo serialization of secondaryFiles, streamable, inputBinding
 
@@ -36,7 +36,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
         this.type.setValidationCallback(err => this.updateValidity(err));
         this.type.hasDirectoryType = true;
 
-        this.fileTypes = commaSeparatedToArray((attr as InputParameter).format);
+        this.fileTypes = commaSeparatedToArray(attr["sbg:fileTypes"]);
 
         this.isVisible = !attr["sbg:exposed"];
 
@@ -50,7 +50,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
             (base as RecordField).name = this.id;
         } else {
             (base as InputParameter).id = this.id;
-            if (this.fileTypes.length) (base as InputParameter).format = this.fileTypes;
+            if (this.fileTypes.length) (base as InputParameter)["sbg:fileTypes"] = this.fileTypes;
         }
 
         if (this.type.type) base.type = this.type.serialize("v1.0");

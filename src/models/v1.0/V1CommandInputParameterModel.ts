@@ -80,7 +80,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         if (this.description) base.doc = this.description;
 
         if (this.fileTypes.length && !this.isField) {
-            (base as CommandInputParameter).format = this.fileTypes;
+            (base as CommandInputParameter)["sbg:fileTypes"] = this.fileTypes;
         }
 
         if (this.streamable !== undefined && !this.isField) {
@@ -95,7 +95,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
     }
 
     deserialize(attr: CommandInputParameter | CommandInputRecordField): void {
-        const serializedKeys = ["type", "doc", "inputBinding", "label", "secondaryFiles", "format", "streamable"];
+        const serializedKeys = ["type", "doc", "inputBinding", "label", "secondaryFiles", "sbg:fileTypes", "streamable"];
 
         if ((<CommandInputRecordField> attr).name) {
             this.id      = (<CommandInputRecordField> attr).name;
@@ -121,7 +121,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         this.label          = attr.label;
         this.description    = ensureArray(attr.doc).join('\n');
         this.secondaryFiles = ensureArray((<CommandInputParameter> attr).secondaryFiles).map(f => this.addSecondaryFile(f));
-        this.fileTypes      = commaSeparatedToArray(attr["format"]);
+        this.fileTypes      = commaSeparatedToArray(attr["sbg:fileTypes"]);
         this.streamable     = (<CommandInputParameter> attr).streamable;
 
         spreadSelectProps(attr, this.customProps, serializedKeys);

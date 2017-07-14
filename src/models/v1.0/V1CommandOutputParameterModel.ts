@@ -69,7 +69,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         }
 
         if (!this.isField && this.fileTypes.length) {
-            (<CommandOutputParameter> base).format = this.fileTypes;
+            (<CommandOutputParameter> base)["sbg:fileTypes"] = this.fileTypes;
         }
 
         if (!this.isField && this.streamable) {
@@ -80,7 +80,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
     }
 
     deserialize(attr: CommandOutputParameter | CommandOutputRecordField): void {
-        const serializedKeys = ["type", "outputBinding", "label", "doc", "secondaryFiles", "format", "streamable"];
+        const serializedKeys = ["type", "outputBinding", "label", "doc", "secondaryFiles", "sbg:fileTypes", "streamable"];
 
         this.isField = !!(<CommandOutputRecordField> attr).name; // record fields don't have ids
 
@@ -102,7 +102,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
 
         // properties only on inputs, not on fields
         this.secondaryFiles = ensureArray((<CommandOutputParameter> attr).secondaryFiles).map(f => this.addSecondaryFile(f));
-        this.fileTypes      = commaSeparatedToArray((<CommandOutputParameter> attr).format);
+        this.fileTypes      = commaSeparatedToArray((<CommandOutputParameter> attr)["sbg:fileTypes"]);
         this.streamable     = (<CommandOutputParameter> attr).streamable;
 
         spreadSelectProps(attr, this.customProps, serializedKeys);
