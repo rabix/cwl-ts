@@ -32,6 +32,7 @@ describe("JobHelper", () => {
                 f2: {
                     path: "/path/to/f2.ext",
                     "class": "File",
+                    contents: "file contents",
                     secondaryFiles: [],
                     size: 0
                 }
@@ -41,6 +42,7 @@ describe("JobHelper", () => {
                 f2: {
                     path: "/path/to/f2.ext",
                     "class": "File",
+                    contents: "file contents",
                     secondaryFiles: [],
                     size: 0
                 }

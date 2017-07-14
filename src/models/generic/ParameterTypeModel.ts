@@ -244,7 +244,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     serialize(version?: "v1.0" | "draft-2"): any {
         let type = TypeResolver.serializeType(this, version);
 
-        if (typeof type === "object" && !Array.isArray(type) && version !== "v1.0") {
+        if (typeof type === "object" && !Array.isArray(type) && version !== "v1.0" && type !== null) {
             type = {...{}, ...type, ...this.customProps};
         }
 

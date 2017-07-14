@@ -177,7 +177,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         promises.concat(this.inputs.map(input => input.validate(this.getContext(input))));
 
         // validate outputs
-        promises.concat(this.outputs.map(output => output.validate(this.getContext())));
+        promises.concat(this.outputs.map(output => output.validate(this.getContext(output))));
 
         // validate arguments
         promises.concat(this.arguments.map(arg => arg.validate(this.getContext())));

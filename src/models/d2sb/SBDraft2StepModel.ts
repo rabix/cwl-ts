@@ -46,8 +46,6 @@ export class SBDraft2StepModel extends StepModel {
     protected compareInPorts() {
         const inPorts: Array<SBDraft2WorkflowStepInputModel> = this.in;
         const stepInputs: Array<InputParameterModel>         = this.run.inputs;
-        // const errors                                         = [];
-        // const warnings                                       = [];
 
         // check if step.in includes ports which are not defined in the app
         const inserted = inPorts.filter(port => {
@@ -56,15 +54,10 @@ export class SBDraft2StepModel extends StepModel {
 
         // if there are steps in ports which aren't in the app, throw a warning for interface mismatch
         if (inserted.length) {
-
             this.updateValidity({[this.loc]: {
                 type: "error",
                 message: `Step contains input ports which are not present on the app: ${inserted.map(port => port.id).join(",")}. They will not be included in the workflow.`,
             }});
-            // errors.push({
-            //     message: `Step contains input ports which are not present on the app: ${inserted.map(port => port.id).join(",")}. They will not be included in the workflow.`,
-            //     loc: this.loc
-            // });
         }
 
         // because type cannot be check on the level of the step (step.in is just the id of the incoming port),
@@ -79,9 +72,6 @@ export class SBDraft2StepModel extends StepModel {
                         type: "error",
                         message: `Schema mismatch between step input ${this.loc}.inputs[${index}] and step run input ${input.loc}.`
                     }});
-                    // errors.push({
-                    //     message: `Schema mismatch between step input ${this.loc}.inputs[${index}] and step run input ${input.loc}. `
-                    // });
                 }
             }
 

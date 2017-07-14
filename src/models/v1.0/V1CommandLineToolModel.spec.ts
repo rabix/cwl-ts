@@ -294,6 +294,7 @@ describe("V1CommandLineToolModel", () => {
                         "class": "File",
                         nameroot: "field",
                         basename: "field.ext",
+                        contents: "file contents",
                         nameext: ".ext",
                         size: 0,
                         secondaryFiles: []

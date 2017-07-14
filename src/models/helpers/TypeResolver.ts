@@ -200,6 +200,11 @@ export class TypeResolver {
     public static serializeType(type: TypeResolution, version?: CWLVersion): any {
         let t;
 
+        if (type.type === null || type.type === undefined) {
+            return null;
+        }
+
+
         switch (type.type) {
             case "array":
                 if (type.items === "enum") {
@@ -286,10 +291,6 @@ export class TypeResolver {
             t = version === "v1.0" && typeof t === "string" ? `${t}?` : ["null", t];
         } else if (version !== "v1.0") {
             t = [t];
-        }
-
-        if (type.type === null || type.type === undefined) {
-            return null;
         }
 
         return t;

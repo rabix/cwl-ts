@@ -34,8 +34,18 @@ export class JobHelper {
             return Math.random() * (max - min) + min;
         }
 
+        const file = (name) => {
+            return {
+                path: '/path/to/' + name + '.ext',
+                    'class': 'File',
+                size: 0,
+                contents: "file contents",
+                secondaryFiles: []
+            }
+        };
+
         let map = {
-            File: {path: '/path/to/' + name + '.ext', 'class': 'File', size: 0, secondaryFiles: []},
+            File: file(name),
             Directory: {path: "/path/to/" + name, "class": "Directory", basename: name},
             'enum': symbols ? symbols[0] : name,
             string: name + '-string-value',
@@ -46,18 +56,8 @@ export class JobHelper {
             map: {},
             array: {
                 File: [
-                    {
-                        path: '/path/to/' + name + '-1.ext',
-                        'class': 'File',
-                        size: 0,
-                        secondaryFiles: []
-                    },
-                    {
-                        path: '/path/to/' + name + '-2.ext',
-                        'class': 'File',
-                        size: 0,
-                        secondaryFiles: []
-                    }
+                    file(name + "-1"),
+                    file(name + "-2")
                 ],
                 Directory: [
                     {

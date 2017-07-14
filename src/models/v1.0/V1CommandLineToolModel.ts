@@ -193,7 +193,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         for (let i = 0; i < this.outputs.length; i++) {
             const output = this.outputs[i];
-            promises.push(output.validate(this.getContext()));
+            promises.push(output.validate(this.getContext(output)));
         }
 
         this.checkPortIdUniqueness();

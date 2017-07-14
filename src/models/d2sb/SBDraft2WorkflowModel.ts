@@ -41,7 +41,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
             if (node instanceof WorkflowInputParameterModel && this.batchInput === oldId) {
                 this.batchInput = node.id;
             }
-        })
+        });
     }
 
 

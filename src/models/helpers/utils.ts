@@ -207,7 +207,7 @@ export const validateID = (id: string) => {
     }
 
     if (!ID_REGEX.test(id)) {
-        throw new Error(`ID "${id}" is invalid, ID must start with a letter and only alphanumerics and _ are allowed`);
+        throw new Error(`ID "${id}" contains invalid characters`);
     }
 };
 

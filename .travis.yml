@@ -8,7 +8,7 @@ install:
   - npm install
 
 notifications:
-  email: false
+  email: true
 
 branches:
   only:
