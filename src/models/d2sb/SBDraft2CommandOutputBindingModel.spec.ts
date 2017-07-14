@@ -54,8 +54,8 @@ describe("SBDraft2CommandOutputBindingModel", () => {
 
             let bind = new SBDraft2CommandOutputBindingModel({}, "binding");
 
-            const metadata = {"": new SBDraft2ExpressionModel("text"), "data": new SBDraft2ExpressionModel("")};
-            bind.deserialize(metadata);
+            const metadata = {"": "text", "data": undefined};
+            bind.deserialize({["sbg:metadata"]: metadata});
 
             expect(Object.keys(bind.metadata)).empty;
         });

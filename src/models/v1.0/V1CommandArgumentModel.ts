@@ -20,11 +20,11 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
         if (arg) this.deserialize(arg);
     }
 
-    get arg(): string | CommandLineBinding | V1CommandLineBindingModel {
+    get arg(): string | V1ExpressionModel | CommandLineBinding | V1CommandLineBindingModel {
         return this.primitive || this.binding;
     }
 
-    set arg(value: string | CommandLineBinding | V1CommandLineBindingModel) {
+    set arg(value: string | V1ExpressionModel | CommandLineBinding | V1CommandLineBindingModel) {
         this.deserialize(value);
     }
 
@@ -80,8 +80,8 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
         }
     }
 
-    deserialize(attr: string | CommandLineBinding | V1CommandLineBindingModel): void {
-        if (typeof attr === 'string') {
+    deserialize(attr: string | V1ExpressionModel | CommandLineBinding | V1CommandLineBindingModel): void {
+        if (typeof attr === 'string' || attr instanceof V1ExpressionModel) {
             this.hasBinding = false;
             this.primitive  = new V1ExpressionModel(attr, this.loc, this.eventHub);
             this.primitive.setValidationCallback(err => this.updateValidity(err));

@@ -128,7 +128,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
             if (binding["sbg:metadata"] && binding["sbg:metadata"].constructor === Object) {
                 Object.keys(binding["sbg:metadata"]).filter(key => key).forEach(key => {
                     const metadata = binding["sbg:metadata"][key];
-                    if (!isUndefined(metadata)) {
+                    if (metadata !== undefined) {
                         this.metadata[key] = new SBDraft2ExpressionModel(metadata, `${this.loc}["sbg:metadata"].${key}`, this.eventHub);
                         this.metadata[key].setValidationCallback(err => this.updateValidity(err));
                     }
