@@ -87,7 +87,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
             (base as CommandInputParameter).streamable = this.streamable;
         }
 
-        if (this.secondaryFiles && !this.isField) {
+        if (this.secondaryFiles && this.secondaryFiles.length && !this.isField) {
             (base as CommandInputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
