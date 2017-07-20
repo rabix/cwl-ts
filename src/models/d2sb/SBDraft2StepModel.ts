@@ -155,7 +155,9 @@ export class SBDraft2StepModel extends StepModel {
 
         if (this.customProps["sbg:rdfId"] && !embed) {
             base.run = this.customProps["sbg:rdfId"];
-        } else if (this.run && typeof this.run.serialize === "function") {
+        } else if (embed && this.run && this.run instanceof WorkflowModel) {
+            base.run = this.run.serializeEmbedded();
+        }  else if (this.run && typeof this.run.serialize === "function") {
             base.run = this.run.serialize();
         } else {
             base.run = this.runPath;
