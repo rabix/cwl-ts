@@ -485,6 +485,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         new UnimplementedMethodException("setRequirement", "CommandLineToolModel");
     }
 
+    public generateCommandLine(): Promise<string> {
+        return this.generateCommandLineParts().then((parts: CommandLinePart[]) => {
+            return parts.filter(p => !!p.value).map(p => p.value).join(" ");
+        });
+    }
+
     public generateCommandLineParts(): Promise<CommandLinePart[]> {
         const flatInputs = CommandLinePrepare.flattenInputsAndArgs([].concat(this.arguments).concat(this.inputs));
 
@@ -515,7 +521,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         const stdOutPromise = CommandLinePrepare.prepare(this.stdout, flatJobInputs, this.getContext(), this.stdout.loc, "stdout");
         const stdInPromise  = CommandLinePrepare.prepare(this.stdin, flatJobInputs, this.getContext(), this.stdin.loc, "stdin");
 
-        return Promise.all([].concat(baseCmdPromise, inputPromise, stdOutPromise, stdInPromise)).then(parts => {
+        return Promise.all([].concat(baseCmdPromise, inputPromise, stdOutPromise, stdInPromise)).then((parts: CommandLinePart[]) => {
             return parts.filter(part => part !== null);
         });
     }

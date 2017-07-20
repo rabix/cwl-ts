@@ -105,11 +105,11 @@ export class TypeResolver {
                         type0.type === "array" ? type.splice(0, 1) : type.splice(1, 1);
                         result.isItemOrArray = true;
                     } else {
-                        throw("TypeResolverError: Union types not supported yet! Sorry");
+                        throw(`TypeResolverError: Union types not supported yet. Found type ${type}`);
                     }
 
                 } else {
-                    throw("TypeResolverError: Union types not supported yet! Sorry");
+                    throw(`TypeResolverError: Union types not supported yet! Found type ${type}`);
                 }
             }
 

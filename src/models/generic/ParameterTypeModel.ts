@@ -254,7 +254,14 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     deserialize(attr: any): void {
         const serializedKeys = ["type", "name", "_symbols", "fields", "items", "inputBinding", "outputBinding"];
 
-        TypeResolver.resolveType(attr, this);
+        try {
+            TypeResolver.resolveType(attr, this);
+        } catch (ex) {
+            this.updateValidity({[this.loc]: {
+                message: ex.message,
+                type: "error"
+            }});
+        }
 
         // populates object with all custom attributes not covered in model
         if (typeof attr === "object" && attr !== null && !Array.isArray(attr)) {

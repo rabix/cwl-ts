@@ -40,7 +40,7 @@
                     "type": ["string", "null"]
                 },
                 "CWLVersion": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "enum": [
                         "v1.0"
                     ]
@@ -88,7 +88,7 @@
                     "type": ["string", "null"]
                 },
                 "CWLVersion": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "enum": [
                         "sbg:draft-2"
                     ]
@@ -260,7 +260,7 @@
                     }
                 },
                 "type": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "enum": [
                         "record"
                     ]
@@ -290,7 +290,6 @@
                 }
             },
             "required": [
-                "type",
                 "name"
             ]
         },
@@ -423,7 +422,6 @@
                 }
             },
             "required": [
-                "type",
                 "name"
             ]
         },
@@ -639,7 +637,7 @@
                 "default": {
                 },
                 "valueFrom": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "source": {
                     "$ref": "#/definitions/StringOrArrayOfStrings"
@@ -828,7 +826,7 @@
                     "type": ["string", "null"]
                 },
                 "valueFrom": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "shellQuote": {
                     "type": "boolean"
@@ -1381,7 +1379,6 @@
                 }
             },
             "required": [
-                "type",
                 "name"
             ]
         },
@@ -1501,7 +1498,6 @@
                 }
             },
             "required": [
-                "type",
                 "name"
             ]
         },
@@ -1678,7 +1674,7 @@
             ]
         },
         "Draft2LinkMergeMethod": {
-            "type": "string",
+            "type": ["string", "null"],
             "enum": [
                 "merge_nested",
                 "merge_flattened"
@@ -1771,7 +1767,7 @@
                     "type": "number"
                 },
                 "prefix": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "separate": {
                     "type": "boolean"
@@ -1785,7 +1781,7 @@
                 "valueFrom": {
                     "oneOf": [
                         {
-                            "type": "string"
+                            "type": ["string", "null"]
                         },
                         {
                             "$ref": "#/definitions/Draft2Expression"
@@ -1798,7 +1794,7 @@
                 "secondaryFiles": {
                     "anyOf": [
                         {
-                            "type": "string"
+                            "type": ["string", "null"]
                         },
                         {
                             "$ref": "#/definitions/Draft2Expression"
@@ -1808,7 +1804,7 @@
                             "items": {
                                 "anyOf": [
                                     {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     {
                                         "$ref": "#/definitions/Draft2Expression"
@@ -1845,13 +1841,13 @@
                     }
                 },
                 "type": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "enum": [
                         "record"
                     ]
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             },
             "required": [
@@ -1918,13 +1914,13 @@
                     }
                 },
                 "type": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "enum": [
                         "record"
                     ]
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 }
             },
             "required": [
@@ -1955,7 +1951,7 @@
                 "glob": {
                     "anyOf": [
                         {
-                            "type": "string"
+                            "type": ["string", "null"]
                         },
                         {
                             "$ref": "#/definitions/Draft2Expression"
@@ -1963,7 +1959,7 @@
                         {
                             "type": "array",
                             "items": {
-                                "type": "string"
+                                "type": ["string", "null"]
                             }
                         }
                     ]
@@ -1977,7 +1973,7 @@
                 "secondaryFiles": {
                     "anyOf": [
                         {
-                            "type": "string"
+                            "type": ["string", "null"]
                         },
                         {
                             "$ref": "#/definitions/Draft2Expression"
@@ -1987,7 +1983,7 @@
                             "items": {
                                 "anyOf": [
                                     {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     {
                                         "$ref": "#/definitions/Draft2Expression"
@@ -2017,10 +2013,10 @@
                     "$ref": "#/definitions/Draft2CommandOutputType"
                 },
                 "label": {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "type": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "enum": [
                         "array"
                     ]
@@ -2039,7 +2035,7 @@
                 "baseCommand": {
                     "anyOf": [
                         {
-                            "type": "string"
+                            "type": ["string", "null"]
                         },
                         {
                             "$ref": "#/definitions/Draft2Expression"
@@ -2049,7 +2045,7 @@
                             "items": {
                                 "oneOf": [
                                     {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     {
                                         "$ref": "#/definitions/Draft2Expression"
@@ -2064,7 +2060,7 @@
                     "items": {
                         "oneOf": [
                             {
-                                "type": "string"
+                                "type": ["string", "null"]
                             },
                             {
                                 "$ref": "#/definitions/Draft2CommandLineBinding"
@@ -2118,7 +2114,7 @@
         "StringOrExpression": {
             "anyOf": [
                 {
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 {
                     "$ref": "#/definitions/Draft2Expression"
