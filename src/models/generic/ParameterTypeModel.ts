@@ -51,7 +51,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     set items(t: PrimitiveParameterType) {
         if (t && this._type !== "array") {
             throw("ParameterTypeModel: Items can only be set to inputs type Array");
-        } else if (t !== undefined && this._items !== t){
+        } else if (t !== undefined && this._items !== t) {
             switch (t) {
                 case "enum":
                     this._symbols = [];
@@ -112,6 +112,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     public fields: Array<any>              = null;
     private _symbols: string[]             = null;
     public name: string                    = null;
+    public unionType: any                 = null;
     private fieldConstructor;
     private eventHub: EventHub;
     private nameBase                       = "field";
@@ -123,11 +124,11 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         super(loc);
         this.fieldConstructor = fieldConstructor;
         this.eventHub         = eventHub;
-        this.nameBase = nameBase;
+        this.nameBase         = nameBase;
         this.deserialize(type);
     }
 
-    validate(context): Promise<any> {
+    validate(context = {}): Promise<any> {
         this.cleanValidity();
         const promises = [];
 
@@ -236,6 +237,15 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             }
         }
 
+        if (this.unionType) {
+            this.updateValidity({
+                [this.loc]: {
+                    type: "info",
+                    message: `Union type is not supported yet: ${this.unionType}`
+                }
+            });
+        }
+
         return Promise.all(promises).then(res => {
             return this.issues;
         });
@@ -257,10 +267,12 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         try {
             TypeResolver.resolveType(attr, this);
         } catch (ex) {
-            this.updateValidity({[this.loc]: {
-                message: ex.message,
-                type: "error"
-            }});
+            this.updateValidity({
+                [this.loc]: {
+                    message: ex.message,
+                    type: "error"
+                }
+            });
         }
 
         // populates object with all custom attributes not covered in model
@@ -270,7 +282,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
 
         if (this.fields) {
             this.fields = ensureArray(this.fields, "name", "type").map((field, index) => {
-                const f = new this.fieldConstructor(field, `${this.loc}.fields[${index}]`, this.eventHub);
+                const f   = new this.fieldConstructor(field, `${this.loc}.fields[${index}]`, this.eventHub);
                 f.isField = true;
                 f.setValidationCallback((err) => {
                     this.updateValidity(err)
@@ -370,8 +382,8 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 return field;
             } else {
                 field.name = field.name || this.getNextAvailableName(this.nameBase);
-                const loc = incrementLastLoc(this.fields, `${this.loc}.fields`);
-                const f = new this.fieldConstructor(field, loc, this.eventHub);
+                const loc  = incrementLastLoc(this.fields, `${this.loc}.fields`);
+                const f    = new this.fieldConstructor(field, loc, this.eventHub);
                 f.setValidationCallback((err) => {
                     this.updateValidity(err)
                 });

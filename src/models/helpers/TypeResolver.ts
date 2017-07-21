@@ -27,6 +27,8 @@ export interface TypeResolution {
     isItemOrArray: boolean;
     typeBinding: CommandLineBinding;
     name: string;
+    unionType?: any
+
 }
 
 export class TypeResolver {
@@ -40,7 +42,8 @@ export class TypeResolver {
                 isNullable: false,
                 isItemOrArray: false,
                 typeBinding: null,
-                name: null
+                name: null,
+                unionType: null
             };
 
         if (originalType === null || originalType === undefined) {
@@ -105,10 +108,12 @@ export class TypeResolver {
                         type0.type === "array" ? type.splice(0, 1) : type.splice(1, 1);
                         result.isItemOrArray = true;
                     } else {
+                        result.unionType = type;
                         throw(`TypeResolverError: Union types not supported yet. Found type ${type}`);
                     }
 
                 } else {
+                    result.unionType = type;
                     throw(`TypeResolverError: Union types not supported yet! Found type ${type}`);
                 }
             }
@@ -204,6 +209,10 @@ export class TypeResolver {
             return null;
         }
 
+        if (type.unionType) {
+            type.type === "array" ? type.items = type.unionType : type.type = type.unionType;
+        }
+
 
         switch (type.type) {
             case "array":
@@ -229,7 +238,7 @@ export class TypeResolver {
                             })
                         }
                     }
-                } else if (version === "v1.0" && !type.typeBinding) {
+                } else if (version === "v1.0" && !type.typeBinding && typeof type.items === "string") {
                     t = `${type.items}[]`;
                 } else {
                     t = {

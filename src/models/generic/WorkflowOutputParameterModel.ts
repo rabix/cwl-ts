@@ -65,4 +65,13 @@ export class WorkflowOutputParameterModel extends ValidationBase implements Seri
     deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "WorkflowOutputParameterModel");
     }
+
+    validate(): Promise<any> {
+        this.cleanValidity();
+        const promises = [];
+
+        promises.push(this.type.validate());
+
+        return Promise.all(promises).then(res => this.issues);
+    }
 }

@@ -70,4 +70,13 @@ export class WorkflowInputParameterModel extends ValidationBase implements Input
     deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "WorkflowInputParameterModel");
     }
+
+    validate(): Promise<any> {
+        this.cleanValidity();
+        const promises = [];
+
+        promises.push(this.type.validate());
+
+        return Promise.all(promises).then(res => this.issues);
+    }
 }
