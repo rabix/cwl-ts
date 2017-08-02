@@ -205,12 +205,18 @@ export class TypeResolver {
     public static serializeType(type: TypeResolution, version?: CWLVersion): any {
         let t;
 
-        if (type.type === null || type.type === undefined) {
-            return null;
+        if (type.unionType) {
+            let union = type.unionType;
+            type.type === "array" ? type.items = union : type.type = union;
+
+            if (type.isNullable) {
+                union.push("null");
+                type.isNullable = false;
+            }
         }
 
-        if (type.unionType) {
-            type.type === "array" ? type.items = type.unionType : type.type = type.unionType;
+        if (type.type === null || type.type === undefined) {
+            return null;
         }
 
 

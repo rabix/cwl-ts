@@ -1275,7 +1275,7 @@ describe("V1CommandLineToolModel", () => {
                     {
                         "class": "InitialWorkDirRequirement",
                         listing: [
-                            {entryname: "$(name)", entry: ""}
+                            {entryname: "$(name)", entry: "content"}
                         ]
                     }
                 ]

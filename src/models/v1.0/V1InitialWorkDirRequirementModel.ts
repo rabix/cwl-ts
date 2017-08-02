@@ -28,7 +28,7 @@ export class V1InitialWorkDirRequirementModel extends CreateFileRequirementModel
     serialize(): InitialWorkDirRequirement {
         const base = {
             'class': "InitialWorkDirRequirement",
-            listing: this.listing.map(d => d.serialize())
+            listing: this.listing.map(d => d.serialize()).filter(f => f.entryname && f.entry)
         };
 
         if (this.customProps.listing) {

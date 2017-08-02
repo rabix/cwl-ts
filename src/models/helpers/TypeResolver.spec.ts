@@ -1,6 +1,5 @@
 import {TypeResolver} from "./TypeResolver";
 import {expect} from "chai";
-import {Type} from "typescript-json-schema/typings/typescript/typescript";
 
 describe("TypeResolver", () => {
     describe("resolveType", () => {
@@ -441,6 +440,19 @@ describe("TypeResolver", () => {
             }
         });
 
+        it("should serialize union type which is optional", () => {
+            try {
+                let resolved = TypeResolver.resolveType(["File", "string", "null"]);
+
+                const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
+                const serializedD2 = TypeResolver.serializeType(resolved, "draft-2");
+
+                expect(serializedV1).to.deep.equal(["File", "string", "null"]);
+                expect(serializedD2).to.deep.equal(["File", "string", "null"]);
+            } catch (ex) {
+            }
+        });
+
         it("should serialize array of union type", () => {
             try {
                 let resolved = TypeResolver.resolveType({type: "array", items: ["File", "string"]});
@@ -450,6 +462,19 @@ describe("TypeResolver", () => {
 
                 expect(serializedV1).to.deep.equal({type: "array", items: ["File", "string"]});
                 expect(serializedD2).to.deep.equal({type: "array", items: ["File", "string"]});
+            } catch (ex) {
+            }
+        });
+
+        it("should serialize array of union type which is optional", () => {
+            try {
+                let resolved = TypeResolver.resolveType({type: "array", items: ["File", "string", "null"]});
+
+                const serializedV1 = TypeResolver.serializeType(resolved, "v1.0");
+                const serializedD2 = TypeResolver.serializeType(resolved, "draft-2");
+
+                expect(serializedV1).to.deep.equal({type: "array", items: ["File", "string", "null"]});
+                expect(serializedD2).to.deep.equal({type: "array", items: ["File", "string", "null"]});
             } catch (ex) {
             }
         });
