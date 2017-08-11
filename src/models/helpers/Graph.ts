@@ -31,7 +31,7 @@ export class Graph {
             if (onConflict) {
                 data = onConflict(this.vertices.get(key));
             } else {
-                throw("Vertex '" + key + "' already exist");
+                throw(new Error("Vertex '" + key + "' already exist"));
             }
         }
         this.vertices.set(key, data);
@@ -145,7 +145,7 @@ export class Graph {
 
         // leftover edges are back-edges indicating cycles
         if (unusedEdges.size > 0) {
-            throw "Graph has cycles";
+            throw new Error("Graph has cycles");
         }
 
         return sorted;
@@ -243,13 +243,13 @@ export class Graph {
             this.topSort();
             return false;
         } catch (ex) {
-            return ex === "Graph has cycles";
+            return ex.message === "Graph has cycles";
         }
     }
 
     private throwMissingVertex(key: string): void {
         if (!this.hasVertex(key)) {
-            throw("Vertex '" + key + "' doesn't exist");
+            throw new Error("Vertex '" + key + "' doesn't exist");
         }
     }
 }

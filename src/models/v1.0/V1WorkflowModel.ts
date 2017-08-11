@@ -47,7 +47,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         try {
             this.graph.topSort();
         } catch (ex) {
-            if (ex === "Graph has cycles") {
+            if (ex.message === "Graph has cycles") {
                 this.updateValidity({
                     [this.loc]: {
                         message: "Graph has cycles",
