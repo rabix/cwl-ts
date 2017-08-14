@@ -1,16 +1,16 @@
-import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
-import {CommandLineToolModel} from "../generic/CommandLineToolModel";
+import {InputParameterModel} from "../generic/InputParameterModel";
 import {V1CommandInputParameterModel} from "../v1.0/V1CommandInputParameterModel";
+import {V1WorkflowInputParameterModel} from "../v1.0/V1WorkflowInputParameterModel";
 
 export class JobHelper {
 
-    public static generateMockJobData(input: CommandInputParameterModel) {
+    public static generateMockJobData(input: InputParameterModel) {
         const type              = <any> input.type.type;
         const items             = <any> input.type.items;
         const name: string      = input.id;
         const symbols: string[] = input.type.symbols;
 
-        const version = input instanceof V1CommandInputParameterModel ? "v1.0" : "sbg:draft-2";
+        const version = input instanceof V1CommandInputParameterModel || input instanceof V1WorkflowInputParameterModel ? "v1.0" : "sbg:draft-2";
 
         /**
          * Returns a random integer between min (included) and max (excluded)
@@ -114,27 +114,28 @@ export class JobHelper {
         return val !== undefined ? val : null;
     }
 
-    public static getJobInputs(tool: CommandLineToolModel): any {
+    public static getJobInputs(app: {inputs: InputParameterModel[]} ): any {
         let job = {};
 
-        tool.inputs.forEach(input => {
+
+        app.inputs.forEach((input: InputParameterModel) => {
             job[input.id] = JobHelper.generateMockJobData(input);
         });
 
         return job;
     }
 
-    public static getNullJobInputs(tool: CommandLineToolModel): any {
+    public static getNullJobInputs(app: {inputs: InputParameterModel[]}): any {
         let job = {};
 
-        tool.inputs.forEach(input => {
+        app.inputs.forEach(input => {
             job[input.id] = JobHelper.nullifyInput(input);
         });
 
         return job;
     }
 
-    private static nullifyInput(input: CommandInputParameterModel) {
+    private static nullifyInput(input: InputParameterModel) {
         return input.type.type === "array" ? [] : null;
     }
 }
