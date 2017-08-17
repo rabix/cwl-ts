@@ -14,7 +14,7 @@ import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {JobHelper} from "../helpers/JobHelper";
 import {
-    ensureArray, incrementLastLoc, snakeCase,
+    ensureArray, incrementLastLoc, returnNumIfNum, snakeCase,
     spreadSelectProps
 } from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
@@ -265,15 +265,15 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         if (this.resources.cores.serialize() !== undefined) {
             base.hints.push({
                 "class": "sbg:CPURequirement",
-                value: this.resources.cores.serialize()
-            })
+                value: returnNumIfNum(this.resources.cores.serialize())
+            });
         }
 
         if (this.resources.mem.serialize() !== undefined) {
             base.hints.push({
                 "class": "sbg:MemRequirement",
-                value: this.resources.mem.serialize()
-            })
+                value: returnNumIfNum(this.resources.mem.serialize())
+            });
         }
 
         if (this.docker.serialize()) base.hints.push(this.docker.serialize());

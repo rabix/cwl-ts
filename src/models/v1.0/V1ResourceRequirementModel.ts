@@ -1,7 +1,7 @@
 import {ResourceRequirement} from "../../mappings/v1.0/ResourceRequirement";
 import {ResourceRequirementModel} from "../generic/ResourceRequirementModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
-import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {returnNumIfNum, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
 
 export class V1ResourceRequirementModel extends ResourceRequirementModel {
@@ -32,8 +32,8 @@ export class V1ResourceRequirementModel extends ResourceRequirementModel {
         }
 
         // mem and cores were cast to string during serialization, turn back to numbers if applicable
-        mem   = isNaN(<any> mem) ? mem : parseInt(mem);
-        cores = isNaN(<any> cores) ? cores : parseInt(cores);
+        mem   = returnNumIfNum(mem);
+        cores = returnNumIfNum(cores);
 
         const base: ResourceRequirement = {
             "class": "ResourceRequirement"

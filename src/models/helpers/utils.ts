@@ -263,3 +263,7 @@ export const flatten = (arr: any[]) => {
     _flatten(arr, res);
     return res;
 };
+
+export const returnNumIfNum = (s: any): any | number => {
+    return isNaN(s) ? s : parseInt(s);
+};
