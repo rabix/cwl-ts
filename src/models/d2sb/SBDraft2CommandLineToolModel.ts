@@ -168,8 +168,6 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.cleanValidity();
         const promises = [];
 
-        this.checkPortIdUniqueness();
-
         // validate baseCommand
         promises.concat(this.baseCommand.map(cmd => cmd.validate(this.getContext())));
 
@@ -178,6 +176,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         // validate outputs
         promises.concat(this.outputs.map(output => output.validate(this.getContext(output))));
+
+        // must be after input/output validation because otherwise it will be cleared
+        this.checkPortIdUniqueness();
 
         // validate arguments
         promises.concat(this.arguments.map(arg => arg.validate(this.getContext())));

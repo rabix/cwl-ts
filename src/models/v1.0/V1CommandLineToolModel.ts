@@ -196,6 +196,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             promises.push(output.validate(this.getContext(output)));
         }
 
+        // must be after input/output validation because otherwise it will be cleared
         this.checkPortIdUniqueness();
 
         for (let i = 0; i < this.arguments.length; i++) {
