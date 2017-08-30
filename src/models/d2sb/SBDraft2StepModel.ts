@@ -86,6 +86,8 @@ export class SBDraft2StepModel extends StepModel {
                 ...match,
             }, this, `${this.loc}.inputs[${index}]`);
 
+            newPort.setValidationCallback((err) => this.updateValidity(err));
+
             // for some absurd reason, visibility is kept inside the run property, on the actual input
             newPort.isVisible = !!input["customProps"]["sbg:includeInPorts"];
             return newPort;

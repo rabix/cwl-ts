@@ -15,7 +15,6 @@ import {ProcessRequirement} from "../generic/ProcessRequirement";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {WorkflowModel} from "../generic/WorkflowModel";
-import {CommandLineToolModel} from "../generic/CommandLineToolModel";
 
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
     public "in": V1WorkflowStepInputModel[] = [];
@@ -202,13 +201,19 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             match = match ? match.serialize() : {id: input.id};
 
             // here will set source and default if they exist
-            return new V1WorkflowStepInputModel({
+
+            const stepInputModel = new V1WorkflowStepInputModel({
                 type: input.type,
                 format: input.fileTypes || [],
                 doc: input.description,
                 label: input.label,
                 ...match
             }, this, `${this.loc}.in[${index}]`);
+
+            stepInputModel.setValidationCallback((err) => this.updateValidity(err));
+
+            return stepInputModel;
+
         }).filter(port => port !== undefined);
     }
 

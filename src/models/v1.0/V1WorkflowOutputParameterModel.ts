@@ -23,7 +23,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
     }
 
     deserialize(output: WorkflowOutputParameter | OutputRecordField) {
-        const serializedKeys = ["id", "name", "outSource", "type", "label", "doc", "sbg:fileTypes"];
+        const serializedKeys = ["id", "name", "outputSource", "type", "label", "doc", "sbg:fileTypes"];
         //@todo deserialization of outputBinding, streamable, linkMerge, secondaryFiles
 
         this.isField = !!(<OutputRecordField> output).name; // record fields don't have ids

@@ -8,6 +8,7 @@ export interface EdgeNode {
 export interface Edge {
     source: EdgeNode,
     destination: EdgeNode,
+    isValid: boolean,
     isVisible?: boolean;
 }
 
@@ -21,7 +22,7 @@ export class Graph {
         this.edges    = new Set();
         if (edges) {
             for (let item of Array.from(edges)) {
-                this.addEdge({id: item[0]}, {id: item[1]}, true, missing);
+                this.addEdge({id: item[0]}, {id: item[1]}, true, true, missing);
             }
         }
     }
@@ -56,7 +57,7 @@ export class Graph {
         return this.vertices.delete(key);
     }
 
-    addEdge(source: EdgeNode, destination: EdgeNode, isVisible = true, missing = VertexMissing.Error) {
+    addEdge(source: EdgeNode, destination: EdgeNode, isVisible = true, isValid = true, missing = VertexMissing.Error) {
         switch (missing) {
             case VertexMissing.Error:
                 this.throwMissingVertex(source.id);
@@ -77,7 +78,7 @@ export class Graph {
                 break;
         }
         this.edges.add({
-            source, destination, isVisible
+            source, destination, isVisible, isValid
         });
     }
 
