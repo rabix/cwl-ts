@@ -8,7 +8,7 @@ export interface EdgeNode {
 export interface Edge {
     source: EdgeNode,
     destination: EdgeNode,
-    isValid: boolean,
+    isValid?: boolean,
     isVisible?: boolean;
 }
 
