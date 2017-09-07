@@ -30,8 +30,8 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
     public hasBatch: boolean = true;
 
-    constructor(workflow: Workflow, loc: string) {
-        super(loc || "document");
+    constructor(workflow: Workflow, loc: string = "document") {
+        super(loc);
 
         if (workflow) this.deserialize(workflow);
 
