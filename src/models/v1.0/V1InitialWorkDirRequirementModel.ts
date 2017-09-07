@@ -92,12 +92,15 @@ export class V1InitialWorkDirRequirementModel extends CreateFileRequirementModel
             });
         }
 
-        this.listing = listings;
-
-        if (listings) {
+        if (listings.length) {
             serializedKeys.push("listing");
         }
-        this.customProps.listing = customProperties;
+
+        if (customProperties.length) {
+            this.customProps.listing = customProperties;
+        }
+
+        this.listing = listings;
 
         spreadSelectProps(attr, this.customProps, serializedKeys);
     }
