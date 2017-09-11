@@ -110,5 +110,57 @@ describe("ParameterTypeModel", () => {
             expect(type.symbols).to.deep.equal(["one", "two", "three"]);
             expect(type.serialize("v1.0")).to.deep.equal(data);
         });
-    })
+    });
+
+    describe("arrays", () => {
+        it("should create nested array", () => {
+            const data = {
+                type: "array",
+                items: {
+                    type: "array",
+                    items: "string"
+                }
+            };
+
+            const type = new ParameterTypeModel(data);
+
+            expect(type.serialize("v1.0")).to.deep.equal(data);
+        });
+
+        it("should create array of items null and string", () => {
+            const data = {
+                type: "array",
+                items: ["null", "string"]
+            };
+
+            const type = new ParameterTypeModel(data);
+
+            expect(type.serialize("v1.0")).to.deep.equal(data);
+        });
+
+        it("should create array of union types", () => {
+            const data = {
+                type: "array",
+                items: ["null", "string", "File", "long"]
+            };
+
+            const type = new ParameterTypeModel(data);
+
+            expect(type.serialize("v1.0")).to.deep.equal(data);
+        });
+
+        it("should create nested array of union types", () => {
+            const data = {
+                type: "array",
+                items: {
+                    type: "array",
+                    items: ["null", "string", "File", "long"]
+                }
+            };
+
+            const type = new ParameterTypeModel(data);
+
+            expect(type.serialize("v1.0")).to.deep.equal(data);
+        });
+    });
 });
