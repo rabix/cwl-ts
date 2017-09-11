@@ -8,6 +8,7 @@ export interface EdgeNode {
 export interface Edge {
     source: EdgeNode,
     destination: EdgeNode,
+    isValid?: boolean;
     isVisible?: boolean;
 }
 
@@ -77,7 +78,7 @@ export class Graph {
                 break;
         }
         this.edges.add({
-            source, destination, isVisible
+            source, destination, isVisible, isValid: true
         });
     }
 
