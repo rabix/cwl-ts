@@ -20,7 +20,7 @@ export type PrimitiveType =
 
 export interface TypeResolution {
     type: PrimitiveType;
-    items: PrimitiveType;
+    items: PrimitiveType | TypeResolution;
     fields: Array<Serializable<any>>;
     symbols: string[]
     isNullable: boolean;
@@ -141,6 +141,10 @@ export class TypeResolver {
                         result.typeBinding = type.inputBinding || null;
                         if (typeof type.items === 'string') {
                             // primitive types don't need to be reevaluated
+                            result.items = type.items;
+                            return result;
+                        } else if (Array.isArray(type.items) || type.items.type === "array") {
+                            // complex types that aren't currently supported but should be preserved
                             result.items = type.items;
                             return result;
                         } else {
