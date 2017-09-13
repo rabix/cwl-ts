@@ -92,15 +92,16 @@ export class CommandLineParsers {
         const itemSeparator = typeof input.inputBinding.itemSeparator === "string" ?
             input.inputBinding.itemSeparator : " ";
 
-        return Promise.all(value.map((val, index) => {
-            return Object.assign({}, input, {
-                id: index,
-                type: input.type.items,
-                inputBinding: input.type.typeBinding || {}
-            }, {items: undefined});
-        }).map((item) => {
-            return CommandLinePrepare.prepare(item, value, value[item.id]);
-        })).then((res: CommandLinePart[]) => {
+        return (Promise.all(value.map((val, index) => {
+                return Object.assign({}, input, {
+                    id: index,
+                    type: input.type.items,
+                    inputBinding: input.type.typeBinding || {}
+                }, {items: undefined});
+            }).map((item: any): Promise<CommandLinePart> => {
+                return CommandLinePrepare.prepare(item, value, value[item.id]) as Promise<CommandLinePart>;
+            })
+        ) as Promise<any>).then((res: Array<CommandLinePart>) => {
             return new CommandLinePart(prefix + separator + res.map(part => part.value).join(itemSeparator), cmdType, loc);
         });
 

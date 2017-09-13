@@ -7,7 +7,7 @@ import {CommandLinePart, CommandType} from "./CommandLinePart";
 
 export class CommandLinePrepare {
 
-    static prepare(input, flatJobInputs, context, loc?: string, cmdType?: CommandType): Promise<CommandLinePart | string> {
+    static prepare(input, flatJobInputs, context, loc?: string, cmdType?: CommandType): Promise<CommandLinePart> {
         let inputType = "primitive";
 
         if (!input) {
