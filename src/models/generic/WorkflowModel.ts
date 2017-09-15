@@ -943,6 +943,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const sourceModel = graph.getVertexData(sourceConnectionId);
 
         if (sourceModel === undefined) {
+            dest.updateValidity({[`${dest.loc}`]: {
+                type: "error",
+                message: `Destination id ${dest.id} has unknown source ${source}. This may result in a cycle in the graph`
+            }});
             console.log("Could not find source node ", sourceConnectionId);
             return;
         }
@@ -968,6 +972,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     public constructGraph(): Graph {
         const destinations = this.gatherDestinations();
+        debugger;
 
         // Create a blank Graph
         const graph = new Graph();
@@ -995,6 +1000,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             // @todo source should always be an array (just in case), change this check to dest.source.length
             if (dest.source) {
                 // if source is an array, loop through all sources for this destination
+                debugger;
                 if (Array.isArray(dest.source)) {
                     dest.source.forEach(s => {
                         this.connectSource(s, dest, destination, graph);

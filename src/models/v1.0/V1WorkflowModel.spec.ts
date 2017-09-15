@@ -572,12 +572,12 @@ describe("V1WorkflowModel", () => {
         });
 
         it("should remove an existing connection between two nodes", () => {
-           const connections = wf.connections.length;
-           const con = wf.connections.filter(c => c.isVisible)[0];
+            const connections = wf.connections.length;
+            const con         = wf.connections.filter(c => c.isVisible)[0];
 
-           wf.disconnect(con.source.id, con.destination.id);
+            wf.disconnect(con.source.id, con.destination.id);
 
-           expect(wf.connections.length).to.equal(connections - 1);
+            expect(wf.connections.length).to.equal(connections - 1);
         });
 
         it("should throw an error if trying to remove connection between step and port", () => {
@@ -588,9 +588,9 @@ describe("V1WorkflowModel", () => {
         });
 
         it("should remove source on destination for removed connection", () => {
-            const con = wf.connections.filter(c => c.isVisible)[0];
+            const con  = wf.connections.filter(c => c.isVisible)[0];
             const dest = wf.findById(con.destination.id);
-            const src = wf.findById(con.source.id);
+            const src  = wf.findById(con.source.id);
 
             expect(dest.source).to.contain(src.sourceId);
             wf.disconnect(con.source.id, con.destination.id);
@@ -626,7 +626,7 @@ describe("V1WorkflowModel", () => {
         let wf: V1WorkflowModel;
         let serialize: Workflow;
         beforeEach(() => {
-            wf = <V1WorkflowModel> WorkflowFactory.from(OneStepWf.default);
+            wf        = <V1WorkflowModel> WorkflowFactory.from(OneStepWf.default);
             serialize = wf.serialize();
         });
 
@@ -651,6 +651,41 @@ describe("V1WorkflowModel", () => {
         it("should serialize steps array", () => {
             expect(serialize).to.haveOwnProperty("steps");
             expect(serialize.steps).to.have.length(1);
+        });
+    });
+
+    describe("has cycles", () => {
+        it.only("should recognize cycle in output", (done) => {
+            const wf = new V1WorkflowModel({
+                class: "Workflow",
+                cwlVersion: "v1.0",
+                inputs: [
+                    {
+                        id: "input",
+                        type: "string"
+                    }
+                ],
+                outputs: [
+                    {
+                        id: "output",
+                        outputSource: "output"
+                    }
+                ],
+                steps: [
+                    {
+                        id: "step",
+                        run: "/path/to/",
+                        in: [],
+                        out: []
+                    }
+                ]
+            });
+
+
+            wf.validate().then(() => {
+                expect(wf.errors.length).to.equal(1);
+                done();
+            }).catch(done);
         });
     });
 });
