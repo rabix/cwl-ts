@@ -7,11 +7,12 @@ import {Plottable} from "./Plottable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {STEP_INPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {ParameterTypeModel} from "./ParameterTypeModel";
+import {ExpressionModel} from "./ExpressionModel";
 
 export class WorkflowStepInputModel extends ValidationBase implements Serializable<any>, Plottable {
     id: string;
     'default': any;
-    valueFrom: string | Expression;
+    valueFrom: ExpressionModel;
     source: string[] = [];
     linkMerge: LinkMergeMethod;
     label: string;

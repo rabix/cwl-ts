@@ -67,6 +67,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             "step.change.id",
             "step.inPort.show",
             "step.inPort.hide",
+            "connections.updated",
             "input.remove",
             "input.create",
             "output.create",
