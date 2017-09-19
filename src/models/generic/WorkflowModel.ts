@@ -4,7 +4,7 @@ import {STEP_INPUT_CONNECTION_PREFIX, STEP_OUTPUT_CONNECTION_PREFIX} from "../he
 import {EventHub} from "../helpers/EventHub";
 import {Edge, EdgeNode, Graph} from "../helpers/Graph";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
-import {incrementString, intersection, validateID} from "../helpers/utils";
+import {incrementString, validateID, checkIfConnectionIsValid} from "../helpers/utils";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
 import {CommandLineToolModel} from "./CommandLineToolModel";
@@ -162,7 +162,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             this.graph.addVertex(inPort.connectionId, inPort);
             this.graph.addEdge({
                 id: inPort.parentStep.id,
-                type: "StepInput",
+                type: "StepInput"
             }, {
                 id: inPort.connectionId,
                 type: "Step"
@@ -703,41 +703,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      */
     private gatherValidPorts(pointA: any, points: any[], ltr: boolean): any[] {
         return points.filter(pointB => {
-            // if both ports belong to the same step, connection is not possible
-            if (pointA.parentStep && pointB.parentStep && pointA.parentStep.id === pointB.parentStep.id) {
-                return false;
-            }
-
-            // fetch type
-            const pointBType  = pointB.type.type;
-            const pointAType  = pointA.type.type;
-            const pointBItems = pointB.type.items;
-            const pointAItems = pointA.type.items;
-
-
-            // match types, defined types can be matched with undefined types
-            if (pointAType === pointBType // match exact type
-                || (pointAItems === pointBType && !ltr) //match File[] to File
-                || (pointBItems === pointAType && ltr) // match File to File[]
-                || pointAType === "null"
-                || pointBType === "null") {
-
-                // if both are arrays but not of the same type
-                if (pointAItems && pointBItems && pointAItems !== pointBItems) {
-                    return false;
-                }
-                // if type match is file, and fileTypes are defined on both ports,
-                // match only if fileTypes match
-                if (pointAType === "File" && pointB.fileTypes.length && pointA.fileTypes.length) {
-                    return !!intersection(pointB.fileTypes, pointA.fileTypes).length;
-                }
-
-                // if not file or fileTypes not defined
+            try {
+                checkIfConnectionIsValid(pointA, pointB, ltr);
                 return true;
+            } catch (e) {
+                return false
             }
-
-            // if types are both defined and do not match
-            return false;
         });
     }
 
@@ -977,7 +948,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // visibility depends on both nodes, for ports that were "exposed" for example
         // and are connected to nodes which are invisible
 
-        const isValid = this.validateConnection(dest, sourceModel);
+        const isValid = this.validateConnection(dest, sourceModel, graph);
 
         graph.addEdge({
                 id: sourceModel.connectionId,
@@ -1083,61 +1054,30 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Validate connection between source and destination and sets correct validity state on destination
      */
     private validateConnection (destination: WorkflowOutputParameterModel | WorkflowStepInputModel,
-                        source: WorkflowInputParameterModel | WorkflowStepOutputModel, updateConnection = false) {
+                        source: WorkflowInputParameterModel | WorkflowStepOutputModel, graph = this.graph) {
 
         if (!source || !destination) {
             return;
         }
 
-        let isValid = true;
+        let isValid = false;
 
-        const destinationType = destination.type;
-        const sourceType = source.type;
+        try {
+            checkIfConnectionIsValid(source, destination);
+            isValid = true;
 
-        // Check file types, true if at least one source file type is in destination file types
-        const checkFileTypes = () => {
-            if (source.fileTypes.length && !source.fileTypes
-                    .some(sourceType => !!destination.fileTypes
-                        .find((destType) => sourceType.toLowerCase() === destType.toLowerCase()))) {
-                return false;
-            } else {
-                return true;
-            }
-        };
-
-        // If type is the same (string -> string...) or type is array and items has the same type ([string] -> [string]...)
-        if (destinationType.type === sourceType.type && destinationType.items === sourceType.items) {
-
-            if (destinationType.type === "File" || destinationType.items === "File") {
-                isValid = checkFileTypes();
-            }
-
-        } else {
-
-            // If destination is array of items of type source (string -> [string]...)
-            if (destinationType.items === sourceType.type) {
-                isValid = checkFileTypes();
-            } else {
-                isValid = false;
-            }
+        } catch (e) {
+            destination.updateValidity({[destination.loc + ".sources[" + source.sourceId + "]"]: {
+                message: e.message,
+                type: "warning"
+            }});
         }
 
-        // Whether to update connections or not (false when called from connectSource function)
-        if (updateConnection) {
-            this.connections.filter((c) =>
+        Array.from(graph.edges).filter((c) =>
                     c.isVisible && (c.destination.id === destination.connectionId && c.source.id === source.connectionId))
                 .forEach((c) => {
                 c.isValid = isValid;
             });
-        }
-
-        if (!isValid) {
-            // Set warning
-            destination.updateValidity({[destination.loc + ".sources[" + source.sourceId + "]"]: {
-                message: `invalid connection (type or file types mismatch)`,
-                type: "warning"
-            }});
-        }
 
         return isValid;
     }
@@ -1145,7 +1085,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Validate all connections made with given destination
      */
-    private validateDestination(destination: WorkflowOutputParameterModel | WorkflowStepInputModel, updateConnection = false) {
+    private validateDestination(destination: WorkflowOutputParameterModel | WorkflowStepInputModel) {
 
         destination.cleanValidity();
 
@@ -1158,7 +1098,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         // Validate all connections
         sources.forEach((source) => {
-           this.validateConnection(destination, source, updateConnection);
+           this.validateConnection(destination, source);
         });
 
     }
@@ -1168,23 +1108,23 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      */
     validateConnectionsForIOPort(port: WorkflowOutputParameterModel | WorkflowInputParameterModel) {
 
-        const isInput = port instanceof WorkflowInputParameterModel;
+        if (port instanceof WorkflowInputParameterModel) {
 
-        if (!isInput) {
-            // If port is output
-            this.validateDestination(port as WorkflowOutputParameterModel, true);
-
-        } else {
             const destinations = this.connections.filter((connection) => {
                 return connection.isVisible && (connection.source.id === port.connectionId);
             }).map((connection) => {
                 return this.findById(connection.destination.id);
             });
 
+            // Validate destination in case when connection goes from invalid > valid to remove warning
+            // (This is because we do not have currently method to remove certain keys in issues - ValidationBase)
             destinations.forEach(destination => {
-                this.validateDestination(destination, true);
+                this.validateDestination(destination);
             });
 
+        } else {
+            // If port is output
+            this.validateDestination(port as WorkflowOutputParameterModel);
         }
 
         this.eventHub.emit("connections.updated");

@@ -247,6 +247,52 @@ export const isType = (port: CommandInputParameterModel |
     return type.filter(t => port.type.type === t || port.type.items === t).length > 0;
 };
 
+export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
+
+    // if both ports belong to the same step, connection is not possible
+    if (pointA.parentStep && pointB.parentStep && pointA.parentStep.id === pointB.parentStep.id) {
+        throw new Error(`Invalid connection. Source and destination ports belong to the same step`);
+    }
+
+    // fetch type
+    const pointBType  = pointB.type.type;
+    const pointAType  = pointA.type.type;
+    const pointBItems = pointB.type.items;
+    const pointAItems = pointA.type.items;
+
+
+    // match types, defined types can be matched with undefined types
+    if (pointAType === pointBType // match exact type
+        || (pointAItems === pointBType && !ltr) //match File[] to File
+        || (pointBItems === pointAType && ltr) // match File to File[]
+        || pointAType === "null"
+        || pointBType === "null") {
+
+        // if both are arrays but not of the same type
+        if (pointAItems && pointBItems && pointAItems !== pointBItems) {
+            throw new Error(`Invalid connection. Connection type mismatch,
+             attempting to connect "${pointAType}(${pointAItems})" to "${pointBType}(pointBItems)"`);
+        }
+        // if type match is file, and fileTypes are defined on both ports,
+        // match only if fileTypes match
+        if (pointAType === "File" && pointB.fileTypes.length && pointA.fileTypes.length) {
+            if (!!intersection(pointB.fileTypes, pointA.fileTypes).length) {
+                return true;
+            } else {
+                throw new Error(`Invalid connection. File type mismatch,
+                 connecting formats "${pointA.fileTypes}" to "${pointB.fileTypes}"`);
+            };
+        }
+
+        // if not file or fileTypes not defined
+        return true;
+    }
+
+    // if types are both defined and do not match
+    throw new Error(`Invalid connection. Connection type mismatch,
+     attempting to connect "${pointAType}" to "${pointBType}`);
+};
+
 export const flatten = (arr: any[]) => {
     const _flatten = (arr: any[], res: any[]) => {
         for(let i = 0; i < arr.length; i++) {
