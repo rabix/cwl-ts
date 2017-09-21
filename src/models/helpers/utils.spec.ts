@@ -1,8 +1,13 @@
 import {expect} from "chai";
 import {
     ensureArray, checkMapValueType, incrementString, spreadSelectProps,
-    snakeCase, fetchByLoc, cleanupNull, incrementLastLoc, charSeparatedToArray, flatten
+    snakeCase, fetchByLoc, cleanupNull, incrementLastLoc, charSeparatedToArray, flatten, checkIfConnectionIsValid
 } from "./utils";
+import {V1WorkflowInputParameterModel} from "../v1.0/V1WorkflowInputParameterModel";
+import {V1WorkflowOutputParameterModel} from "../v1.0/V1WorkflowOutputParameterModel";
+import {V1WorkflowStepInputModel} from "../v1.0/V1WorkflowStepInputModel";
+import {V1WorkflowStepOutputModel} from "../v1.0/V1WorkflowStepOutputModel";
+import {V1StepModel} from "../v1.0/V1StepModel";
 
 describe("ensureArray", () => {
     it("should return an array of mismatched objects", () => {
@@ -15,7 +20,7 @@ describe("ensureArray", () => {
                 id: "grr"
             }
         };
-        const arr  = ensureArray(test, "id", "type");
+        const arr = ensureArray(test, "id", "type");
 
         expect(arr).to.have.length(3);
         expect(arr).to.deep.equal(
@@ -38,7 +43,7 @@ describe("ensureArray", () => {
             foo: {d: "a"},
             bar: {a: "q"}
         };
-        const arr  = ensureArray(test, "class");
+        const arr = ensureArray(test, "class");
 
         expect(arr).to.not.be.empty;
         expect(arr).to.have.length(2);
@@ -50,14 +55,14 @@ describe("ensureArray", () => {
 
     it("should return original array of objects", () => {
         const test = [{foo: 1}, {foo: 2}, {foo: 3}];
-        const arr  = ensureArray(test, "foo");
+        const arr = ensureArray(test, "foo");
 
         expect(arr).to.deep.equal(test);
     });
 
     it("should return object array from primitive", () => {
         const test = [1, 2, 4];
-        const arr  = ensureArray(test, "foo");
+        const arr = ensureArray(test, "foo");
 
         expect(arr).to.deep.equal([
             {foo: 1}, {foo: 2}, {foo: 4}
@@ -69,7 +74,7 @@ describe("ensureArray", () => {
             foo: "hello",
             bar: "world"
         };
-        const arr  = ensureArray(test, "class", "type");
+        const arr = ensureArray(test, "class", "type");
 
         expect(arr).to.not.be.empty;
         expect(arr).to.have.length(2);
@@ -88,7 +93,7 @@ describe("ensureArray", () => {
 
     it("should wrap a primitive value in an array", () => {
         const test = "simple string";
-        const arr  = ensureArray(<any> test);
+        const arr = ensureArray(<any> test);
 
         expect(arr).to.have.length(1);
         expect(arr).to.deep.equal(["simple string"]);
@@ -176,7 +181,7 @@ describe("incrementString", () => {
 
 describe("spreadSelectProps", () => {
     it("should transfer properties to new object", () => {
-        let dest   = {a: 1, b: 2};
+        let dest = {a: 1, b: 2};
         let source = {c: 4, d: 10};
 
         spreadSelectProps(source, dest, []);
@@ -188,7 +193,7 @@ describe("spreadSelectProps", () => {
     });
 
     it("should transfer only unenumerated properties to new object", () => {
-        let dest   = {a: 1, b: 2};
+        let dest = {a: 1, b: 2};
         let source = {c: 4, d: 10, b: 33};
 
         spreadSelectProps(source, dest, ["d", "b"]);
@@ -240,19 +245,19 @@ describe("fetchByLoc", () => {
     });
 
     it("should locate simple array and dot notation", () => {
-        const test = { arr: [3, 4, 6]};
+        const test = {arr: [3, 4, 6]};
 
         expect(fetchByLoc(test, "arr[2]")).to.equal(6);
     });
 
     it("should return undefined if failed to locate", () => {
-        const test = { arr: [3, 4, 6]};
+        const test = {arr: [3, 4, 6]};
 
         expect(fetchByLoc(test, "arr[4]")).to.be.undefined;
     });
 
     it("should not throw an error if failed to locate nested", () => {
-       const test = { arr: { hello: "meow"}};
+        const test = {arr: {hello: "meow"}};
         expect(fetchByLoc(test, "arr.foo.baz")).to.be.undefined;
     });
 
@@ -306,6 +311,164 @@ describe("cleanupNull", () => {
     })
 });
 
+describe("checkIfConnectionIsValid", () => {
+
+    it("should be invalid when ource and destination port belong to the same step", () => {
+
+        const parentStep = new V1StepModel();
+
+        const input = new V1WorkflowStepInputModel(null, parentStep);
+        const output = new V1WorkflowStepOutputModel(null, parentStep);
+
+        expect(() => checkIfConnectionIsValid(input, output))
+            .to.throws("Invalid connection. Source and destination ports belong to the same step");
+
+    });
+
+    it("should be valid for same types or same items", () => {
+
+        const inputFile = new V1WorkflowInputParameterModel({
+            id: "pointA",
+            type: "File"
+        });
+
+        const outputFile = new V1WorkflowOutputParameterModel({
+            id: "pointB",
+            type: "File"
+        });
+
+        const inputFileArray = new V1WorkflowInputParameterModel({
+            id: "pointA",
+            type: "[File]"
+        });
+
+        const outputFileArray = new V1WorkflowOutputParameterModel({
+            id: "pointB",
+            type: "[File]"
+        });
+
+        expect(checkIfConnectionIsValid(inputFile, outputFile)).equal(true);
+        expect(checkIfConnectionIsValid(inputFileArray, outputFileArray)).equal(true);
+
+    });
+
+    it("should be invalid for different types or different items", () => {
+
+        const inputFile = new V1WorkflowInputParameterModel({
+            id: "pointA",
+            type: "File"
+        });
+
+        const outputString = new V1WorkflowOutputParameterModel({
+            id: "pointB",
+            type: "string"
+        });
+
+        const inputFileArray = new V1WorkflowInputParameterModel({
+            id: "pointA",
+            type: "File[]"
+        });
+
+        const outputStringArray = new V1WorkflowOutputParameterModel({
+            id: "pointB",
+            type: "string[]"
+        });
+
+        expect(() => checkIfConnectionIsValid(inputFile, outputString))
+            .to.throw(`Invalid connection. Connection type mismatch, attempting to connect "File" to "string"`);
+
+        expect(() => checkIfConnectionIsValid(inputFileArray, outputStringArray))
+            .to.throw(`Invalid connection. Connection type mismatch, attempting to connect "File[]" to "string[]"`);
+
+    });
+
+    it("should be valid when source type is equal to destination items", () => {
+
+        const inputFile = new V1WorkflowInputParameterModel({
+            id: "pointA",
+            type: "File"
+        });
+
+        const outputFileArray = new V1WorkflowOutputParameterModel({
+            id: "pointB",
+            type: "File[]"
+        });
+
+        expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
+    });
+
+    it("should be invalid when destination type is equal to source items", () => {
+
+        const inputFile = new V1WorkflowInputParameterModel({
+            id: "pointA",
+            type: "File[]"
+        });
+
+        const outputFileArray = new V1WorkflowOutputParameterModel({
+            id: "pointB",
+            type: "File"
+        });
+
+        // inputFile to outputFileArray
+        expect(() => checkIfConnectionIsValid(inputFile, outputFileArray))
+            .to.throws(`Connection type mismatch, attempting to connect "File[]" to "File"`);
+
+        // outputFileArray to inputFile
+        expect(checkIfConnectionIsValid(inputFile, outputFileArray, false)).equal(true);
+    });
+
+    it("should be valid when source and destination file-types have an intersection or one or both are empty", () => {
+
+        const inputFile = new V1WorkflowInputParameterModel({
+            id: "pointA",
+            type: "File"
+        });
+
+
+        const outputFileArray = new V1WorkflowOutputParameterModel({
+            id: "pointB",
+            type: "File"
+        });
+
+        inputFile.fileTypes = [];
+        outputFileArray.fileTypes = [];
+
+        expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
+
+        inputFile.fileTypes = ["s", "c", "d"];
+        expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
+
+        inputFile.fileTypes = [];
+        outputFileArray.fileTypes = ["B", "c", "d"];
+        expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
+
+        inputFile.fileTypes = ["D", "c"];
+        outputFileArray.fileTypes = ["b", "C", "d"];
+        expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
+    });
+
+
+    it("should be invalid when source and destination file-types does not have an intersection", () => {
+
+        const inputFile = new V1WorkflowInputParameterModel({
+            id: "pointA",
+            type: "File"
+        });
+        inputFile.fileTypes = ["a"];
+
+        const outputFileArray = new V1WorkflowOutputParameterModel({
+            id: "pointB",
+            type: "File"
+        });
+
+        outputFileArray.fileTypes = ["d", "c"];
+
+        expect(() => checkIfConnectionIsValid(inputFile, outputFileArray))
+            .to.throws(`Invalid connection. File type mismatch, connecting formats "a" to "d,c"`);
+    });
+
+});
+
 describe("incrementLastLoc", () => {
     it("should return the last location with an incremented index", () => {
         const loc = incrementLastLoc([{loc: "items[0]"}, {loc: "items[1]"}], "items");
@@ -331,10 +494,10 @@ describe("charSeparatedToArray", () => {
 });
 
 describe("flatten", () => {
-   it("should flatten nested array", () => {
-       const arr = [1, 2, [3, 4, [5, [6]]]];
-       const flat = flatten(arr);
+    it("should flatten nested array", () => {
+        const arr = [1, 2, [3, 4, [5, [6]]]];
+        const flat = flatten(arr);
 
-       expect(flat).to.deep.equal([1, 2, 3, 4, 5, 6]);
-   })
+        expect(flat).to.deep.equal([1, 2, 3, 4, 5, 6]);
+    })
 });

@@ -270,17 +270,15 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
 
         // if both are arrays but not of the same type
         if (pointAItems && pointBItems && pointAItems !== pointBItems) {
-            throw new Error(`Invalid connection. Connection type mismatch,
-             attempting to connect "${pointAType}(${pointAItems})" to "${pointBType}(pointBItems)"`);
+            throw new Error(`Invalid connection. Connection type mismatch, attempting to connect "${pointAItems}[]" to "${pointBItems}[]"`);
         }
         // if type match is file, and fileTypes are defined on both ports,
         // match only if fileTypes match
         if (pointAType === "File" && pointB.fileTypes.length && pointA.fileTypes.length) {
-            if (!!intersection(pointB.fileTypes, pointA.fileTypes).length) {
+            if (!!intersection(pointB.fileTypes.map((type) => type.toLowerCase()), pointA.fileTypes.map(type => type.toLowerCase())).length) {
                 return true;
             } else {
-                throw new Error(`Invalid connection. File type mismatch,
-                 connecting formats "${pointA.fileTypes}" to "${pointB.fileTypes}"`);
+                throw new Error(`Invalid connection. File type mismatch, connecting formats "${pointA.fileTypes}" to "${pointB.fileTypes}"`);
             };
         }
 
@@ -289,8 +287,10 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
     }
 
     // if types are both defined and do not match
-    throw new Error(`Invalid connection. Connection type mismatch,
-     attempting to connect "${pointAType}" to "${pointBType}`);
+    const pointATypeOutput = pointAItems ? pointAItems + "[]" :  pointAType;
+    const pointBTypeOutput = pointBItems ? pointBItems + "[]" :  pointBType;
+
+    throw new Error(`Invalid connection. Connection type mismatch, attempting to connect "${pointATypeOutput}" to "${pointBTypeOutput}"`);
 };
 
 export const flatten = (arr: any[]) => {
