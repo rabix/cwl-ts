@@ -639,7 +639,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
             if (!isConnected) {
 
-                this.updateValidity({[this.loc]: {
+                this.setIssue({[this.loc]: {
                     message: "Workflow is not connected",
                     type: "warning"
                 }});
@@ -648,7 +648,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             return isConnected;
 
         } catch (ex) {
-            this.updateValidity({[this.loc]: {
+            this.setIssue({[this.loc]: {
                 message: ex,
                 type: "error"
             }});
@@ -662,7 +662,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             const hasCycles = this.graph.hasCycles();
 
             if (hasCycles) {
-                this.updateValidity({[this.loc]: {
+                this.setIssue({[this.loc]: {
                     message: "Workflow contains cycles",
                     type: "error"
                 }});
@@ -671,7 +671,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             return hasCycles;
 
         } catch (ex) {
-            this.updateValidity({[this.loc]: {
+            this.setIssue({[this.loc]: {
                 message: ex,
                 type: "error"
             }});
@@ -943,7 +943,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const sourceModel = graph.getVertexData(sourceConnectionId);
 
         if (sourceModel === undefined) {
-            dest.updateValidity({[`${dest.loc}`]: {
+            dest.setIssue({[`${dest.loc}`]: {
                 type: "error",
                 message: `Destination id ${dest.id} has unknown source ${source}. This may result in a cycle in the graph`
             }});
@@ -972,7 +972,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     public constructGraph(): Graph {
         const destinations = this.gatherDestinations();
-        debugger;
 
         // Create a blank Graph
         const graph = new Graph();
@@ -1000,7 +999,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             // @todo source should always be an array (just in case), change this check to dest.source.length
             if (dest.source) {
                 // if source is an array, loop through all sources for this destination
-                debugger;
                 if (Array.isArray(dest.source)) {
                     dest.source.forEach(s => {
                         this.connectSource(s, dest, destination, graph);

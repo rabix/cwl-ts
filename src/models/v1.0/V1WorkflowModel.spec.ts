@@ -655,7 +655,7 @@ describe("V1WorkflowModel", () => {
     });
 
     describe("has cycles", () => {
-        it.only("should recognize cycle in output", (done) => {
+        it("should recognize cycle in output", (done) => {
             const wf = new V1WorkflowModel({
                 class: "Workflow",
                 cwlVersion: "v1.0",

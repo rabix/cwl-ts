@@ -178,7 +178,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
         // if there are steps in ports which aren't in the app, throw a warning for interface mismatch
         if (inserted.length) {
-            this.updateValidity({[this.loc]: {
+            this.setIssue({[this.loc]: {
                 message: `Step contains input ports which are not present on the app: ${inserted.map(port => port.id).join(",")}. It will not be included in the workflow.`,
                 type: "warning"
             }});
@@ -192,7 +192,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
             if (match && match.type && match.type.type) {
                 if (match.type.type !== input.type.type || match.type.items !== input.type.items) {
-                    this.updateValidity({[`${this.loc}.inputs[${index}]`]: {
+                    this.setIssue({[`${this.loc}.inputs[${index}]`]: {
                         type: "error",
                         message: `Schema mismatch between step input ${this.loc}.inputs[${index}] and step run input ${input.loc}.`
                     }});

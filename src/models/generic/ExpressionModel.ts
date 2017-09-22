@@ -99,7 +99,7 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
         return this.evaluate(context).then((suc) => {
             this.cleanValidity();
         }, (err) => {
-            this.updateValidity({
+            this.setIssue({
                 [this.loc]: {
                     type: err.type,
                     message: err.message

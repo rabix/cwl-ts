@@ -89,9 +89,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         }
 
         this.type = new ParameterTypeModel(input.type, SBDraft2CommandInputParameterModel, `${this.id}_field`, `${this.loc}.type`, this.eventHub);
-        this.type.setValidationCallback((err) => {
-            this.updateValidity(err);
-        });
+        this.type.setValidationCallback((err) => this.updateValidity(err));
         if (isType(this, ["record", "enum"]) && !this.type.name) {
             this.type.name = this.id;
         }
@@ -159,7 +157,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         // check id validity
         // doesn't exist
         if (this.id === "" || this.id === undefined) {
-            this.updateValidity({
+            this.setIssue({
                 [`${this.loc}.id`]: {
                     message: "ID must be set",
                     type: "error"
@@ -167,7 +165,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
             });
             // contains illegal characters
         } else if (!ID_REGEX.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
-            this.updateValidity({
+            this.setIssue({
                 [`${this.loc}.id`]: {
                     message: "ID can only contain alphanumeric and underscore characters",
                     type: "error"

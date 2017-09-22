@@ -32,9 +32,7 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
 
     setValueFrom(val: string | Expression) {
         this.valueFrom = new SBDraft2ExpressionModel(val, `${this.loc}.valueFrom`, this.eventHub);
-        this.valueFrom.setValidationCallback((err) => {
-            this.updateValidity(err);
-        });
+        this.valueFrom.setValidationCallback((err) => this.updateValidity(err));
     }
 
     public validate(context: {$job: any, $self: any}): Promise<any> {

@@ -136,7 +136,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         // if array, has items. Does not have symbols or items
         if (this.type === "array") {
             if (this.items === null) {
-                this.updateValidity({
+                this.setIssue({
                     [this.loc]: {
                         type: "error",
                         message: "Type array must have items",
@@ -144,7 +144,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 });
             }
             if (this._symbols && this.items !== "enum") {
-                this.updateValidity({
+                this.setIssue({
                     [`${this.loc}.symbols`]: {
                         type: "error",
                         message: "Type array must not have symbols",
@@ -152,7 +152,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 });
             }
             if (this.fields && this.items !== "record") {
-                this.updateValidity({
+                this.setIssue({
                     [`${this.loc}.fields`]: {
                         type: "error",
                         message: "Type array must not have fields",
@@ -164,7 +164,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         if (this.type === "enum") {
             if (this.items) {
 
-                this.updateValidity({
+                this.setIssue({
                     [`${this.loc}.items`]: {
                         type: "error",
                         message: "Type enum must not have items",
@@ -172,7 +172,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 });
             }
             if (!this._symbols) {
-                this.updateValidity({
+                this.setIssue({
                     [this.loc]: {
                         type: "error",
                         message: "Type enum must have symbols",
@@ -180,7 +180,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 });
             }
             if (this.fields) {
-                this.updateValidity({
+                this.setIssue({
                     [`${this.loc}.fields`]: {
                         type: "error",
                         message: "Type enum must not have fields",
@@ -189,7 +189,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             }
 
             if (!this.name) {
-                this.updateValidity({
+                this.setIssue({
                     [`${this.loc}`]: {
                         type: "error",
                         message: "Type enum must have a name",
@@ -201,7 +201,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         if (this.type === "record") {
             if (this.items) {
 
-                this.updateValidity({
+                this.setIssue({
                     [`${this.loc}.items`]: {
                         type: "error",
                         message: "Type record must not have items",
@@ -209,7 +209,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 });
             }
             if (this._symbols) {
-                this.updateValidity({
+                this.setIssue({
                     [`${this.loc}.symbols`]: {
                         type: "error",
                         message: "Type record must not have symbols",
@@ -217,7 +217,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 });
             }
             if (!this.fields) {
-                this.updateValidity({
+                this.setIssue({
                     [`${this.loc}`]: {
                         type: "error",
                         message: "Type record must have fields",
@@ -228,7 +228,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             }
 
             if (!this.name) {
-                this.updateValidity({
+                this.setIssue({
                     [`${this.loc}.type`]: {
                         type: "error",
                         message: "Type record must have a name"
@@ -238,7 +238,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         }
 
         if (this.unionType) {
-            this.updateValidity({
+            this.setIssue({
                 [this.loc]: {
                     type: "info",
                     message: `Union type is not supported yet: ${this.unionType}`
@@ -267,7 +267,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         try {
             TypeResolver.resolveType(attr, this);
         } catch (ex) {
-            this.updateValidity({
+            this.setIssue({
                 [this.loc]: {
                     message: ex.message,
                     type: "error"
@@ -284,9 +284,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             this.fields = ensureArray(this.fields, "name", "type").map((field, index) => {
                 const f   = new this.fieldConstructor(field, `${this.loc}.fields[${index}]`, this.eventHub);
                 f.isField = true;
-                f.setValidationCallback((err) => {
-                    this.updateValidity(err)
-                });
+                f.setValidationCallback((err) => this.updateValidity(err));
                 return f;
             });
         }
@@ -359,7 +357,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 });
 
                 if (duplicate.length > 0) {
-                    this.updateValidity({
+                    this.setIssue({
                         [this.loc]: {
                             message: `Field with name "${duplicate[0].id}" already exists`,
                             type: "error"
@@ -370,9 +368,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
 
             if (field instanceof this.fieldConstructor) {
                 field.loc = `${this.loc}.fields[${this.fields.length}]`;
-                field.setValidationCallback((err) => {
-                    this.updateValidity(err)
-                });
+                field.setValidationCallback((err) => this.updateValidity(err));
 
                 if (this.eventHub) {
                     this.eventHub.emit("field.create", field);
@@ -384,9 +380,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                 field.name = field.name || this.getNextAvailableName(this.nameBase);
                 const loc  = incrementLastLoc(this.fields, `${this.loc}.fields`);
                 const f    = new this.fieldConstructor(field, loc, this.eventHub);
-                f.setValidationCallback((err) => {
-                    this.updateValidity(err)
-                });
+                f.setValidationCallback((err) => this.updateValidity(err));
 
                 if (this.eventHub) {
                     this.eventHub.emit("field.create", f);

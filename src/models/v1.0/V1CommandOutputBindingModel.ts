@@ -17,7 +17,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
         this._glob = new V1ExpressionModel(value.serialize(), `${this.loc}.glob`, this.eventHub);
         this._glob.setValidationCallback(err => this.updateValidity(err));
         if (this._glob.serialize() === undefined) {
-            this._glob.updateValidity({
+            this._glob.setIssue({
                 [`${this.loc}.glob`]: {
                     message: "Glob should be specified",
                     type: "warning"

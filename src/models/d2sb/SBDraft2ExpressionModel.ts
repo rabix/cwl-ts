@@ -115,6 +115,6 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
 
     cloneStatus(clone: SBDraft2ExpressionModel) {
         this.setValue(clone.serialize(), clone.type);
-        this.updateValidity({...clone.issues});
+        this.setIssue({...clone.issues});
     }
 }

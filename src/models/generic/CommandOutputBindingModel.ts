@@ -42,7 +42,7 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
         const promises = [];
 
         if (this._glob && this._glob.serialize() === undefined) {
-            this._glob.updateValidity({
+            this._glob.setIssue({
                 [`${this.loc}.glob`]: {
                     message: "Glob should be specified",
                     type: "warning"

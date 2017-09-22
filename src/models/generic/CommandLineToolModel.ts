@@ -334,7 +334,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         try {
             this.checkIdValidity(o.id)
         } catch (ex) {
-            this.updateValidity({
+            this.setIssue({
                 [o.loc + ".id"]: {
                     type: "error",
                     message: ex.message
@@ -384,7 +384,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         try {
             this.checkIdValidity(i.id)
         } catch (ex) {
-            this.updateValidity({
+            this.setIssue({
                 [i.loc + ".id"]: {
                     type: "error",
                     message: ex.message
@@ -545,7 +545,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             for (let i = 0; i < duplicate.length; i++) {
                 const port = duplicate[i];
 
-                port.updateValidity({
+                port.setIssue({
                     [`${port.loc}.id`]: {
                         type: "error",
                         message: `Duplicate id found: “${port.id}”`

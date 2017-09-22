@@ -1,7 +1,8 @@
 import {expect} from "chai";
 import {
     ensureArray, checkMapValueType, incrementString, spreadSelectProps,
-    snakeCase, fetchByLoc, cleanupNull, incrementLastLoc, charSeparatedToArray, flatten
+    snakeCase, fetchByLoc, cleanupNull, incrementLastLoc, charSeparatedToArray, flatten,
+    concatIssues
 } from "./utils";
 
 describe("ensureArray", () => {
@@ -337,4 +338,46 @@ describe("flatten", () => {
 
        expect(flat).to.deep.equal([1, 2, 3, 4, 5, 6]);
    })
+});
+
+describe("concatKeyArrays", () => {
+   it("should concat two objects with arbitrary arrays", () => {
+       const base = {b: [1, 2], c: [3]};
+       const add = {b: [4]};
+
+       const combine = concatIssues(base, add, false);
+       expect(combine).to.deep.equal({b: [1, 2, 4], c: [3]});
+   });
+
+   it("should add null values to base", () => {
+       const base = {b: [1, 2], c: [3]};
+       const add = {d: null};
+
+       const combine = concatIssues(base, add, false);
+       expect(combine).to.deep.equal({b: [1, 2], c: [3], d: null});
+   });
+
+   it("should add an array property to the base object", () => {
+       const base = {b: [1, 2], c: [3]};
+       const add = {d: [4]};
+
+       const combine = concatIssues(base, add, false);
+       expect(combine).to.deep.equal({b: [1, 2], c: [3], d: [4]});
+   });
+
+   it("should override array of base with null", () => {
+       const base = {b: [1, 2], c: [3]};
+       const add = {b: null};
+
+       const combine = concatIssues(base, add, false);
+       expect(combine).to.deep.equal({b: null, c: [3]});
+   });
+
+    it("should not duplicate existing values", () => {
+        const base = {b: [1, 2], c: [3]};
+        const add = {b: [2]};
+
+        const combine = concatIssues(base, add,  false);
+        expect(combine).to.deep.equal({b: [1, 2], c: [3]});
+    });
 });

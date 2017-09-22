@@ -51,7 +51,7 @@ export abstract class CommandLineBindingModel extends ValidationBase implements 
     }
 
     cloneStatus(clone: CommandLineBindingModel) {
-        this.updateValidity({...clone.issues});
+        this.setIssue({...clone.issues});
         this.deserialize(clone.serialize());
     };
 }

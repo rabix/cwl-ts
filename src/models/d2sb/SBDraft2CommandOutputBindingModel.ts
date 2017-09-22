@@ -25,7 +25,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
         this._glob = new SBDraft2ExpressionModel(value.serialize(), `${this.loc}.glob`, this.eventHub);
         this._glob.setValidationCallback(err => this.updateValidity(err));
         if (this._glob.serialize() === undefined) {
-            this._glob.updateValidity({
+            this._glob.setIssue({
                 [`${this.loc}.glob`]: {
                     message: "Glob should be specified",
                     type: "warning"
@@ -46,7 +46,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
         this._outputEval.setValidationCallback(err => this.updateValidity(err));
 
         if (!this._outputEval.isExpression) {
-            this._outputEval.updateValidity({
+            this._outputEval.setIssue({
                 [`${this.loc}.outputEval`]: {
                     type: "error",
                     message: `outputEval must be an expression, instead got ${value.type}`

@@ -71,6 +71,6 @@ export class V1ExpressionModel extends ExpressionModel {
 
     cloneStatus(clone: V1ExpressionModel) {
         this.setValue(clone.serialize());
-        this.updateValidity({...clone.issues});
+        this.setIssue({...clone.issues});
     }
 }

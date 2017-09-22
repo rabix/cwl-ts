@@ -48,14 +48,14 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
             this.graph.topSort();
         } catch (ex) {
             if (ex.message === "Graph has cycles") {
-                this.updateValidity({
+                this.setIssue({
                     [this.loc]: {
                         message: "Graph has cycles",
                         type: "error"
                     }
                 });
             } else if (ex === "Can't sort unconnected graph") {
-                this.updateValidity({
+                this.setIssue({
                     [this.loc]: {
                         message: "Graph is not connected",
                         type: "warning"

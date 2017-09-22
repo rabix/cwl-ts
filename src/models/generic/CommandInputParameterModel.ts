@@ -84,7 +84,7 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
         try {
             validateID(this.id);
         } catch (ex) {
-            this.updateValidity({[this.loc + ".id"] : {
+            this.setIssue({[this.loc + ".id"] : {
                 type: "error",
                 message: ex.message
             }});

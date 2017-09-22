@@ -3,6 +3,7 @@ import {CommandInputParameterModel} from "../generic/CommandInputParameterModel"
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
+
 export const ensureArray = (map: { [key: string]: any }
     | any[]
     | string
@@ -234,9 +235,9 @@ export const incrementLastLoc = (items: { loc: string }[] = [], prefix: string) 
  * @param type
  */
 export const isType = (port: CommandInputParameterModel |
-                            CommandOutputParameterModel |
-                            WorkflowInputParameterModel |
-                            WorkflowOutputParameterModel, type: string | string[]): boolean => {
+    CommandOutputParameterModel |
+    WorkflowInputParameterModel |
+    WorkflowOutputParameterModel, type: string | string[]): boolean => {
 
     if (!port.type || !port.type.type) {
         return false;
@@ -249,13 +250,13 @@ export const isType = (port: CommandInputParameterModel |
 
 export const flatten = (arr: any[]) => {
     const _flatten = (arr: any[], res: any[]) => {
-        for(let i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             const a = arr[i];
-           if(Array.isArray(a)) {
-               _flatten(a, res);
-           } else {
-               res.push(a);
-           }
+            if (Array.isArray(a)) {
+                _flatten(a, res);
+            } else {
+                res.push(a);
+            }
         }
     };
 
@@ -266,4 +267,29 @@ export const flatten = (arr: any[]) => {
 
 export const returnNumIfNum = (s: any): any | number => {
     return isNaN(s) ? s : parseInt(s);
+};
+
+export const concatIssues = (base: { [key: string]: any[] }, add: { [key: string]: any[] | any }, overwrite: boolean): any => {
+    const addKeys = Object.keys(add);
+
+    for (let i = 0; i < addKeys.length; i++) {
+        const key = addKeys[i];
+        // base[key] is an array and add[key] is an item or an array, can be concatenated
+        if (base[key] && add[key] !== null) {
+            if (overwrite) {
+                base[key] = add[key];
+            } else {
+                base[key] = Array.from(new Set(base[key].concat(add[key])));
+            }
+        } else {
+            // add[key]
+            if (Array.isArray(add[key]) || add[key] === null) {
+                base[key] = add[key];
+            } else {
+                base[key] = [add[key]];
+            }
+        }
+    }
+
+    return base;
 };
