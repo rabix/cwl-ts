@@ -1,4 +1,5 @@
 const factory = require("./../../lib/models").CommandLineToolFactory;
+const wfFactory = require("./../../lib/models").WorkflowFactory;
 const vcOutputRecord = {
     "arguments": [
         {
@@ -641,6 +642,8 @@ const vcOutputRecord = {
         }
     ]
 };
+const fs = require("fs");
+const path = require("path");
 
 function clock(start) {
     if ( !start ) return process.hrtime();
@@ -648,6 +651,7 @@ function clock(start) {
     return Math.round((end[0]*1000) + (end[1]/1000000));
 }
 
+console.log("TOOL SERIALIZATION:");
 const tool = factory.from(vcOutputRecord);
 
 const start = clock();
@@ -657,3 +661,44 @@ for(let i = 0; i < 1000; i++) {
 const duration = clock(start);
 
 console.log(duration / 1000);
+
+
+console.log("WORKFLOW VALIDATION:");
+
+
+fs.readFile(path.resolve(__dirname, "apps/somatic.json"), "utf-8", (err, file) => {
+    if (err) {
+        console.log("Couldn't load", err);
+        return;
+    }
+
+    try {
+        console.time("bcbio");
+        const wf = wfFactory.from(JSON.parse(file));
+        wf.validate().then(() => {
+            console.timeEnd("bcbio");
+        });
+
+    } catch (ex) {
+        console.log("Couldn't parse");
+    }
+});
+
+
+fs.readFile(path.resolve(__dirname, "apps/whole-genome-sequencing.json"), "utf-8", (err, file) => {
+    if (err) {
+        console.log("Couldn't load", err);
+        return;
+    }
+
+    try {
+        console.time("Whole Genome");
+        const wf = wfFactory.from(JSON.parse(file));
+        wf.validate().then(() => {
+            console.timeEnd("Whole Genome");
+        });
+
+    } catch (ex) {
+        console.log("Couldn't parse");
+    }
+});
