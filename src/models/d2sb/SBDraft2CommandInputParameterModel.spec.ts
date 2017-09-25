@@ -247,6 +247,9 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
     });
 
     describe("removeInputBinding", () => {
+        beforeEach(() => {
+            ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
+        });
 
         it("Should remove the inputBinding property", () => {
             const input = new SBDraft2CommandInputParameterModel({

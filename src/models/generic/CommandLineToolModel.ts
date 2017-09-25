@@ -20,7 +20,6 @@ import {
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {JobHelper} from "../helpers/JobHelper";
-import {validate} from "jsonschema";
 
 export abstract class CommandLineToolModel extends ValidationBase implements Serializable<any> {
     public id: string;

@@ -1332,6 +1332,10 @@ describe("V1CommandLineToolModel", () => {
     });
 
     describe("validation", () => {
+        beforeEach(() => {
+            ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
+        });
+
         it("should be invalid if inputs have duplicate id", (done) => {
             const model = new V1CommandLineToolModel(<any> {
                 inputs: [
@@ -1357,7 +1361,7 @@ describe("V1CommandLineToolModel", () => {
             });
 
             model.validate().then(() => {
-                const errors = model.filterIssues();
+                const errors = model.errors;
                 expect(errors).to.not.be.empty;
                 expect(errors).to.have.length(1);
                 expect(errors[0].loc).to.equal("document.outputs[1].id");
@@ -1370,7 +1374,7 @@ describe("V1CommandLineToolModel", () => {
             });
 
             model.validate().then(() => {
-                const errors = model.filterIssues();
+                const errors = model.errors;
                 expect(errors).to.not.be.empty;
                 expect(errors).to.have.length(1);
                 expect(errors[0].loc).to.equal("document.stdin");

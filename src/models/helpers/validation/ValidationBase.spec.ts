@@ -26,10 +26,6 @@ class Child extends ValidationBase {
             code
         }]});
     }
-
-    removeAllIDError() {
-        this.clearIssue(ErrorCode.ID_ALL);
-    }
 }
 
 describe("ValidationBase", () => {
@@ -74,6 +70,58 @@ describe("ValidationBase", () => {
 
             expect(spy).to.not.have.been.called;
             expect(parent.errors).to.have.lengthOf(1);
+        });
+    });
+
+    describe("clearIssue", () => {
+        it("should clear only one error", () => {
+            parent.setChildError(ErrorCode.ID_DUPLICATE);
+            parent.setChildError(ErrorCode.ID_INVALID_CHAR);
+            expect (parent.errors).to.have.lengthOf(2);
+
+            const spy = chai.spy.on(parent.child, "cleanValidity");
+
+            parent.child.clearIssue(ErrorCode.ID_DUPLICATE);
+
+            expect(spy).to.not.have.been.called;
+            expect(parent.errors).to.have.lengthOf(1);
+        });
+
+        it("should clear all errors under if a group code is passed", () => {
+            parent.setChildError(ErrorCode.ID_DUPLICATE);
+            parent.setChildError(ErrorCode.ID_INVALID_CHAR);
+            expect (parent.errors).to.have.lengthOf(2);
+
+            const spy = chai.spy.on(parent.child, "cleanValidity");
+
+            parent.child.clearIssue(ErrorCode.ID_ALL);
+
+            expect(spy).to.not.have.been.called;
+            expect(parent.errors).to.have.lengthOf(0);
+        });
+
+        it("should clear only group if group code is passed", () => {
+            parent.setChildError(ErrorCode.ID_DUPLICATE);
+            parent.setChildError(ErrorCode.ID_INVALID_CHAR);
+            parent.setChildError(ErrorCode.EXPR_REFERENCE);
+            expect (parent.errors).to.have.lengthOf(3);
+
+            const spy = chai.spy.on(parent.child, "cleanValidity");
+
+            parent.child.clearIssue(ErrorCode.ID_ALL);
+
+            expect(spy).to.not.have.been.called;
+            expect(parent.errors).to.have.lengthOf(1);
+        });
+
+        it("should not call parent's updateValidity if there are no errors", () => {
+
+            const spy = chai.spy.on(parent, "updateValidity");
+
+            parent.child.clearIssue(ErrorCode.ID_ALL);
+
+            expect(spy).to.not.have.been.called;
+            expect(parent.errors).to.have.lengthOf(0);
         });
     });
 });

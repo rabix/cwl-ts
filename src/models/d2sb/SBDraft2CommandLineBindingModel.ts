@@ -37,7 +37,6 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
 
     public validate(context: {$job: any, $self: any}): Promise<any> {
         const promises = [];
-        this.cleanValidity();
 
         if (this.valueFrom) {
             promises.push(this.valueFrom.validate(context));

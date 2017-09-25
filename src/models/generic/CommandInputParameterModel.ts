@@ -11,6 +11,7 @@ import {EventHub} from "../helpers/EventHub";
 import {validateID} from "../helpers/utils";
 import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
 import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export abstract class CommandInputParameterModel extends ValidationBase implements InputParameter, Serializable<any> {
     /** unique identifier of input */
@@ -56,7 +57,7 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
 
     public removeInputBinding() {
         if (this.inputBinding) {
-            this.inputBinding.cleanValidity();
+            this.inputBinding.clearIssue(ErrorCode.EXPR_ALL);
         }
         this.inputBinding = null;
     }

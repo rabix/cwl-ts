@@ -183,47 +183,46 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     }
 
     public validate(): Promise<any> {
-        this.cleanValidity();
         const promises: Promise<any>[] = [];
 
-        for (let i = 0; i < this.inputs.length; i++) {
-            const input = this.inputs[i];
-            promises.push(input.validate(this.getContext(input)));
-        }
-
-        for (let i = 0; i < this.outputs.length; i++) {
-            const output = this.outputs[i];
-            promises.push(output.validate(this.getContext(output)));
-        }
-
-        // must be after input/output validation because otherwise it will be cleared
-        this.checkPortIdUniqueness();
-
-        for (let i = 0; i < this.arguments.length; i++) {
-            const argument = this.arguments[i];
-            promises.push(argument.validate(this.getContext()));
-        }
-
-        // validate streams to make sure expressions are valid
-        if (this.stdin) {
-            promises.push(this.stdin.validate(this.getContext()));
-        }
-
-        if (this.stdout) {
-            promises.push(this.stdout.validate(this.getContext()));
-        }
-
-        if (this.stderr) {
-            promises.push(this.stderr.validate(this.getContext()));
-        }
-
-        if (this.resources) {
-            promises.push(this.resources.validate(this.getContext()));
-        }
-
-        if (this.fileRequirement) {
-            promises.push(this.fileRequirement.validate(this.getContext()));
-        }
+        // for (let i = 0; i < this.inputs.length; i++) {
+        //     const input = this.inputs[i];
+        //     promises.push(input.validate(this.getContext(input)));
+        // }
+        //
+        // for (let i = 0; i < this.outputs.length; i++) {
+        //     const output = this.outputs[i];
+        //     promises.push(output.validate(this.getContext(output)));
+        // }
+        //
+        // // must be after input/output validation because otherwise it will be cleared
+        // this.checkPortIdUniqueness();
+        //
+        // for (let i = 0; i < this.arguments.length; i++) {
+        //     const argument = this.arguments[i];
+        //     promises.push(argument.validate(this.getContext()));
+        // }
+        //
+        // // validate streams to make sure expressions are valid
+        // if (this.stdin) {
+        //     promises.push(this.stdin.validate(this.getContext()));
+        // }
+        //
+        // if (this.stdout) {
+        //     promises.push(this.stdout.validate(this.getContext()));
+        // }
+        //
+        // if (this.stderr) {
+        //     promises.push(this.stderr.validate(this.getContext()));
+        // }
+        //
+        // if (this.resources) {
+        //     promises.push(this.resources.validate(this.getContext()));
+        // }
+        //
+        // if (this.fileRequirement) {
+        //     promises.push(this.fileRequirement.validate(this.getContext()));
+        // }
 
         return Promise.all(promises).then(() => {
             return this.issues;

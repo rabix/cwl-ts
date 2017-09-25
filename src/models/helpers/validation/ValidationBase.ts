@@ -44,11 +44,19 @@ export abstract class ValidationBase implements Validatable {
 
     public clearIssue(code: ErrorCode) {
         let hadIssue = false;
+        const isGroup = code % 100 === 0;
+        const group = code / 100;
 
         for (let key in this.issues) {
             if (this.issues[key] !== null) {
+
                 const initLen    = this.issues[key].length;
-                this.issues[key] = this.issues[key].filter(i => i.code !== code);
+                this.issues[key] = this.issues[key].filter(i => {
+                    if (isGroup) {
+                        return Math.floor(i.code / 100) !== group;
+                    }
+                    return i.code !== code
+                });
                 hadIssue         = initLen !== this.issues[key].length || hadIssue;
                 this.issues[key] = this.issues[key].length ? this.issues[key] : null;
             }
@@ -66,16 +74,16 @@ export abstract class ValidationBase implements Validatable {
      * @deprecated
      */
     public cleanValidity() {
-        this.issues = nullifyObjValues(this.issues);
-        this.updateParentValidation({
-            overwrite: true,
-            data: this.issues
-        });
-
-        this.hasErrors   = false;
-        this.hasWarnings = false;
-        this._errors     = [];
-        this._warnings   = [];
+        // this.issues = nullifyObjValues(this.issues);
+        // this.updateParentValidation({
+        //     overwrite: true,
+        //     data: this.issues
+        // });
+        //
+        // this.hasErrors   = false;
+        // this.hasWarnings = false;
+        // this._errors     = [];
+        // this._warnings   = [];
     }
 
     public loc = "";
