@@ -5,7 +5,13 @@ import {ExpressionToolModel} from "../generic/ExpressionToolModel";
 import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
 import {SBDraft2WorkflowStepOutputModel} from "./SBDraft2WorkflowStepOutputModel";
 import {WorkflowStep} from "../../mappings/d2sb/WorkflowStep";
-import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {
+    ensureArray,
+    snakeCase,
+    spreadAllProps,
+    spreadSelectProps,
+    isFileType
+} from "../helpers/utils";
 import {OutputParameter} from "../generic/OutputParameter";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {CommandLineToolFactory} from "../generic/CommandLineToolFactory";
@@ -34,48 +40,35 @@ export class SBDraft2StepModel extends StepModel {
         if (process && process.class) {
             this.createRun(process);
 
-            this.compareInPorts();
-            this.compareOutPorts();
+            this.compareInPorts(true);
+            this.compareOutPorts(true);
         }
     }
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
-        return this.createReq(hint, SBDraft2ExpressionModel, undefined,  true);
+        return this.createReq(hint, SBDraft2ExpressionModel, undefined, true);
     }
 
-    protected compareInPorts() {
-        const inPorts: Array<SBDraft2WorkflowStepInputModel> = this.in;
-        const stepInputs: Array<InputParameterModel>         = this.run.inputs;
+    protected compareInPorts(isUpdate = false) {
+        const runInputs: Array<InputParameterModel> = this.run.inputs;
 
-        // check if step.in includes ports which are not defined in the app
-        const inserted = inPorts.filter(port => {
-            return stepInputs.findIndex(inp => inp.id === port.id) === -1;
-        });
+        let inserted = [], removed, remaining;
+        remaining    = this.in;
 
-        // if there are steps in ports which aren't in the app, throw a warning for interface mismatch
-        if (inserted.length) {
-            this.updateValidity({[this.loc]: {
-                type: "error",
-                message: `Step contains input ports which are not present on the app: ${inserted.map(port => port.id).join(",")}. They will not be included in the workflow.`,
-            }});
+        if (isUpdate) {
+            [inserted, remaining, removed] = StepModel.portDifference(this.in, this.run.inputs);
+
+            removed.forEach(r => this.eventHub.emit("step.inPort.remove", r));
         }
 
-        // because type cannot be check on the level of the step (step.in is just the id of the incoming port),
+        // because type cannot be check on the level of the step
+        // (step.in is just the id of the incoming port),
         // type and fileTypes from the app's inputs are spliced into the in ports.
         // Type validation is done for connections based on this information
-        this.in = stepInputs.map((input, index) => {
-            let match: any = inPorts.find(port => input.id === port.id);
+        this.in = runInputs.map((input, index) => {
+            let match: any = remaining.find(port => input.id === port.id);
 
-            if (match && match.type && match.type.type) {
-                if (match.type.type !== input.type.type || (match.type.items && match.type.items !== input.type.items)) {
-                    this.updateValidity({[`${this.loc}.inputs[${index}]`]: {
-                        type: "error",
-                        message: `Schema mismatch between step input ${this.loc}.inputs[${index}] and step run input ${input.loc}.`
-                    }});
-                }
-            }
-
-            match          = match ? match.serialize() : {id: this.id + "." + input.id};
+            const serialized = match ? match.serialize() : {id: this.id + "." + input.id};
 
             // here will set source and default if they exist
             const newPort = new SBDraft2WorkflowStepInputModel({
@@ -83,34 +76,59 @@ export class SBDraft2StepModel extends StepModel {
                 fileTypes: input.fileTypes || [],
                 description: input.description,
                 label: input.label,
-                ...match,
+                ...serialized,
             }, this, `${this.loc}.inputs[${index}]`);
 
+            // in case the port was inserted, signify to parent workflow that
+            // it should be added to the graph
+            if (inserted.find(i => i.id === newPort.id)) {
+                this.eventHub.emit("step.inPort.add", newPort);
+            }
+
+            // in case there is a match and the step is being updated, signify to parent workflow
+            // to update node info in graph
+            if (match && isUpdate) {
+                this.eventHub.emit("step.port.change", newPort);
+            }
+
             // for some absurd reason, visibility is kept inside the run property, on the actual input
-            newPort.isVisible = !!input["customProps"]["sbg:includeInPorts"];
+            newPort.isVisible = match ? match.isVisible : !!input["customProps"]["sbg:includeInPorts"] || isFileType(input, true);
             return newPort;
         }).filter(port => port !== undefined);
-
-        // this.validation = {errors, warnings};
     }
 
-    protected compareOutPorts() {
-        const outPorts: Array<SBDraft2WorkflowStepOutputModel> = this.out;
-        const stepOutputs: Array<OutputParameter>              = this.run.outputs;
+    protected compareOutPorts(isUpdate = false) {
+        const runOutputs: Array<OutputParameter> = this.run.outputs;
 
-        this.out = stepOutputs.map((output, index) => {
-            let match: any = outPorts.find(port => output.id === port.id);
+        let inserted = [], removed, remaining;
+
+        if (isUpdate) {
+            [inserted, remaining, removed] = StepModel.portDifference(this.out, this.run.outputs);
+
+            removed.forEach(r => this.eventHub.emit("step.outPort.remove", r));
+        }
+
+        this.out = runOutputs.map((output, index) => {
+            let match: any = this.out.find(port => output.id === port.id);
             match          = match ? match.serialize() : {id: this.id + "." + output.id};
 
-            if (match) {
-                return new SBDraft2WorkflowStepOutputModel({
-                    type: output.type,
-                    fileTypes: output.fileTypes,
-                    description: output.description,
-                    label: output.label,
-                    ...match,
-                }, this, `${this.loc}.outputs[${index}]`);
+            const model = new SBDraft2WorkflowStepOutputModel({
+                type: output.type,
+                fileTypes: output.fileTypes,
+                description: output.description,
+                label: output.label,
+                ...match,
+            }, this, `${this.loc}.outputs[${index}]`);
+
+            if (inserted.find(i => i.id === model.id)) {
+                this.eventHub.emit("step.outPort.add", model);
             }
+
+            if (match && isUpdate) {
+                this.eventHub.emit("step.port.change", model);
+            }
+
+            return model;
         }).filter(port => port !== undefined);
     }
 
@@ -129,6 +147,7 @@ export class SBDraft2StepModel extends StepModel {
                 throw new Error(`Unknown process class "${process.class}" at ${this.loc}.step. Expected "CommandLineTool", "Workflow", or "ExpressionTool"`);
         }
 
+        // when the step is being updated, the ID will not change
         this.id = this.id || snakeCase(this.run.id) || snakeCase(this.run.label) || snakeCase(this.loc);
         this.id = this.id.charAt(0) === "#" ? this.id.substr(1) : this.id;
 
@@ -146,8 +165,8 @@ export class SBDraft2StepModel extends StepModel {
     _serialize(embed: boolean, retainSource: boolean = false): WorkflowStep {
         let base: WorkflowStep = <WorkflowStep> {};
 
-        base.id = "#" + this.id;
-        base.inputs = this.in.map(i => i.serialize()).filter(i => {
+        base.id      = "#" + this.id;
+        base.inputs  = this.in.map(i => i.serialize()).filter(i => {
             const keys = Object.keys(i);
             return !(keys.length === 1 && keys[0] === "id");
         });
@@ -157,15 +176,17 @@ export class SBDraft2StepModel extends StepModel {
             base.run = this.customProps["sbg:rdfId"];
         } else if (embed && this.run && this.run instanceof WorkflowModel) {
             base.run = this.run.serializeEmbedded();
-        }  else if (this.run && typeof this.run.serialize === "function") {
+        } else if (this.run && typeof this.run.serialize === "function") {
             base.run = this.run.serialize();
         } else {
             base.run = this.runPath;
         }
 
-        if (this.hints.length) { base.hints = this.hints.map((hint) => hint.serialize())}
+        if (this.hints.length) {
+            base.hints = this.hints.map((hint) => hint.serialize())
+        }
 
-        const temp =  {... this.customProps};
+        const temp = {...this.customProps};
 
         if (!retainSource) {
             delete temp["sbg:rdfId"];
@@ -194,7 +215,7 @@ export class SBDraft2StepModel extends StepModel {
 
         this.id          = step.id || "";
         this.description = step.description;
-        this._label       = step.label;
+        this._label      = step.label;
         this.scatter     = step.scatter ? step.scatter.split(".")[1] : null;
 
         this.hints = ensureArray(step.hints).map((hint, i) => {
@@ -203,7 +224,7 @@ export class SBDraft2StepModel extends StepModel {
 
         if (step.run && typeof step.run === "string") {
             this.runPath = step.run;
-        } else if (step.run &&  typeof step.run !== "string" && step.run.class) {
+        } else if (step.run && typeof step.run !== "string" && step.run.class) {
             this.createRun(step.run);
         }
 
@@ -226,7 +247,7 @@ export class SBDraft2StepModel extends StepModel {
 
         this.in.forEach(i => {
             // if in type is a required file or required array of files, include it by default
-            if (i.type && !i.type.isNullable && (i.type.type === "File" || i.type.items === "File")) {
+            if (isFileType(i, true)) {
                 i.isVisible = true;
             }
         });
