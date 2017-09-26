@@ -13,6 +13,9 @@ import {Process} from "./Process";
 import {EventHub} from "../helpers/EventHub";
 import {ProcessRequirement} from "./ProcessRequirement";
 import {RequirementBaseModel} from "./RequirementBaseModel";
+import {InputParameterModel} from "./InputParameterModel";
+
+export type Ports = Array<WorkflowStepInputModel | WorkflowStepOutputModel>;
 
 export class StepModel extends ValidationBase implements Serializable<any>, Plottable {
 
@@ -68,9 +71,9 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
 
     customProps: any = {};
 
-    protected compareInPorts() {}
+    protected compareInPorts(isUpdate = false) {}
 
-    protected compareOutPorts() {}
+    protected compareOutPorts(isUpdate = false) {}
 
     public serializeEmbedded(): any {
         new UnimplementedMethodException("serializeEmbedded", "StepModel");
@@ -101,5 +104,22 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
 
     deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "StepModel");
+    }
+
+    static portDifference(stepPorts: Ports, runParameters: InputParameterModel[]): [InputParameterModel[], Ports, Ports] {
+        const inserted = []; // contains only InputParamModels from run.inputs
+        let remaining: Ports  = []; // contains whatever is left from inPorts that's still in run.inputs
+        const removed: Ports  = [...stepPorts]; // contains what isn't in run.inputs
+
+        for (let i = 0; i < runParameters.length; i++) {
+            const index = removed.findIndex(inp => inp.id === runParameters[i].id);
+            if (index === -1) {
+                inserted.push(runParameters[i]);
+            } else {
+                remaining = [...remaining, ...removed.splice(index, 1)];
+            }
+        }
+
+        return [inserted, remaining, removed];
     }
 }

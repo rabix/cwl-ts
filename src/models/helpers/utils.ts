@@ -1,9 +1,9 @@
-import {ID_REGEX} from "./constants";
 import {isObject} from "util";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
+import {ID_REGEX} from "./constants";
 export const ensureArray = (map: { [key: string]: any }
     | any[]
     | string
@@ -235,9 +235,9 @@ export const incrementLastLoc = (items: { loc: string }[] = [], prefix: string) 
  * @param type
  */
 export const isType = (port: CommandInputParameterModel |
-                            CommandOutputParameterModel |
-                            WorkflowInputParameterModel |
-                            WorkflowOutputParameterModel, type: string | string[]): boolean => {
+    CommandOutputParameterModel |
+    WorkflowInputParameterModel |
+    WorkflowOutputParameterModel, type: string | string[]): boolean => {
 
     if (!port.type || !port.type.type) {
         return false;
@@ -247,6 +247,8 @@ export const isType = (port: CommandInputParameterModel |
 
     return type.filter(t => port.type.type === t || port.type.items === t).length > 0;
 };
+
+
 
 export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
 
@@ -319,13 +321,13 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
 
 export const flatten = (arr: any[]) => {
     const _flatten = (arr: any[], res: any[]) => {
-        for(let i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             const a = arr[i];
-           if(Array.isArray(a)) {
-               _flatten(a, res);
-           } else {
-               res.push(a);
-           }
+            if (Array.isArray(a)) {
+                _flatten(a, res);
+            } else {
+                res.push(a);
+            }
         }
     };
 
@@ -336,4 +338,39 @@ export const flatten = (arr: any[]) => {
 
 export const returnNumIfNum = (s: any): any | number => {
     return isNaN(s) ? s : parseInt(s);
+};
+
+export const isFileType = (i: { type: {isNullable: boolean, type: string, items: string} }, required = false): boolean => {
+    return i.type && i.type.isNullable !== required && (i.type.type === "File" || i.type.items === "File")
+};
+
+export const getNextAvailableId = (id: string, set: Array<{id: string}>) => {
+    let hasId  = true;
+    let result = id;
+
+    const len = set.length;
+
+    while (hasId) {
+        hasId = false;
+
+        // loop through all inputs and outputs to verify id uniqueness
+        for (let i = 0; i < len; i++) {
+            if (set[i].id === result) {
+                hasId  = true;
+                // if id exists, increment and check the uniqueness of the incremented id
+                result = incrementString(result);
+            }
+        }
+    }
+
+    return result;
+};
+
+export const checkIdValidity = (id: string, scope: Array<CommandInputParameterModel | CommandOutputParameterModel>) => {
+    validateID(id);
+
+    const next = getNextAvailableId(id, scope);
+    if (next !== id) {
+        throw new Error(`ID "${id}" already exists in this tool, the next available id is "${next}"`);
+    }
 };
