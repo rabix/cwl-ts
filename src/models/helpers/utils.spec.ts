@@ -375,10 +375,10 @@ describe("checkIfConnectionIsValid", () => {
         });
 
         expect(() => checkIfConnectionIsValid(inputFile, outputString))
-            .to.throw(`Invalid connection. Connection type mismatch, attempting to connect (File) to (string)`);
+            .to.throw(`Invalid connection. Connection type mismatch, attempting to connect "File" to "string"`);
 
         expect(() => checkIfConnectionIsValid(inputFileArray, outputStringArray))
-            .to.throw(`Invalid connection. Connection type mismatch, attempting to connect (File)[] to (string)[]`);
+            .to.throw(`Invalid connection. Connection type mismatch, attempting to connect "File[]" to "string[]"`);
 
     });
 
@@ -411,7 +411,7 @@ describe("checkIfConnectionIsValid", () => {
 
         // inputFile to outputFileArray
         expect(() => checkIfConnectionIsValid(inputFile, outputFileArray))
-            .to.throws(`Invalid connection. Connection type mismatch, attempting to connect (File)[] to (File)`);
+            .to.throws(`Invalid connection. Connection type mismatch, attempting to connect "File[]" to "File"`);
 
         // outputFileArray to inputFile
         expect(checkIfConnectionIsValid(inputFile, outputFileArray, false)).equal(true);
@@ -464,7 +464,7 @@ describe("checkIfConnectionIsValid", () => {
         outputFileArray.fileTypes = ["d", "c"];
 
         expect(() => checkIfConnectionIsValid(inputFile, outputFileArray))
-            .to.throws(`Invalid connection. File type mismatch, connecting formats (a) to (d,c)`);
+            .to.throws(`Invalid connection. File type mismatch, connecting formats "a" to "d,c"`);
     });
 
     it("should be valid when source is (File)[] and destination is (union)[]", () => {
@@ -486,7 +486,7 @@ describe("checkIfConnectionIsValid", () => {
 
     });
 
-    it("should be valid when source is (object)[] and destination is (object)[]", () => {
+    it("should be valid when source is object[] and destination is object[]", () => {
 
         const input = new V1WorkflowInputParameterModel({
             id: "pointA",
@@ -514,7 +514,7 @@ describe("checkIfConnectionIsValid", () => {
 
     });
 
-    it("should be valid when source is (object)[] and destination is (union)[]", () => {
+    it("should be valid when source is object[] and destination is union[]", () => {
 
         const input = new V1WorkflowInputParameterModel({
             id: "pointA",
@@ -539,7 +539,7 @@ describe("checkIfConnectionIsValid", () => {
 
     });
 
-    it("should be valid when source is (union)[] and destination is (object)[]", () => {
+    it("should be valid when source is union[] and destination is object[]", () => {
 
         const input = new V1WorkflowInputParameterModel({
             id: "pointA",
@@ -564,7 +564,7 @@ describe("checkIfConnectionIsValid", () => {
 
     });
 
-    it("should be valid when source is (File) and destination is (union)[]", () => {
+    it("should be valid when source is File and destination is union[]", () => {
 
         const input = new V1WorkflowInputParameterModel({
             id: "pointA",
@@ -582,7 +582,7 @@ describe("checkIfConnectionIsValid", () => {
         expect(checkIfConnectionIsValid(input, output)).equal(true);
     });
 
-    it("should be invalid when source is (object)[] and destination is (File)", () => {
+    it("should be invalid when source is object[] and destination is File", () => {
 
         const input = new V1WorkflowInputParameterModel({
             id: "pointA",
@@ -592,25 +592,6 @@ describe("checkIfConnectionIsValid", () => {
                     "items": "string",
                     "type": "array"
                 }
-            }
-        });
-
-        const output = new V1WorkflowOutputParameterModel({
-            id: "pointB",
-            type: "File"
-        });
-
-        expect(() => checkIfConnectionIsValid(input, output))
-            .to.throw("Invalid connection. Connection type mismatch, attempting to connect (object)[] to (File)");
-    });
-
-    it("should be invalid when source is (union)[] and destination is (File)", () => {
-
-        const input = new V1WorkflowInputParameterModel({
-            id: "pointA",
-            type: {
-                type: "array",
-                items: ["File", "null"]
             }
         });
 
@@ -620,10 +601,29 @@ describe("checkIfConnectionIsValid", () => {
         });
 
         expect(() => checkIfConnectionIsValid(input, output))
-            .to.throw("Invalid connection. Connection type mismatch, attempting to connect (union)[] to (File)");
+            .to.throw(`Invalid connection. Connection type mismatch, attempting to connect "object[]" to "File"`);
     });
 
-    it("should be invalid when source is (File) and destination is (object)[]", () => {
+    it("should be invalid when source is union[] and destination is File", () => {
+
+        const input = new V1WorkflowInputParameterModel({
+            id: "pointA",
+            type: {
+                type: "array",
+                items: ["File", "null"]
+            }
+        });
+
+        const output = new V1WorkflowOutputParameterModel({
+            id: "pointB",
+            type: "File"
+        });
+
+        expect(() => checkIfConnectionIsValid(input, output))
+            .to.throw(`Invalid connection. Connection type mismatch, attempting to connect "union[]" to "File"`);
+    });
+
+    it("should be invalid when source is File and destination is object[]", () => {
 
         const input = new V1WorkflowInputParameterModel({
             id: "pointA",
@@ -642,10 +642,10 @@ describe("checkIfConnectionIsValid", () => {
         });
 
         expect(() => checkIfConnectionIsValid(input, output))
-            .to.throw("Invalid connection. Connection type mismatch, attempting to connect (File) to (object)[]");
+            .to.throw(`Invalid connection. Connection type mismatch, attempting to connect "File" to "object[]"`);
     });
 
-    it("should be invalid when source is (File)[] and destination is (object)[]", () => {
+    it("should be invalid when source is File[] and destination is object[]", () => {
 
         const input = new V1WorkflowInputParameterModel({
             id: "pointA",
@@ -664,10 +664,10 @@ describe("checkIfConnectionIsValid", () => {
         });
 
         expect(() => checkIfConnectionIsValid(input, output))
-            .to.throw("Invalid connection. Connection type mismatch, attempting to connect (File)[] to (object)[]");
+            .to.throw(`Invalid connection. Connection type mismatch, attempting to connect "File[]" to "object[]"`);
     });
 
-    it("should be invalid when source is (File) and destination is (record)", () => {
+    it("should be invalid when source is File and destination is record", () => {
 
         const input = new V1WorkflowInputParameterModel({
             id: "pointA",
@@ -687,7 +687,7 @@ describe("checkIfConnectionIsValid", () => {
         });
 
         expect(() => checkIfConnectionIsValid(input, output))
-            .to.throw("Invalid connection. Connection type mismatch, attempting to connect (File) to (record)");
+            .to.throw(`Invalid connection. Connection type mismatch, attempting to connect "File" to "record"`);
     });
 
     it("should be valid when source is (record)[] and destination is (object)[]", () => {
@@ -720,7 +720,7 @@ describe("checkIfConnectionIsValid", () => {
         expect(checkIfConnectionIsValid(input, output)).equal(true);
     });
 
-    it("should be valid when source is (object)[] and destination is (record)[]", () => {
+    it("should be valid when source is object[] and destination is record[]", () => {
 
         const input = new V1WorkflowInputParameterModel({
             id: "pointA",
