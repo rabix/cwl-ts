@@ -20,6 +20,7 @@ import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
 import {RequirementBaseModel} from "./RequirementBaseModel";
 import {ProcessRequirement} from "./ProcessRequirement";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
+import {V1WorkflowOutputParameterModel} from "../v1.0/V1WorkflowOutputParameterModel";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -1067,10 +1068,15 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             isValid = true;
 
         } catch (e) {
-            destination.updateValidity({[destination.loc + ".sources[" + source.sourceId + "]"]: {
-                message: e.message,
-                type: "warning"
-            }});
+
+            const sourceText = destination instanceof V1WorkflowOutputParameterModel ? "outputSource" : "source";
+
+            destination.updateValidity({
+                [destination.loc + `.${sourceText}[` + source.sourceId + "]"]: {
+                    message: e.message,
+                    type: "warning"
+                }
+            });
         }
 
         Array.from(graph.edges).filter((c) =>

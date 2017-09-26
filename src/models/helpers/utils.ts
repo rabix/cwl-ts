@@ -1,4 +1,5 @@
 import {ID_REGEX} from "./constants";
+import {isObject} from "util";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
@@ -254,23 +255,46 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
         throw new Error(`Invalid connection. Source and destination ports belong to the same step`);
     }
 
-    // fetch type
-    const pointBType  = pointB.type.type;
-    const pointAType  = pointA.type.type;
-    const pointBItems = pointB.type.items;
-    const pointAItems = pointA.type.items;
+    const getType = (type) => {
+        if (typeof type === "string") {
+            return type;
+        }
 
+        if (Array.isArray(type)) {
+            return "union";
+        }
+        if (isObject(type)) {
+            return "object";
+        }
+    };
+
+    // fetch type
+    const pointAType  = pointA.type.type;
+    const pointBType  = pointB.type.type;
+    const pointAItems = getType(pointA.type.items);
+    const pointBItems = getType(pointB.type.items);
 
     // match types, defined types can be matched with undefined types
     if (pointAType === pointBType // match exact type
-        || (pointAItems === pointBType && !ltr) //match File[] to File
-        || (pointBItems === pointAType && ltr) // match File to File[]
+        || ((pointAItems === pointBType || pointAItems === "union") && !ltr) //match File[] to File
+        || ((pointBItems === pointAType || pointBItems === "union") && ltr) // match File to File[]
         || pointAType === "null"
         || pointBType === "null") {
 
+        // If union[] -> any[] or vice versa
+        if (pointBItems === "union" || pointAItems === "union") {
+            return true;
+        }
+
+        // If record[] -> object[] or vice versa
+        if ((pointBItems === "record" && pointAItems === "object")
+            || (pointAItems === "record" && pointBItems === "object")) {
+            return true;
+        }
+
         // if both are arrays but not of the same type
         if (pointAItems && pointBItems && pointAItems !== pointBItems) {
-            throw new Error(`Invalid connection. Connection type mismatch, attempting to connect "${pointAItems}[]" to "${pointBItems}[]"`);
+            throw new Error(`Invalid connection. Connection type mismatch, attempting to connect (${pointAItems})[] to (${pointBItems})[]`);
         }
         // if type match is file, and fileTypes are defined on both ports,
         // match only if fileTypes match
@@ -278,8 +302,8 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
             if (!!intersection(pointB.fileTypes.map((type) => type.toLowerCase()), pointA.fileTypes.map(type => type.toLowerCase())).length) {
                 return true;
             } else {
-                throw new Error(`Invalid connection. File type mismatch, connecting formats "${pointA.fileTypes}" to "${pointB.fileTypes}"`);
-            };
+                throw new Error(`Invalid connection. File type mismatch, connecting formats (${pointA.fileTypes}) to (${pointB.fileTypes})`);
+            }
         }
 
         // if not file or fileTypes not defined
@@ -287,10 +311,10 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
     }
 
     // if types are both defined and do not match
-    const pointATypeOutput = pointAItems ? pointAItems + "[]" :  pointAType;
-    const pointBTypeOutput = pointBItems ? pointBItems + "[]" :  pointBType;
+    const pointATypeOutput = pointAItems ? `(${pointAItems})[]` :  `(${pointAType})`;
+    const pointBTypeOutput = pointBItems ? `(${pointBItems})[]` :  `(${pointBType})`;
 
-    throw new Error(`Invalid connection. Connection type mismatch, attempting to connect "${pointATypeOutput}" to "${pointBTypeOutput}"`);
+    throw new Error(`Invalid connection. Connection type mismatch, attempting to connect ${pointATypeOutput} to ${pointBTypeOutput}`);
 };
 
 export const flatten = (arr: any[]) => {
