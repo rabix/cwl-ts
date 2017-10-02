@@ -1,8 +1,9 @@
-import {ID_REGEX} from "./constants";
+import {isObject} from "util";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
+import {ID_REGEX} from "./constants";
 export const ensureArray = (map: { [key: string]: any }
     | any[]
     | string
@@ -234,9 +235,9 @@ export const incrementLastLoc = (items: { loc: string }[] = [], prefix: string) 
  * @param type
  */
 export const isType = (port: CommandInputParameterModel |
-                            CommandOutputParameterModel |
-                            WorkflowInputParameterModel |
-                            WorkflowOutputParameterModel, type: string | string[]): boolean => {
+    CommandOutputParameterModel |
+    WorkflowInputParameterModel |
+    WorkflowOutputParameterModel, type: string | string[]): boolean => {
 
     if (!port.type || !port.type.type) {
         return false;
@@ -247,15 +248,86 @@ export const isType = (port: CommandInputParameterModel |
     return type.filter(t => port.type.type === t || port.type.items === t).length > 0;
 };
 
+
+
+export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
+
+    // if both ports belong to the same step, connection is not possible
+    if (pointA.parentStep && pointB.parentStep && pointA.parentStep.id === pointB.parentStep.id) {
+        throw new Error(`Invalid connection. Source and destination ports belong to the same step`);
+    }
+
+    const getType = (type) => {
+        if (typeof type === "string") {
+            return type;
+        }
+
+        if (Array.isArray(type)) {
+            return "union";
+        }
+        if (isObject(type)) {
+            return "object";
+        }
+    };
+
+    // fetch type
+    const pointAType  = pointA.type.type;
+    const pointBType  = pointB.type.type;
+    const pointAItems = getType(pointA.type.items);
+    const pointBItems = getType(pointB.type.items);
+
+    // match types, defined types can be matched with undefined types
+    if (pointAType === pointBType // match exact type
+        || ((pointAItems === pointBType || pointAItems === "union") && !ltr) //match File[] to File
+        || ((pointBItems === pointAType || pointBItems === "union") && ltr) // match File to File[]
+        || pointAType === "null"
+        || pointBType === "null") {
+
+        // If union[] -> any[] or vice versa
+        if (pointBItems === "union" || pointAItems === "union") {
+            return true;
+        }
+
+        // If record[] -> object[] or vice versa
+        if ((pointBItems === "record" && pointAItems === "object")
+            || (pointAItems === "record" && pointBItems === "object")) {
+            return true;
+        }
+
+        // if both are arrays but not of the same type
+        if (pointAItems && pointBItems && pointAItems !== pointBItems) {
+            throw new Error(`Invalid connection. Connection type mismatch, attempting to connect "${pointAItems}[]" to "${pointBItems}[]"`);
+        }
+        // if type match is file, and fileTypes are defined on both ports,
+        // match only if fileTypes match
+        if (pointAType === "File" && pointB.fileTypes.length && pointA.fileTypes.length) {
+            if (!!intersection(pointB.fileTypes.map((type) => type.toLowerCase()), pointA.fileTypes.map(type => type.toLowerCase())).length) {
+                return true;
+            } else {
+                throw new Error(`Invalid connection. File type mismatch, connecting formats "${pointA.fileTypes}" to "${pointB.fileTypes}"`);
+            }
+        }
+
+        // if not file or fileTypes not defined
+        return true;
+    }
+
+    // if types are both defined and do not match
+    const pointATypeOutput = pointAItems ? `"${pointAItems}[]"` :  `"${pointAType}"`;
+    const pointBTypeOutput = pointBItems ? `"${pointBItems}[]"` :  `"${pointBType}"`;
+
+    throw new Error(`Invalid connection. Connection type mismatch, attempting to connect ${pointATypeOutput} to ${pointBTypeOutput}`);
+};
+
 export const flatten = (arr: any[]) => {
     const _flatten = (arr: any[], res: any[]) => {
-        for(let i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             const a = arr[i];
-           if(Array.isArray(a)) {
-               _flatten(a, res);
-           } else {
-               res.push(a);
-           }
+            if (Array.isArray(a)) {
+                _flatten(a, res);
+            } else {
+                res.push(a);
+            }
         }
     };
 
@@ -266,4 +338,39 @@ export const flatten = (arr: any[]) => {
 
 export const returnNumIfNum = (s: any): any | number => {
     return isNaN(s) ? s : parseInt(s);
+};
+
+export const isFileType = (i: { type: {isNullable: boolean, type: string, items: string} }, required = false): boolean => {
+    return i.type && i.type.isNullable !== required && (i.type.type === "File" || i.type.items === "File")
+};
+
+export const getNextAvailableId = (id: string, set: Array<{id: string}>) => {
+    let hasId  = true;
+    let result = id;
+
+    const len = set.length;
+
+    while (hasId) {
+        hasId = false;
+
+        // loop through all inputs and outputs to verify id uniqueness
+        for (let i = 0; i < len; i++) {
+            if (set[i].id === result) {
+                hasId  = true;
+                // if id exists, increment and check the uniqueness of the incremented id
+                result = incrementString(result);
+            }
+        }
+    }
+
+    return result;
+};
+
+export const checkIdValidity = (id: string, scope: Array<CommandInputParameterModel | CommandOutputParameterModel>) => {
+    validateID(id);
+
+    const next = getNextAvailableId(id, scope);
+    if (next !== id) {
+        throw new Error(`ID "${id}" already exists in this tool, the next available id is "${next}"`);
+    }
 };

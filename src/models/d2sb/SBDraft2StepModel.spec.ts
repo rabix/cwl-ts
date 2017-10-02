@@ -19,7 +19,10 @@ describe("SBDraft2StepModel", () => {
             expect(step.in).to.have.length(7);
         });
 
-        it("should set error for input missing in new run process", () => {
+        /**
+         * Functionality for errors on update hasn't been defined yet
+         */
+        it.skip("should set error for input missing in new run process", () => {
             const step = wf.steps[0];
 
             step.setRunProcess(BasicTool.default);
@@ -27,7 +30,10 @@ describe("SBDraft2StepModel", () => {
             expect(step.errors[0].message).to.contain("not present");
         });
 
-        it("should set error for inputs with changed type", () => {
+        /**
+         * Functionality for errors on update hasn't been defined yet
+         */
+        it.skip("should set error for inputs with changed type", () => {
             const step = wf.steps[0];
 
             step.setRunProcess(BasicTool.default);

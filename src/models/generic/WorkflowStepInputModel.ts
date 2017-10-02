@@ -18,7 +18,7 @@ export class WorkflowStepInputModel extends ValidationBase implements Serializab
     label: string;
     description: string;
 
-    type?: ParameterTypeModel;
+    type: ParameterTypeModel;
     fileTypes: string[] = [];
 
     constructor(loc?: string){
