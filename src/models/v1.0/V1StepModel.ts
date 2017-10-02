@@ -213,6 +213,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
                 ...serialized // serialized match goes last so changed properties are overwritten
             }, this, `${this.loc}.in[${index}]`);
 
+            model.setValidationCallback((err) => this.updateValidity(err));
+
             // in case the port was inserted, signify to parent workflow that
             // it should be added to the graph
             if (inserted.find(i => i.id === model.id)) {

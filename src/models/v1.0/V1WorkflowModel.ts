@@ -36,37 +36,6 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         this.graph = this.constructGraph();
     }
 
-    public validate(): Promise<any> {
-        this.cleanValidity();
-        const promises = [];
-
-        promises.concat(this.steps.map(step => step.validate()));
-        promises.concat(this.inputs.map(inp => inp.validate()));
-        promises.concat(this.outputs.map(out => out.validate()));
-
-        try {
-            this.graph.topSort();
-        } catch (ex) {
-            if (ex.message === "Graph has cycles") {
-                this.updateValidity({
-                    [this.loc]: {
-                        message: "Graph has cycles",
-                        type: "error"
-                    }
-                });
-            } else if (ex === "Can't sort unconnected graph") {
-                this.updateValidity({
-                    [this.loc]: {
-                        message: "Graph is not connected",
-                        type: "warning"
-                    }
-                });
-            }
-        }
-
-        return Promise.all(promises).then(() => this.issues);
-    }
-
     public loc: string;
     public customProps: any = {};
 

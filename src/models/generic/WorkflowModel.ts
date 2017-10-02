@@ -4,7 +4,7 @@ import {STEP_INPUT_CONNECTION_PREFIX, STEP_OUTPUT_CONNECTION_PREFIX} from "../he
 import {EventHub} from "../helpers/EventHub";
 import {Edge, EdgeNode, Graph} from "../helpers/Graph";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
-import {incrementString, intersection, validateID} from "../helpers/utils";
+import {incrementString, validateID, checkIfConnectionIsValid} from "../helpers/utils";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
 import {InputParameter} from "./InputParameter";
@@ -18,6 +18,7 @@ import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
 import {RequirementBaseModel} from "./RequirementBaseModel";
 import {ProcessRequirement} from "./ProcessRequirement";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
+import {V1WorkflowOutputParameterModel} from "../v1.0/V1WorkflowOutputParameterModel";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -254,7 +255,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             }, {
                 id: inPort.connectionId,
                 type: "Step"
-            });
+            }, true);
         }
 
         this.eventHub.emit("step.inPort.show", inPort);
@@ -268,6 +269,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     public clearPort(inPort: WorkflowStepInputModel) {
         // remove port from canvas
         inPort.isVisible = false;
+        inPort.cleanValidity();
 
         // loop through sources, removing their connections and clearing dangling inputs
         while (inPort.source.length > 0) {
@@ -325,7 +327,15 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     private removeDanglingOutput(connectionId: string) {
         if (!this.graph.hasIncoming(connectionId)) {
             this.graph.removeVertex(connectionId);
-            this.outputs = this.outputs.filter(output => output.connectionId !== connectionId);
+
+            this.outputs = this.outputs.filter(output => {
+                if (output.connectionId === connectionId) {
+                    output.cleanValidity();
+                    return false;
+                }
+
+                return true;
+            });
         }
     }
 
@@ -368,9 +378,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 const indexOf = dests[j].source.indexOf(step.out[i].sourceId);
                 if (indexOf > -1) {
                     dests[j].source.splice(indexOf, 1);
+                    this.validateDestination(dests[j]);
                 }
             }
         }
+
+        step.cleanValidity();
 
         this.eventHub.emit("step.remove", step);
     }
@@ -605,8 +618,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Connects two vertices which have already been added to the graph
      */
-    private addEdge(source: EdgeNode, destination: EdgeNode, isVisible = true) {
-        this.graph.addEdge(source, destination, isVisible);
+    private addEdge(source: EdgeNode, destination: EdgeNode, isVisible = true, isValid = true) {
+        this.graph.addEdge(source, destination, isVisible, isValid);
     }
 
     private checkSrcAndDest(source, destination): [
@@ -661,6 +674,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 }
             }
 
+            this.validateDestination(destination);
+
             if (source instanceof WorkflowInputParameterModel) {
                 this.removeDanglingInput(source.connectionId);
             }
@@ -687,6 +702,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             (destination as WorkflowStepInputModel).parentStep.id === (source as WorkflowStepOutputModel).parentStep.id) {
             throw new Error(`Cannot connect ports that belong to the same step: ${(destination as WorkflowStepInputModel).parentStep.id}`);
         }
+        // add source to destination
+        destination.source.push(source.sourceId);
+
+        const isValid = this.validateConnection(destination, source);
 
         // add edge to the graph
         this.addEdge({
@@ -695,12 +714,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }, {
             id: destination.connectionId,
             type: this.getNodeType(destination)
-        }, show);
-
-        // add source to destination
-        destination.source.push(source.sourceId);
+        }, show, isValid);
 
         this.eventHub.emit("connection.create", source, destination);
+
+        return isValid;
     }
 
     public addStepFromProcess(proc: Process | SBDraft2Process): StepModel {
@@ -798,43 +816,14 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Finds matching ports to which pointA can connect within the workflow.
      * Looks at port type and fileTypes if they are specified.
      */
-    private gatherValidPorts(pointA: any, points: any[]): any[] {
+    private gatherValidPorts(pointA: any, points: any[], ltr: boolean): any[] {
         return points.filter(pointB => {
-            // if both ports belong to the same step, connection is not possible
-            if (pointA.parentStep && pointB.parentStep && pointA.parentStep.id === pointB.parentStep.id) {
-                return false;
-            }
-
-            // fetch type
-            const pointBType  = pointB.type.type;
-            const pointAType  = pointA.type.type;
-            const pointBItems = pointB.type.items;
-            const pointAItems = pointA.type.items;
-
-
-            // match types, defined types can be matched with undefined types
-            if (pointAType === pointBType // match exact type
-                || pointAItems === pointBType //match File[] to File
-                || pointBItems === pointAType // match File to File[]
-                || pointAType === "null"
-                || pointBType === "null") {
-
-                // if both are arrays but not of the same type
-                if (pointAItems && pointBItems && pointAItems !== pointBItems) {
-                    return false;
-                }
-                // if type match is file, and fileTypes are defined on both ports,
-                // match only if fileTypes match
-                if (pointAType === "File" && pointB.fileTypes.length && pointA.fileTypes.length) {
-                    return !!intersection(pointB.fileTypes, pointA.fileTypes).length;
-                }
-
-                // if not file or fileTypes not defined
+            try {
+                checkIfConnectionIsValid(pointA, pointB, ltr);
                 return true;
+            } catch (e) {
+                return false
             }
-
-            // if types are both defined and do not match
-            return false;
         });
     }
 
@@ -856,10 +845,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         if (port instanceof WorkflowInputParameterModel || port instanceof WorkflowStepOutputModel) {
             const destinations = this.gatherDestinations();
-            return this.gatherValidPorts(port, destinations);
+            return this.gatherValidPorts(port, destinations, true);
         } else {
             const sources = this.gatherSources();
-            return this.gatherValidPorts(port, sources);
+            return this.gatherValidPorts(port, sources, false);
         }
     }
 
@@ -1048,9 +1037,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Helper function to connect source to destination
      */
-    private connectSource(source: string, dest: WorkflowOutputParameterModel
-        | WorkflowStepInputModel, destNode: EdgeNode, graph: Graph = this.graph) {
-        const sourceConnectionId = this.getSourceConnectionId(source);
+    private connectSource(sourceId: string, dest: WorkflowOutputParameterModel
+                              | WorkflowStepInputModel, destNode: EdgeNode, graph: Graph = this.graph) {
+        const sourceConnectionId = this.getSourceConnectionId(sourceId);
         // detect if source is a port of an input (has a step in its identifier),
         // if it is a port then add the prefix to form the connectionId
 
@@ -1073,12 +1062,17 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // add a connection between this destination and its source.
         // visibility depends on both nodes, for ports that were "exposed" for example
         // and are connected to nodes which are invisible
+
+        const isValid = this.validateConnection(dest, sourceModel, graph);
+
         graph.addEdge({
                 id: sourceModel.connectionId,
                 type: this.getNodeType(sourceModel)
             },
             destNode,
-            isVisible);
+            isVisible,
+            isValid);
+
     };
 
     public constructGraph(): Graph {
@@ -1144,4 +1138,150 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         new UnimplementedMethodException("getSourceConnectionId");
         return undefined;
     }
+
+    /**
+     * Validate all visible connections and sets correct validity state on destinations
+     */
+    private validateConnections(): Promise<any> {
+
+        const sources = this.gatherSources();
+        const destinations = this.gatherDestinations();
+
+        this.connections.forEach((connection) => {
+
+            if (connection.isVisible) {
+                const source = sources.find((item) => {
+                    return item.connectionId === connection.source.id;
+                });
+
+                const destination = destinations.find((item) => {
+                    return item.connectionId === connection.destination.id;
+                });
+
+                this.validateConnection(destination, source);
+            }
+        });
+
+        return new Promise((resolve) => resolve());
+    }
+
+    /**
+     * Validate connection between source and destination and sets correct validity state on destination
+     */
+    private validateConnection (destination: WorkflowOutputParameterModel | WorkflowStepInputModel,
+                        source: WorkflowInputParameterModel | WorkflowStepOutputModel, graph = this.graph) {
+
+        if (!source || !destination) {
+            return;
+        }
+
+        let isValid = false;
+
+        try {
+            checkIfConnectionIsValid(source, destination);
+            isValid = true;
+
+        } catch (e) {
+
+            const sourceText = destination instanceof V1WorkflowOutputParameterModel ? "outputSource" : "source";
+
+            destination.updateValidity({
+                [destination.loc + `.${sourceText}[` + source.sourceId + "]"]: {
+                    message: e.message,
+                    type: "warning"
+                }
+            });
+        }
+
+        Array.from(graph.edges).filter((c) =>
+                    c.isVisible && (c.destination.id === destination.connectionId && c.source.id === source.connectionId))
+                .forEach((c) => {
+                c.isValid = isValid;
+            });
+
+        return isValid;
+    }
+
+    /**
+     * Validate all connections made with given destination
+     */
+    private validateDestination(destination: WorkflowOutputParameterModel | WorkflowStepInputModel) {
+
+        destination.cleanValidity();
+
+        // Find all sources connected to given destination
+        const sources = this.connections.filter((connection) => {
+            return connection.isVisible && (connection.destination.id === destination.connectionId);
+        }).map((connection) => {
+            return this.findById(connection.source.id);
+        });
+
+        // Validate all connections
+        sources.forEach((source) => {
+           this.validateConnection(destination, source);
+        });
+
+    }
+
+    /**
+     * Validate all connections made with given IO port
+     */
+    validateConnectionsForIOPort(port: WorkflowOutputParameterModel | WorkflowInputParameterModel) {
+
+        if (port instanceof WorkflowInputParameterModel) {
+
+            const destinations = this.connections.filter((connection) => {
+                return connection.isVisible && (connection.source.id === port.connectionId);
+            }).map((connection) => {
+                return this.findById(connection.destination.id);
+            });
+
+            // Validate destination in case when connection goes from invalid > valid to remove warning
+            // (This is because we do not have currently method to remove certain keys in issues - ValidationBase)
+            destinations.forEach(destination => {
+                this.validateDestination(destination);
+            });
+
+        } else {
+            // If port is output
+            this.validateDestination(port as WorkflowOutputParameterModel);
+        }
+
+        this.eventHub.emit("connections.updated");
+    }
+
+    public validate(): Promise<any> {
+
+        this.cleanValidity();
+        const promises = [];
+
+        promises.concat(this.steps.map(step => step.validate()));
+        promises.concat(this.inputs.map(inp => inp.validate()));
+        promises.concat(this.outputs.map(out => out.validate()));
+
+        promises.push(this.validateConnections());
+
+        try {
+            this.graph.topSort();
+        } catch (ex) {
+            if (ex.message === "Graph has cycles") {
+                this.updateValidity({
+                    [this.loc]: {
+                        message: "Graph has cycles",
+                        type: "error"
+                    }
+                });
+            } else if (ex === "Can't sort unconnected graph") {
+                this.updateValidity({
+                    [this.loc]: {
+                        message: "Graph is not connected",
+                        type: "warning"
+                    }
+                });
+            }
+        }
+
+        return Promise.all(promises).then(() => this.issues);
+    }
+
 }

@@ -79,6 +79,8 @@ export class SBDraft2StepModel extends StepModel {
                 ...serialized,
             }, this, `${this.loc}.inputs[${index}]`);
 
+            newPort.setValidationCallback((err) => this.updateValidity(err));
+
             // in case the port was inserted, signify to parent workflow that
             // it should be added to the graph
             if (inserted.find(i => i.id === newPort.id)) {

@@ -30,7 +30,7 @@ export default JSON.parse(`{
         "inputs": [
           {
             "id": "tarfile",
-            "type": "File",
+            "type": "File[]",
             "inputBinding": {
               "position": 1
             }
