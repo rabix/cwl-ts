@@ -14,8 +14,7 @@ import {RequirementBaseModel} from "./RequirementBaseModel";
 import {ResourceRequirementModel} from "./ResourceRequirementModel";
 import {EventHub} from "../helpers/EventHub";
 import {
-    fetchByLoc, flatten, incrementLastLoc, incrementString, isEmpty, isType,
-    validateID
+    fetchByLoc, flatten, getNextAvailableId, checkIdValidity, incrementLastLoc, isEmpty, isType,
 } from "../helpers/utils";
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandLinePart} from "../helpers/CommandLinePart";
@@ -101,38 +100,6 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.eventHub.off(event, handler);
     }
 
-    protected getNextAvailableId(id: string, set?: Array<CommandOutputParameterModel | CommandInputParameterModel>) {
-        let hasId  = true;
-        let result = id;
-
-        set       = set || [...this.outputs, ...this.inputs];
-        const len = set.length;
-
-        while (hasId) {
-            hasId = false;
-
-            // loop through all inputs and outputs to verify id uniqueness
-            for (let i = 0; i < len; i++) {
-                if (set[i].id === result) {
-                    hasId  = true;
-                    // if id exists, increment and check the uniqueness of the incremented id
-                    result = incrementString(result);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    protected checkIdValidity(id: string, scope?: Array<CommandInputParameterModel | CommandOutputParameterModel>) {
-        validateID(id);
-
-        const next = this.getNextAvailableId(id, scope);
-        if (next !== id) {
-            throw new Error(`ID "${id}" already exists in this tool, the next available id is "${next}"`);
-        }
-    }
-
     public changeIOId(port: CommandInputParameterModel | CommandOutputParameterModel, id: string) {
         if (port.id === id) {
             return;
@@ -153,7 +120,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         }
 
         // verify that the new ID can be set
-        this.checkIdValidity(id, scope);
+        checkIdValidity(id, scope || [...this.inputs, ...this.outputs]);
 
         port.id = id;
         if (isType(port, ["record", "enum"])) {
@@ -318,7 +285,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     _addOutput(outputConstructor, output?) {
         const loc = incrementLastLoc(this.outputs, `${this.loc}.outputs`);
-        const id  = this.getNextAvailableId("output");
+        const id  = getNextAvailableId("output", [...this.inputs, ...this.outputs]);
 
         if (output) {
             output.id = output.id || id;
@@ -331,7 +298,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         o.setValidationCallback(err => this.updateValidity(err));
 
         try {
-            this.checkIdValidity(o.id)
+            checkIdValidity(o.id, [...this.inputs, ...this.outputs])
         } catch (ex) {
             this.setIssue({
                 [o.loc + ".id"]: {
@@ -368,7 +335,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     protected _addInput(inputConstructor, input?) {
         const loc = incrementLastLoc(this.inputs, `${this.loc}.inputs`);
-        const id  = this.getNextAvailableId("input");
+        const id  = getNextAvailableId("input", [...this.inputs, ...this.outputs]);
 
         if (input) {
             input.id = input.id || id;
@@ -381,7 +348,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         i.setValidationCallback(err => this.updateValidity(err));
 
         try {
-            this.checkIdValidity(i.id)
+            checkIdValidity(i.id, [...this.inputs, ...this.outputs]);
         } catch (ex) {
             this.setIssue({
                 [i.loc + ".id"]: {

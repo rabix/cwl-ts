@@ -1,21 +1,26 @@
-import {StepModel} from "../generic/StepModel";
-import {WorkflowStep} from "../../mappings/v1.0/WorkflowStep";
-import {Serializable} from "../interfaces/Serializable";
-import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
-import {V1WorkflowStepOutputModel} from "./V1WorkflowStepOutputModel";
-import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
-import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {Workflow} from "../../mappings/v1.0/Workflow";
+import {WorkflowStep} from "../../mappings/v1.0/WorkflowStep";
 import {CommandLineToolFactory} from "../generic/CommandLineToolFactory";
-import {OutputParameter} from "../generic/OutputParameter";
-import {InputParameterModel} from "../generic/InputParameterModel";
-import {EventHub} from "../helpers/EventHub";
 import {ExpressionToolModel} from "../generic/ExpressionToolModel";
+import {InputParameterModel} from "../generic/InputParameterModel";
+import {OutputParameter} from "../generic/OutputParameter";
 import {ProcessRequirement} from "../generic/ProcessRequirement";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
-import {V1ExpressionModel} from "./V1ExpressionModel";
+import {StepModel} from "../generic/StepModel";
+import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {WorkflowModel} from "../generic/WorkflowModel";
-import {CommandLineToolModel} from "../generic/CommandLineToolModel";
+import {EventHub} from "../helpers/EventHub";
+import {
+    ensureArray,
+    isFileType,
+    snakeCase,
+    spreadAllProps,
+    spreadSelectProps
+} from "../helpers/utils";
+import {Serializable} from "../interfaces/Serializable";
+import {V1ExpressionModel} from "./V1ExpressionModel";
+import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
+import {V1WorkflowStepOutputModel} from "./V1WorkflowStepOutputModel";
 
 export class V1StepModel extends StepModel implements Serializable<WorkflowStep> {
     public "in": V1WorkflowStepInputModel[] = [];
@@ -30,7 +35,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
     }
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
-        return this.createReq(hint, V1ExpressionModel, undefined,  true);
+        return this.createReq(hint, V1ExpressionModel, undefined, true);
     }
 
     serializeEmbedded(retainSource: boolean = false): WorkflowStep {
@@ -73,7 +78,9 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         if (this.scatter.length) base.scatter = this.scatter;
         if (this.scatterMethod) base.scatterMethod = this.scatterMethod;
 
-        if (this.hints.length) { base.hints = this.hints.map((hint) => hint.serialize())}
+        if (this.hints.length) {
+            base.hints = this.hints.map((hint) => hint.serialize())
+        }
 
         return spreadAllProps(base, temp);
     }
@@ -93,7 +100,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
         this.id          = step.id || "";
         this.description = step.doc;
-        this._label       = step.label;
+        this._label      = step.label;
         const hasRun     = step.run && (step.run as any).class;
 
         if (typeof step.run === "string") {
@@ -143,8 +150,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         if (process && process.class) {
             this.createRun(process);
 
-            this.compareInPorts();
-            this.compareOutPorts();
+            this.compareInPorts(true);
+            this.compareOutPorts(true);
         }
     }
 
@@ -163,70 +170,107 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
                 throw new Error(`Unknown process class "${process.class}" at ${this.loc}.step. Expected "CommandLineTool", "Workflow", or "ExpressionTool"`);
         }
 
-        this.id    = this.id || snakeCase(this.run.id) || snakeCase(this.loc);
+        // when the step is being updated, the ID will not change
+        this.id     = this.id || snakeCase(this.run.id) || snakeCase(this.loc);
         this._label = this._label || this.run.label || "";
     }
 
-    protected compareInPorts() {
-        const inPorts: Array<V1WorkflowStepInputModel> = this.in;
-        const stepInputs: Array<InputParameterModel>   = this.run.inputs;
+    protected compareInPorts(isUpdate = false) {
+        const runInputs: InputParameterModel[] = this.run.inputs;
 
-        // check if step.in includes ports which are not defined in the app
-        const inserted = inPorts.filter(port => {
-            return stepInputs.findIndex(inp => inp.id === port.id) === -1;
-        });
+        let inserted = [], removed, remaining;
+        remaining    = this.in;
 
-        // if there are steps in ports which aren't in the app, throw a warning for interface mismatch
-        if (inserted.length) {
-            this.setIssue({[this.loc]: {
-                message: `Step contains input ports which are not present on the app: ${inserted.map(port => port.id).join(",")}. It will not be included in the workflow.`,
-                type: "warning"
-            }});
+        // only send events for creating, removing and updating ports if the run is being updated
+        // when the workflow is initialized the first time, all this will happen automatically
+        if (isUpdate) {
+            [inserted, remaining, removed] = StepModel.portDifference(this.in, this.run.inputs);
+
+            // emit an event about the in port being removed so the workflow can remove it from the graph
+            removed.forEach(r => this.eventHub.emit("step.inPort.remove", r));
+
+            // fyi: inserted and remaining nodes are updated in the graph after the model is created because
+            // 1. inserted array is of InputParamModel and doesn't have connectionId (can't be added to graph)
+            // 2. remaining array doesn't have now info yet (changed type, fileTypes, etc)
         }
 
-        // because type cannot be check on the level of the step (step.in is just the id of the incoming port),
+        // because type cannot be check on the level of the step
+        // (step.in is just the id of the incoming port),
         // type and fileTypes from the app's inputs are spliced into the in ports.
         // Type validation is done for connections based on this information
-        this.in = stepInputs.map((input, index) => {
-            let match: any = inPorts.find(port => input.id === port.id);
+        this.in = runInputs.map((input, index) => {
+            let match: any = remaining.find(port => input.id === port.id);
 
-            if (match && match.type && match.type.type) {
-                if (match.type.type !== input.type.type || match.type.items !== input.type.items) {
-                    this.setIssue({[`${this.loc}.inputs[${index}]`]: {
-                        type: "error",
-                        message: `Schema mismatch between step input ${this.loc}.inputs[${index}] and step run input ${input.loc}.`
-                    }});
-                }
-            }
-
-            match = match ? match.serialize() : {id: input.id};
+            // serialize the match to create a new input from it
+            const serialized = match ? match.serialize() : {id: input.id};
 
             // here will set source and default if they exist
-            return new V1WorkflowStepInputModel({
+            const model = new V1WorkflowStepInputModel({
                 type: input.type,
                 format: input.fileTypes || [],
                 doc: input.description,
                 label: input.label,
-                ...match
+                ...serialized // serialized match goes last so changed properties are overwritten
             }, this, `${this.loc}.in[${index}]`);
+
+            model.setValidationCallback((err) => this.updateValidity(err));
+
+            // in case the port was inserted, signify to parent workflow that
+            // it should be added to the graph
+            if (inserted.find(i => i.id === model.id)) {
+                this.eventHub.emit("step.inPort.add", model);
+            }
+
+            // in case there is a match and the step is being updated, signify to parent workflow
+            // to update node info in graph
+            if (match && isUpdate) {
+                this.eventHub.emit("step.port.change", model);
+            }
+
+            // maintain the same visibility of the port
+            // if the match was found, set to old visibility. If not, show if it's a required file
+            model.isVisible = match ? match.isVisible : isFileType(model, true);
+
+            return model;
         }).filter(port => port !== undefined);
     }
 
-    protected compareOutPorts() {
-        const outPorts: Array<V1WorkflowStepOutputModel> = this.out;
-        const stepOutputs: Array<OutputParameter>        = this.run.outputs;
+    protected compareOutPorts(isUpdate = false) {
+        const runOutputs: Array<OutputParameter> = this.run.outputs;
 
-        this.out = stepOutputs.map((output, index) => {
-            let match: any = outPorts.find(port => port.id === output.id);
+        let inserted = [], removed, remaining;
+
+        // only send events for creating, removing, and updating ports if the run is being updated
+        // when the workflow is initialized the first time, all this will happen automatically
+        if (isUpdate) {
+            [inserted, remaining, removed] = StepModel.portDifference(this.out, this.run.outputs);
+
+            // emit an event about the in port being removed so the workflow can remove it from the graph
+            removed.forEach(r => this.eventHub.emit("step.outPort.remove", r));
+        }
+
+        this.out = runOutputs.map((output, index) => {
+            let match: any = this.out.find(port => port.id === output.id);
             match          = match ? match.serialize() : {id: output.id};
 
-            return new V1WorkflowStepOutputModel({
+            const model = new V1WorkflowStepOutputModel({
                 type: output.type,
                 format: output.fileTypes || [],
                 doc: output.description,
                 label: output.label,
                 ...match
             }, this, `${this.loc}.out[${index}]`);
+
+            if (inserted.find(i => i.id === model.id)) {
+                this.eventHub.emit("step.outPort.add", model);
+            }
+
+            if (match && isUpdate) {
+                this.eventHub.emit("step.port.change", model);
+            }
+
+            return model;
+
         }).filter(port => port !== undefined);
     }
 }

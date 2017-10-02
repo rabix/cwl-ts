@@ -3,10 +3,11 @@ import {UnimplementedMethodException} from "../helpers/UnimplementedMethodExcept
 import {Serializable} from "../interfaces/Serializable";
 import {DirentModel} from "./DirentModel";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
+import {ExpressionModel} from "./ExpressionModel";
 
 export abstract class CreateFileRequirementModel extends ProcessRequirementModel implements Serializable<any> {
     class: string;
-    listing: DirentModel[];
+    listing: Array<DirentModel| ExpressionModel>;
 
     constructor(loc?: string, protected eventHub?: EventHub) {
         super(loc);
@@ -14,6 +15,11 @@ export abstract class CreateFileRequirementModel extends ProcessRequirementModel
 
     public addDirent(def?: any): DirentModel {
         new UnimplementedMethodException("addDirent", "CreateFileRequirementModel");
+        return null;
+    }
+
+    public addExpression(e: ExpressionModel | string) {
+        new UnimplementedMethodException("addExpression", "CreateFileRequirementModel");
         return null;
     }
 

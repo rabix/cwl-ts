@@ -654,6 +654,221 @@ describe("V1WorkflowModel", () => {
         });
     });
 
+    describe("step.setRunProcess", () => {
+        let model: V1WorkflowModel;
+        beforeEach(() => {
+            model = new V1WorkflowModel({
+                class: "Workflow",
+                cwlVersion: "v1.0",
+                inputs: [{
+                    id: "inp"
+                }],
+                outputs: [
+                    {
+                        id: "out",
+                        outputSource: ["step1/sOut"]
+                    }
+                ],
+                steps: [
+                    {
+                        id: "step1",
+                        in: [
+                            {
+                                id: "sIn",
+                                source: ["inp"]
+                            }
+                        ],
+                        out: [
+                            {
+                                id: "sOut",
+                            }
+                        ],
+                        run: {
+                            cwlVersion: "v1.0",
+                            class: "CommandLineTool",
+                            inputs: {
+                                sIn: "string"
+                            },
+                            outputs: {
+                                sOut: "string"
+                            }
+                        }
+                    }
+                ]
+            } as any);
+        });
+
+        it("should add a new input port", () => {
+            const update = {
+                class: "CommandLineTool",
+                cwlVersion: "v1.0",
+                inputs: {
+                    sIn: "string",
+                    sIn2: "string"
+                },
+                outputs: {
+                    sOut: "string"
+                }
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+
+            model.steps[0].setRunProcess(update);
+            expect(model.steps[0].in).to.have.lengthOf(2);
+            expect(model.nodes).to.have.lengthOf(6);
+        });
+
+        it("should add a new visible input port if type is File", () => {
+            const update = {
+                cwlVersion: "v1.0",
+                class: "CommandLineTool",
+                inputs: {
+
+                    sIn: "string",
+                    sIn2: "File"
+                },
+                outputs: {
+                    sOut: "string"
+                }
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+
+            model.steps[0].setRunProcess(update);
+            expect(model.steps[0].in).to.have.lengthOf(2);
+            expect(model.steps[0].in[1].isVisible).to.be.true;
+            expect(model.nodes).to.have.lengthOf(6);
+            expect(model.connections).to.have.lengthOf(5);
+
+        });
+
+        it("should add a new output port", () => {
+            const update = {
+                class: "CommandLineTool",
+                cwlVersion: "v1.0",
+                inputs: {
+                    sIn: "string",
+                },
+                outputs: {
+                    sOut: "string",
+                    sOut2: "string"
+                }
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+
+            model.steps[0].setRunProcess(update);
+            expect(model.steps[0].out).to.have.lengthOf(2);
+            expect(model.nodes).to.have.lengthOf(6);
+            expect(model.connections).to.have.lengthOf(5);
+
+        });
+
+        it("should not change id of step", () => {
+            const update = {
+                cwlVersion: "v1.0",
+                id: "new_id",
+                class: "CommandLineTool",
+                inputs: {
+                    sIn: "string"
+                },
+                outputs: {
+                    sOut: "string"
+                }
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+            expect(model.steps[0].id).to.equal("step1");
+
+            model.steps[0].setRunProcess(update);
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+            expect(model.steps[0].id).to.equal("step1");
+        });
+
+        it("should remove an input port and clean up dangling inputs", () => {
+            const update = {
+                cwlVersion: "v1.0",
+                class: "CommandLineTool",
+                inputs: {},
+                outputs: {
+                    sOut: "string"
+                }
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+
+            model.steps[0].setRunProcess(update);
+
+            expect(model.nodes).to.have.lengthOf(3);
+            expect(model.connections).to.have.lengthOf(2);
+            expect(model.inputs).to.have.lengthOf(0);
+            expect(model.steps[0].in).to.have.lengthOf(0);
+        });
+
+
+        it("should remove an output port and clean up dangling outputs", () => {
+            const update = {
+                cwlVersion: "v1.0",
+                class: "CommandLineTool",
+                outputs: {},
+                inputs: {
+                    sIn: "string"
+                },
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+
+            model.steps[0].setRunProcess(update);
+
+            expect(model.nodes).to.have.lengthOf(3);
+            expect(model.connections).to.have.lengthOf(2);
+            expect(model.outputs).to.have.lengthOf(0);
+            expect(model.steps[0].out).to.have.lengthOf(0);
+        });
+
+        it("should change type of step input and step output", () => {
+            const update = {
+                id: "new_id",
+                cwlVersion: "v1.0",
+                class: "CommandLineTool",
+                inputs: {
+                    sIn: "File"
+                },
+                outputs: {
+                    sOut: "File"
+                }
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+            expect(model.steps[0].in[0].type.type).to.equal("string");
+            expect(model.steps[0].out[0].type.type).to.equal("string");
+
+            model.steps[0].setRunProcess(update);
+
+            expect(model.nodes).to.have.lengthOf(5);
+
+            expect(model.connections).to.have.lengthOf(4);
+            // should update model
+            expect(model.steps[0].in[0].type.type).to.equal("File");
+            expect(model.steps[0].out[0].type.type).to.equal("File");
+
+            // should update graph
+            const sInGraphNode = model.nodes.find(n => n[0] === model.steps[0].in[0].connectionId);
+            const sOutGraphNode = model.nodes.find(n => n[0] === model.steps[0].out[0].connectionId);
+
+            expect(sInGraphNode[1].type.type).to.equal("File");
+            expect(sOutGraphNode[1].type.type).to.equal("File");
+        });
+    });
+
     describe("has cycles", () => {
         it("should recognize cycle in output", (done) => {
             const wf = new V1WorkflowModel({

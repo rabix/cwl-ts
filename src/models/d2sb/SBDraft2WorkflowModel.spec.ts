@@ -3,14 +3,15 @@ import {WorkflowFactory} from "../generic/WorkflowFactory";
 import * as OneStepWf from "../../tests/apps/one-step-wf-draf2";
 import * as TwoStepWf from "../../tests/apps/two-step-wf-draft2";
 import {WorkflowModel} from "../generic/WorkflowModel";
+import {SBDraft2WorkflowModel} from "./SBDraft2WorkflowModel";
 
 
 describe("SBDraft2WorkflowModel", () => {
     describe("exposePort", () => {
         it("should add a new input on the workflow and connect it to port", () => {
-            const wf = WorkflowFactory.from(OneStepWf.default);
+            const wf          = WorkflowFactory.from(OneStepWf.default);
             const connections = wf.connections.length;
-            const inputs = wf.inputs.length;
+            const inputs      = wf.inputs.length;
 
             wf.exposePort(wf.steps[0].in[1]);
 
@@ -20,7 +21,7 @@ describe("SBDraft2WorkflowModel", () => {
         });
 
         it("should include in ports after being exposed", () => {
-            const wf = WorkflowFactory.from(OneStepWf.default);
+            const wf     = WorkflowFactory.from(OneStepWf.default);
             const inputs = wf.inputs.length;
 
             const inPort = wf.steps[0].in[1];
@@ -43,7 +44,7 @@ describe("SBDraft2WorkflowModel", () => {
         });
 
         it("should expose connected port", () => {
-            const wf = WorkflowFactory.from(OneStepWf.default);
+            const wf     = WorkflowFactory.from(OneStepWf.default);
             const inputs = wf.inputs.length;
 
             const inPort = wf.steps[0].in[3];
@@ -75,7 +76,7 @@ describe("SBDraft2WorkflowModel", () => {
 
     describe("clearPort", () => {
         it("should set port to invisible and remove its connections", () => {
-            const wf = WorkflowFactory.from(OneStepWf.default);
+            const wf          = WorkflowFactory.from(OneStepWf.default);
             const connections = wf.connections.length;
 
             wf.clearPort(wf.steps[0].in[3]);
@@ -92,7 +93,7 @@ describe("SBDraft2WorkflowModel", () => {
         });
 
         it("should remove connected input on cleared port if input has no connection", () => {
-            const wf = WorkflowFactory.from(OneStepWf.default);
+            const wf     = WorkflowFactory.from(OneStepWf.default);
             const inputs = wf.inputs.length;
 
             const inPort = wf.steps[0].in[3];
@@ -193,14 +194,14 @@ describe("SBDraft2WorkflowModel", () => {
 
         it("should set batchByValue and batchInput to string or array of strings", () => {
 
-            const id1 = "input1";
+            const id1    = "input1";
             const value1 = "item";
 
             wf.setBatch(id1, value1);
             expect(wf["batchInput"]).to.equal(id1);
             expect(wf["batchByValue"]).to.equal(value1);
 
-            const id2 = "input2";
+            const id2    = "input2";
             const value2 = ["value1", "value2"];
 
             wf.setBatch("input2", value2);
@@ -336,7 +337,7 @@ describe("SBDraft2WorkflowModel", () => {
         });
 
         it("should remove the input from wf.inputs by connectionId", () => {
-            const inputs = wf.inputs.length;
+            const inputs      = wf.inputs.length;
             const connections = wf.connections.length;
             expect(wf.steps[0].in[0].source).to.contain(wf.inputs[0].sourceId);
 
@@ -359,7 +360,7 @@ describe("SBDraft2WorkflowModel", () => {
 
         it("should remove node and connections", () => {
             const connections = wf.connections.length;
-            const nodes = wf.nodes.length;
+            const nodes       = wf.nodes.length;
             wf.removeInput(wf.inputs[0]);
 
             expect(wf.connections).to.have.length(connections - 1);
@@ -382,27 +383,27 @@ describe("SBDraft2WorkflowModel", () => {
         });
 
         it("should remove the output from wf.outputs by connectionId", () => {
-            const outputs = wf.outputs.length;
+            const outputs     = wf.outputs.length;
             const connections = wf.connections.length;
-            const nodes = wf.nodes.length;
+            const nodes       = wf.nodes.length;
 
             wf.removeOutput(wf.outputs[0].connectionId);
 
             expect(wf.connections).to.have.length(connections - 1);
             expect(wf.nodes).to.have.length(nodes - 1);
-            expect(wf.outputs.length).to.equal(outputs -1);
+            expect(wf.outputs.length).to.equal(outputs - 1);
         });
 
         it("should remove the output from wf.outputs", () => {
             const outputs = wf.outputs.length;
             wf.removeOutput(wf.outputs[0]);
 
-            expect(wf.outputs.length).to.equal(outputs -1);
+            expect(wf.outputs.length).to.equal(outputs - 1);
         });
 
         it("should remove node and connections", () => {
             const connections = wf.connections.length;
-            const nodes = wf.nodes.length;
+            const nodes       = wf.nodes.length;
             wf.removeOutput(wf.outputs[0]);
 
             expect(wf.connections).to.have.length(connections - 1);
@@ -420,7 +421,7 @@ describe("SBDraft2WorkflowModel", () => {
 
         it("should remove step from wf.steps by connectionId", () => {
             const steps = wf.steps.length;
-            const conn = wf.connections.length;
+            const conn  = wf.connections.length;
             const nodes = wf.nodes.length;
 
             wf.removeStep(wf.steps[0].connectionId);
@@ -438,7 +439,7 @@ describe("SBDraft2WorkflowModel", () => {
         });
 
         it("should remove nodes and connections from graph", () => {
-            const conn = wf.connections.length;
+            const conn  = wf.connections.length;
             const nodes = wf.nodes.length;
 
             wf.removeStep(wf.steps[0]);
@@ -449,7 +450,7 @@ describe("SBDraft2WorkflowModel", () => {
 
         it("should remove sources from outputs", () => {
             const step = wf.steps[1];
-            const out = step.out[0].sourceId;
+            const out  = step.out[0].sourceId;
 
             expect(wf.outputs[0].source).to.contain(out);
             wf.removeStep(step);
@@ -458,7 +459,7 @@ describe("SBDraft2WorkflowModel", () => {
 
         it("should remove sources from other steps", () => {
             const step = wf.steps[0];
-            const out = step.out[0].sourceId;
+            const out  = step.out[0].sourceId;
 
             const target = wf.steps[1].in[0].source;
 
@@ -584,7 +585,7 @@ describe("SBDraft2WorkflowModel", () => {
     });
 
     describe("serialize", () => {
-       it("should return the same basic workflow with all properties", () => {
+        it("should return the same basic workflow with all properties", () => {
             const data = {
                 "class": "Workflow",
                 "cwlVersion": "sbg:draft-2",
@@ -947,9 +948,224 @@ describe("SBDraft2WorkflowModel", () => {
                 },
                 "sbg:batchInput": "#testId"
             };
-            const wf = WorkflowFactory.from(data as any);
+            const wf   = WorkflowFactory.from(data as any);
 
             expect(wf.serialize()).to.deep.equal(data);
-       });
+        });
+    });
+
+    describe("step.setRunProcess", () => {
+        let model: SBDraft2WorkflowModel;
+        beforeEach(() => {
+            model = new SBDraft2WorkflowModel({
+                class: "Workflow",
+                cwlVersion: "sbg:draft-2",
+                inputs: [{
+                    id: "#inp",
+                    "sbg:includeInPorts": true
+                }],
+                outputs: [
+                    {
+                        id: "#out",
+                        source: ["#step1.sOut"]
+                    }
+                ],
+                steps: [
+                    {
+                        id: "#step1",
+                        inputs: [
+                            {
+                                id: "#step1.sIn",
+                                source: ["#inp"]
+                            }
+                        ],
+                        outputs: [
+                            {
+                                id: "#step1.sOut",
+                            }
+                        ],
+                        run: {
+                            cwlVersion: "sbg:draft-2",
+                            class: "CommandLineTool",
+                            inputs: [
+                                {id: "#sIn", type: "string"}
+                            ],
+                            outputs: [
+                                {id: "#sOut", type: "string"}
+                            ]
+                        }
+                    }
+                ]
+            });
+        });
+
+        it("should add a new input port", () => {
+            const update = {
+                class: "CommandLineTool",
+                cwlVersion: "sbg:draft-2",
+                inputs: [
+                    {id: "#sIn", type: "string"},
+                    {id: "#sIn2", type: "string"}
+                ],
+                outputs: [
+                    {id: "#sOut", type: "string"}
+                ]
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+
+            model.steps[0].setRunProcess(update);
+            expect(model.steps[0].in).to.have.lengthOf(2);
+            expect(model.nodes).to.have.lengthOf(6);
+        });
+
+        it("should add a new visible input port if type is File", () => {
+            const update = {
+                cwlVersion: "sbg:draft-2",
+                class: "CommandLineTool",
+                inputs: [
+                    {id: "#sIn", type: "string"},
+                    {id: "#sIn2", type: "File"}
+                ],
+                outputs: [
+                    {id: "#sOut", type: "string"}
+                ]
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+
+            model.steps[0].setRunProcess(update);
+            expect(model.steps[0].in).to.have.lengthOf(2);
+            expect(model.steps[0].in[1].isVisible).to.be.true;
+            expect(model.nodes).to.have.lengthOf(6);
+            expect(model.connections).to.have.lengthOf(5);
+
+        });
+
+        it("should add a new output port", () => {
+            const update = {
+                class: "CommandLineTool",
+                cwlVersion: "sbg:draft-2",
+                inputs: [
+                    {id: "#sIn", type: "string"}
+                ],
+                outputs: [
+                    {id: "#sOut", type: "string"},
+                    {id: "#sOut2", type: "string"}
+                ]
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+
+            model.steps[0].setRunProcess(update);
+            expect(model.steps[0].out).to.have.lengthOf(2);
+            expect(model.nodes).to.have.lengthOf(6);
+            expect(model.connections).to.have.lengthOf(5);
+
+        });
+
+        it("should not change id of step", () => {
+            const update = {
+                cwlVersion: "sbg:draft-2",
+                id: "#new_id",
+                class: "CommandLineTool",
+                inputs: [
+                    {id: "#sIn", type: "string"}
+                ],
+                outputs: [
+                    {id: "#sOut", type: "string"}
+                ]
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+            expect(model.steps[0].id).to.equal("step1");
+
+            model.steps[0].setRunProcess(update);
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+            expect(model.steps[0].id).to.equal("step1");
+        });
+
+        it("should remove an input port and clean up dangling inputs", () => {
+            const update = {
+                cwlVersion: "sbg:draft-2",
+                class: "CommandLineTool",
+                inputs: [],
+                outputs: [
+                    {id: "#sOut", type: "string"}
+                ]
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+
+            model.steps[0].setRunProcess(update);
+
+            expect(model.nodes).to.have.lengthOf(3);
+            expect(model.connections).to.have.lengthOf(2);
+            expect(model.inputs).to.have.lengthOf(0);
+            expect(model.steps[0].in).to.have.lengthOf(0);
+        });
+
+
+        it("should remove an output port and clean up dangling outputs", () => {
+            const update = {
+                cwlVersion: "sbg:draft-2",
+                class: "CommandLineTool",
+                inputs: [
+                    {id: "#sIn", type: "string"}
+                ],
+                outputs: []
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+
+            model.steps[0].setRunProcess(update);
+
+            expect(model.nodes).to.have.lengthOf(3);
+            expect(model.connections).to.have.lengthOf(2);
+            expect(model.outputs).to.have.lengthOf(0);
+            expect(model.steps[0].out).to.have.lengthOf(0);
+        });
+
+        it("should change type of step input and step output", () => {
+            const update = {
+                id: "#new_id",
+                cwlVersion: "sbg:draft-2",
+                class: "CommandLineTool",
+                inputs: [
+                    {id: "#sIn", type: "File"}
+                ],
+                outputs: [
+                    {id: "#sOut", type: "File"}
+                ]
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+            expect(model.steps[0].in[0].type.type).to.equal("string");
+            expect(model.steps[0].out[0].type.type).to.equal("string");
+
+            model.steps[0].setRunProcess(update);
+
+            expect(model.nodes).to.have.lengthOf(5);
+
+            expect(model.connections).to.have.lengthOf(4);
+            // should update model
+            expect(model.steps[0].in[0].type.type).to.equal("File");
+            expect(model.steps[0].out[0].type.type).to.equal("File");
+
+            // should update graph
+            const sInGraphNode  = model.nodes.find(n => n[0] === model.steps[0].in[0].connectionId);
+            const sOutGraphNode = model.nodes.find(n => n[0] === model.steps[0].out[0].connectionId);
+
+            expect(sInGraphNode[1].type.type).to.equal("File");
+            expect(sOutGraphNode[1].type.type).to.equal("File");
+        });
     });
 });
