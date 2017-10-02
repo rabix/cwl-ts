@@ -1,4 +1,3 @@
-import {isUndefined} from "util";
 import {CommandOutputBinding} from "../../mappings/d2sb/CommandOutputBinding";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {CommandOutputBindingModel} from "../generic/CommandOutputBindingModel";
@@ -76,7 +75,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
             base["sbg:metadata"] = {};
             Object.keys(this.metadata).filter(key => key).forEach(key => {
                 const serialized = this.metadata[key].serialize();
-                if (!isUndefined(serialized)) {
+                if (serialized !== undefined) {
                     base["sbg:metadata"][key] = <string | Expression> serialized;
                 }
             });

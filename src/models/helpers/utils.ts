@@ -3,6 +3,8 @@ import {CommandOutputParameterModel} from "../generic/CommandOutputParameterMode
 import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
 import {ID_REGEX} from "./constants";
+import {ErrorCode, ValidityError} from "./validation/ErrorCode";
+
 export const ensureArray = (map: { [key: string]: any }
     | any[]
     | string
@@ -203,11 +205,11 @@ export const nullifyObjValues = (obj: Object): any => {
 
 export const validateID = (id: string) => {
     if (!id) {
-        throw new Error("ID must be set");
+        throw new ValidityError("ID must be set", ErrorCode.ID_MISSING);
     }
 
     if (!ID_REGEX.test(id)) {
-        throw new Error(`ID "${id}" contains invalid characters`);
+        throw new ValidityError(`ID "${id}" contains invalid characters`, ErrorCode.ID_INVALID_CHAR);
     }
 };
 
@@ -253,7 +255,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
 
     // if both ports belong to the same step, connection is not possible
     if (pointA.parentStep && pointB.parentStep && pointA.parentStep.id === pointB.parentStep.id) {
-        throw new Error(`Invalid connection. Source and destination ports belong to the same step`);
+        throw new ValidityError(`Invalid connection. Source and destination ports belong to the same step`, ErrorCode.CONNECTION_SAME_STEP);
     }
 
     const getType = (type) => {
@@ -264,7 +266,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
         if (Array.isArray(type)) {
             return "union";
         }
-        if (isObject(type)) {
+        if (typeof type === "object" && type !== null) {
             return "object";
         }
     };
@@ -295,7 +297,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
 
         // if both are arrays but not of the same type
         if (pointAItems && pointBItems && pointAItems !== pointBItems) {
-            throw new Error(`Invalid connection. Connection type mismatch, attempting to connect "${pointAItems}[]" to "${pointBItems}[]"`);
+            throw new ValidityError(`Invalid connection. Connection type mismatch, attempting to connect "${pointAItems}[]" to "${pointBItems}[]"`, ErrorCode.CONNECTION_TYPE);
         }
         // if type match is file, and fileTypes are defined on both ports,
         // match only if fileTypes match
@@ -303,7 +305,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
             if (!!intersection(pointB.fileTypes.map((type) => type.toLowerCase()), pointA.fileTypes.map(type => type.toLowerCase())).length) {
                 return true;
             } else {
-                throw new Error(`Invalid connection. File type mismatch, connecting formats "${pointA.fileTypes}" to "${pointB.fileTypes}"`);
+                throw new ValidityError(`Invalid connection. File type mismatch, connecting formats "${pointA.fileTypes}" to "${pointB.fileTypes}"`, ErrorCode.CONNECTION_FILE_TYPE);
             }
         }
 
@@ -315,7 +317,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
     const pointATypeOutput = pointAItems ? `"${pointAItems}[]"` :  `"${pointAType}"`;
     const pointBTypeOutput = pointBItems ? `"${pointBItems}[]"` :  `"${pointBType}"`;
 
-    throw new Error(`Invalid connection. Connection type mismatch, attempting to connect ${pointATypeOutput} to ${pointBTypeOutput}`);
+    throw new ValidityError(`Invalid connection. Connection type mismatch, attempting to connect ${pointATypeOutput} to ${pointBTypeOutput}`, ErrorCode.CONNECTION_TYPE);
 };
 
 export const flatten = (arr: any[]) => {
@@ -370,7 +372,7 @@ export const checkIdValidity = (id: string, scope: Array<CommandInputParameterMo
 
     const next = getNextAvailableId(id, scope);
     if (next !== id) {
-        throw new Error(`ID "${id}" already exists in this tool, the next available id is "${next}"`);
+        throw new ValidityError(`ID "${id}" already exists in this tool, the next available id is "${next}"`, ErrorCode.ID_DUPLICATE);
     }
 };
 

@@ -19,6 +19,7 @@ import {RequirementBaseModel} from "./RequirementBaseModel";
 import {ProcessRequirement} from "./ProcessRequirement";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {V1WorkflowOutputParameterModel} from "../v1.0/V1WorkflowOutputParameterModel";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     public id: string;
@@ -1049,7 +1050,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         if (sourceModel === undefined) {
             dest.setIssue({[`${dest.loc}`]: {
                 type: "error",
-                message: `Destination id ${dest.id} has unknown source ${source}. This may result in a cycle in the graph`
+                message: `Destination id ${dest.id} has unknown source "${sourceId}". This may result in a cycle in the graph`
             }});
             console.log("Could not find source node ", sourceConnectionId);
             return;
@@ -1189,10 +1190,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
             const sourceText = destination instanceof V1WorkflowOutputParameterModel ? "outputSource" : "source";
 
-            destination.updateValidity({
+            destination.setIssue({
                 [destination.loc + `.${sourceText}[` + source.sourceId + "]"]: {
                     message: e.message,
-                    type: "warning"
+                    type: "warning",
+                    code: e.code
                 }
             });
         }
@@ -1211,7 +1213,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      */
     private validateDestination(destination: WorkflowOutputParameterModel | WorkflowStepInputModel) {
 
-        destination.cleanValidity();
+        destination.clearIssue(ErrorCode.CONNECTION_ALL);
 
         // Find all sources connected to given destination
         const sources = this.connections.filter((connection) => {
@@ -1269,14 +1271,14 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             this.graph.topSort();
         } catch (ex) {
             if (ex.message === "Graph has cycles") {
-                this.updateValidity({
+                this.setIssue({
                     [this.loc]: {
                         message: "Graph has cycles",
                         type: "error"
                     }
                 });
             } else if (ex === "Can't sort unconnected graph") {
-                this.updateValidity({
+                this.setIssue({
                     [this.loc]: {
                         message: "Graph is not connected",
                         type: "warning"

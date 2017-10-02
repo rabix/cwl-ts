@@ -6,6 +6,9 @@ import {
 } from "./utils";
 import {V1WorkflowOutputParameterModel} from "../v1.0/V1WorkflowOutputParameterModel";
 import {V1WorkflowInputParameterModel} from "../v1.0/V1WorkflowInputParameterModel";
+import {V1StepModel} from "../v1.0/V1StepModel";
+import {V1WorkflowStepInputModel} from "../v1.0/V1WorkflowStepInputModel";
+import {V1WorkflowStepOutputModel} from "../v1.0/V1WorkflowStepOutputModel";
 
 describe("ensureArray", () => {
     it("should return an array of mismatched objects", () => {

@@ -9,7 +9,16 @@ export enum ErrorCode {
     EXPR_SYNTAX = 201,
     EXPR_REFERENCE = 202,
     EXPR_TYPE = 203,
-    EXPR_NOT_JSON = 204
+    EXPR_NOT_JSON = 204,
 
+    CONNECTION_ALL = 300,
+    CONNECTION_TYPE = 301,
+    CONNECTION_FILE_TYPE = 302,
+    CONNECTION_SAME_STEP = 303,
+}
 
+export class ValidityError extends Error {
+    constructor(str, public code: ErrorCode) {
+        super(str);
+    }
 }
