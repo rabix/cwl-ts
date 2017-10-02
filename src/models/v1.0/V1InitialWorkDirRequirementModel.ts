@@ -4,11 +4,13 @@ import {InitialWorkDirRequirement} from "../../mappings/v1.0/InitialWorkDirRequi
 import {Dirent} from "../../mappings/v1.0/Dirent";
 import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
+import {ExpressionModel} from "../generic/ExpressionModel";
+import {V1ExpressionModel} from "./V1ExpressionModel";
 
 
 export class V1InitialWorkDirRequirementModel extends CreateFileRequirementModel {
-    'class'                  = "InitialWorkDirRequirement";
-    listing: V1DirentModel[] = [];
+    'class' = "InitialWorkDirRequirement";
+    listing: Array<V1DirentModel | ExpressionModel> = [];
 
     constructor(req?: InitialWorkDirRequirement, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
@@ -24,11 +26,26 @@ export class V1InitialWorkDirRequirementModel extends CreateFileRequirementModel
         return dirent;
     }
 
+    addExpression(e: V1ExpressionModel | string = "") {
+        const expression = new V1ExpressionModel(e, `${this.loc}.listing[${this.listing.length}]`, this.eventHub);
+        expression.setValidationCallback(err => this.updateValidity(err));
+        this.listing.push(expression);
+
+        return expression;
+    }
 
     serialize(): InitialWorkDirRequirement {
         const base = {
             'class': "InitialWorkDirRequirement",
-            listing: this.listing.map(d => d.serialize()).filter(f => f.entryname && f.entry)
+            listing: this.listing.reduce((acc, item) => {
+                const serialized = item.serialize();
+
+                if (serialized && ((item instanceof ExpressionModel) || (serialized.entryname && serialized.entry))) {
+                    acc.push(serialized);
+                }
+
+                return acc;
+            }, [])
         };
 
         if (this.customProps.listing) {
@@ -54,21 +71,36 @@ export class V1InitialWorkDirRequirementModel extends CreateFileRequirementModel
     }
 
     deserialize(attr: InitialWorkDirRequirement): void {
+
+        let listings = [];
+        let customProperties = [];
         let serializedKeys = ["class"];
 
-        // listing is a list of dirents
-        if (Array.isArray(attr.listing) && attr.listing[0] && (<Dirent> attr.listing[0]).entryname) {
-            serializedKeys.push("listing");
-            // deserialize dirents to model
-            this.listing = attr.listing.map(d => this.addDirent(<Dirent> d));
+        if (Array.isArray(attr.listing)) {
+            attr.listing.forEach((listing) => {
 
-        } else if (Array.isArray(attr.listing)) {
-            // save original listing, model listing will be blank and dirents can be added to it
-            this.customProps.listing = attr.listing;
-        } else if (typeof attr === "string") {
-            console.warn("InitialWorkDirRequirement that is type Expression is currently not supported");
-            return;
+                if (listing) {
+                    if ((<Dirent> listing).entryname && (<Dirent> listing).entry) {
+                        const any = this.addDirent(<Dirent> listing);
+                        listings.push(any);
+                    } else if (typeof listing === "string") {
+                        listings.push(this.addExpression(listing));
+                    } else {
+                        customProperties.push(listing);
+                    }
+                }
+            });
         }
+
+        if (listings.length) {
+            serializedKeys.push("listing");
+        }
+
+        if (customProperties.length) {
+            this.customProps.listing = customProperties;
+        }
+
+        this.listing = listings;
 
         spreadSelectProps(attr, this.customProps, serializedKeys);
     }
