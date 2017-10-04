@@ -29,6 +29,10 @@ export class V1ExpressionModel extends ExpressionModel {
         }
 
         if (expression) this.deserialize(expression);
+
+        if (this.eventHub) {
+            this.eventHub.emit("expression.create", this)
+        }
     }
 
     private tokenizeAndSetType(str: string): ExprObj[] {
@@ -55,6 +59,10 @@ export class V1ExpressionModel extends ExpressionModel {
 
         this.tokenizeAndSetType(val);
         this.value = val;
+
+        if (this.eventHub) {
+            this.eventHub.emit("expression.change", this);
+        }
     }
 
     public getScript(): string {

@@ -48,52 +48,52 @@ describe("V1CommandLineToolModel", () => {
     });
 
     describe("generateCommandLineParts", () => {
-       it("should evaluate valueFrom in input", (done) => {
-           const model = new V1CommandLineToolModel(<any> {
-               inputs: {
-                   first: {
-                       type: {
-                           type: "enum",
-                           symbols: ["First", "Second", "Third"]
-                       },
-                       inputBinding: {
-                           valueFrom: "${ return self.toLowerCase() }"
-                       }
-                   }
-               }
-           });
+        it("should evaluate valueFrom in input", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: {
+                    first: {
+                        type: {
+                            type: "enum",
+                            symbols: ["First", "Second", "Third"]
+                        },
+                        inputBinding: {
+                            valueFrom: "${ return self.toLowerCase() }"
+                        }
+                    }
+                }
+            });
 
-           model.generateCommandLineParts().then(res => {
-               expect(res[0].type).to.equal("input");
-               expect(res[0].value).to.equal("first");
-           }).then(done, done);
-       });
+            model.generateCommandLineParts().then(res => {
+                expect(res[0].type).to.equal("input");
+                expect(res[0].value).to.equal("first");
+            }).then(done, done);
+        });
 
-       it("should evaluate argument that is an expression", (done) => {
-           const model = new V1CommandLineToolModel(<any> {
-               arguments: [
-                  "${ return 3 + 4 }"
-               ]
-           });
+        it("should evaluate argument that is an expression", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                arguments: [
+                    "${ return 3 + 4 }"
+                ]
+            });
 
-           model.generateCommandLineParts().then(res => {
-               expect(res[0].type).to.equal("argument");
-               expect(res[0].value).to.equal("7");
-           }).then(done, done);
-       });
+            model.generateCommandLineParts().then(res => {
+                expect(res[0].type).to.equal("argument");
+                expect(res[0].value).to.equal("7");
+            }).then(done, done);
+        });
 
-       it("should show error in command line if argument expression has an error", (done) => {
-           const model = new V1CommandLineToolModel(<any> {
-               arguments: [
-                   "${ return !!!! }"
-               ]
-           }, "document");
+        it("should show error in command line if argument expression has an error", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                arguments: [
+                    "${ return !!!! }"
+                ]
+            }, "document");
 
-           model.generateCommandLineParts().then(res => {
-               expect(res[0].type).to.equal("error");
-               expect(res[0].value).to.equal("<error at document.arguments[0]>");
-           }).then(done, done);
-       });
+            model.generateCommandLineParts().then(res => {
+                expect(res[0].type).to.equal("error");
+                expect(res[0].value).to.equal("<error at document.arguments[0]>");
+            }).then(done, done);
+        });
     });
 
     describe("serialize", () => {
@@ -1396,6 +1396,100 @@ describe("V1CommandLineToolModel", () => {
                 expect(model.errors[0].loc).to.equal("document.stdout");
             }).then(done, done);
 
+        });
+
+        it("should be invalid if stdout expression is changed to invalid", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                stdout: "${return 3}"
+            });
+
+            model.stdout.setValue("${!!!}");
+
+            model.validate().then(() => {
+                expect(model.errors).to.not.be.empty;
+                expect(model.errors).to.have.length(1);
+                expect(model.errors[0].loc).to.equal("document.stdout");
+            }).then(done, done);
+        });
+
+        it("should be valid if valueFrom is valid", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: [
+                    {
+                        id: "input1",
+                        inputBinding: {
+                            valueFrom: "${return 3}"
+                        }
+                    }
+                ]
+            });
+            model.validate().then(() => {
+                expect(model.errors).to.be.empty;
+                expect(model.inputs[0].errors).to.be.empty;
+            }).then(done, done);
+        });
+
+        it("should be invalid if valueFrom is invalid", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: [
+                    {
+                        id: "input1",
+                        inputBinding: {
+                            valueFrom: "${!!!}"
+                        }
+                    }
+                ]
+            });
+
+
+            model.validate().then(() => {
+                expect(model.errors).to.not.be.empty;
+                expect(model.errors).to.have.length(1);
+                expect(model.errors[0].loc).to.equal("document.inputs[0].inputBinding.valueFrom");
+            }).then(done, done);
+        });
+
+        it("should be invalid if valueFrom is changed to invalid", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: [
+                    {
+                        id: "input1",
+                        inputBinding: {
+                            valueFrom: "${return 3}"
+                        }
+                    }
+                ]
+            });
+
+            model.inputs[0].inputBinding.setValueFrom("${!!!!}");
+
+            model.validate().then(() => {
+                expect(model.errors).to.not.be.empty;
+                expect(model.errors).to.have.length(1);
+                expect(model.errors[0].loc).to.equal("document.inputs[0].inputBinding.valueFrom");
+            }).then(done, done);
+        });
+
+        it("should be invalid if job changes", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                inputs: [
+                    {
+                        id: "input1",
+                        type: "string",
+                        inputBinding: {
+                            valueFrom: "${inputs.input1.length}"
+                        }
+                    }
+                ]
+            });
+
+            model.setJobInputs({
+                input1: "string-value"
+            });
+
+            model.validate().then(() => {
+                expect(model.warnings).to.be.empty;
+            }).then(done, done);
         });
     });
 });

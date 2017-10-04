@@ -95,14 +95,12 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
         new UnimplementedMethodException("toString", "ExpressionModel");
         return null;
     }
-    private counter = 0;
 
     public validate(context?: any): Promise<any> {
-        console.log(`validating expression: ${++this.counter}`);
         return this.evaluate(context).then((suc) => {
-            // this.cleanValidity();
-            this.clearIssue(ErrorCode.EXPR_ALL)
+            this.clearIssue(ErrorCode.EXPR_ALL);
         }, (err) => {
+            this.clearIssue(ErrorCode.EXPR_ALL);
 
             this.setIssue({
                 [this.loc]: {

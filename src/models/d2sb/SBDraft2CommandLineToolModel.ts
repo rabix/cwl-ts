@@ -60,10 +60,6 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public jobInputs: any = {};
     public runtime: any   = {};
 
-    public setJobInputs(inputs: any) {
-        this.jobInputs = inputs;
-    }
-
     public setRuntime(runtime: any = {}): void {
         this.runtime.cpu = runtime.cpu !== undefined ? runtime.cpu : this.runtime.cpu;
         this.runtime.mem   = runtime.mem !== undefined ? runtime.mem : this.runtime.mem;
@@ -101,6 +97,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     constructor(attr?: CommandLineTool, loc?: string) {
         super(loc || "document");
+
+        this.initializeExprWatchers();
 
         if (attr) this.deserialize(attr);
         this.constructed = true;

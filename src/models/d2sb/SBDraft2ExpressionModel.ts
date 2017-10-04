@@ -39,6 +39,11 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
         if (value) {
             this.type = (value as Expression).script ? "expression" : "string"
         }
+
+
+        if (this.eventHub) {
+            this.eventHub.emit("expression.create", this)
+        }
     }
 
     /**
@@ -82,6 +87,10 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
         }
 
         this.type = type;
+
+        if (this.eventHub) {
+            this.eventHub.emit("expression.change", this);
+        }
     }
 
     /**

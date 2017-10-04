@@ -45,7 +45,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     public stderr: ExpressionModel;
     public hasStdErr: boolean;
 
-    public successCodes: number[] = [];
+    public successCodes: number[]       = [];
     public temporaryFailCodes: number[] = [];
     public permanentFailCodes: number[] = [];
 
@@ -59,6 +59,9 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     public customProps: any = {};
 
     public eventHub: EventHub;
+
+    private expressions = new Set<ExpressionModel>();
+    private validationPromises: Promise<any>[] = [];
 
     protected jobInputs: any = {};
     protected runtime: any   = {};
@@ -86,6 +89,8 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             "field.remove",
             "validate",
             "binding.shellQuote",
+            "expression.create",
+            "expression.change",
             "expression.serialize"
         ]);
     }
@@ -168,6 +173,34 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         };
 
         return traversePath(path, base);
+    }
+
+    protected initializeExprWatchers() {
+        this.eventHub.on("expression.create", (expr: ExpressionModel) => {
+            this.expressions.add(expr);
+
+            this.validationPromises.push(this.validateExpression(expr));
+        });
+
+        this.eventHub.on("expression.change", (expr:ExpressionModel) => {
+            this.validationPromises.push(this.validateExpression(expr));
+        });
+    }
+
+    protected validateExpression(expression: ExpressionModel): Promise<any> {
+        let input;
+        if (/inputs|outputs/.test(expression.loc)) {
+            const [loc] = /.*inputs\[\d+\]|.*outputs\[\d+\]/.exec(expression.loc);
+            input       = fetchByLoc(this, loc);
+        }
+
+        return expression.validate(this.getContext(input));
+    }
+
+    public validate(): Promise<any> {
+        return Promise.all(this.validationPromises).then(() => {
+            this.validationPromises = [];
+        });
     }
 
     protected initializeJobWatchers() {
@@ -420,7 +453,10 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     }
 
     public setJobInputs(inputs: any): void {
-        new UnimplementedMethodException("setJob", "CommandLineToolModel");
+        this.jobInputs = inputs;
+        this.expressions.forEach(e => {
+            this.validationPromises.push(this.validateExpression(e));
+        });
     }
 
     public setRuntime(runtime: any): void {

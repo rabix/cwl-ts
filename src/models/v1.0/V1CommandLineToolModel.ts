@@ -56,10 +56,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     // Context for JavaScript execution
     protected runtime: { ram?: number, cores?: number } = {};
 
-    public setJobInputs(inputs: any): void {
-        this.jobInputs = inputs;
-    }
-
     public setRuntime(runtime: any = {}): void {
         this.runtime.cores = runtime.cores !== undefined ? runtime.cores : this.runtime.cores;
         this.runtime.ram   = runtime.ram !== undefined ? runtime.ram : this.runtime.ram;
@@ -96,6 +92,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     constructor(json?: CommandLineTool, loc?: string) {
         super(loc || "document");
+
+        this.initializeExprWatchers();
 
         if (json) this.deserialize(json);
         this.constructed = true;
@@ -180,53 +178,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this[type] = stream;
         stream.loc = `${this.loc}.${type}`;
         stream.setValidationCallback(err => this.updateValidity(err));
-    }
-
-    public validate(): Promise<any> {
-        const promises: Promise<any>[] = [];
-
-        // for (let i = 0; i < this.inputs.length; i++) {
-        //     const input = this.inputs[i];
-        //     promises.push(input.validate(this.getContext(input)));
-        // }
-        //
-        // for (let i = 0; i < this.outputs.length; i++) {
-        //     const output = this.outputs[i];
-        //     promises.push(output.validate(this.getContext(output)));
-        // }
-        //
-        // // must be after input/output validation because otherwise it will be cleared
-        // this.checkPortIdUniqueness();
-        //
-        // for (let i = 0; i < this.arguments.length; i++) {
-        //     const argument = this.arguments[i];
-        //     promises.push(argument.validate(this.getContext()));
-        // }
-        //
-        // // validate streams to make sure expressions are valid
-        // if (this.stdin) {
-        //     promises.push(this.stdin.validate(this.getContext()));
-        // }
-        //
-        // if (this.stdout) {
-        //     promises.push(this.stdout.validate(this.getContext()));
-        // }
-        //
-        // if (this.stderr) {
-        //     promises.push(this.stderr.validate(this.getContext()));
-        // }
-        //
-        // if (this.resources) {
-        //     promises.push(this.resources.validate(this.getContext()));
-        // }
-        //
-        // if (this.fileRequirement) {
-        //     promises.push(this.fileRequirement.validate(this.getContext()));
-        // }
-
-        return Promise.all(promises).then(() => {
-            return this.issues;
-        });
     }
 
     public deserialize(tool: CommandLineTool) {

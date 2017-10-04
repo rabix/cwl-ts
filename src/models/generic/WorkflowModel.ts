@@ -838,7 +838,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         | WorkflowStepOutputModel
         | WorkflowOutputParameterModel
         | WorkflowStepInputModel
-        | string) {
+        | string): any[] {
 
         if (typeof port === "string") {
             port = this.graph.getVertexData(port);
@@ -1052,7 +1052,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 type: "error",
                 message: `Destination id ${dest.id} has unknown source "${sourceId}". This may result in a cycle in the graph`
             }});
-            console.log("Could not find source node ", sourceConnectionId);
             return;
         }
 
