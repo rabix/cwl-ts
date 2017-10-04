@@ -8,19 +8,22 @@ export abstract class ValidationBase implements Validatable {
     protected issues: { [key: string]: Issue[] } = {};
     private _errors: Issue[]                     = [];
     private _warnings: Issue[]                   = [];
-    private hasUpdated                           = false;
+    private hasNewErrors                           = false;
+    private hasNewWarnings = false;
 
     get warnings(): Issue[] {
-        if (this.hasUpdated) {
+        if (this.hasNewWarnings) {
             this._warnings = this.filterIssues("warning");
+            this.hasNewWarnings = false;
         }
 
         return this._warnings;
     }
 
     get errors(): Issue[] {
-        if (this.hasUpdated) {
+        if (this.hasNewErrors) {
             this._errors = this.filterIssues("error");
+            this.hasNewErrors = false;
         }
 
         return this._errors;
@@ -30,16 +33,17 @@ export abstract class ValidationBase implements Validatable {
         // sets these issues with the event received
         this.issues = concatIssues(this.issues, event.data, event.overwrite);
 
-        this.hasUpdated = true;
+        this.hasNewErrors = true;
+        this.hasNewWarnings = true;
 
         // sometimes we want to contain warnings/info to the objects where they occur
-        if (event.propagate !== false) {
+        if (!event.stopPropagation) {
             this.updateParentValidation(event);
         }
     }
 
-    public setIssue(data: { [key: string]: Issue[] | Issue }, stopPropagation?: boolean) {
-        this.updateValidity({data, overwrite: false, propagate: stopPropagation})
+    public setIssue(data: { [key: string]: Issue[] | Issue }, stopPropagation = false) {
+        this.updateValidity({data, overwrite: false, stopPropagation: stopPropagation})
     }
 
     public clearIssue(code: ErrorCode) {
@@ -74,16 +78,6 @@ export abstract class ValidationBase implements Validatable {
      * @deprecated
      */
     public cleanValidity() {
-        // this.issues = nullifyObjValues(this.issues);
-        // this.updateParentValidation({
-        //     overwrite: true,
-        //     data: this.issues
-        // });
-        //
-        // this.hasErrors   = false;
-        // this.hasWarnings = false;
-        // this._errors     = [];
-        // this._warnings   = [];
     }
 
     public loc = "";
@@ -145,8 +139,4 @@ export abstract class ValidationBase implements Validatable {
             res(this.issues);
         });
     }
-
-    hasErrors = false;
-
-    hasWarnings = false;
 }

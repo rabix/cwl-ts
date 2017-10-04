@@ -60,7 +60,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public eventHub: EventHub;
 
-    private expressions = new Set<ExpressionModel>();
+    private expressions                        = new Set<ExpressionModel>();
     private validationPromises: Promise<any>[] = [];
 
     protected jobInputs: any = {};
@@ -179,10 +179,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.eventHub.on("expression.create", (expr: ExpressionModel) => {
             this.expressions.add(expr);
 
-            this.validationPromises.push(this.validateExpression(expr));
+            if (this.constructed) {
+                this.validationPromises.push(this.validateExpression(expr));
+            }
         });
 
-        this.eventHub.on("expression.change", (expr:ExpressionModel) => {
+        this.eventHub.on("expression.change", (expr: ExpressionModel) => {
             this.validationPromises.push(this.validateExpression(expr));
         });
     }
@@ -190,8 +192,10 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     protected validateExpression(expression: ExpressionModel): Promise<any> {
         let input;
         if (/inputs|outputs/.test(expression.loc)) {
-            const [loc] = /.*inputs\[\d+\]|.*outputs\[\d+\]/.exec(expression.loc);
-            input       = fetchByLoc(this, loc);
+            const loc = /.*(?:inputs\[\d+]|.*outputs\[\d+]|.*fields\[\d+])/
+                .exec(expression.loc)[0] // take the first match
+                .replace("document", ""); // so loc is relative to root
+            input     = fetchByLoc(this, loc);
         }
 
         return expression.validate(this.getContext(input));
@@ -454,6 +458,10 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public setJobInputs(inputs: any): void {
         this.jobInputs = inputs;
+        this.validateAllExpressions();
+    }
+
+    protected validateAllExpressions() {
         this.expressions.forEach(e => {
             this.validationPromises.push(this.validateExpression(e));
         });

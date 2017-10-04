@@ -10,5 +10,5 @@ export interface Issue {
 export interface IssueEvent {
     data: { [key: string]: Issue[] | Issue };
     overwrite: boolean; // default is false
-    propagate?: boolean; // default is true
+    stopPropagation?: boolean; // default is false
 }

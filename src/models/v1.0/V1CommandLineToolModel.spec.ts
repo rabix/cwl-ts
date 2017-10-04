@@ -1491,5 +1491,42 @@ describe("V1CommandLineToolModel", () => {
                 expect(model.warnings).to.be.empty;
             }).then(done, done);
         });
+
+        it("should validate valueFrom in a record", (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                "inputs": [
+                    {
+                        "id": "input",
+                        "type": {
+                            "type": "record",
+                            "fields": [
+                                {
+                                    "name": "input_field",
+                                    "type": "string?",
+                                    "inputBinding": {
+                                        "position": 0,
+                                        "valueFrom": "$(self.length)"
+                                    }
+                                }
+                            ],
+                            "name": "input"
+                        },
+                        "inputBinding": {
+                            "position": 0
+                        }
+                    }
+                ]
+            });
+
+            model.setJobInputs({
+                input: {
+                    input_field: "string-value"
+                }
+            });
+
+            model.validate().then(() => {
+                expect(model.warnings).to.be.empty;
+            }).then(done, done);
+        });
     });
 });

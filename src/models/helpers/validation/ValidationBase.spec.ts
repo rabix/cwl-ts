@@ -71,6 +71,20 @@ describe("ValidationBase", () => {
             expect(spy).to.not.have.been.called;
             expect(parent.errors).to.have.lengthOf(1);
         });
+
+        it("should not propagate if stopPropagation is passed", () => {
+            const spy = chai.spy.on(parent, "updateValidity");
+
+            parent.child.setIssue({[parent.child.loc]: {
+                message: "",
+                type: "error",
+                code: ErrorCode.ID_INVALID_CHAR
+            }}, true);
+
+            expect(spy).to.not.have.been.called;
+            expect(parent.errors).to.be.empty;
+            expect(parent.child.errors).to.have.lengthOf(1);
+        });
     });
 
     describe("clearIssue", () => {

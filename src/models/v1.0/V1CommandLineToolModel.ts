@@ -97,6 +97,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         if (json) this.deserialize(json);
         this.constructed = true;
+        this.validateAllExpressions();
         this.initializeJobWatchers();
     }
 

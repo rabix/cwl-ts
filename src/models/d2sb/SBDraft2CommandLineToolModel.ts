@@ -102,6 +102,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         if (attr) this.deserialize(attr);
         this.constructed = true;
+        this.validateAllExpressions();
         this.initializeJobWatchers();
     }
 
