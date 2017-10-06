@@ -4,6 +4,7 @@ import {CommandOutputBindingModel} from "../generic/CommandOutputBindingModel";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel implements Serializable<CommandOutputBinding> {
     public loadContents: boolean;
@@ -21,18 +22,8 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     }
 
     set glob(value: SBDraft2ExpressionModel) {
-        this._glob = new SBDraft2ExpressionModel(value.serialize(), `${this.loc}.glob`, this.eventHub);
-        this._glob.setValidationCallback(err => this.updateValidity(err));
-        if (this._glob.serialize() === undefined) {
-            this._glob.setIssue({
-                [`${this.loc}.glob`]: {
-                    message: "Glob should be specified",
-                    type: "warning"
-                }
-            }, true);
-        }
+        this.setGlob(value, SBDraft2ExpressionModel);
     }
-
 
     protected _outputEval: SBDraft2ExpressionModel;
 
@@ -41,21 +32,22 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     }
 
     set outputEval(value: SBDraft2ExpressionModel) {
-        this._outputEval = new SBDraft2ExpressionModel(value.serialize(), `${this.loc}.outputEval`, this.eventHub);
-        this._outputEval.setValidationCallback(err => this.updateValidity(err));
+        this.setOutputEval(value, SBDraft2ExpressionModel);
+        this.validateOutputEval();
+    }
 
-        if (!this._outputEval.isExpression) {
+    private validateOutputEval() {
+        if (this._outputEval.type !== "expression") {
             this._outputEval.setIssue({
                 [`${this.loc}.outputEval`]: {
                     type: "error",
-                    message: `outputEval must be an expression, instead got ${value.type}`
+                    message: `outputEval must be an expression`,
+                    code: ErrorCode.OUTPUT_EVAL_EXPR
                 }
-            });
+            })
+        } else {
+            this._outputEval.clearIssue(ErrorCode.OUTPUT_EVAL_EXPR);
         }
-    }
-
-    public updateOutputEval(expr: SBDraft2ExpressionModel) {
-        this.outputEval = expr;
     }
 
     constructor(binding?: CommandOutputBinding, loc?: string, eventHub?: EventHub) {
@@ -107,9 +99,11 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
             if (!Array.isArray(binding.glob)) {
                 this._glob = new SBDraft2ExpressionModel(binding.glob, this.loc + '.glob', this.eventHub);
                 this._glob.setValidationCallback((err) => this.updateValidity(err));
+                this.validateGlob();
+
             } else {
                 console.warn(`Not supporting glob which is string[] at ${this.loc}. Glob cannot be edited via model`);
-                serializedKeys.splice(1, 0);
+                serializedKeys.splice(0, 1);
             }
 
             this.loadContents = binding.loadContents === true;
@@ -123,6 +117,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
 
             this._outputEval = new SBDraft2ExpressionModel(binding.outputEval, `${this.loc}.outputEval`, this.eventHub);
             this._outputEval.setValidationCallback(err => this.updateValidity(err));
+            this.validateOutputEval();
 
             if (binding["sbg:metadata"] && binding["sbg:metadata"].constructor === Object) {
                 Object.keys(binding["sbg:metadata"]).filter(key => key).forEach(key => {

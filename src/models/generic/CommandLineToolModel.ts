@@ -19,16 +19,19 @@ import {
 import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {JobHelper} from "../helpers/JobHelper";
+import {generateCommandLineParts} from "../helpers/CommandLineUtils";
+import {ErrorCode, ValidityError} from "../helpers/validation/ErrorCode";
 
 export abstract class CommandLineToolModel extends ValidationBase implements Serializable<any> {
+    // TOOL METADATA //
     public id: string;
-
     public cwlVersion: string | CWLVersion;
-
     public "class" = "CommandLineTool";
-
     public sbgId: string;
+    public label?: string;
+    public description?: string;
 
+    // CWL PROPERTIES //
     public baseCommand: Array<ExpressionModel | string> = [];
     public inputs: CommandInputParameterModel[]         = [];
     public outputs: CommandOutputParameterModel[]       = [];
@@ -43,7 +46,6 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     public stdin: ExpressionModel;
     public stdout: ExpressionModel;
     public stderr: ExpressionModel;
-    public hasStdErr: boolean;
 
     public successCodes: number[]       = [];
     public temporaryFailCodes: number[] = [];
@@ -53,26 +55,35 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public resources: ResourceRequirementModel;
 
-    public label?: string;
-    public description?: string;
-
-    public customProps: any = {};
-
-    public eventHub: EventHub;
-
+    /** Set of all expressions the tool contains */
     private expressions                        = new Set<ExpressionModel>();
+    /** Array of all validation processes that are currently occurring */
     private validationPromises: Promise<any>[] = [];
 
+    /** Dummy job.inputs value to be used in command line generation */
     protected jobInputs: any = {};
+    /** Dummy job.runtime value to be used in command line generation */
     protected runtime: any   = {};
 
-    protected constructed: boolean = false;
+    // MODEL HELPERS //
 
+    /** Flag to indicate that the tool has finished deserializing */
+    protected constructed: boolean = false;
+    /** Flag to indicate that tool has stdErr field */
+    public hasStdErr: boolean;
+    /** Custom properties that weren't serialized */
+    public customProps: any        = {};
+
+    /** EventHub that is passed to all children of the tool,
+     * used for upward communication in the tool tree */
+    public eventHub: EventHub;
+
+    /** Function which is called when the command line is changed */
     protected commandLineWatcher: Function = () => {
     };
 
     constructor(loc: string) {
-        super(loc);
+        super(loc || "document");
 
         this.eventHub = new EventHub([
             "input.create",
@@ -95,6 +106,26 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         ]);
     }
 
+    // EXPRESSION CONTEXT //
+    public setJobInputs(inputs: any): void {
+        this.jobInputs = inputs;
+        this.validateAllExpressions();
+    }
+
+    public setRuntime(runtime: any): void {
+        new UnimplementedMethodException("setRuntime", "CommandLineToolModel");
+    }
+
+    public getContext(input?: any): any {
+        new UnimplementedMethodException("getContext", "CommandLineToolModel");
+    };
+
+    public resetJobDefaults(): void {
+        new UnimplementedMethodException("resetJobDefaults", "CommandLineToolModel");
+    }
+
+
+    // EVENT HANDLING //
     public on(event: string, handler): { dispose: Function } {
         return {
             dispose: this.eventHub.on(event, handler)
@@ -103,108 +134,6 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     public off(event: string, handler) {
         this.eventHub.off(event, handler);
-    }
-
-    public changeIOId(port: CommandInputParameterModel | CommandOutputParameterModel, id: string) {
-        if (port.id === id) {
-            return;
-        }
-
-        const oldId = port.id;
-        let type;
-        let scope;
-        // emit set proper type so event can be emitted and validity can be scoped
-        if (port instanceof CommandInputParameterModel) {
-            type = "input";
-        } else if (port instanceof CommandOutputParameterModel) {
-            type = "output";
-        }
-
-        if (port.isField) {
-            scope = this.findFieldParent(port.loc).type.fields;
-        }
-
-        // verify that the new ID can be set
-        checkIdValidity(id, scope || [...this.inputs, ...this.outputs]);
-
-        port.id = id;
-        if (isType(port, ["record", "enum"])) {
-            port.type.name = id;
-        }
-
-        // emit change event so CLT subclasses can change job values
-        this.eventHub.emit(`${type}.change.id`, {port, oldId, newId: port.id});
-    }
-
-    protected findFieldRoot(port, base): any {
-        // find ancestor that is in the inputs root, save ancestors
-        let isField = true;
-        // creating a path to the input inside the job, ignoring the id of the actual input for now
-        const path  = [];
-        // location of the current port we're looking at
-        let loc     = port.loc;
-        while (isField) {
-            const parent = this.findFieldParent(loc);
-            // add parent id to the beginning of the path, we're traversing up the tree
-            // keeping track if type is array so we can gather all child nodes where port has a value
-            path.unshift({id: parent.id, isArray: parent.type.type === "array"});
-            // continue traversing if parent is a field
-            isField = parent.isField;
-            // parent becomes port we're looking at
-            loc     = parent.loc;
-        }
-
-        // traverse jobInputs with the ids generated from field parents, find root of field
-        const traversePath = (path: { id: string, isArray: boolean }[], root: any[]) => {
-            // starting from the root of the tree, going down each level till we find the port
-            if (path.length === 0) {
-                return root;
-            }
-            // if node is an array, recursively traverse all it's elements
-            const part = path[0];
-
-            if (part.isArray) {
-                // flatten the nested array, if it contains arrays itself
-                return flatten(root[part.id].map(obj => traversePath(path.slice(1), obj)));
-            }
-
-            // traverse the path for the root element
-            return traversePath(path.slice(1), root[part.id]);
-        };
-
-        return traversePath(path, base);
-    }
-
-    protected initializeExprWatchers() {
-        this.eventHub.on("expression.create", (expr: ExpressionModel) => {
-            this.expressions.add(expr);
-
-            if (this.constructed) {
-                this.validationPromises.push(this.validateExpression(expr));
-            }
-        });
-
-        this.eventHub.on("expression.change", (expr: ExpressionModel) => {
-            this.validationPromises.push(this.validateExpression(expr));
-        });
-    }
-
-    protected validateExpression(expression: ExpressionModel): Promise<any> {
-        let input;
-        if (/inputs|outputs/.test(expression.loc)) {
-            const loc = /.*(?:inputs\[\d+]|.*outputs\[\d+]|.*fields\[\d+])/
-                .exec(expression.loc)[0] // take the first match
-                .replace("document", ""); // so loc is relative to root
-            input     = fetchByLoc(this, loc);
-        }
-
-        return expression.validate(this.getContext(input));
-    }
-
-    public validate(): Promise<any> {
-        return Promise.all(this.validationPromises).then(() => {
-            this.validationPromises = [];
-        });
     }
 
     protected initializeJobWatchers() {
@@ -306,6 +235,119 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         });
     }
 
+    protected initializeExprWatchers() {
+        this.eventHub.on("expression.create", (expr: ExpressionModel) => {
+            this.expressions.add(expr);
+
+            if (this.constructed) {
+                this.validationPromises.push(this.validateExpression(expr));
+            }
+        });
+
+        this.eventHub.on("expression.change", (expr: ExpressionModel) => {
+            this.validationPromises.push(this.validateExpression(expr));
+        });
+    }
+
+    protected validateExpression(expression: ExpressionModel): Promise<any> {
+        let input;
+        if (/inputs|outputs/.test(expression.loc)) {
+            const loc = /.*(?:inputs\[\d+]|.*outputs\[\d+]|.*fields\[\d+])/
+                .exec(expression.loc)[0] // take the first match
+                .replace("document", ""); // so loc is relative to root
+            input     = fetchByLoc(this, loc);
+        }
+
+        return expression.validate(this.getContext(input));
+    }
+
+    protected validateAllExpressions() {
+        this.expressions.forEach(e => {
+            this.validationPromises.push(this.validateExpression(e));
+        });
+    }
+
+    // DOCUMENT TREE TRAVERSAL //
+
+    protected findFieldRoot(port, base): any {
+        // find ancestor that is in the inputs root, save ancestors
+        let isField = true;
+        // creating a path to the input inside the job, ignoring the id of the actual input for now
+        const path  = [];
+        // location of the current port we're looking at
+        let loc     = port.loc;
+        while (isField) {
+            const parent = this.findFieldParent(loc);
+            // add parent id to the beginning of the path, we're traversing up the tree
+            // keeping track if type is array so we can gather all child nodes where port has a value
+            path.unshift({id: parent.id, isArray: parent.type.type === "array"});
+            // continue traversing if parent is a field
+            isField = parent.isField;
+            // parent becomes port we're looking at
+            loc     = parent.loc;
+        }
+
+        // traverse jobInputs with the ids generated from field parents, find root of field
+        const traversePath = (path: { id: string, isArray: boolean }[], root: any[]) => {
+            // starting from the root of the tree, going down each level till we find the port
+            if (path.length === 0) {
+                return root;
+            }
+            // if node is an array, recursively traverse all it's elements
+            const part = path[0];
+
+            if (part.isArray) {
+                // flatten the nested array, if it contains arrays itself
+                return flatten(root[part.id].map(obj => traversePath(path.slice(1), obj)));
+            }
+
+            // traverse the path for the root element
+            return traversePath(path.slice(1), root[part.id]);
+        };
+
+        return traversePath(path, base);
+    }
+
+    protected findFieldParent(loc: string): CommandOutputParameterModel | CommandOutputParameterModel {
+        loc = loc.substr(this.loc.length).replace(/\.fields\[\d+]$/, "").replace(/\.type$/, "");
+        return fetchByLoc(this, loc);
+    }
+
+    // CRUD HELPER METHODS //
+
+    public changeIOId(port: CommandInputParameterModel | CommandOutputParameterModel, id: string) {
+        if (port.id === id) {
+            return;
+        }
+
+        const oldId = port.id;
+        let type;
+        let scope;
+        // emit set proper type so event can be emitted and validity can be scoped
+        if (port instanceof CommandInputParameterModel) {
+            type = "input";
+        } else if (port instanceof CommandOutputParameterModel) {
+            type = "output";
+        }
+
+        if (port.isField) {
+            scope = this.findFieldParent(port.loc).type.fields;
+        }
+
+        // verify that the new ID can be set
+        checkIdValidity(id, scope || [...this.inputs, ...this.outputs]);
+
+        port.clearIssue(ErrorCode.ID_ALL);
+
+        port.id = id;
+        if (isType(port, ["record", "enum"])) {
+            port.type.name = id;
+        }
+
+        // emit change event so CLT subclasses can change job values
+        this.eventHub.emit(`${type}.change.id`, {port, oldId, newId: port.id});
+    }
+
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
         new UnimplementedMethodException("addHint", "CommandLineToolModel");
         return null;
@@ -315,20 +357,10 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         new UnimplementedMethodException("updateStream", "CommandLineToolModel");
     }
 
-    protected findFieldParent(loc: string): CommandOutputParameterModel | CommandOutputParameterModel {
-        loc = loc.substr(this.loc.length).replace(/\.fields\[\d+]$/, "").replace(/\.type$/, "");
-        return fetchByLoc(this, loc);
-    }
-
-    _addOutput(outputConstructor, output?) {
+    _addOutput(outputConstructor, output = {id: null}) {
         const loc = incrementLastLoc(this.outputs, `${this.loc}.outputs`);
-        const id  = getNextAvailableId("output", [...this.inputs, ...this.outputs]);
 
-        if (output) {
-            output.id = output.id || id;
-        } else {
-            output = {id};
-        }
+        output.id = output.id || getNextAvailableId("output", [...this.inputs, ...this.outputs]);
 
         const o = new outputConstructor(output, loc, this.eventHub);
 
@@ -340,7 +372,8 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             this.setIssue({
                 [o.loc + ".id"]: {
                     type: "error",
-                    message: ex.message
+                    message: ex.message,
+                    code: ex.code
                 }
             });
         }
@@ -370,15 +403,10 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.eventHub.emit("output.remove", output);
     }
 
-    protected _addInput(inputConstructor, input?) {
+    protected _addInput(inputConstructor, input = {id: null}) {
         const loc = incrementLastLoc(this.inputs, `${this.loc}.inputs`);
-        const id  = getNextAvailableId("input", [...this.inputs, ...this.outputs]);
 
-        if (input) {
-            input.id = input.id || id;
-        } else {
-            input = {id};
-        }
+        input.id = input.id || getNextAvailableId("input", [...this.inputs, ...this.outputs]);
 
         const i = new inputConstructor(input, loc, this.eventHub);
 
@@ -390,7 +418,8 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             this.setIssue({
                 [i.loc + ".id"]: {
                     type: "error",
-                    message: ex.message
+                    message: ex.message,
+                    code: ex.code
                 }
             });
         }
@@ -448,6 +477,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         return null;
     }
 
+    public setRequirement(req: ProcessRequirement, hint?: boolean) {
+        new UnimplementedMethodException("setRequirement", "CommandLineToolModel");
+    }
+
+    // COMMAND LINE //
+
     public updateCommandLine(): void {
         if (this.constructed) {
             this.generateCommandLineParts().then(res => {
@@ -456,28 +491,22 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         }
     }
 
-    public setJobInputs(inputs: any): void {
-        this.jobInputs = inputs;
-        this.validateAllExpressions();
+    public onCommandLineResult(fn: Function) {
+        this.commandLineWatcher = fn;
     }
 
-    protected validateAllExpressions() {
-        this.expressions.forEach(e => {
-            this.validationPromises.push(this.validateExpression(e));
+    public generateCommandLine(): Promise<string> {
+        return this.generateCommandLineParts().then((parts: CommandLinePart[]) => {
+            const res = parts.filter(p => !!p.value).map(p => p.value).join(" ");
+            return res.trim();
         });
     }
 
-    public setRuntime(runtime: any): void {
-        new UnimplementedMethodException("setRuntime", "CommandLineToolModel");
+    public generateCommandLineParts(): Promise<CommandLinePart[]> {
+        return generateCommandLineParts(this, this.jobInputs, this.runtime);
     }
 
-    public getContext(input?: any): any {
-        new UnimplementedMethodException("getContext", "CommandLineToolModel");
-    };
-
-    public resetJobDefaults(): void {
-        new UnimplementedMethodException("resetJobDefaults", "CommandLineToolModel");
-    }
+    // SERIALIZATION //
 
     public serialize(): any {
         new UnimplementedMethodException("serialize", "CommandLineToolModel");
@@ -487,81 +516,11 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         new UnimplementedMethodException("deserialize", "CommandLineToolModel");
     }
 
-    public onCommandLineResult(fn: Function) {
-        this.commandLineWatcher = fn;
-    }
+    // VALIDATION //
 
-    public setRequirement(req: ProcessRequirement, hint?: boolean) {
-        new UnimplementedMethodException("setRequirement", "CommandLineToolModel");
-    }
-
-    public generateCommandLine(): Promise<string> {
-        return this.generateCommandLineParts().then((parts: CommandLinePart[]) => {
-            return parts.filter(p => !!p.value).map(p => p.value).join(" ");
+    public validate(): Promise<any> {
+        return Promise.all(this.validationPromises).then(() => {
+            this.validationPromises = [];
         });
-    }
-
-    public generateCommandLineParts(): Promise<CommandLinePart[]> {
-        const flatInputs = CommandLinePrepare.flattenInputsAndArgs([].concat(this.arguments).concat(this.inputs));
-
-        const job = isEmpty(this.jobInputs) ? // if job has not been populated
-            {...{inputs: JobHelper.getJobInputs(this)}, ...{runtime: this.runtime}} : // supply dummy values
-            this.getContext(); // otherwise use job
-
-        const flatJobInputs = CommandLinePrepare.flattenJob(job.inputs || job, {});
-
-        const baseCmdPromise = this.baseCommand.map((cmd, index) => {
-            const loc = `${this.loc}.baseCommand[${index}]`;
-            return CommandLinePrepare.prepare(cmd, flatJobInputs, this.getContext(), loc, "baseCommand").then(suc => {
-                if (suc instanceof CommandLinePart) return suc;
-                return new CommandLinePart(<string>suc, "baseCommand", loc);
-            }, err => {
-                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, loc);
-            });
-        });
-
-        const inputPromise = flatInputs.map(input => {
-            return CommandLinePrepare.prepare(input, flatJobInputs, this.getContext(input), input.loc)
-        }).filter(i => i instanceof Promise).map(promise => {
-            return promise.then(succ => succ, err => {
-                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type);
-            });
-        });
-
-        const stdOutPromise = CommandLinePrepare.prepare(this.stdout, flatJobInputs, this.getContext(), this.stdout.loc, "stdout");
-        const stdInPromise  = CommandLinePrepare.prepare(this.stdin, flatJobInputs, this.getContext(), this.stdin.loc, "stdin");
-
-        return Promise.all([].concat(baseCmdPromise, inputPromise, stdOutPromise, stdInPromise)).then((parts: CommandLinePart[]) => {
-            return parts.filter(part => part !== null);
-        });
-    }
-
-    protected checkPortIdUniqueness(): void {
-        const map       = {};
-        const duplicate = [];
-        const ports     = [...this.inputs, ...this.outputs];
-
-        for (let i = 0; i < ports.length; i++) {
-            const p = ports[i];
-
-            if (map[p.id]) {
-                duplicate.push(p);
-            } else {
-                map[p.id] = true;
-            }
-        }
-
-        if (duplicate.length > 0) {
-            for (let i = 0; i < duplicate.length; i++) {
-                const port = duplicate[i];
-
-                port.setIssue({
-                    [`${port.loc}.id`]: {
-                        type: "error",
-                        message: `Duplicate id found: “${port.id}”`
-                    }
-                });
-            }
-        }
     }
 }

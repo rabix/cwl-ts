@@ -8,12 +8,12 @@ export abstract class ValidationBase implements Validatable {
     protected issues: { [key: string]: Issue[] } = {};
     private _errors: Issue[]                     = [];
     private _warnings: Issue[]                   = [];
-    private hasNewErrors                           = false;
-    private hasNewWarnings = false;
+    private hasNewErrors                         = false;
+    private hasNewWarnings                       = false;
 
     get warnings(): Issue[] {
         if (this.hasNewWarnings) {
-            this._warnings = this.filterIssues("warning");
+            this._warnings      = this.filterIssues("warning");
             this.hasNewWarnings = false;
         }
 
@@ -22,7 +22,7 @@ export abstract class ValidationBase implements Validatable {
 
     get errors(): Issue[] {
         if (this.hasNewErrors) {
-            this._errors = this.filterIssues("error");
+            this._errors      = this.filterIssues("error");
             this.hasNewErrors = false;
         }
 
@@ -33,7 +33,7 @@ export abstract class ValidationBase implements Validatable {
         // sets these issues with the event received
         this.issues = concatIssues(this.issues, event.data, event.overwrite);
 
-        this.hasNewErrors = true;
+        this.hasNewErrors   = true;
         this.hasNewWarnings = true;
 
         // sometimes we want to contain warnings/info to the objects where they occur
@@ -47,24 +47,28 @@ export abstract class ValidationBase implements Validatable {
     }
 
     public clearIssue(code: ErrorCode) {
-        let hadIssue = false;
+        let hadIssue  = false;
         const isGroup = code % 100 === 0;
-        const group = code / 100;
+        const group   = code / 100;
 
         for (let key in this.issues) {
-            if (this.issues[key] !== null) {
-
-                const initLen    = this.issues[key].length;
-                this.issues[key] = this.issues[key].filter(i => {
-                    if (isGroup) {
-                        return Math.floor(i.code / 100) !== group;
-                    }
-                    return i.code !== code
-                });
-                hadIssue         = initLen !== this.issues[key].length || hadIssue;
-                this.issues[key] = this.issues[key].length ? this.issues[key] : null;
+            if (this.issues[key].length) {
+                if (code === ErrorCode.ALL) {
+                    hadIssue = true;
+                    this.issues[key] = []
+                } else {
+                    const initLen    = this.issues[key].length;
+                    this.issues[key] = this.issues[key].filter(i => {
+                        if (isGroup) {
+                            return Math.floor(i.code / 100) !== group;
+                        }
+                        return i.code !== code
+                    });
+                    hadIssue         = initLen !== this.issues[key].length || hadIssue;
+                }
             }
         }
+
 
         if (hadIssue) {
             this.updateValidity({
@@ -84,7 +88,7 @@ export abstract class ValidationBase implements Validatable {
 
     constructor(loc: string) {
         this.loc              = loc || "";
-        this.issues[this.loc] = null;
+        this.issues[this.loc] = [];
     }
 
     /**
@@ -118,7 +122,7 @@ export abstract class ValidationBase implements Validatable {
     public filterIssues(type: "warning" | "error" | "info" = "error") {
         let res = [];
         for (let key in this.issues) {
-            if (this.issues[key] !== null) {
+            if (this.issues[key].length) {
                 const filter = this.issues[key].filter(i => i.type === type);
                 const map    = filter.map(i => ({...i, ...{loc: key}}));
 

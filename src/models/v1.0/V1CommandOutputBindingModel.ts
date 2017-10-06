@@ -14,16 +14,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     }
 
     set glob(value: V1ExpressionModel) {
-        this._glob = new V1ExpressionModel(value.serialize(), `${this.loc}.glob`, this.eventHub);
-        this._glob.setValidationCallback(err => this.updateValidity(err));
-        if (this._glob.serialize() === undefined) {
-            this._glob.setIssue({
-                [`${this.loc}.glob`]: {
-                    message: "Glob should be specified",
-                    type: "warning"
-                }
-            }, true);
-        }
+        this.setGlob(value, V1ExpressionModel);
     }
 
     protected _outputEval: V1ExpressionModel;
@@ -33,8 +24,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     }
 
     set outputEval(value: V1ExpressionModel) {
-        this._outputEval = new V1ExpressionModel(value.serialize(), `${this.loc}.outputEval`, this.eventHub);
-        this._outputEval.setValidationCallback(err => this.updateValidity(err));
+        this.setOutputEval(value, V1ExpressionModel);
     }
 
     constructor(binding: CommandOutputBinding = {}, loc?: string, eventHub?: EventHub) {
@@ -54,6 +44,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
 
         this._glob = new V1ExpressionModel(<string> glob, `${this.loc}.glob`, this.eventHub);
         this._glob.setValidationCallback(err => this.updateValidity(err));
+        this.validateGlob();
 
         this._outputEval = new V1ExpressionModel(binding.outputEval, `${this.loc}.outputEval`, this.eventHub);
         this._outputEval.setValidationCallback(err => this.updateValidity(err));

@@ -4,6 +4,7 @@ import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterMode
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
 import {ID_REGEX} from "./constants";
 import {ErrorCode, ValidityError} from "./validation/ErrorCode";
+import {InputParameterModel} from "../generic/InputParameterModel";
 
 export const ensureArray = (map: { [key: string]: any }
     | any[]
@@ -345,6 +346,12 @@ export const isFileType = (i: { type: {isNullable: boolean, type: string, items:
     return i.type && i.type.isNullable !== required && (i.type.type === "File" || i.type.items === "File")
 };
 
+/**
+ * Returns the next available ID based on the provided ID which is unique in the given array.
+ * @param {string} id
+ * @param {Array<{id: string}>} set
+ * @returns {string}
+ */
 export const getNextAvailableId = (id: string, set: Array<{id: string}>) => {
     let hasId  = true;
     let result = id;
@@ -399,4 +406,33 @@ export const concatIssues = (base: { [key: string]: any[] }, add: { [key: string
     }
 
     return base;
+};
+
+export const checkPortIdUniqueness = (ports: Array<InputParameterModel | WorkflowOutputParameterModel | CommandOutputParameterModel> ): void => {
+    const map       = {};
+    const duplicate = [];
+
+    for (let i = 0; i < ports.length; i++) {
+        const p = ports[i];
+
+        if (map[p.id]) {
+            duplicate.push(p);
+        } else {
+            map[p.id] = true;
+        }
+    }
+
+    if (duplicate.length > 0) {
+        for (let i = 0; i < duplicate.length; i++) {
+            const port = duplicate[i];
+
+            port.setIssue({
+                [`${port.loc}.id`]: {
+                    type: "error",
+                    code: ErrorCode.ID_DUPLICATE,
+                    message: `Duplicate id found: “${port.id}”`
+                }
+            });
+        }
+    }
 };

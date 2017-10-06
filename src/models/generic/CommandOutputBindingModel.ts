@@ -3,6 +3,7 @@ import {Serializable} from "../interfaces/Serializable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {ExpressionModel} from "./ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class CommandOutputBindingModel extends ValidationBase implements Serializable<any> {
     hasSecondaryFiles: boolean;
@@ -27,6 +28,40 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
         super(loc);
     }
 
+    protected setGlob(value: ExpressionModel, exprConstructor: new (...args: any[]) => ExpressionModel) {
+        if (this._glob) {
+            this._glob.clearIssue(ErrorCode.ALL);
+        }
+        let val = value.serialize();
+        this._glob = new exprConstructor(val, `${this.loc}.glob`, this.eventHub);
+        this._glob.setValidationCallback(err => this.updateValidity(err));
+        this.validateGlob();
+    }
+
+    protected validateGlob() {
+        if (!this._glob) return;
+
+        if (this._glob.serialize() === undefined) {
+            this._glob.setIssue({
+                [`${this.loc}.glob`]: {
+                    message: "Glob should be specified",
+                    type: "warning",
+                    code: ErrorCode.OUTPUT_GLOB_MISSING
+                }
+            }, true);
+        } else {
+            this._glob.clearIssue(ErrorCode.OUTPUT_GLOB_MISSING);
+        }
+    }
+
+    protected setOutputEval(value: ExpressionModel, exprConstructor: new (...args: any[]) => ExpressionModel) {
+        if (this._outputEval) {
+            this._outputEval.clearIssue(ErrorCode.ALL);
+        }
+        this._outputEval = new exprConstructor(value.serialize(), `${this.loc}.outputEval`, this.eventHub);
+        this._outputEval.setValidationCallback(err => this.updateValidity(err));
+    }
+
     serialize(): any {
         new UnimplementedMethodException("serialize", "CommandOutputBindingModel");
         return undefined;
@@ -34,28 +69,5 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
 
     deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "CommandOutputBindingModel");
-    }
-
-    validate(context): Promise<any> {
-
-        this.cleanValidity();
-        const promises = [];
-
-        if (this._glob && this._glob.serialize() === undefined) {
-            this._glob.setIssue({
-                [`${this.loc}.glob`]: {
-                    message: "Glob should be specified",
-                    type: "warning"
-                }
-            }, true);
-        } else {
-            promises.push(this._glob.validate(context));
-        }
-
-        if (this._outputEval) {
-            promises.push(this._outputEval.validate(context));
-        }
-
-        return Promise.all(promises).then(() => this.issues);
     }
 }

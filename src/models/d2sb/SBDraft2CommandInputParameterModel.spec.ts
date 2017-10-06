@@ -307,17 +307,14 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
             }).then(done, done);
         });
 
-        it("Should check for invalid characters in ID", (done) => {
+        it("Should check for invalid characters in ID", () => {
             const input = new SBDraft2CommandInputParameterModel(<CommandInputParameter>{
                 type: "string",
                 id: "@^%%^"
             });
 
-            input.validate({}).then(res => {
-                const issues = input.filterIssues("error");
-                expect(issues).to.not.be.empty;
-                expect(issues[0].message).to.contain("alphanumeric");
-            }).then(done, done);
+            expect(input.errors).to.not.be.empty;
+            expect(input.errors[0].message).to.contain("invalid characters");
         });
 
         it("Should ensure enum has symbols", (done) => {

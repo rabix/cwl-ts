@@ -10,6 +10,7 @@ import {CommandInputParameterType as V1CommandInputParameterType} from "../../ma
 
 import {ensureArray, incrementLastLoc, incrementString, spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export type PrimitiveParameterType =
     "array"
@@ -129,7 +130,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
     }
 
     validate(context = {}): Promise<any> {
-        this.cleanValidity();
+        this.clearIssue(ErrorCode.TYPE_ALL);
         const promises = [];
 
         // check type
@@ -140,6 +141,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     [this.loc]: {
                         type: "error",
                         message: "Type array must have items",
+                        code: ErrorCode.TYPE_ITEMS_MISSING
                     }
                 });
             }
@@ -148,6 +150,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     [`${this.loc}.symbols`]: {
                         type: "error",
                         message: "Type array must not have symbols",
+                        code: ErrorCode.TYPE_SYMBOLS_MISSING
                     }
                 });
             }
@@ -156,6 +159,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     [`${this.loc}.fields`]: {
                         type: "error",
                         message: "Type array must not have fields",
+                        code: ErrorCode.TYPE_FIELDS_MISSING
                     }
                 });
             }
@@ -168,6 +172,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     [`${this.loc}.items`]: {
                         type: "error",
                         message: "Type enum must not have items",
+                        code: ErrorCode.TYPE_EXTRA_PROPS
                     }
                 });
             }
@@ -176,6 +181,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     [this.loc]: {
                         type: "error",
                         message: "Type enum must have symbols",
+                        code: ErrorCode.TYPE_EXTRA_PROPS
                     }
                 });
             }
@@ -184,6 +190,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     [`${this.loc}.fields`]: {
                         type: "error",
                         message: "Type enum must not have fields",
+                        code: ErrorCode.TYPE_EXTRA_PROPS
                     }
                 });
             }
@@ -193,6 +200,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     [`${this.loc}`]: {
                         type: "error",
                         message: "Type enum must have a name",
+                        code: ErrorCode.TYPE_EXTRA_PROPS
                     }
                 });
             }
@@ -205,6 +213,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     [`${this.loc}.items`]: {
                         type: "error",
                         message: "Type record must not have items",
+                        code: ErrorCode.TYPE_EXTRA_PROPS
                     }
                 });
             }
@@ -213,6 +222,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     [`${this.loc}.symbols`]: {
                         type: "error",
                         message: "Type record must not have symbols",
+                        code: ErrorCode.TYPE_EXTRA_PROPS
                     }
                 });
             }
@@ -221,17 +231,19 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     [`${this.loc}`]: {
                         type: "error",
                         message: "Type record must have fields",
+                        code: ErrorCode.TYPE_EXTRA_PROPS
                     }
                 });
             } else {
-                promises.concat(this.fields.map(field => field.validate(context)));
+                // promises.concat(this.fields.map(field => field.validate(context)));
             }
 
             if (!this.name) {
                 this.setIssue({
                     [`${this.loc}.type`]: {
                         type: "error",
-                        message: "Type record must have a name"
+                        message: "Type record must have a name",
+                        code: ErrorCode.TYPE_NAME_MISSING
                     }
                 });
             }
@@ -241,7 +253,8 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             this.setIssue({
                 [this.loc]: {
                     type: "info",
-                    message: `Union type is not supported yet: ${this.unionType}`
+                    message: `Union type is not supported yet: ${this.unionType}`,
+                    code: ErrorCode.TYPE_UNSUPPORTED
                 }
             });
         }
@@ -270,7 +283,8 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             this.setIssue({
                 [this.loc]: {
                     message: ex.message,
-                    type: "error"
+                    type: "error",
+                    code: ex.code
                 }
             });
         }
@@ -347,7 +361,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
 
     addField(field: any = {}): any {
         if (this.type !== "record" && this.items !== "record") {
-            throw(`Fields can only be added to type or items record: type is ${this.type}, items is ${this.items}.`);
+            throw new Error(`Fields can only be added to type or items record: type is ${this.type}, items is ${this.items}.`);
         } else {
 
             if (field.id) {
@@ -360,7 +374,8 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     this.setIssue({
                         [this.loc]: {
                             message: `Field with name "${duplicate[0].id}" already exists`,
-                            type: "error"
+                            type: "error",
+                            code: ErrorCode.TYPE_FIELD_DUPLICATE_ID
                         }
                     });
                 }

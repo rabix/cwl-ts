@@ -34,10 +34,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public inputs: Array<V1CommandInputParameterModel>   = [];
     public outputs: Array<V1CommandOutputParameterModel> = [];
 
-    public id: string;
-    public label: string;
-    public description: string;
-
     public baseCommand: Array<string> = [];
 
     public arguments: Array<V1CommandArgumentModel> = [];
@@ -56,11 +52,23 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     // Context for JavaScript execution
     protected runtime: { ram?: number, cores?: number } = {};
 
+    constructor(json?: CommandLineTool, loc?: string) {
+        super(loc);
+
+        this.initializeExprWatchers();
+
+        if (json) this.deserialize(json);
+        this.constructed = true;
+        this.validateAllExpressions();
+        this.initializeJobWatchers();
+    }
+
+    // EXPRESSION CONTEXT //
+
     public setRuntime(runtime: any = {}): void {
         this.runtime.cores = runtime.cores !== undefined ? runtime.cores : this.runtime.cores;
         this.runtime.ram   = runtime.ram !== undefined ? runtime.ram : this.runtime.ram;
     }
-
 
     public resetJobDefaults(): void {
         this.jobInputs = JobHelper.getJobInputs(this);
@@ -90,16 +98,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         return context;
     };
 
-    constructor(json?: CommandLineTool, loc?: string) {
-        super(loc || "document");
-
-        this.initializeExprWatchers();
-
-        if (json) this.deserialize(json);
-        this.constructed = true;
-        this.validateAllExpressions();
-        this.initializeJobWatchers();
-    }
+    // CRUD HELPERS METHODS //
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
         const h = new RequirementBaseModel(hint, V1ExpressionModel, `${this.loc}.hints[${this.hints.length}]`);
@@ -180,6 +179,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         stream.loc = `${this.loc}.${type}`;
         stream.setValidationCallback(err => this.updateValidity(err));
     }
+
+    // SERIALIZATION //
 
     public deserialize(tool: CommandLineTool) {
         const serializedKeys = [

@@ -3,11 +3,10 @@ import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordFie
 import {Expression} from "../../mappings/d2sb/Expression";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
-import {ID_REGEX} from "../helpers/constants";
 import {EventHub} from "../helpers/EventHub";
 import {
     commaSeparatedToArray, ensureArray, incrementLastLoc, isType,
-    spreadSelectProps
+    spreadSelectProps, validateID
 } from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
@@ -22,7 +21,6 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
     public hasSecondaryFilesInRoot                   = false;
     public hasStageInput                             = true;
     public secondaryFiles: SBDraft2ExpressionModel[] = [];
-
 
     public job: any;
 
@@ -72,6 +70,18 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         } else {
             this.id = (<CommandInputParameter> input).id
                 || (<CommandInputRecordField> input).name || ""; // for record fields
+        }
+
+        try {
+            validateID(this.id);
+        } catch (ex) {
+            this.setIssue({
+                [`${this.loc}.id`]: {
+                    type: "error",
+                    code: ex.code,
+                    message: ex.message
+                }
+            });
         }
 
         this.label       = input.label;
@@ -137,45 +147,5 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
                 this.secondaryFiles.splice(index, 1);
             }
         }
-    }
-
-// //@todo(maya) implement validation
-    validate(context): Promise<any> {
-        const promises = [];
-        this.cleanValidity();
-
-        if (this.inputBinding) {
-            promises.push(this.inputBinding.validate(context));
-        }
-
-        promises.push(this.type.validate(context));
-
-        if (this.secondaryFiles) {
-            promises.concat(this.secondaryFiles.map(file => file.validate(context)));
-        }
-
-        // check id validity
-        // doesn't exist
-        if (this.id === "" || this.id === undefined) {
-            this.setIssue({
-                [`${this.loc}.id`]: {
-                    message: "ID must be set",
-                    type: "error"
-                }
-            });
-            // contains illegal characters
-        } else if (!ID_REGEX.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
-            this.setIssue({
-                [`${this.loc}.id`]: {
-                    message: "ID can only contain alphanumeric and underscore characters",
-                    type: "error"
-                }
-            });
-        }
-
-        return Promise.all(promises).then(() => this.issues, (ex) => {
-            console.warn(`SBDraft2CommandInputParameterModel threw error in validation: ${ex}`);
-            return this.issues
-        });
     }
 }

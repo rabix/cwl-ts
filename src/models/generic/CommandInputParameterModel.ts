@@ -78,7 +78,6 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
     abstract removeSecondaryFile(index: number);
 
     public validate(context: any): Promise<any> {
-        this.cleanValidity();
         const promises: Promise<any>[] = [];
 
         // id
@@ -87,7 +86,8 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
         } catch (ex) {
             this.setIssue({[this.loc + ".id"] : {
                 type: "error",
-                message: ex.message
+                message: ex.message,
+                code: ex.code
             }});
         }
 
