@@ -10,6 +10,7 @@ import * as OneStepWF from "../../tests/apps/one-step-wf";
 import * as ModelForValidation from "../../tests/apps/workflow-for-validating-connections";
 import * as ValidationErrors from "../../tests/apps/valid-connection-for-workflow";
 import {WorkflowInputParameterModel} from "./WorkflowInputParameterModel";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 describe("WorkflowModel", () => {
     describe("gatherSources", () => {
@@ -505,7 +506,7 @@ describe("WorkflowModel", () => {
             const connectionsBefore = wf.connections.filter((c) => c.destination.id === output.connectionId);
             const validConnectionsBeforeCleaning = connectionsBefore.filter((c) => c.isValid);
 
-            output.cleanValidity();
+            output.clearIssue(ErrorCode.ALL);
             wf.validateConnectionsForIOPort(output);
 
             const outputWarningsAfter = output.warnings.length;

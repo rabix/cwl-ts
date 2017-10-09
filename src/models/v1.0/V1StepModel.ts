@@ -159,11 +159,9 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         switch (process.class) {
             case "Workflow":
                 this.run = WorkflowFactory.from(process as any, `${this.loc}.run`);
-                this.run.setValidationCallback(ev => this.updateValidity(ev));
                 break;
             case "CommandLineTool":
                 this.run = CommandLineToolFactory.from(process as any, `${this.loc}.run`);
-                this.run.setValidationCallback(ev => this.updateValidity(ev));
                 break;
             case "ExpressionTool":
                 this.run = new ExpressionToolModel(process);

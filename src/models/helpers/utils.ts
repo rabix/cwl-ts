@@ -5,6 +5,7 @@ import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterMo
 import {ID_REGEX} from "./constants";
 import {ErrorCode, ValidityError} from "./validation/ErrorCode";
 import {InputParameterModel} from "../generic/InputParameterModel";
+import {Issue} from "./validation/Issue";
 
 export const ensureArray = (map: { [key: string]: any }
     | any[]
@@ -383,7 +384,7 @@ export const checkIdValidity = (id: string, scope: Array<CommandInputParameterMo
     }
 };
 
-export const concatIssues = (base: { [key: string]: any[] }, add: { [key: string]: any[] | any }, overwrite: boolean): any => {
+export const concatIssues = (base: { [key: string]: Issue[] }, add: { [key: string]: Issue[] | Issue }, overwrite: boolean): any => {
     const addKeys = Object.keys(add);
 
     for (let i = 0; i < addKeys.length; i++) {
@@ -391,21 +392,35 @@ export const concatIssues = (base: { [key: string]: any[] }, add: { [key: string
         // base[key] is an array and add[key] is an item or an array, can be concatenated
         if (base[key] && add[key] !== null) {
             if (overwrite) {
-                base[key] = add[key];
+                base[key] = <Issue[]> (Array.isArray(add[key]) ? add[key] : [add[key]]);
             } else {
-                base[key] = Array.from(new Set(base[key].concat(add[key])));
+                const toAdd = <Issue[]> (Array.isArray(add[key]) ? add[key] : [add[key]]);
+                for (let i = 0; i < toAdd.length; i++) {
+                    if (!issueExistsInArray(base[key], toAdd[i])) {
+                        base[key].push(toAdd[i]);
+                    }
+                }
             }
         } else {
-            // add[key]
             if (Array.isArray(add[key]) || add[key] === null) {
-                base[key] = add[key];
+                base[key] = <Issue[]> add[key];
             } else {
-                base[key] = [add[key]];
+                base[key] = [<Issue> add[key]];
             }
         }
     }
 
     return base;
+};
+
+export const issueExistsInArray = (arr: Issue[], item: Issue): boolean => {
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i].code === item.code && arr[i].message === item.message) {
+            return true;
+        }
+    }
+
+    return false;
 };
 
 export const checkPortIdUniqueness = (ports: Array<InputParameterModel | WorkflowOutputParameterModel | CommandOutputParameterModel> ): void => {

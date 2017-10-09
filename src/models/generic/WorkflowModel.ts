@@ -1146,7 +1146,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Validate all visible connections and sets correct validity state on destinations
      */
-    private validateConnections(): Promise<any> {
+    protected validateConnections(): void {
 
         const sources = this.gatherSources();
         const destinations = this.gatherDestinations();
@@ -1165,8 +1165,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 this.validateConnection(destination, source);
             }
         });
-
-        return new Promise((resolve) => resolve());
     }
 
     /**
@@ -1188,6 +1186,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         } catch (e) {
 
             const sourceText = destination instanceof V1WorkflowOutputParameterModel ? "outputSource" : "source";
+
 
             destination.setIssue({
                 [destination.loc + `.${sourceText}[` + source.sourceId + "]"]: {
@@ -1255,17 +1254,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.eventHub.emit("connections.updated");
     }
 
-    public validate(): Promise<any> {
-
-        this.cleanValidity();
-        const promises = [];
-
-        promises.concat(this.steps.map(step => step.validate()));
-        promises.concat(this.inputs.map(inp => inp.validate()));
-        promises.concat(this.outputs.map(out => out.validate()));
-
-        promises.push(this.validateConnections());
-
+    protected validateGraph() {
         try {
             this.graph.topSort();
         } catch (ex) {
@@ -1285,8 +1274,5 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 });
             }
         }
-
-        return Promise.all(promises).then(() => this.issues);
     }
-
 }

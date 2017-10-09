@@ -34,6 +34,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         if (workflow) this.deserialize(workflow);
         this.graph = this.constructGraph();
+        this.validateGraph();
     }
 
     public loc: string;

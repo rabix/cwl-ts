@@ -21,7 +21,7 @@ describe("ensureArray", () => {
                 id: "grr"
             }
         };
-        const arr = ensureArray(test, "id", "type");
+        const arr  = ensureArray(test, "id", "type");
 
         expect(arr).to.have.length(3);
         expect(arr).to.deep.equal(
@@ -44,7 +44,7 @@ describe("ensureArray", () => {
             foo: {d: "a"},
             bar: {a: "q"}
         };
-        const arr = ensureArray(test, "class");
+        const arr  = ensureArray(test, "class");
 
         expect(arr).to.not.be.empty;
         expect(arr).to.have.length(2);
@@ -56,14 +56,14 @@ describe("ensureArray", () => {
 
     it("should return original array of objects", () => {
         const test = [{foo: 1}, {foo: 2}, {foo: 3}];
-        const arr = ensureArray(test, "foo");
+        const arr  = ensureArray(test, "foo");
 
         expect(arr).to.deep.equal(test);
     });
 
     it("should return object array from primitive", () => {
         const test = [1, 2, 4];
-        const arr = ensureArray(test, "foo");
+        const arr  = ensureArray(test, "foo");
 
         expect(arr).to.deep.equal([
             {foo: 1}, {foo: 2}, {foo: 4}
@@ -75,7 +75,7 @@ describe("ensureArray", () => {
             foo: "hello",
             bar: "world"
         };
-        const arr = ensureArray(test, "class", "type");
+        const arr  = ensureArray(test, "class", "type");
 
         expect(arr).to.not.be.empty;
         expect(arr).to.have.length(2);
@@ -94,7 +94,7 @@ describe("ensureArray", () => {
 
     it("should wrap a primitive value in an array", () => {
         const test = "simple string";
-        const arr = ensureArray(<any> test);
+        const arr  = ensureArray(<any> test);
 
         expect(arr).to.have.length(1);
         expect(arr).to.deep.equal(["simple string"]);
@@ -182,7 +182,7 @@ describe("incrementString", () => {
 
 describe("spreadSelectProps", () => {
     it("should transfer properties to new object", () => {
-        let dest = {a: 1, b: 2};
+        let dest   = {a: 1, b: 2};
         let source = {c: 4, d: 10};
 
         spreadSelectProps(source, dest, []);
@@ -194,7 +194,7 @@ describe("spreadSelectProps", () => {
     });
 
     it("should transfer only unenumerated properties to new object", () => {
-        let dest = {a: 1, b: 2};
+        let dest   = {a: 1, b: 2};
         let source = {c: 4, d: 10, b: 33};
 
         spreadSelectProps(source, dest, ["d", "b"]);
@@ -318,7 +318,7 @@ describe("checkIfConnectionIsValid", () => {
 
         const parentStep = new V1StepModel();
 
-        const input = new V1WorkflowStepInputModel(null, parentStep);
+        const input  = new V1WorkflowStepInputModel(null, parentStep);
         const output = new V1WorkflowStepOutputModel(null, parentStep);
 
         expect(() => checkIfConnectionIsValid(input, output))
@@ -431,7 +431,7 @@ describe("checkIfConnectionIsValid", () => {
             type: "File"
         });
 
-        inputFile.fileTypes = [];
+        inputFile.fileTypes       = [];
         outputFileArray.fileTypes = [];
 
         expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
@@ -439,11 +439,11 @@ describe("checkIfConnectionIsValid", () => {
         inputFile.fileTypes = ["s", "c", "d"];
         expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
 
-        inputFile.fileTypes = [];
+        inputFile.fileTypes       = [];
         outputFileArray.fileTypes = ["B", "c", "d"];
         expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
 
-        inputFile.fileTypes = ["D", "c"];
+        inputFile.fileTypes       = ["D", "c"];
         outputFileArray.fileTypes = ["b", "C", "d"];
         expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
     });
@@ -451,7 +451,7 @@ describe("checkIfConnectionIsValid", () => {
 
     it("should be invalid when source and destination file-types does not have an intersection", () => {
 
-        const inputFile = new V1WorkflowInputParameterModel({
+        const inputFile     = new V1WorkflowInputParameterModel({
             id: "pointA",
             type: "File"
         });
@@ -779,7 +779,7 @@ describe("charSeparatedToArray", () => {
 
 describe("flatten", () => {
     it("should flatten nested array", () => {
-        const arr = [1, 2, [3, 4, [5, [6]]]];
+        const arr  = [1, 2, [3, 4, [5, [6]]]];
         const flat = flatten(arr);
 
         expect(flat).to.deep.equal([1, 2, 3, 4, 5, 6]);
@@ -787,43 +787,43 @@ describe("flatten", () => {
 });
 
 describe("concatKeyArrays", () => {
-   it("should concat two objects with arbitrary arrays", () => {
-       const base = {b: [1, 2], c: [3]};
-       const add = {b: [4]};
+    it("should concat two objects with arbitrary arrays", () => {
+        const base: any = {b: [{code: 1}, {code: 2}], c: [{code: 3}]};
+        const add: any  = {b: [{code: 4}]};
 
-       const combine = concatIssues(base, add, false);
-       expect(combine).to.deep.equal({b: [1, 2, 4], c: [3]});
-   });
+        const combine = concatIssues(base, add, false);
+        expect(combine).to.deep.equal({b: [{code: 1}, {code: 2}, {code: 4}], c: [{code: 3}]});
+    });
 
-   it("should add null values to base", () => {
-       const base = {b: [1, 2], c: [3]};
-       const add = {d: null};
+    it("should add null values to base", () => {
+        const base: any = {b: [1, 2], c: [3]};
+        const add       = {d: null};
 
-       const combine = concatIssues(base, add, false);
-       expect(combine).to.deep.equal({b: [1, 2], c: [3], d: null});
-   });
+        const combine = concatIssues(base, add, false);
+        expect(combine).to.deep.equal({b: [1, 2], c: [3], d: null});
+    });
 
-   it("should add an array property to the base object", () => {
-       const base = {b: [1, 2], c: [3]};
-       const add = {d: [4]};
+    it("should add an array property to the base object", () => {
+        const base: any = {b: [1, 2], c: [3]};
+        const add: any  = {d: [4]};
 
-       const combine = concatIssues(base, add, false);
-       expect(combine).to.deep.equal({b: [1, 2], c: [3], d: [4]});
-   });
+        const combine = concatIssues(base, add, false);
+        expect(combine).to.deep.equal({b: [1, 2], c: [3], d: [4]});
+    });
 
-   it("should override array of base with null", () => {
-       const base = {b: [1, 2], c: [3]};
-       const add = {b: null};
+    it("should override array of base with null", () => {
+        const base: any = {b: [1, 2], c: [3]};
+        const add: any  = {b: null};
 
-       const combine = concatIssues(base, add, false);
-       expect(combine).to.deep.equal({b: null, c: [3]});
-   });
+        const combine = concatIssues(base, add, false);
+        expect(combine).to.deep.equal({b: null, c: [3]});
+    });
 
     it("should not duplicate existing values", () => {
-        const base = {b: [1, 2], c: [3]};
-        const add = {b: [2]};
+        const base: any = {b: [1, 2], c: [3]};
+        const add: any  = {b: [2]};
 
-        const combine = concatIssues(base, add,  false);
+        const combine = concatIssues(base, add, false);
         expect(combine).to.deep.equal({b: [1, 2], c: [3]});
     });
 });

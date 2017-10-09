@@ -36,6 +36,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         if (workflow) this.deserialize(workflow);
 
         this.graph = this.constructGraph();
+        this.validateGraph();
 
         this.eventHub.on("io.change.id", (node, oldId)=> {
             if (node instanceof WorkflowInputParameterModel && this.batchInput === oldId) {

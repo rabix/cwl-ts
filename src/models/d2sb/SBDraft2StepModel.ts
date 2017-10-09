@@ -138,9 +138,11 @@ export class SBDraft2StepModel extends StepModel {
         switch (process.class) {
             case "Workflow":
                 this.run = WorkflowFactory.from(<Workflow> process, `${this.loc}.run`);
+                this.run.setValidationCallback(ev => this.updateValidity(ev));
                 break;
             case "CommandLineTool":
                 this.run = CommandLineToolFactory.from(<CommandLineTool> process, `${this.loc}.run`);
+                this.run.setValidationCallback(ev => this.updateValidity(ev));
                 break;
             case "ExpressionTool":
                 this.run = new ExpressionToolModel(process);
