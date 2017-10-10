@@ -37,7 +37,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     }
 
     private validateOutputEval() {
-        if (this._outputEval.type !== "expression") {
+        if (this._outputEval.type !== "expression" && this._outputEval.serialize() !== undefined) {
             this._outputEval.setIssue({
                 [`${this.loc}.outputEval`]: {
                     type: "error",
