@@ -22,36 +22,36 @@ import {V1WorkflowOutputParameterModel} from "../v1.0/V1WorkflowOutputParameterM
 import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
-    public id: string;
-    public cwlVersion: string | CWLVersion;
-    public "class" = "Workflow";
+    id: string;
+    cwlVersion: string | CWLVersion;
+    "class" = "Workflow";
 
-    public sbgId: string;
+    sbgId: string;
 
-    public hasBatch: boolean = false;
+    hasBatch: boolean = false;
 
-    public batchInput: string;
+    batchInput: string;
 
-    public batchByValue: string | string [];
+    batchByValue: string | string [];
 
-    public steps: StepModel[]                      = [];
-    public inputs: WorkflowInputParameterModel[]   = [];
-    public outputs: WorkflowOutputParameterModel[] = [];
+    steps: StepModel[]                      = [];
+    inputs: WorkflowInputParameterModel[]   = [];
+    outputs: WorkflowOutputParameterModel[] = [];
 
-    public hints: Array<ProcessRequirementModel> = [];
+    hints: Array<ProcessRequirementModel> = [];
 
     protected readonly eventHub: EventHub;
 
-    public label?: string;
-    public description?: string;
+    label?: string;
+    description?: string;
 
-    public customProps: any = {};
+    customProps: any = {};
 
-    public get connections(): Edge[] {
+    get connections(): Edge[] {
         return Array.from(this.graph.edges);
     }
 
-    public get nodes(): [string, any][] {
+    get nodes(): [string, any][] {
         return Array.from(this.graph.vertices)
     }
 
@@ -169,29 +169,180 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         });
     }
 
-    public on(event: string, handler): { dispose: Function } {
+    /**
+     * Emitted after a step is created
+     * @param {"step.create"} event
+     * @param {(step: StepModel) => void} handler
+     */
+    on(event: "step.create", handler: (step: StepModel) => void);
+
+    /**
+     * Emitted after a step is removed
+     * @param {"step.remove"} event
+     * @param {(step: StepModel) => void} handler
+     */
+    on(event: "step.remove", handler: (step: StepModel) => void);
+
+    /**
+     * @deprecated
+     * @param {"step.change"} event
+     * @param {() => void} handler
+     */
+    on(event: "step.change", handler: () => void);
+
+    /**
+     * @deprecated
+     * @param {"step.update"} event
+     * @param {() => void} handler
+     */
+    on(event: "step.update", handler: () => void);
+
+    /**
+     * Emitted after a step's ID has changed
+     * @param {"step.change.id"} event
+     * @param {(step: StepModel) => void} handler
+     */
+    on(event: "step.change.id", handler: (step: StepModel) => void);
+
+    /**
+     * Emitted after a step.run port is included in ports
+     * @param {"step.inPort.show"} event
+     * @param {(inPort: WorkflowStepInputModel) => void} handler
+     */
+    on(event: "step.inPort.show", handler: (inPort: WorkflowStepInputModel) => void);
+
+    /**
+     * Emitted after a step's in port is hidden from the graph
+     * @param {"step.inPort.hide"} event
+     * @param {(inPort: WorkflowStepInputModel) => void} handler
+     */
+    on(event: "step.inPort.hide", handler: (inPort: WorkflowStepInputModel) => void);
+
+    /**
+     * Emitted when a step's in ports are removed, such as after an update of the step's run
+     * @param {"step.inPort.remove"} event
+     * @param {(inPort: WorkflowStepInputModel) => void} handler
+     */
+    on(event: "step.inPort.remove", handler: (inPort: WorkflowStepInputModel) => void);
+
+    /**
+     * Emitted when an in port is added to the step, such as after an update of the step's run
+     * @param {"step.inPort.add"} event
+     * @param {(inPort: WorkflowStepInputModel) => void} handler
+     */
+    on(event: "step.inPort.add", handler: (inPort: WorkflowStepInputModel) => void);
+
+    /**
+     * Emitted when an out port is removed from the step, such as after an update of the step's run
+     * @param {"step.outPort.remove"} event
+     * @param {(outPort: WorkflowStepOutputModel) => void} handler
+     */
+    on(event: "step.outPort.remove", handler: (outPort: WorkflowStepOutputModel) => void);
+
+    /**
+     * Emitted when an in port is added to the step, such as after an update of the step's run
+     * @param {"step.outPort.add"} event
+     * @param {(outPort: WorkflowStepOutputModel) => void} handler
+     */
+    on(event: "step.outPort.add", handler: (outPort: WorkflowStepOutputModel) => void);
+
+    /**
+     * Emitted when a step in/out port is changed during an update of the step's run
+     * @param {"step.port.change"} event
+     * @param {(port: (WorkflowStepOutputModel | WorkflowStepInputModel)) => void} handler
+     */
+    on(event: "step.port.change", handler: (port: WorkflowStepOutputModel | WorkflowStepInputModel) => void);
+
+    /**
+     * Emitted when an input is removed from the workflow
+     * @param {"input.remove"} event
+     * @param {(input: WorkflowInputParameterModel) => void} handler
+     */
+    on(event: "input.remove", handler: (input: WorkflowInputParameterModel) => void);
+
+    /**
+     * Emitted when an input is created on the workflow
+     * @param {"input.create"} event
+     * @param {(input: WorkflowInputParameterModel) => void} handler
+     */
+    on(event: "input.create", handler: (input: WorkflowInputParameterModel) => void);
+
+    /**
+     * Emitted when an output is removed from the workflow
+     * @param {"output.remove"} event
+     * @param {(output: WorkflowOutputParameterModel) => void} handler
+     */
+    on(event: "output.remove", handler: (output: WorkflowOutputParameterModel) => void);
+
+    /**
+     * Emitted when an output is created on the workflow
+     * @param {"output.create"} event
+     * @param {(output: WorkflowOutputParameterModel) => void} handler
+     */
+    on(event: "output.create", handler: (output: WorkflowOutputParameterModel) => void);
+
+    /**
+     * Emitted when some property of the workflow input/output changes that affects the rendering of the graph.
+     * @example label
+     * @param {"io.change"} event
+     * @param {(io: (WorkflowOutputParameterModel | WorkflowInputParameterModel)) => void} handler
+     */
+    on(event: "io.change", handler: (io: WorkflowOutputParameterModel | WorkflowInputParameterModel) => void);
+
+    /**
+     * Emitted when id of workflow input/output changes
+     * @param {"io.change.id"} event
+     * @param {(io: (WorkflowOutputParameterModel | WorkflowInputParameterModel)) => void} handler
+     */
+    on(event: "io.change.id", handler: (io: WorkflowOutputParameterModel | WorkflowInputParameterModel) => void);
+
+    /**
+     * Emitted when validation of workflow connections finishes
+     * @param {"connections.updated"} event
+     * @param {() => void} handler
+     */
+    on(event: "connections.updated", handler: () => void);
+
+    /**
+     * Emitted when a connection is removed
+     * @param {"connection.remove"} event
+     * @param {(source: (WorkflowInputParameterModel | WorkflowStepOutputModel), destination: (WorkflowOutputParameterModel | WorkflowStepInputModel)) => void} handler
+     */
+    on(event: "connection.remove", handler: (source: WorkflowInputParameterModel | WorkflowStepOutputModel,
+                                             destination: WorkflowOutputParameterModel | WorkflowStepInputModel) => void);
+
+    /**
+     * Emitted when a connection is created
+     * @param {"connection.create"} event
+     * @param {(source: (WorkflowInputParameterModel | WorkflowStepOutputModel), destination: (WorkflowOutputParameterModel | WorkflowStepInputModel)) => void} handler
+     */
+    on(event: "connection.create", handler: (source: WorkflowInputParameterModel | WorkflowStepOutputModel,
+                                             destination: WorkflowOutputParameterModel | WorkflowStepInputModel) => void);
+
+
+    on(event: string, handler): { dispose: Function } {
         return {
             dispose: this.eventHub.on(event, handler)
         }
     }
 
-    public off(event: string, handler) {
+    off(event: string, handler) {
         this.eventHub.off(event, handler);
     }
 
-    public serializeEmbedded(retainSource: boolean = false): any {
+    serializeEmbedded(retainSource: boolean = false): any {
         new UnimplementedMethodException("serializeEmbedded", "WorkflowModel");
     }
 
-    public serialize(): any {
+    serialize(): any {
         new UnimplementedMethodException("serialize", "WorkflowModel");
     }
 
-    public deserialize(attr: any): void {
+    deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "WorkflowModel");
     }
 
-    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+    addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
         new UnimplementedMethodException("addHint", "WorkflowModel");
         return null;
     }
@@ -210,10 +361,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return reqModel;
     }
 
-    public setBatch(input, type): void {
+    setBatch(input, type): void {
     };
 
-    public findById(connectionId: string) {
+    findById(connectionId: string) {
         return this.graph.getVertexData(connectionId);
     }
 
@@ -229,7 +380,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Sets inPort.isVisible to false
      * Sets input.isVisible to false
      */
-    public exposePort(inPort: WorkflowStepInputModel) {
+    exposePort(inPort: WorkflowStepInputModel) {
         new UnimplementedMethodException("exposePort", "WorkflowModel");
     }
 
@@ -239,7 +390,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      *
      * @name step.inPort.show
      */
-    public includePort(inPort: WorkflowStepInputModel) {
+    includePort(inPort: WorkflowStepInputModel) {
         // check if port was exposed before including it
         if (inPort.status === "exposed") {
             this.clearPort(inPort);
@@ -267,7 +418,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      *
      * @name step.inPort.hide
      */
-    public clearPort(inPort: WorkflowStepInputModel) {
+    clearPort(inPort: WorkflowStepInputModel) {
         // remove port from canvas
         inPort.isVisible = false;
         inPort.cleanValidity();
@@ -292,7 +443,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.eventHub.emit("step.inPort.hide", inPort);
     }
 
-    public clearOutPort(outPort: WorkflowStepOutputModel) {
+    clearOutPort(outPort: WorkflowStepOutputModel) {
         outPort.isVisible = false;
 
         this.graph.edges.forEach(e => {
@@ -345,7 +496,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * removes all connections to step and cleans up dangling inputs
      * @param step
      */
-    public removeStep(step: StepModel | string) {
+    removeStep(step: StepModel | string) {
         if (typeof step === "string") {
             step = <StepModel> this.graph.getVertexData(step);
         }
@@ -420,7 +571,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * removes all connections
      * @param input
      */
-    public removeInput(input: WorkflowInputParameterModel | string) {
+    removeInput(input: WorkflowInputParameterModel | string) {
         if (typeof input === "string") {
             input = <WorkflowInputParameterModel> this.graph.getVertexData(input);
         }
@@ -459,7 +610,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * removes all connections
      * @param output
      */
-    public removeOutput(output: WorkflowOutputParameterModel | string) {
+    removeOutput(output: WorkflowOutputParameterModel | string) {
         if (typeof output === "string") {
             output = <WorkflowOutputParameterModel> this.graph.getVertexData(output);
         }
@@ -510,7 +661,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Changes ID of step, updates connections and nodes in graph
      */
-    public changeStepId(step: StepModel, id: string) {
+    changeStepId(step: StepModel, id: string) {
         if (id === step.id) {
             return;
         }
@@ -573,7 +724,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.graph.removeVertex(node.connectionId);
     }
 
-    public changeIONodeId(node: WorkflowInputParameterModel
+    changeIONodeId(node: WorkflowInputParameterModel
         | WorkflowOutputParameterModel, id: string) {
         if (node.id === id) return;
 
@@ -655,7 +806,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return [source, destination];
     }
 
-    public disconnect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
+    disconnect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
                       destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
         [source, destination] = this.checkSrcAndDest(source, destination);
 
@@ -691,7 +842,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
     }
 
-    public connect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
+    connect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
                    destination: WorkflowOutputParameterModel
                        | WorkflowStepInputModel
                        | string, show = true) {
@@ -722,7 +873,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return isValid;
     }
 
-    public addStepFromProcess(proc: Process | SBDraft2Process): StepModel {
+    addStepFromProcess(proc: Process | SBDraft2Process): StepModel {
         new UnimplementedMethodException("addStepFromProcess", "WorkflowModel");
         return undefined;
     }
@@ -758,7 +909,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return result;
     }
 
-    public isConnected(): boolean {
+    isConnected(): boolean {
         try {
             if (!this.graph) this.graph = this.constructGraph();
             const isConnected = this.graph.isConnected();
@@ -786,7 +937,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
     }
 
-    public hasCycles(): boolean {
+    hasCycles(): boolean {
         try {
             if (!this.graph) this.graph = this.constructGraph();
             const hasCycles = this.graph.hasCycles();
@@ -834,7 +985,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * @param port
      * @returns {any[]}
      */
-    public gatherValidConnectionPoints(port: WorkflowInputParameterModel
+    gatherValidConnectionPoints(port: WorkflowInputParameterModel
         | WorkflowStepOutputModel
         | WorkflowOutputParameterModel
         | WorkflowStepInputModel
@@ -856,7 +1007,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Returns all possible sources on the graph
      */
-    public gatherSources(): Array<WorkflowInputParameterModel | WorkflowStepOutputModel> {
+    gatherSources(): Array<WorkflowInputParameterModel | WorkflowStepOutputModel> {
         const stepOut = this.steps.reduce((acc, curr) => {
             return acc.concat(curr.out);
         }, []);
@@ -867,7 +1018,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Returns all possible destinations on the graph
      */
-    public gatherDestinations(): Array<WorkflowOutputParameterModel | WorkflowStepInputModel> {
+    gatherDestinations(): Array<WorkflowOutputParameterModel | WorkflowStepInputModel> {
         const stepOut = this.steps.reduce((acc, curr) => {
             return acc.concat(curr.in);
         }, []);
@@ -909,7 +1060,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         })
     }
 
-    public createInputFromPort(inPort: WorkflowStepInputModel
+    createInputFromPort(inPort: WorkflowStepInputModel
         | string): WorkflowInputParameterModel {
         new UnimplementedMethodException("createInputFromPort", "WorkflowStepInputModel");
         return undefined;
@@ -962,10 +1113,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // add input to graph
         this.addInputToGraph(input);
 
+        this.eventHub.emit("input.create", input);
+
         // connect input with inPort
         this.connect(input, inPort, show);
 
-        this.eventHub.emit("input.create", input);
 
         return input;
     }
@@ -974,7 +1126,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Creates a workflow output from a given step.out
      * @param port
      */
-    public createOutputFromPort(port: WorkflowStepOutputModel
+    createOutputFromPort(port: WorkflowStepOutputModel
         | string): WorkflowOutputParameterModel {
         new UnimplementedMethodException("createOutputFromPort", "WorkflowModel");
         return undefined;
@@ -1020,10 +1172,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // add output to graph
         this.addOutputToGraph(output);
 
+        this.eventHub.emit("output.create", output);
+
         // connect output with outPort
         this.connect(outPort, output, show);
 
-        this.eventHub.emit("output.create", output);
         return output;
     }
 
@@ -1079,7 +1232,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     };
 
-    public constructGraph(): Graph {
+    constructGraph(): Graph {
         const destinations = this.gatherDestinations();
 
         // Create a blank Graph
