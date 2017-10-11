@@ -961,10 +961,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // add input to graph
         this.addInputToGraph(input);
 
+        this.eventHub.emit("input.create", input);
+
         // connect input with inPort
         this.connect(input, inPort, show);
 
-        this.eventHub.emit("input.create", input);
 
         return input;
     }
@@ -1019,10 +1020,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // add output to graph
         this.addOutputToGraph(output);
 
+        this.eventHub.emit("output.create", output);
+
         // connect output with outPort
         this.connect(outPort, output, show);
 
-        this.eventHub.emit("output.create", output);
         return output;
     }
 
