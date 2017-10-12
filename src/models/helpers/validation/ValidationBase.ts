@@ -1,7 +1,6 @@
 import {UnimplementedMethodException} from "../UnimplementedMethodException";
-import {concatIssues, nullifyObjValues} from "../utils";
+import {concatIssues} from "../utils";
 import {Issue, IssueEvent} from "./Issue";
-import {Validatable} from "./Validatable";
 import {ErrorCode} from "./ErrorCode";
 
 export abstract class ValidationBase {
