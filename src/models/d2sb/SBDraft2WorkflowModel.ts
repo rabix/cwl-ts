@@ -47,14 +47,14 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
 
     public createInputFromPort(inPort: SBDraft2WorkflowStepInputModel | string,
-                               data: {customProps: {}}): SBDraft2WorkflowInputParameterModel {
+                               data: Customizable = {}): SBDraft2WorkflowInputParameterModel {
         const port = super._createInputFromPort(inPort, SBDraft2WorkflowInputParameterModel, undefined, undefined, data);
         port.customProps["sbg:includeInPorts"] = true;
         return port;
     }
 
     public createOutputFromPort(outPort: SBDraft2WorkflowStepOutputModel
-                                    | string, data: Customizable): SBDraft2WorkflowOutputParameterModel {
+                                    | string, data: Customizable = {}): SBDraft2WorkflowOutputParameterModel {
 
         return super._createOutputFromPort(outPort, SBDraft2WorkflowOutputParameterModel, undefined, undefined, data);
     }
