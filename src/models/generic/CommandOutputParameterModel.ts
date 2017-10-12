@@ -7,6 +7,7 @@ import {ExpressionModel} from "./ExpressionModel";
 import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
 import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 
 export abstract class CommandOutputParameterModel extends ValidationBase implements Serializable<any> {
@@ -68,7 +69,7 @@ export abstract class CommandOutputParameterModel extends ValidationBase impleme
     }
 
     validate(context): Promise<any> {
-        this.cleanValidity();
+        this.clearIssue(ErrorCode.ALL);
         const promises = [];
 
         promises.push(this.outputBinding.validate(context));

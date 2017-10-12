@@ -421,7 +421,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     clearPort(inPort: WorkflowStepInputModel) {
         // remove port from canvas
         inPort.isVisible = false;
-        inPort.cleanValidity();
+        inPort.clearIssue(ErrorCode.ALL);
 
         // loop through sources, removing their connections and clearing dangling inputs
         while (inPort.source.length > 0) {
@@ -482,7 +482,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
             this.outputs = this.outputs.filter(output => {
                 if (output.connectionId === connectionId) {
-                    output.cleanValidity();
+                    output.clearIssue(ErrorCode.ALL);
                     return false;
                 }
 
@@ -806,7 +806,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return [source, destination];
     }
 
-    disconnect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
+    public disconnect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
                       destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
         [source, destination] = this.checkSrcAndDest(source, destination);
 

@@ -6,6 +6,7 @@ import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {EventHub} from "../helpers/EventHub";
 import {ParameterTypeModel} from "./ParameterTypeModel";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class WorkflowInputParameterModel extends ValidationBase implements InputParameter, Serializable<any>, Plottable {
     public id: string;
@@ -72,7 +73,7 @@ export class WorkflowInputParameterModel extends ValidationBase implements Input
     }
 
     validate(): Promise<any> {
-        this.cleanValidity();
+        this.clearIssue(ErrorCode.ALL);
         const promises = [];
 
         promises.push(this.type.validate());

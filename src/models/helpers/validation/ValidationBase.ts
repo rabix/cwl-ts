@@ -4,7 +4,7 @@ import {Issue, IssueEvent} from "./Issue";
 import {Validatable} from "./Validatable";
 import {ErrorCode} from "./ErrorCode";
 
-export abstract class ValidationBase implements Validatable {
+export abstract class ValidationBase {
     protected issues: { [key: string]: Issue[] } = {};
     private _errors: Issue[]                     = [];
     private _warnings: Issue[]                   = [];

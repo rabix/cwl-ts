@@ -392,7 +392,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         if (index < 0) {
             return;
         }
-        this.outputs[index].cleanValidity();
+        this.outputs[index].clearIssue(ErrorCode.ALL);
         this.outputs.splice(index, 1);
 
         // start at the index and update location of all arguments after it
@@ -440,7 +440,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         if (index < 0) {
             return;
         }
-        this.inputs[index].cleanValidity();
+        this.inputs[index].clearIssue(ErrorCode.ALL);
         this.inputs.splice(index, 1);
 
         // start at the index and update location of all arguments after it
@@ -461,7 +461,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         if (index < 0) {
             return;
         }
-        this.arguments[index].cleanValidity();
+        this.arguments[index].clearIssue(ErrorCode.ALL);
         this.arguments.splice(index, 1);
 
         // start at the index and update location of all arguments after it

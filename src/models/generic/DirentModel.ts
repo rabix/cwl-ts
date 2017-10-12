@@ -3,6 +3,7 @@ import {ExpressionModel} from "./ExpressionModel";
 import {Serializable} from "../interfaces/Serializable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export abstract class DirentModel extends ValidationBase implements Serializable<any> {
     entry: ExpressionModel;
@@ -24,7 +25,7 @@ export abstract class DirentModel extends ValidationBase implements Serializable
     }
 
     validate(context: any): Promise<any> {
-        this.cleanValidity();
+        this.clearIssue(ErrorCode.ALL);
 
         return Promise.all([this.entry.validate(context), this.entryName.validate(context)]);
     }
