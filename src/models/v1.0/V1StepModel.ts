@@ -207,9 +207,12 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             // here will set source and default if they exist
             const model = new V1WorkflowStepInputModel({
                 type: input.type,
-                format: input.fileTypes || [],
+                fileTypes: input.fileTypes || [],
                 doc: input.description,
                 label: input.label,
+                "sbg:toolDefaultValue": input.customProps["sbg:toolDefaultValue"],
+                "sbg:category": input.customProps["sbg:category"],
+                "sbg:altPrefix": input.customProps["sbg:altPrefix"],
                 ...serialized // serialized match goes last so changed properties are overwritten
             }, this, `${this.loc}.in[${index}]`);
 
