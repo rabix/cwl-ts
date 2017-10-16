@@ -15,6 +15,7 @@ import {Process} from "../generic/Process";
 import {V1WorkflowStepOutputModel} from "./V1WorkflowStepOutputModel";
 import {ProcessRequirement} from "../generic/ProcessRequirement";
 import {V1ExpressionModel} from "./V1ExpressionModel";
+import {Customizable} from '../interfaces/Customizable';
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -71,14 +72,16 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         return entry;
     }
 
-    public createInputFromPort(inPort: V1WorkflowStepInputModel
-                                   | string): V1WorkflowInputParameterModel {
-        return super._createInputFromPort(inPort, V1WorkflowInputParameterModel);
+    public createInputFromPort(inPort: V1WorkflowStepInputModel | string,
+                               data: Customizable = {}): V1WorkflowInputParameterModel {
+
+        return super._createInputFromPort(inPort, V1WorkflowInputParameterModel, undefined, undefined, data);
     }
 
     public createOutputFromPort(outPort: V1WorkflowStepOutputModel
-                                    | string): V1WorkflowOutputParameterModel {
-        return super._createOutputFromPort(outPort, V1WorkflowOutputParameterModel);
+                                    | string, data: Customizable = {}): V1WorkflowOutputParameterModel {
+
+        return super._createOutputFromPort(outPort, V1WorkflowOutputParameterModel, undefined, undefined, data);
     }
 
     public exposePort(inPort: V1WorkflowStepInputModel) {
