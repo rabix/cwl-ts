@@ -23,6 +23,7 @@ import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
 import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1InitialWorkDirRequirementModel} from "./V1InitialWorkDirRequirementModel";
+import {V1InlineJavascriptRequirementModel} from "./V1InlineJavascriptRequirementModel";
 import {V1ResourceRequirementModel} from "./V1ResourceRequirementModel";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
@@ -50,6 +51,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public docker: DockerRequirementModel;
 
     public fileRequirement: V1InitialWorkDirRequirementModel;
+
+    public inlineJavascriptRequirement: V1InlineJavascriptRequirementModel;
 
     public resources: V1ResourceRequirementModel;
 
@@ -162,6 +165,13 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
                 this.resources = new V1ResourceRequirementModel(req, loc, this.eventHub);
                 this.resources.setValidationCallback(err => this.updateValidity(err));
                 this.resources.isHint = hint;
+                return;
+
+            case "InlineJavascriptRequirement":
+                loc = this.resources ? this.inlineJavascriptRequirement.loc || loc : loc;
+                this.inlineJavascriptRequirement = new V1InlineJavascriptRequirementModel(req, loc);
+                this.inlineJavascriptRequirement.setValidationCallback(err => this.updateValidity(err));
+                this.inlineJavascriptRequirement.isHint = hint;
                 return;
 
             default:
@@ -287,6 +297,11 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         }
         this.resources.setValidationCallback(err => this.updateValidity(err));
 
+        // create InlineJavascriptRequirement for manipulation
+        if (!this.inlineJavascriptRequirement) {
+            this.inlineJavascriptRequirement = new V1InlineJavascriptRequirementModel({}, `${this.loc}.requirements[${++counter}]`)
+        }
+
         this.stdin = new V1ExpressionModel(tool.stdin, `${this.loc}.stdin`, this.eventHub);
         this.stdin.setValidationCallback(err => this.updateValidity(err));
 
@@ -408,8 +423,15 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             base.permanentFailCodes = this.permanentFailCodes;
         }
 
-        const exprReqIndex = this.requirements.findIndex((req => req.class === "InlineJavascriptRequirement"));
-        if (hasExpression) {
+        // for the InlineJavascriptRequirement,
+        // serialize it if there are expression libs so they aren't lost
+        if (this.inlineJavascriptRequirement.expressionLib.length > 0) {
+          base.requirements.push(this.inlineJavascriptRequirement.serialize());
+
+        // if there are no expression libs,
+        // create requirement only if there are expressions
+        } else if (hasExpression) {
+            const exprReqIndex = this.requirements.findIndex((req => req.class === "InlineJavascriptRequirement"));
             base.requirements = base.requirements || [];
             if (exprReqIndex === -1) {
                 base.requirements.push({

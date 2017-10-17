@@ -6,3 +6,4 @@ export * from "./V1StepModel";
 export * from "./V1WorkflowInputParameterModel";
 export * from "./V1WorkflowOutputParameterModel";
 export * from "./V1ExpressionModel";
+export * from "./V1InlineJavascriptRequirementModel";
