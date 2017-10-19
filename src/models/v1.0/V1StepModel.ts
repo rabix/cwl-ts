@@ -152,6 +152,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
             this.compareInPorts(true);
             this.compareOutPorts(true);
+
+            this.eventHub.emit("step.update", this);
         }
     }
 

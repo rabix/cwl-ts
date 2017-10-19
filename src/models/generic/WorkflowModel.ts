@@ -191,11 +191,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     on(event: "step.change", handler: () => void);
 
     /**
-     * @deprecated
+     * Emitted when step's run is updated
      * @param {"step.update"} event
-     * @param {() => void} handler
+     * @param {(step: StepModel) => void} handler
      */
-    on(event: "step.update", handler: () => void);
+    on(event: "step.update", handler: (step: StepModel) => void);
 
     /**
      * Emitted after a step's ID has changed
