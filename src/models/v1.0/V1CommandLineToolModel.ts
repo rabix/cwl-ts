@@ -446,7 +446,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         let hasMetadataScript = false;
         for (let i = 0; i < base.outputs.length; i++) {
             const out = base.outputs[i];
-            if (out.outputBinding && V1CommandOutputBindingModel.INHERIT_REGEX.test(out.outputBinding.outputEval)) {
+            if (out.outputBinding && new RegExp(V1CommandOutputBindingModel.INHERIT_REGEX).test(out.outputBinding.outputEval)) {
                 hasMetadataScript = true;
                 break;
             }

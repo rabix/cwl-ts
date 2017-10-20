@@ -39,7 +39,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
 
     set outputEval(value: V1ExpressionModel) {
         const serialized = value.serialize();
-        if (!V1CommandOutputBindingModel.INHERIT_REGEX.test(serialized) && this.inheritMetadataFrom) {
+        if (!(new RegExp(V1CommandOutputBindingModel.INHERIT_REGEX).test(serialized)) && this.inheritMetadataFrom) {
             this.inheritMetadataFrom = null;
         }
         this._outputEval = new V1ExpressionModel(serialized, `${this.loc}.outputEval`, this.eventHub);
@@ -61,14 +61,14 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
                 this._outputEval.setValue(inheritExpr);
             } else {
                 // remove existing inherit statements if they exist
-                serialized = serialized.replace(V1CommandOutputBindingModel.INHERIT_REGEX, "");
+                serialized = serialized.replace(new RegExp(V1CommandOutputBindingModel.INHERIT_REGEX), "");
 
                 // output eval exists and is something else
                 this._outputEval.setValue((serialized + "\n\n" + inheritExpr).trim());
             }
         } else if (serialized !== undefined) {
             // inherit was removed and should be removed from outputEval
-            const newOutputEval = serialized.replace(V1CommandOutputBindingModel.INHERIT_REGEX, "");
+            const newOutputEval = serialized.replace(new RegExp(V1CommandOutputBindingModel.INHERIT_REGEX), "");
             this._outputEval.setValue(newOutputEval || undefined);
             // set inherit to empty value
             this.inheritMetadataFrom = inputId;

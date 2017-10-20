@@ -36,7 +36,7 @@ export class V1InlineJavascriptRequirementModel extends ProcessRequirementModel 
         let base: InlineJavascriptRequirement = <any> {};
 
         base.class         = this.class;
-        base.expressionLib = this.expressionLib;
+        if (this.expressionLib.length) base.expressionLib = this.expressionLib;
 
         return spreadAllProps(base, this.customProps);
     }
