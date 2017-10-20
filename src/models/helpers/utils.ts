@@ -300,7 +300,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
         }
         // if type match is file, and fileTypes are defined on both ports,
         // match only if fileTypes match
-        if (pointAType === "File" && pointB.fileTypes.length && pointA.fileTypes.length) {
+        if ((pointAType === "File" || pointAItems === "File") && pointB.fileTypes.length && pointA.fileTypes.length) {
             if (!!intersection(pointB.fileTypes.map((type) => type.toLowerCase()), pointA.fileTypes.map(type => type.toLowerCase())).length) {
                 return true;
             } else {
