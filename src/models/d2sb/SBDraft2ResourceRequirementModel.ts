@@ -15,6 +15,8 @@ export class SBDraft2ResourceRequirementModel extends ResourceRequirementModel {
         super(loc, eventHub);
 
         this.mem = new SBDraft2ExpressionModel();
+        this.mem.setValidationCallback(ev => this.updateValidity(ev));
         this.cores = new SBDraft2ExpressionModel();
+        this.cores.setValidationCallback(ev => this.updateValidity(ev));
     }
 }

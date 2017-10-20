@@ -46,19 +46,20 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
         return this.inputBinding !== undefined && this.inputBinding !== null;
     }
 
-    public updateInputBinding(binding: CommandLineBindingModel | SBDraft2CommandLineBinding | V1CommandLineBinding) {
-        new UnimplementedMethodException("updateInputBinding", "CommandInputParameterModel");
-    }
+    abstract updateInputBinding(binding: CommandLineBindingModel | SBDraft2CommandLineBinding | V1CommandLineBinding);
 
-    public createInputBinding(): CommandLineBindingModel {
-        new UnimplementedMethodException("createInputBinding", "CommandInputParameterModel");
-        return undefined;
-    }
+    abstract createInputBinding(): CommandLineBindingModel;
 
     public removeInputBinding() {
         if (this.inputBinding) {
             this.inputBinding.clearIssue(ErrorCode.EXPR_ALL);
         }
+
+        if (!this.hasSecondaryFilesInRoot) {
+            this.secondaryFiles.forEach(f => f.clearIssue(ErrorCode.EXPR_ALL));
+            this.secondaryFiles = [];
+        }
+
         this.inputBinding = null;
     }
 

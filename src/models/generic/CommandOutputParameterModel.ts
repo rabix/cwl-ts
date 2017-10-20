@@ -50,14 +50,9 @@ export abstract class CommandOutputParameterModel extends ValidationBase impleme
         super(loc);
     }
 
-    serialize(): any {
-        new UnimplementedMethodException("serialize", "CommandOutputParameterModel");
-        return null;
-    }
+    abstract serialize(): any;
 
-    deserialize(attr: any): void {
-        new UnimplementedMethodException("deserialize", "CommandOutputParameterModel");
-    }
+    abstract deserialize(attr: any): void;
 
     updateLoc(loc: string) {
         // must update location of self first

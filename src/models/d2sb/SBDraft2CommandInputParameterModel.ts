@@ -11,6 +11,7 @@ import {
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter
     | CommandInputRecordField> {
@@ -134,6 +135,7 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
 
     updateSecondaryFiles(files: Array<Expression | Expression | string>) {
         if (this.inputBinding) {
+            this.secondaryFiles.forEach(f => f.clearIssue(ErrorCode.EXPR_ALL));
             this.secondaryFiles = [];
             files.forEach(f => this.addSecondaryFile(f));
         }

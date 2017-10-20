@@ -63,7 +63,7 @@ export abstract class ValidationBase {
                         }
                         return i.code !== code
                     });
-                    hadIssue         = initLen !== this.issues[key].length || hadIssue;
+                    hadIssue = initLen !== this.issues[key].length || hadIssue;
                 }
             }
         }

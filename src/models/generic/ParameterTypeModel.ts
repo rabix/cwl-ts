@@ -56,10 +56,15 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             switch (t) {
                 case "enum":
                     this._symbols = [];
+                    this.fields = null;
                     break;
                 case "record":
                     this.fields = [];
+                    this._symbols = null;
                     break;
+                default:
+                    this._symbols = null;
+                    this.fields = null;
             }
             this._items = t;
 
