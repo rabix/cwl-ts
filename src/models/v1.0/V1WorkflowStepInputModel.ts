@@ -31,11 +31,25 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
 
         if (this.valueFrom && this.valueFrom.serialize()) base.valueFrom = this.valueFrom.serialize();
 
-        return spreadAllProps(base, this.customProps);
+        base = spreadAllProps(base, this.customProps);
+
+        delete base["sbg:toolDefaultValue"];
+        delete base["sbg:category"];
+        delete base["sbg:altPrefix"];
+
+        return base;
     }
 
     deserialize(attr: WorkflowStepInput): void {
-        const serializedKeys = ["id", "default", "source", "type", "doc", "label", "format"];
+        const serializedKeys = [
+            "id",
+            "default",
+            "source",
+            "type",
+            "doc",
+            "label",
+            "fileTypes"
+        ];
 
         this.id      = attr.id;
         this.default = attr.default;
@@ -45,14 +59,14 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
 
         // properties that will not be serialized on the step.in,
         // but are necessary for internal functions
-        this.type    = attr["type"];
+        this.type = attr["type"];
         if (!this.type) this.type = new ParameterTypeModel(null);
         this.type.hasDirectoryType = true;
 
         this.description = attr["doc"];
         this.label       = attr["label"];
 
-        this.fileTypes = attr["format"];
+        this.fileTypes = attr["fileTypes"];
 
         spreadSelectProps(attr, this.customProps, serializedKeys);
     }
