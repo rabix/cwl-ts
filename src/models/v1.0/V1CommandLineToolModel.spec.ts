@@ -1352,7 +1352,7 @@ describe("V1CommandLineToolModel", () => {
                     output2: {
                         type: "File",
                         outputBinding: {
-                            outputEval: "${inheritMetadata(self, inputs.input)}"
+                            outputEval: "$(inheritMetadata(self, inputs.input))"
                         }
                     }
                 }
@@ -1379,7 +1379,7 @@ describe("V1CommandLineToolModel", () => {
 
             const serialized = model.serialize();
             expect(serialized.outputs[0].outputBinding.outputEval).to.not.be.empty;
-            expect(serialized.outputs[0].outputBinding.outputEval).to.equal("${inheritMetadata(self, inputs.input)}");
+            expect(serialized.outputs[0].outputBinding.outputEval).to.equal("$(inheritMetadata(self, inputs.input))");
         });
 
         it("should add to outputEval if it is already set", () => {
@@ -1389,7 +1389,7 @@ describe("V1CommandLineToolModel", () => {
 
             const serialized = model.serialize();
             expect(serialized.outputs[0].outputBinding.outputEval).to.not.be.empty;
-            expect(serialized.outputs[0].outputBinding.outputEval).to.equal(expr + "\n\n${inheritMetadata(self, inputs.input)}");
+            expect(serialized.outputs[0].outputBinding.outputEval).to.equal(expr + "\n\n$(inheritMetadata(self, inputs.input))");
         });
 
         it("should change outputEval if inherit metadata is changed", () => {
@@ -1398,7 +1398,7 @@ describe("V1CommandLineToolModel", () => {
 
             const serialized = model.serialize();
             expect(serialized.outputs[0].outputBinding.outputEval).to.not.be.empty;
-            expect(serialized.outputs[0].outputBinding.outputEval).to.equal("${inheritMetadata(self, inputs.input2)}");
+            expect(serialized.outputs[0].outputBinding.outputEval).to.equal("$(inheritMetadata(self, inputs.input2))");
         });
 
         it("should populate inheritMetadataFrom field if outputEval had inherit script", () => {

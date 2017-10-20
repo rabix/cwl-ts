@@ -9,7 +9,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     public hasMetadata        = false;
     public hasInheritMetadata = true;
 
-    static INHERIT_REGEX = /\${inheritMetadata\(self, inputs.(.*?)\)}/g;
+    static INHERIT_REGEX = /\$\(inheritMetadata\(self, inputs.(.*?)\)\)/g;
     public inheritMetadataFrom: string;
 
     protected _glob: V1ExpressionModel;
@@ -54,7 +54,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
             this.inheritMetadataFrom = inputId;
             this.eventHub.emit("output.metadata.inherit");
 
-            const inheritExpr = `$\{inheritMetadata(self, inputs.${inputId})}`;
+            const inheritExpr = `$(inheritMetadata(self, inputs.${inputId}))`;
 
             // output eval doesn't exist
             if (serialized === undefined) {
