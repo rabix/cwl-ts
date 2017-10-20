@@ -16,6 +16,7 @@ import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterMode
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {ProcessRequirement} from "../generic/ProcessRequirement";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
+import {Customizable} from '../interfaces/Customizable';
 
 export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     public id: string;
@@ -46,16 +47,17 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     }
 
 
-    public createInputFromPort(inPort: SBDraft2WorkflowStepInputModel
-                                   | string): SBDraft2WorkflowInputParameterModel {
-        const port = super._createInputFromPort(inPort, SBDraft2WorkflowInputParameterModel);
+    public createInputFromPort(inPort: SBDraft2WorkflowStepInputModel | string,
+                               data: Customizable = {}): SBDraft2WorkflowInputParameterModel {
+        const port = super._createInputFromPort(inPort, SBDraft2WorkflowInputParameterModel, undefined, undefined, data);
         port.customProps["sbg:includeInPorts"] = true;
         return port;
     }
 
     public createOutputFromPort(outPort: SBDraft2WorkflowStepOutputModel
-                                    | string): SBDraft2WorkflowOutputParameterModel {
-        return super._createOutputFromPort(outPort, SBDraft2WorkflowOutputParameterModel);
+                                    | string, data: Customizable = {}): SBDraft2WorkflowOutputParameterModel {
+
+        return super._createOutputFromPort(outPort, SBDraft2WorkflowOutputParameterModel, undefined, undefined, data);
     }
 
     public exposePort(inPort: SBDraft2WorkflowStepInputModel) {

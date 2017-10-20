@@ -4,21 +4,22 @@ import {STEP_INPUT_CONNECTION_PREFIX, STEP_OUTPUT_CONNECTION_PREFIX} from "../he
 import {EventHub} from "../helpers/EventHub";
 import {Edge, EdgeNode, Graph} from "../helpers/Graph";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
-import {incrementString, validateID, checkIfConnectionIsValid} from "../helpers/utils";
+import {checkIfConnectionIsValid, incrementString, validateID} from "../helpers/utils";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
+import {Customizable} from '../interfaces/Customizable';
 import {Serializable} from "../interfaces/Serializable";
+import {V1WorkflowOutputParameterModel} from "../v1.0/V1WorkflowOutputParameterModel";
 import {InputParameter} from "./InputParameter";
 import {OutputParameter} from "./OutputParameter";
 import {Process} from "./Process";
+import {ProcessRequirement} from "./ProcessRequirement";
+import {ProcessRequirementModel} from "./ProcessRequirementModel";
+import {RequirementBaseModel} from "./RequirementBaseModel";
 import {StepModel} from "./StepModel";
 import {WorkflowInputParameterModel} from "./WorkflowInputParameterModel";
 import {WorkflowOutputParameterModel} from "./WorkflowOutputParameterModel";
 import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
 import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
-import {RequirementBaseModel} from "./RequirementBaseModel";
-import {ProcessRequirement} from "./ProcessRequirement";
-import {ProcessRequirementModel} from "./ProcessRequirementModel";
-import {V1WorkflowOutputParameterModel} from "../v1.0/V1WorkflowOutputParameterModel";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
@@ -191,11 +192,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     on(event: "step.change", handler: () => void);
 
     /**
-     * @deprecated
+     * Emitted when step's run is updated
      * @param {"step.update"} event
-     * @param {() => void} handler
+     * @param {(step: StepModel) => void} handler
      */
-    on(event: "step.update", handler: () => void);
+    on(event: "step.update", handler: (step: StepModel) => void);
 
     /**
      * Emitted after a step's ID has changed
@@ -1060,11 +1061,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         })
     }
 
-    createInputFromPort(inPort: WorkflowStepInputModel
-        | string): WorkflowInputParameterModel {
-        new UnimplementedMethodException("createInputFromPort", "WorkflowStepInputModel");
-        return undefined;
-    }
+    abstract createInputFromPort(inPort: WorkflowStepInputModel | string, data?: Customizable): WorkflowInputParameterModel;
 
     /**
      * @param inPort
@@ -1072,12 +1069,14 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * @param show
      * @param create
      *
+     * @param data
      * @private
      */
     protected _createInputFromPort(inPort: WorkflowStepInputModel | string,
                                    inputConstructor: { new(...args: any[]): WorkflowInputParameterModel },
                                    show: boolean   = true,
-                                   create: boolean = false): WorkflowInputParameterModel {
+                                   create: boolean = false,
+                                   data: Customizable = {}): WorkflowInputParameterModel {
         if (typeof inPort === "string") {
             inPort = <WorkflowStepInputModel> this.graph.getVertexData(inPort);
         }
@@ -1099,12 +1098,13 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
 
         // create new input on the workflow to connect with the port
-        const input = new inputConstructor(<InputParameter>{
+        const inputParam    = Object.assign({
             id: this.getNextAvailableId(`${STEP_OUTPUT_CONNECTION_PREFIX}${inPort.id}/${inPort.id}`, true), // might change later in case input is already taken
             type: inPort.type ? inPort.type.serialize() : "null",
             ["sbg:fileTypes"]: inPort.fileTypes,
             inputBinding: inPort["inputBinding"]
-        }, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
+        }, data.customProps);
+        const input = new inputConstructor(<InputParameter>inputParam, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
 
         // add it to the workflow tree
         input.setValidationCallback(err => this.updateValidity(err));
@@ -1125,17 +1125,15 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Creates a workflow output from a given step.out
      * @param port
+     * @param data
      */
-    createOutputFromPort(port: WorkflowStepOutputModel
-        | string): WorkflowOutputParameterModel {
-        new UnimplementedMethodException("createOutputFromPort", "WorkflowModel");
-        return undefined;
-    }
+    abstract createOutputFromPort(port: WorkflowStepOutputModel | string, data?: Customizable): WorkflowOutputParameterModel;
 
     protected _createOutputFromPort(outPort: WorkflowStepOutputModel | string,
                                     outputConstructor: { new(...args: any[]): WorkflowOutputParameterModel },
                                     show: boolean   = true,
-                                    create: boolean = false): WorkflowOutputParameterModel {
+                                    create: boolean = false,
+                                    opts: Customizable = {}): WorkflowOutputParameterModel {
 
         if (typeof outPort === "string") {
             outPort = <WorkflowStepOutputModel> this.graph.getVertexData(outPort);
@@ -1158,11 +1156,13 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
 
         // create new input on the workflow to connect with the port
-        const output = new outputConstructor(<OutputParameter>{
+        let outputParam = Object.assign({
             id: this.getNextAvailableId(`${STEP_INPUT_CONNECTION_PREFIX}${outPort.id}/${outPort.id}`, true), // might change later in case output is already taken
             type: outPort.type ? outPort.type.serialize() : "null",
             ["sbg:fileTypes"]: outPort.fileTypes
-        }, `${this.loc}.outputs[${this.outputs.length}]`, this.eventHub);
+        }, opts.customProps) as OutputParameter;
+
+        const output = new outputConstructor(outputParam, `${this.loc}.outputs[${this.outputs.length}]`, this.eventHub);
 
 
         // add it to the workflow tree

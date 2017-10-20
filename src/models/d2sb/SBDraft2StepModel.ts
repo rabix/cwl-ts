@@ -42,6 +42,8 @@ export class SBDraft2StepModel extends StepModel {
 
             this.compareInPorts(true);
             this.compareOutPorts(true);
+
+            this.eventHub.emit("step.update", this);
         }
     }
 

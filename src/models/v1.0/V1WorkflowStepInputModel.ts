@@ -26,7 +26,7 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
             id: this.id
         };
 
-        if (this.default) base.default = this.default;
+        if (this.default !== undefined && this.default !== null) base.default = this.default;
         if (this.source.length) base.source = this.source.slice();
 
         if (this.valueFrom && this.valueFrom.serialize()) base.valueFrom = this.valueFrom.serialize();

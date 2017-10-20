@@ -34,7 +34,7 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
         base.id = `#${this.parentStep.id}.${this._id}`;
         if (this.source.length) base.source = this.source.slice();
         if (this.linkMerge) base.linkMerge = this.linkMerge;
-        if (this.default !== undefined) base.default = this.default;
+        if (this.default !== undefined && this.default !== null) base.default = this.default;
 
         return spreadAllProps(base, this.customProps);
     }
