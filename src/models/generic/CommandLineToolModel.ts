@@ -87,7 +87,8 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             "field.remove",
             "validate",
             "binding.shellQuote",
-            "expression.serialize"
+            "expression.serialize",
+            "output.metadata.inherit"
         ]);
     }
 

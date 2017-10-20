@@ -27,6 +27,9 @@ import {V1InlineJavascriptRequirementModel} from "./V1InlineJavascriptRequiremen
 import {V1ResourceRequirementModel} from "./V1ResourceRequirementModel";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
+import {sbgHelperLibrary} from "../helpers/sbg-expression-lib";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
+import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
 
@@ -80,9 +83,11 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             inputs: this.jobInputs
         };
 
+        ExpressionEvaluator.libraries = this.inlineJavascriptRequirement.expressionLib;
+
         if (port && port instanceof CommandInputParameterModel) {
             if (port.isField) {
-                const root = this.findFieldRoot(port, this.jobInputs);
+                const root   = this.findFieldRoot(port, this.jobInputs);
                 context.self = root[port.id];
             } else {
                 context.self = this.jobInputs[port.id];
@@ -91,7 +96,12 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         }
 
         if (port && port instanceof CommandOutputParameterModel) {
-            context.self = JobHelper.generateMockJobData(<any> {type: {type: "array", items: "File"}});
+            context.self = JobHelper.generateMockJobData(<any> {
+                type: {
+                    type: "array",
+                    items: "File"
+                }
+            });
         }
 
         return context;
@@ -103,6 +113,13 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (json) this.deserialize(json);
         this.constructed = true;
         this.initializeJobWatchers();
+        this.initializeInlineJSWatchers();
+    }
+
+    private initializeInlineJSWatchers() {
+        this.eventHub.on("output.metadata.inherit", () => {
+            this.inlineJavascriptRequirement.addExpressionLib(sbgHelperLibrary);
+        });
     }
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
@@ -169,9 +186,11 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
             case "InlineJavascriptRequirement":
                 loc = this.resources ? this.inlineJavascriptRequirement.loc || loc : loc;
+
                 this.inlineJavascriptRequirement = new V1InlineJavascriptRequirementModel(req, loc);
                 this.inlineJavascriptRequirement.setValidationCallback(err => this.updateValidity(err));
-                this.inlineJavascriptRequirement.isHint = hint;
+                this.inlineJavascriptRequirement.isHint     = hint;
+                this.inlineJavascriptRequirement.wasPresent = true;
                 return;
 
             default:
@@ -423,21 +442,33 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             base.permanentFailCodes = this.permanentFailCodes;
         }
 
+        // remove expression lib if it is no longer necessary (no output inherits metadata)
+        let hasMetadataScript = false;
+        for (let i = 0; i < base.outputs.length; i++) {
+            const out = base.outputs[i];
+            if (out.outputBinding && V1CommandOutputBindingModel.INHERIT_REGEX.test(out.outputBinding.outputEval)) {
+                hasMetadataScript = true;
+                break;
+            }
+        }
+
+        if (!hasMetadataScript) {
+            this.inlineJavascriptRequirement.removeExpressionLib(sbgHelperLibrary);
+        }
+
         // for the InlineJavascriptRequirement,
         // serialize it if there are expression libs so they aren't lost
-        if (this.inlineJavascriptRequirement.expressionLib.length > 0) {
-          base.requirements.push(this.inlineJavascriptRequirement.serialize());
-
-        // if there are no expression libs,
-        // create requirement only if there are expressions
-        } else if (hasExpression) {
-            const exprReqIndex = this.requirements.findIndex((req => req.class === "InlineJavascriptRequirement"));
+        if (this.inlineJavascriptRequirement.expressionLib.length > 0 || this.inlineJavascriptRequirement.wasPresent) {
             base.requirements = base.requirements || [];
-            if (exprReqIndex === -1) {
-                base.requirements.push({
-                    "class": "InlineJavascriptRequirement"
-                });
-            }
+            base.requirements.push(this.inlineJavascriptRequirement.serialize());
+
+            // if there are no expression libs,
+            // create requirement only if there are expressions
+        } else if (hasExpression) {
+            base.requirements = base.requirements || [];
+            base.requirements.push({
+                "class": "InlineJavascriptRequirement"
+            });
         }
         expressionWatcherDispose();
 

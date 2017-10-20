@@ -1,13 +1,15 @@
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
-import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {ExpressionModel} from "./ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
 
-export class CommandOutputBindingModel extends ValidationBase implements Serializable<any> {
+export abstract class CommandOutputBindingModel extends ValidationBase implements Serializable<any> {
     hasSecondaryFiles: boolean;
     hasMetadata: boolean;
     hasInheritMetadata: boolean;
+
+    metadata: {};
+    inheritMetadataFrom: string;
 
     secondaryFiles: ExpressionModel[];
 
@@ -23,18 +25,15 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
 
     customProps: any = {};
 
+    abstract setInheritMetadataFrom(string);
+
     constructor(loc?: string, protected eventHub?: EventHub) {
         super(loc);
     }
 
-    serialize(): any {
-        new UnimplementedMethodException("serialize", "CommandOutputBindingModel");
-        return undefined;
-    }
+    abstract serialize(): any;
 
-    deserialize(attr: any): void {
-        new UnimplementedMethodException("deserialize", "CommandOutputBindingModel");
-    }
+    abstract deserialize(attr: any): void;
 
     validate(context): Promise<any> {
 

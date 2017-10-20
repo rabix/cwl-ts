@@ -4,6 +4,9 @@ import {CommandLineTool} from "../../mappings/v1.0/CommandLineTool";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {JSExecutor} from "../helpers/JSExecutor";
+import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
+import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
+import {V1ExpressionModel} from "./V1ExpressionModel";
 
 function runTest(app: CommandLineTool, job: any, expected: CommandLinePart[], done) {
     let model = new V1CommandLineToolModel(app, "document");
@@ -1328,6 +1331,104 @@ describe("V1CommandLineToolModel", () => {
             expect(serialize.requirements).to.not.be.empty;
             expect(serialize.requirements).to.have.length(1);
             expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+        });
+    });
+
+    describe("SBG inherit metadata", () => {
+        let model: V1CommandLineToolModel;
+        let output: V1CommandOutputParameterModel;
+        let outputWithInherit: V1CommandOutputParameterModel;
+        let input: V1CommandInputParameterModel;
+
+        beforeEach(() => {
+            ExpressionEvaluator.evaluate = JSExecutor.evaluate;
+            model = new V1CommandLineToolModel({
+                inputs: {
+                    input: "File",
+                    input2: "File"
+                },
+                outputs: {
+                    output: "File",
+                    output2: {
+                        type: "File",
+                        outputBinding: {
+                            outputEval: "${inheritMetadata(self, inputs.input)}"
+                        }
+                    }
+                }
+            } as any);
+
+            output = model.outputs[0];
+            input = model.inputs[0];
+            outputWithInherit = model.outputs[1];
+        });
+
+        it("should add sbg expression lib if inherit metadata is set on an output", () => {
+            output.outputBinding.setInheritMetadataFrom("input");
+
+            const serialized = model.serialize();
+            expect(serialized.requirements).to.have.lengthOf(1);
+            expect(serialized.requirements[0]).to.haveOwnProperty("expressionLib");
+            expect(serialized.requirements[0].class).to.equal("InlineJavascriptRequirement");
+            expect((serialized.requirements[0] as any).expressionLib).to.have.lengthOf(1);
+            expect(typeof (serialized.requirements[0] as any).expressionLib[0]).to.equal("string")
+        });
+
+        it("should set outputEval if inherit metadata is set on an output", () => {
+            output.outputBinding.setInheritMetadataFrom("input");
+
+            const serialized = model.serialize();
+            expect(serialized.outputs[0].outputBinding.outputEval).to.not.be.empty;
+            expect(serialized.outputs[0].outputBinding.outputEval).to.equal("${inheritMetadata(self, inputs.input)}");
+        });
+
+        it("should add to outputEval if it is already set", () => {
+            const expr = "${ return 4 + 3}";
+            output.outputBinding.outputEval = new V1ExpressionModel(expr);
+            output.outputBinding.setInheritMetadataFrom("input");
+
+            const serialized = model.serialize();
+            expect(serialized.outputs[0].outputBinding.outputEval).to.not.be.empty;
+            expect(serialized.outputs[0].outputBinding.outputEval).to.equal(expr + "\n\n${inheritMetadata(self, inputs.input)}");
+        });
+
+        it("should change outputEval if inherit metadata is changed", () => {
+            output.outputBinding.setInheritMetadataFrom("input");
+            output.outputBinding.setInheritMetadataFrom("input2");
+
+            const serialized = model.serialize();
+            expect(serialized.outputs[0].outputBinding.outputEval).to.not.be.empty;
+            expect(serialized.outputs[0].outputBinding.outputEval).to.equal("${inheritMetadata(self, inputs.input2)}");
+        });
+
+        it("should populate inheritMetadataFrom field if outputEval had inherit script", () => {
+            expect(outputWithInherit.outputBinding.inheritMetadataFrom).to.equal("input");
+        });
+
+        it("should remove sbg expression lib if no outputEval has inherit script, but leave requirement if expressions exist", () => {
+            output.outputBinding.setInheritMetadataFrom("input");
+            output.outputBinding.setInheritMetadataFrom(null);
+            outputWithInherit.outputBinding.setInheritMetadataFrom(null);
+
+            const expr = "${ return 4 + 3}";
+            output.outputBinding.outputEval = new V1ExpressionModel(expr);
+
+            const serialized = model.serialize();
+            expect(serialized.requirements).to.not.be.empty;
+            expect(serialized.requirements[0].class).to.equal("InlineJavascriptRequirement");
+            expect(serialized.requirements[0]).to.not.haveOwnProperty("expressionLib");
+        });
+
+        it("should remove outputEval inherit script if inherit metadata is removed", () => {
+            output.outputBinding.setInheritMetadataFrom("input");
+            output.outputBinding.setInheritMetadataFrom(null);
+
+            const serialized = model.serialize();
+            expect(serialized.outputs[0].outputBinding.outputEval).to.be.undefined;
+        });
+
+        it("should remove only inherit script from outputEval if inherit is removed", () => {
+
         });
     });
 

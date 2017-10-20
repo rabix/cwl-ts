@@ -59,6 +59,10 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
         this.outputEval = expr;
     }
 
+    setInheritMetadataFrom(inputId: string) {
+        this.inheritMetadataFrom = inputId;
+    }
+
     constructor(binding?: CommandOutputBinding, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
         this.deserialize(binding || {});

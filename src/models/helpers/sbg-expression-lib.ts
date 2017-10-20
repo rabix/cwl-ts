@@ -1,4 +1,4 @@
-export const lib = `
+export const sbgHelperLibrary = `
 var updateMetadata = function(file, key, value) {
     file['metadata'][key] = value;
     return file;

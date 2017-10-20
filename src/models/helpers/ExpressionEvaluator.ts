@@ -4,6 +4,8 @@ export class ExpressionEvaluator {
 
     public static evaluateExpression: Function = null;
 
+    public static libraries: string[] = [];
+
     public static evaluate(expr: number | string | ExpressionD2, context: any = {}, version:
                                "v1.0"
                                | "draft-2"): Promise<any> {
@@ -20,10 +22,10 @@ export class ExpressionEvaluator {
                 let results: Promise<any>[] = ExpressionEvaluator.grabExpressions(expr).map(token => {
                     switch (token.type) {
                         case "func":
-                            return ExpressionEvaluator.evaluateExpression("(function() {"
+                            return ExpressionEvaluator.evaluateExpression("(function() {" + this.libraries.join("\n\n") + "\n\n"
                                 + token.value + "})()", context);
                         case "expr":
-                            return ExpressionEvaluator.evaluateExpression(token.value, context);
+                            return ExpressionEvaluator.evaluateExpression(this.libraries.join("\n\n") + "\n\n" + token.value, context);
                         case "literal":
                             return new Promise(res => res(token.value));
                     }
