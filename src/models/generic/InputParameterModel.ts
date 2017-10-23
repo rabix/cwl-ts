@@ -8,6 +8,7 @@ export abstract class InputParameterModel extends ValidationBase {
     description?: string;
 
     fileTypes?: string[];
+    customProps: any;
 
     inputBinding?: any;
 }

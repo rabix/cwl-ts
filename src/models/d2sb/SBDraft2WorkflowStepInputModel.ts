@@ -36,7 +36,13 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
         if (this.linkMerge) base.linkMerge = this.linkMerge;
         if (this.default !== undefined && this.default !== null) base.default = this.default;
 
-        return spreadAllProps(base, this.customProps);
+        base = spreadAllProps(base, this.customProps);
+
+        delete base["sbg:toolDefaultValue"];
+        delete base["sbg:category"];
+        delete base["sbg:altPrefix"];
+
+        return base;
     }
 
     deserialize(attr: WorkflowStepInput): void {

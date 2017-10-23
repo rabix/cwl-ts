@@ -79,6 +79,9 @@ export class SBDraft2StepModel extends StepModel {
                 description: input.description,
                 label: input.label,
                 ...serialized,
+                "sbg:toolDefaultValue": input.customProps["sbg:toolDefaultValue"],
+                "sbg:category": input.customProps["sbg:category"],
+                "sbg:altPrefix": input.customProps["sbg:altPrefix"]
             }, this, `${this.loc}.inputs[${index}]`);
 
             newPort.setValidationCallback((err) => this.updateValidity(err));
