@@ -35,7 +35,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     public inputs: Array<SBDraft2CommandInputParameterModel>   = [];
     public outputs: Array<SBDraft2CommandOutputParameterModel> = [];
 
-    public resources = new SBDraft2ResourceRequirementModel();
+    public resources: SBDraft2ResourceRequirementModel;
 
     public requirements: Array<ProcessRequirementModel> = [];
 
@@ -109,7 +109,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     // CRUD HELPER METHODS //
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
-        const h = new RequirementBaseModel(hint, SBDraft2ExpressionModel, `${this.loc}.hints[${this.hints.length}]`);
+        const h = new RequirementBaseModel(hint, SBDraft2ExpressionModel, `${this.loc}.hints[${this.hints.length}]`, this.eventHub);
         h.setValidationCallback(err => this.updateValidity(err));
         this.hints.push(h);
 
@@ -234,6 +234,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             });
         }
 
+        this.resources = this.resources || new SBDraft2ResourceRequirementModel(`${this.loc}.hints[${this.hints.length}]`, this.eventHub);
+        this.resources.setValidationCallback(ev => this.updateValidity(ev));
+
         if (tool.requirements) {
             tool.requirements.forEach((req, index) => {
                 this.createReq(req, `${this.loc}.requirements[${index}]`);
@@ -249,7 +252,6 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.docker        = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.hints[${this.hints.length}]`);
         this.docker.isHint = true;
         this.docker.setValidationCallback(err => this.updateValidity(err));
-
 
         this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`, this.eventHub);
         this.fileRequirement.setValidationCallback(err => this.updateValidity(err));

@@ -101,7 +101,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     // CRUD HELPERS METHODS //
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
-        const h = new RequirementBaseModel(hint, V1ExpressionModel, `${this.loc}.hints[${this.hints.length}]`);
+        const h = new RequirementBaseModel(hint, V1ExpressionModel, `${this.loc}.hints[${this.hints.length}]`, this.eventHub);
         h.setValidationCallback(err => this.updateValidity(err));
         this.hints.push(h);
 
@@ -163,7 +163,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
                 return;
 
             default:
-                reqModel        = new RequirementBaseModel(req, V1ExpressionModel, loc);
+                reqModel        = new RequirementBaseModel(req, V1ExpressionModel, loc, this.eventHub);
                 reqModel.isHint = hint;
         }
 
