@@ -417,7 +417,7 @@ describe("checkIfConnectionIsValid", () => {
         expect(checkIfConnectionIsValid(inputFile, outputFileArray, false)).equal(true);
     });
 
-    it("should be valid when source and destination file-types have an intersection or one or both are empty", () => {
+    it("should be valid when source (File) and destination (File) file-types have an intersection or one or both are empty", () => {
 
         const inputFile = new V1WorkflowInputParameterModel({
             id: "pointA",
@@ -425,30 +425,59 @@ describe("checkIfConnectionIsValid", () => {
         });
 
 
-        const outputFileArray = new V1WorkflowOutputParameterModel({
+        const outputFile = new V1WorkflowOutputParameterModel({
             id: "pointB",
             type: "File"
         });
 
         inputFile.fileTypes = [];
-        outputFileArray.fileTypes = [];
+        outputFile.fileTypes = [];
 
-        expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
+        expect(checkIfConnectionIsValid(inputFile, outputFile)).equal(true);
 
         inputFile.fileTypes = ["s", "c", "d"];
-        expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
+        expect(checkIfConnectionIsValid(inputFile, outputFile)).equal(true);
 
         inputFile.fileTypes = [];
-        outputFileArray.fileTypes = ["B", "c", "d"];
-        expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
+        outputFile.fileTypes = ["B", "c", "d"];
+        expect(checkIfConnectionIsValid(inputFile, outputFile)).equal(true);
 
         inputFile.fileTypes = ["D", "c"];
-        outputFileArray.fileTypes = ["b", "C", "d"];
-        expect(checkIfConnectionIsValid(inputFile, outputFileArray)).equal(true);
+        outputFile.fileTypes = ["b", "C", "d"];
+        expect(checkIfConnectionIsValid(inputFile, outputFile)).equal(true);
     });
 
+    it("should be valid when source (File[]) and destination (File[]) file-types have an intersection or one or both are empty", () => {
 
-    it("should be invalid when source and destination file-types does not have an intersection", () => {
+        const inputFileArray = new V1WorkflowInputParameterModel({
+            id: "pointA",
+            type: "File[]"
+        });
+
+
+        const outputFileArray = new V1WorkflowOutputParameterModel({
+            id: "pointB",
+            type: "File[]"
+        });
+
+        inputFileArray.fileTypes = [];
+        outputFileArray.fileTypes = [];
+
+        expect(checkIfConnectionIsValid(inputFileArray, outputFileArray)).equal(true);
+
+        inputFileArray.fileTypes = ["s", "c", "d"];
+        expect(checkIfConnectionIsValid(inputFileArray, outputFileArray)).equal(true);
+
+        inputFileArray.fileTypes = [];
+        outputFileArray.fileTypes = ["B", "c", "d"];
+        expect(checkIfConnectionIsValid(inputFileArray, outputFileArray)).equal(true);
+
+        inputFileArray.fileTypes = ["D", "c"];
+        outputFileArray.fileTypes = ["b", "C", "d"];
+        expect(checkIfConnectionIsValid(inputFileArray, outputFileArray)).equal(true);
+    });
+
+    it("should be invalid when source (File) and destination (File) file-types does not have an intersection", () => {
 
         const inputFile = new V1WorkflowInputParameterModel({
             id: "pointA",
@@ -456,14 +485,33 @@ describe("checkIfConnectionIsValid", () => {
         });
         inputFile.fileTypes = ["a"];
 
-        const outputFileArray = new V1WorkflowOutputParameterModel({
+        const outputFile = new V1WorkflowOutputParameterModel({
             id: "pointB",
             type: "File"
         });
 
+        outputFile.fileTypes = ["d", "c"];
+
+        expect(() => checkIfConnectionIsValid(inputFile, outputFile))
+            .to.throws(`Invalid connection. File type mismatch, connecting formats "a" to "d,c"`);
+    });
+
+    it("should be invalid when source (File[]) and destination (File[]) file-types does not have an intersection", () => {
+
+        const inputFileArray = new V1WorkflowInputParameterModel({
+            id: "pointA",
+            type: "File[]"
+        });
+        inputFileArray.fileTypes = ["a"];
+
+        const outputFileArray = new V1WorkflowOutputParameterModel({
+            id: "pointB",
+            type: "File[]"
+        });
+
         outputFileArray.fileTypes = ["d", "c"];
 
-        expect(() => checkIfConnectionIsValid(inputFile, outputFileArray))
+        expect(() => checkIfConnectionIsValid(inputFileArray, outputFileArray))
             .to.throws(`Invalid connection. File type mismatch, connecting formats "a" to "d,c"`);
     });
 
