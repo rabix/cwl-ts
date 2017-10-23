@@ -119,7 +119,7 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
     }
 
     clone(): SBDraft2ExpressionModel {
-        return new SBDraft2ExpressionModel(this.serialize(), this.loc);
+        return new SBDraft2ExpressionModel(this.serialize(), this.loc, this.eventHub);
     }
 
     cloneStatus(clone: SBDraft2ExpressionModel) {

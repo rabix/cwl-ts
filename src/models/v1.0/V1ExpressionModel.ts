@@ -74,7 +74,7 @@ export class V1ExpressionModel extends ExpressionModel {
     }
 
     clone(): V1ExpressionModel {
-        return new V1ExpressionModel(this.serialize(), this.loc);
+        return new V1ExpressionModel(this.serialize(), this.loc, this.eventHub);
     }
 
     cloneStatus(clone: V1ExpressionModel) {
