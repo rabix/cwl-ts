@@ -184,11 +184,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     on(event: "step.remove", handler: (step: StepModel) => void);
 
     /**
-     * @deprecated
+     * Emitted after a step's label has changed
      * @param {"step.change"} event
-     * @param {() => void} handler
+     * @param {(step: StepModel) => void} handler
      */
-    on(event: "step.change", handler: () => void);
+    on(event: "step.change", handler: (step: StepModel) => void);
 
     /**
      * Emitted when step's run is updated
@@ -472,7 +472,14 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // remove dangling input if it has been left over
         if (!this.graph.hasOutgoing(connectionId)) {
             this.graph.removeVertex(connectionId);
-            this.inputs = this.inputs.filter(input => input.connectionId !== connectionId);
+
+            this.inputs = this.inputs.filter(input => {
+                if (input.connectionId === connectionId) {
+                    this.eventHub.emit("input.remove", input);
+                    return false;
+                }
+                return true;
+            });
         }
     }
 
@@ -482,6 +489,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
             this.outputs = this.outputs.filter(output => {
                 if (output.connectionId === connectionId) {
+                    this.eventHub.emit("output.remove", output);
                     output.cleanValidity();
                     return false;
                 }
@@ -547,10 +555,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const stepIn  = step.in.map(i => i.connectionId);
         const stepOut = step.out.map(o => o.connectionId);
 
-        // remove in ports and out ports from graph
-        stepIn.forEach(input => this.graph.removeVertex(input));
-        stepOut.forEach(output => this.graph.removeVertex(output));
-
         // clean up connections between in/out ports and other nodes
         // and in/out ports and the step itself
         this.graph.edges.forEach(edge => {
@@ -561,9 +565,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             } else if (edge.destination.id === step.connectionId ||
                 edge.source.id === step.connectionId) {
                 this.graph.removeEdge(edge);
-
             }
         });
+
+        // remove in ports and out ports from graph
+        stepIn.forEach(input => this.graph.removeVertex(input));
+        stepOut.forEach(output => this.graph.removeVertex(output));
     }
 
     /**
