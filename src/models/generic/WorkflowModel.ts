@@ -471,7 +471,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
             this.outputs = this.outputs.filter(output => {
                 if (output.connectionId === connectionId) {
-                    this.eventHub.emit("output.remove", output);
                     output.cleanValidity();
                     this.eventHub.emit("output.remove", output);
                     return false;
