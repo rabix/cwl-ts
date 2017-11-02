@@ -223,7 +223,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             // in case the port was inserted, signify to parent workflow that
             // it should be added to the graph
             if (inserted.find(i => i.id === model.id)) {
-                this.eventHub.emit("step.inPort.add", model);
+                this.eventHub.emit("step.inPort.create", model);
             }
 
             // in case there is a match and the step is being updated, signify to parent workflow
@@ -267,7 +267,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             }, this, `${this.loc}.out[${index}]`);
 
             if (inserted.find(i => i.id === model.id)) {
-                this.eventHub.emit("step.outPort.add", model);
+                this.eventHub.emit("step.outPort.create", model);
             }
 
             if (match && isUpdate) {
