@@ -6,6 +6,7 @@ import {ID_REGEX} from "./constants";
 import {ErrorCode, ValidityError} from "./validation/ErrorCode";
 import {InputParameterModel} from "../generic/InputParameterModel";
 import {Issue} from "./validation/Issue";
+import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 
 export const ensureArray = (map: { [key: string]: any }
     | any[]
@@ -343,8 +344,22 @@ export const returnNumIfNum = (s: any): any | number => {
     return isNaN(s) ? s : parseInt(s);
 };
 
-export const isFileType = (i: { type: {isNullable: boolean, type: string, items: string} }, required = false): boolean => {
-    return i.type && i.type.isNullable !== required && (i.type.type === "File" || i.type.items === "File")
+export const isFileType = (i: { type: {isNullable: boolean, type: string, items: string} }, required?): boolean => {
+    const requiredMatches = required === undefined || i.type.isNullable !== required;
+    return i.type && requiredMatches && (i.type.type === "File" || i.type.items === "File")
+};
+
+export const hasFileType = (port: {type: ParameterTypeModel} ): boolean => {
+    if (isFileType(port)) return true;
+
+    if (Array.isArray(port.type.fields)) {
+        for (let i = 0; i < port.type.fields.length; i++) {
+            const field = port.type.fields[i];
+            if(hasFileType(field)) return true;
+        }
+    }
+
+    return false;
 };
 
 /**

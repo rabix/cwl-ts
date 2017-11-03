@@ -10,6 +10,12 @@ export abstract class ValidationBase {
     private hasNewErrors                         = false;
     private hasNewWarnings                       = false;
 
+    modelListeners: Array<Function> = [];
+
+    clearListeners() {
+        this.modelListeners.forEach(l => l());
+    };
+
     get warnings(): Issue[] {
         if (this.hasNewWarnings) {
             this._warnings      = this.filterIssues("warning");
@@ -28,7 +34,7 @@ export abstract class ValidationBase {
         return this._errors;
     }
 
-    protected updateValidity(event: IssueEvent) {
+    public updateValidity(event: IssueEvent) {
         // sets these issues with the event received
         this.issues = concatIssues(this.issues, event.data, event.overwrite);
 

@@ -105,6 +105,8 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
             this.type.name = this.id;
         }
 
+        this.attachFileTypeListeners();
+
         // populates object with all custom attributes not covered in model
         spreadSelectProps(input, this.customProps, serializedAttr);
     }
@@ -125,29 +127,19 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
 
     addSecondaryFile(file: Expression | string): SBDraft2ExpressionModel {
         if (this.inputBinding) {
-            const loc = incrementLastLoc(this.secondaryFiles, `${this.inputBinding.loc}.secondaryFiles`);
-            const f   = new SBDraft2ExpressionModel(file, loc, this.eventHub);
-            this.secondaryFiles.push(f);
-            f.setValidationCallback(err => this.updateValidity(err));
-            return f;
+            return this._addSecondaryFile(file, SBDraft2ExpressionModel, this.inputBinding.loc);
         }
     }
 
-    updateSecondaryFiles(files: Array<Expression | Expression | string>) {
+    updateSecondaryFiles(files: Array<Expression | string>) {
         if (this.inputBinding) {
-            this.secondaryFiles.forEach(f => f.clearIssue(ErrorCode.EXPR_ALL));
-            this.secondaryFiles = [];
-            files.forEach(f => this.addSecondaryFile(f));
+            this._updateSecondaryFiles(files);
         }
     }
 
     removeSecondaryFile(index: number) {
         if (this.inputBinding) {
-            const file = this.secondaryFiles[index];
-            if (file) {
-                file.setValue("", "string");
-                this.secondaryFiles.splice(index, 1);
-            }
+            this._removeSecondaryFile(index);
         }
     }
 }

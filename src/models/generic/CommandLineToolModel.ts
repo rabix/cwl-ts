@@ -344,7 +344,8 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             port.type.name = id;
         }
 
-        // emit change event so CLT subclasses can change job values
+        // emit change event so CLT subclasses can change job values,
+        // emits "input.change.id" or "output.change.id"
         this.eventHub.emit(`${type}.change.id`, {port, oldId, newId: port.id});
     }
 
@@ -393,6 +394,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             return;
         }
         this.outputs[index].clearIssue(ErrorCode.ALL);
+        this.outputs[index].clearListeners();
         this.outputs.splice(index, 1);
 
         // start at the index and update location of all arguments after it
@@ -441,6 +443,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             return;
         }
         this.inputs[index].clearIssue(ErrorCode.ALL);
+        this.inputs[index].clearListeners();
         this.inputs.splice(index, 1);
 
         // start at the index and update location of all arguments after it
@@ -462,6 +465,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             return;
         }
         this.arguments[index].clearIssue(ErrorCode.ALL);
+        this.arguments[index].clearListeners();
         this.arguments.splice(index, 1);
 
         // start at the index and update location of all arguments after it

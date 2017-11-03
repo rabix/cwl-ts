@@ -3,7 +3,7 @@ import {CommandOutputParameterModel} from "../generic/CommandOutputParameterMode
 import {Serializable} from "../interfaces/Serializable";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {
-    commaSeparatedToArray, ensureArray, incrementLastLoc, isType, spreadAllProps,
+    commaSeparatedToArray, ensureArray, isType, spreadAllProps,
     spreadSelectProps
 } from "../helpers/utils";
 import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
@@ -31,23 +31,15 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
     customProps: any = {};
 
     addSecondaryFile(file: string = ""): V1ExpressionModel {
-        const f = new V1ExpressionModel(file, incrementLastLoc(this.secondaryFiles, `${this.loc}.secondaryFiles`), this.eventHub);
-        f.setValidationCallback(err => this.updateValidity(err));
-        this.secondaryFiles.push(f);
-        return f;
+        return this._addSecondaryFile(file, V1ExpressionModel, this.loc);
     }
 
     updateSecondaryFiles(files: Array<Expression | string>) {
-        this.secondaryFiles = [];
-        files.forEach(f => this.addSecondaryFile(f));
+        this._updateSecondaryFiles(files);
     }
 
     removeSecondaryFile(index: number) {
-        const file = this.secondaryFiles[index];
-        if (file) {
-            file.setValue("", "string");
-            this.secondaryFiles.splice(index, 1);
-        }
+        this._removeSecondaryFile(index);
     }
 
     serialize(): CommandOutputParameter {
@@ -75,6 +67,8 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         if (!this.isField && this.streamable) {
             (<CommandOutputParameter> base).streamable = this.streamable;
         }
+
+        this.attachFileTypeListeners();
 
         return spreadAllProps(base, this.customProps);
     }

@@ -8,6 +8,7 @@ import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
 import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 import {EventHub} from "../helpers/EventHub";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
+import {incrementLastLoc, isFileType} from "../helpers/utils";
 
 
 export abstract class CommandOutputParameterModel extends ValidationBase implements Serializable<any> {
@@ -42,9 +43,34 @@ export abstract class CommandOutputParameterModel extends ValidationBase impleme
 
     abstract addSecondaryFile(file: V1Expression | SBDraft2Expression | string): ExpressionModel;
 
+    protected _addSecondaryFile<T extends ExpressionModel>(file: V1Expression | SBDraft2Expression | string,
+                                exprConstructor: new (...args: any[]) => T,
+                                locBase: string): T {
+
+        const loc = incrementLastLoc(this.secondaryFiles, `${locBase}.secondaryFiles`);
+        const f   = new exprConstructor(file, loc, this.eventHub);
+        this.secondaryFiles.push(f);
+        f.setValidationCallback(err => this.updateValidity(err));
+        return f;
+    }
+
     abstract updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>);
 
+    protected _updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>) {
+        this.secondaryFiles.forEach(f => f.clearIssue(ErrorCode.EXPR_ALL));
+        this.secondaryFiles = [];
+        files.forEach(f => this.addSecondaryFile(f));
+    }
+
     abstract removeSecondaryFile(index: number);
+
+    protected _removeSecondaryFile(index: number) {
+        const file = this.secondaryFiles[index];
+        if (file) {
+            file.setValue("", "string");
+            this.secondaryFiles.splice(index, 1);
+        }
+    }
 
     constructor(loc?: string, protected eventHub?: EventHub) {
         super(loc);
@@ -73,5 +99,17 @@ export abstract class CommandOutputParameterModel extends ValidationBase impleme
         promises.concat(this.secondaryFiles.map(f => f.validate(context)));
 
         return Promise.all(promises).then(() => this.issues);
+    }
+
+    protected attachFileTypeListeners() {
+        if (this.eventHub) {
+            this.modelListeners.push(this.eventHub.on("io.change.type", (loc: string) => {
+                if (`${this.loc}.type` === loc) {
+                    if (!isFileType(this)) {
+                        this.updateSecondaryFiles([]);
+                    }
+                }
+            }));
+        }
     }
 }

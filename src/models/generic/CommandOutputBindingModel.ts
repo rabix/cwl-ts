@@ -30,6 +30,7 @@ export class CommandOutputBindingModel extends ValidationBase implements Seriali
 
     protected setGlob(value: ExpressionModel, exprConstructor: new (...args: any[]) => ExpressionModel) {
         let val = value.serialize();
+        this._glob.clearIssue(ErrorCode.ALL);
         this._glob = new exprConstructor(val, `${this.loc}.glob`, this.eventHub);
         this._glob.setValidationCallback(err => this.updateValidity(err));
         this.validateGlob();

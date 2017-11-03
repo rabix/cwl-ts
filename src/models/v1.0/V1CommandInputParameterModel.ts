@@ -3,7 +3,7 @@ import {CommandInputParameterModel} from "../generic/CommandInputParameterModel"
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {Serializable} from "../interfaces/Serializable";
 import {
-    commaSeparatedToArray, ensureArray, incrementLastLoc, isType, spreadSelectProps
+    commaSeparatedToArray, ensureArray, isType, spreadSelectProps
 } from "../helpers/utils";
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
@@ -41,26 +41,16 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
     }
 
     addSecondaryFile(file: Expression | string): V1ExpressionModel {
-        const loc = incrementLastLoc(this.secondaryFiles, `${this.loc}.secondaryFiles`);
-        const f   = new V1ExpressionModel(file, loc, this.eventHub);
-        f.setValidationCallback(err => this.updateValidity(err));
-        this.secondaryFiles.push(f);
-
-        return f;
+        return this._addSecondaryFile(file, V1ExpressionModel, this.loc);
     }
 
     updateSecondaryFiles(files: Array<Expression | Expression | string>) {
-        this.secondaryFiles = [];
-        files.forEach(f => this.addSecondaryFile(f));
+        this._updateSecondaryFiles(files);
     }
 
 
     removeSecondaryFile(index: number) {
-        const file = this.secondaryFiles[index];
-        if (file) {
-            file.setValue("", "string");
-            this.secondaryFiles.splice(index, 1);
-        }
+        this._removeSecondaryFile(index);
     }
 
 
@@ -123,6 +113,8 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         this.secondaryFiles = ensureArray((<CommandInputParameter> attr).secondaryFiles).map(f => this.addSecondaryFile(f));
         this.fileTypes      = commaSeparatedToArray(attr["sbg:fileTypes"]);
         this.streamable     = (<CommandInputParameter> attr).streamable;
+
+        this.attachFileTypeListeners();
 
         spreadSelectProps(attr, this.customProps, serializedKeys);
     }

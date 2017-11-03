@@ -115,6 +115,14 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
                     binding["sbg:inheritMetadataFrom"];
             }
 
+            if (this.eventHub) {
+                this.modelListeners.push(this.eventHub.on("input.change.id", (data) => {
+                    if (data.oldId === this.inheritMetadataFrom) {
+                        this.inheritMetadataFrom = data.newId;
+                    }
+                }));
+            }
+
             this._outputEval = new SBDraft2ExpressionModel(binding.outputEval, `${this.loc}.outputEval`, this.eventHub);
             this._outputEval.setValidationCallback(err => this.updateValidity(err));
             this.validateOutputEval();

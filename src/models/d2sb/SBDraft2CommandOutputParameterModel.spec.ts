@@ -3,6 +3,9 @@ import {CommandOutputBinding} from "../../mappings/d2sb/CommandOutputBinding";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
 import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
 import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParameterModel";
+import {SBDraft2CommandLineToolModel} from "./SBDraft2CommandLineToolModel";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
+import {JSExecutor} from "../helpers/JSExecutor";
 
 describe("SBDraft2CommandOutputParameterModel", () => {
     describe("constructor", () => {
@@ -167,91 +170,233 @@ describe("SBDraft2CommandOutputParameterModel", () => {
                 "sbg:fileTypes": "CTX"
             });
         });
+    });
 
-        it("Should regulate secondaryFiles", () => {
-            it("should updateSecondaryFiles with string values", () => {
-                const obj = {
-                    id: "output",
-                    type: ["File"],
-                    outputBinding: {
-                        secondaryFiles: [
-                            ".bai",
-                            ".bti"
-                        ]
-                    }
-                };
+    describe("secondaryFiles", () => {
+        it("should updateSecondaryFiles with string values", () => {
+            const obj = {
+                id: "output",
+                type: ["File"],
+                outputBinding: {
+                    secondaryFiles: [
+                        ".bai",
+                        ".bti"
+                    ]
+                }
+            };
 
-                const output = new SBDraft2CommandOutputParameterModel(obj, "output");
-                expect(output.secondaryFiles[1].serialize()).to.equal(".bti");
+            const output = new SBDraft2CommandOutputParameterModel(obj, "output");
+            expect(output.secondaryFiles[1].serialize()).to.equal(".bti");
 
-                output.updateSecondaryFiles([
-                    ".bai",
-                    ".txt"
-                ]);
+            output.updateSecondaryFiles([
+                ".bai",
+                ".txt"
+            ]);
 
-                expect(output.secondaryFiles[1].serialize()).to.equal(".txt");
-                expect(output.secondaryFiles[1].loc).to.equal("output.outputBinding.secondaryFiles[1]");
+            expect(output.secondaryFiles[1].serialize()).to.equal(".txt");
+            expect(output.secondaryFiles[1].loc).to.equal("output.outputBinding.secondaryFiles[1]");
+        });
+
+        it("should removeSecondaryFile at index", () => {
+            const obj = {
+                id: "output",
+                type: ["File"],
+                outputBinding: {
+                    secondaryFiles: [
+                        ".bai",
+                        ".bti"
+                    ]
+                }
+            };
+
+            const output = new SBDraft2CommandOutputParameterModel(obj, "output");
+            expect(output.secondaryFiles).to.have.length(2);
+
+            output.removeSecondaryFile(0);
+
+            expect(output.secondaryFiles).to.have.length(1);
+            expect(output.secondaryFiles[0].serialize()).to.equal(".bti");
+
+            expect(output.secondaryFiles[0].loc).to.equal("output.outputBinding.secondaryFiles[0]");
+        });
+
+        it("should addSecondaryFile to the end of the list", () => {
+            const obj = {
+                id: "output",
+                type: ["File"],
+                outputBinding: {
+                    secondaryFiles: [
+                        ".bai",
+                        ".bti"
+                    ]
+                }
+            };
+
+            const output = new SBDraft2CommandOutputParameterModel(obj, "output");
+            output.addSecondaryFile(".txt");
+
+
+            expect(output.secondaryFiles).to.have.length(3);
+            expect(output.secondaryFiles[2].serialize()).to.equal(".txt");
+
+            expect(output.secondaryFiles[2].loc).to.equal("binding.secondaryFiles[2]");
+        });
+
+        it("should not serialize secondaryFiles if array is blank", () => {
+            const obj = {
+                id: "output",
+                type: ["File"],
+                outputBinding: {
+                    glob: ".txt",
+                    secondaryFiles: []
+                }
+            };
+
+            const bind = new SBDraft2CommandOutputParameterModel(obj, "binding");
+
+            expect((<CommandOutputBinding>bind.serialize().outputBinding).secondaryFiles).to.be.undefined;
+            expect(bind.serialize()).to.not.haveOwnProperty("secondaryFiles");
+        });
+
+        describe.only("secondaryFiles validation", () => {
+            beforeEach(() => {
+                ExpressionEvaluator.evaluate = JSExecutor.evaluate;
             });
 
-            it("should removeSecondaryFile at index", () => {
-                const obj = {
-                    id: "output",
-                    type: ["File"],
-                    outputBinding: {
-                        secondaryFiles: [
-                            ".bai",
-                            ".bti"
-                        ]
-                    }
-                };
+            it("should be invalid when loading", (done) => {
+                const tool = new SBDraft2CommandLineToolModel({
+                    class: "CommandLineTool",
+                    outputs: [
+                        {
+                            type: "File",
+                            outputBinding: {
+                                secondaryFiles: [
+                                    {
+                                        class: "Expression",
+                                        engine: "cwl-js-engine",
+                                        script: "!!!"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                } as any);
+                const output = tool.outputs[0];
 
-                const output = new SBDraft2CommandOutputParameterModel(obj, "output");
-                expect(output.secondaryFiles).to.have.length(2);
-
-                output.removeSecondaryFile(0);
-
-                expect(output.secondaryFiles).to.have.length(1);
-                expect(output.secondaryFiles[0].serialize()).to.equal(".bti");
-
-                expect(output.secondaryFiles[0].loc).to.equal("output.outputBinding.secondaryFiles[0]");
+                tool.validate().then(res => {
+                    expect(output.secondaryFiles[0].errors).to.have.lengthOf(1);
+                }).then(done, done);
             });
 
-            it("should addSecondaryFile to the end of the list", () => {
-                const obj = {
-                    id: "output",
-                    type: ["File"],
-                    outputBinding: {
-                        secondaryFiles: [
-                            ".bai",
-                            ".bti"
-                        ]
-                    }
-                };
+            it("should maintain validation after updateSecondaryFiles", (done) => {
+               const tool = new SBDraft2CommandLineToolModel({
+                   class: "CommandLineTool",
+                   outputs: [
+                       {
+                           type: "File",
+                           outputBinding: {
+                               secondaryFiles: [
+                                   {
+                                       class: "Expression",
+                                       engine: "cwl-js-engine",
+                                       script: "!!!"
+                                   }
+                               ]
+                           }
+                       }
+                   ]
+               } as any);
+               const output = tool.outputs[0];
 
-                const output = new SBDraft2CommandOutputParameterModel(obj, "output");
-                output.addSecondaryFile(".txt");
+                output.updateSecondaryFiles([{
+                    class: "Expression",
+                    engine: "cwl-js-engine",
+                    script: "!!!"
+                }, {
+                    class: "Expression",
+                    engine: "cwl-js-engine",
+                    script: "!!!"
+                }]);
 
+                tool.validate().then(res => {
+                   expect(output.secondaryFiles[0].errors).to.have.lengthOf(1);
+                   expect(output.secondaryFiles[1].errors).to.have.lengthOf(1);
+               }).then(done, done);
+           });
 
-                expect(output.secondaryFiles).to.have.length(3);
-                expect(output.secondaryFiles[2].serialize()).to.equal(".txt");
+            it("should be invalid when adding a secondary file", (done) => {
+                const tool = new SBDraft2CommandLineToolModel({
+                    class: "CommandLineTool",
+                    outputs: [
+                        {
+                            type: "File",
+                            outputBinding: {
+                                secondaryFiles: [
+                                    {
+                                        class: "Expression",
+                                        engine: "cwl-js-engine",
+                                        script: "!!!"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                } as any);
+                const output = tool.outputs[0];
 
-                expect(output.secondaryFiles[2].loc).to.equal("binding.secondaryFiles[2]");
+                output.addSecondaryFile({
+                    class: "Expression",
+                    engine: "cwl-js-engine",
+                    script: "!!!"
+                });
+
+                tool.validate().then(res => {
+                    expect(output.secondaryFiles[0].errors).to.have.lengthOf(1);
+                    expect(output.secondaryFiles[1].errors).to.have.lengthOf(1);
+                }).then(done, done);
             });
 
-            it("should not serialize secondaryFiles if array is blank", () => {
-                const obj = {
-                    id: "output",
-                    type: ["File"],
-                    outputBinding: {
-                        glob: ".txt",
-                        secondaryFiles: []
-                    }
-                };
+            it.only("should be invalid when adding and then updating secondary files", (done) => {
+                const tool = new SBDraft2CommandLineToolModel({
+                    class: "CommandLineTool",
+                    outputs: [
+                        {
+                            type: "File",
+                            outputBinding: {
+                                secondaryFiles: [
+                                    {
+                                        class: "Expression",
+                                        engine: "cwl-js-engine",
+                                        script: "!!!"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                } as any);
+                const output = tool.outputs[0];
 
-                const bind = new SBDraft2CommandOutputParameterModel(obj, "binding");
+                output.addSecondaryFile({
+                    class: "Expression",
+                    engine: "cwl-js-engine",
+                    script: null
+                });
 
-                expect((<CommandOutputBinding>bind.serialize().outputBinding).secondaryFiles).to.be.undefined;
-                expect(bind.serialize()).to.not.haveOwnProperty("secondaryFiles");
+                output.updateSecondaryFiles([{
+                    class: "Expression",
+                    engine: "cwl-js-engine",
+                    script: "!!!"
+                }, {
+                    class: "Expression",
+                    engine: "cwl-js-engine",
+                    script: "!!!"
+                }]);
+
+
+                tool.validate().then(res => {
+                    expect(output.secondaryFiles[0].errors).to.have.lengthOf(1);
+                    expect(output.secondaryFiles[1].errors).to.have.lengthOf(1);
+                }).then(done, done);
             });
         });
     });

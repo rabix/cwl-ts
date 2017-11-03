@@ -421,6 +421,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             found = field;
         }
 
+        found.clearIssue(ErrorCode.ALL);
         const index = this.fields.indexOf(found);
         if (index < 0) {
             throw(`Field ${field} does not exist on input`);

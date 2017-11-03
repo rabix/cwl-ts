@@ -2,13 +2,14 @@ import {expect} from "chai";
 import {
     ensureArray, checkMapValueType, incrementString, spreadSelectProps,
     snakeCase, fetchByLoc, cleanupNull, incrementLastLoc, charSeparatedToArray, flatten,
-    concatIssues, checkIfConnectionIsValid
+    concatIssues, checkIfConnectionIsValid, hasFileType
 } from "./utils";
 import {V1WorkflowOutputParameterModel} from "../v1.0/V1WorkflowOutputParameterModel";
 import {V1WorkflowInputParameterModel} from "../v1.0/V1WorkflowInputParameterModel";
 import {V1StepModel} from "../v1.0/V1StepModel";
 import {V1WorkflowStepInputModel} from "../v1.0/V1WorkflowStepInputModel";
 import {V1WorkflowStepOutputModel} from "../v1.0/V1WorkflowStepOutputModel";
+import {V1CommandInputParameterModel} from "../v1.0/V1CommandInputParameterModel";
 
 describe("ensureArray", () => {
     it("should return an array of mismatched objects", () => {
@@ -874,4 +875,134 @@ describe("concatKeyArrays", () => {
         const combine = concatIssues(base, add, false);
         expect(combine).to.deep.equal({b: [1, 2], c: [3]});
     });
+});
+
+describe("hasFileType", () => {
+   it("should return true for File", () => {
+       const input = new V1CommandInputParameterModel({
+           type: "File"
+       } as any);
+
+       expect(hasFileType(input)).to.be.true;
+   });
+
+   it("should return true for File[]", () => {
+       const input = new V1CommandInputParameterModel({
+           type: "File[]"
+       } as any);
+
+       expect(hasFileType(input)).to.be.true;
+   });
+
+   it("should return false for int", () => {
+       const input = new V1CommandInputParameterModel({
+           type: "int"
+       } as any);
+
+       expect(hasFileType(input)).to.be.false;
+   });
+
+   it("should return false for int[]", () => {
+       const input = new V1CommandInputParameterModel({
+           type: "int[]"
+       } as any);
+
+       expect(hasFileType(input)).to.be.false;
+   });
+
+   it("should return true for record with nested File", () => {
+       const input = new V1CommandInputParameterModel({
+           type: {
+               name: "input",
+               type: "record",
+               fields: [
+                   {
+                       id: "field",
+                       type: "File"
+                   }
+               ]
+           }
+       } as any);
+
+       expect(hasFileType(input)).to.be.true;
+   });
+
+   it("should return true for record with 2 levels of nesting with File", () => {
+       const input = new V1CommandInputParameterModel({
+           type: {
+               name: "input",
+               type: "record",
+               fields: [
+                   {
+                       id: "field",
+                       type: {
+                           name: "field",
+                           type: "record",
+                           fields: [
+                               {
+                                   id: "field2",
+                                   type: "File"
+                               }
+                           ]
+                       }
+                   }
+               ]
+           }
+       } as any);
+
+       expect(hasFileType(input)).to.be.true;
+   });
+
+   it("should return true for record with 2 levels of nesting with File[]", () => {
+       const input = new V1CommandInputParameterModel({
+           type: {
+               name: "input",
+               type: "record",
+               fields: [
+                   {
+                       id: "field",
+                       type: {
+                           name: "field",
+                           type: "record",
+                           fields: [
+                               {
+                                   id: "field2",
+                                   type: "File[]"
+                               }
+                           ]
+                       }
+                   }
+               ]
+           }
+       } as any);
+
+       expect(hasFileType(input)).to.be.true;
+   });
+
+   it("should return false for record with no File fields", () => {
+       const input = new V1CommandInputParameterModel({
+           type: {
+               name: "input",
+               type: "record",
+               fields: [
+                   {
+                       id: "field",
+                       type: {
+                           name: "field",
+                           type: "record",
+                           fields: [
+                               {
+                                   id: "field2",
+                                   type: "int"
+                               }
+                           ]
+                       }
+                   }
+               ]
+           }
+       } as any);
+
+       expect(hasFileType(input)).to.be.false;
+   })
+
 });

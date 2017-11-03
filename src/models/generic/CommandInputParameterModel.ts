@@ -8,10 +8,11 @@ import {CommandLineBinding as SBDraft2CommandLineBinding} from "../../mappings/d
 import {CommandLineBinding as V1CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {ExpressionModel} from "./ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
-import {validateID} from "../helpers/utils";
+import {incrementLastLoc, validateID} from "../helpers/utils";
 import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
 import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
+import {isFileType} from "../index";
 
 export abstract class CommandInputParameterModel extends ValidationBase implements InputParameter, Serializable<any> {
     /** unique identifier of input */
@@ -74,9 +75,33 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
 
     abstract addSecondaryFile(file: V1Expression | SBDraft2Expression | string): ExpressionModel;
 
+    protected _addSecondaryFile<T extends ExpressionModel>(file: V1Expression | SBDraft2Expression | string,
+                                                           exprConstructor: new(...args: any[]) => T,
+                                                           locBase: string): T {
+        const loc = incrementLastLoc(this.secondaryFiles, `${locBase}.secondaryFiles`);
+        const f   = new exprConstructor(file, loc, this.eventHub);
+        this.secondaryFiles.push(f);
+        f.setValidationCallback(err => this.updateValidity(err));
+        return f;
+    }
+
     abstract updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>);
 
+    protected _updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>) {
+        this.secondaryFiles.forEach(f => f.clearIssue(ErrorCode.EXPR_ALL));
+        this.secondaryFiles = [];
+        files.forEach(f => this.addSecondaryFile(f));
+    }
+
     abstract removeSecondaryFile(index: number);
+
+    protected _removeSecondaryFile(index: number) {
+        const file = this.secondaryFiles[index];
+        if (file) {
+            file.setValue("", "string");
+            this.secondaryFiles.splice(index, 1);
+        }
+    }
 
     public validate(context: any): Promise<any> {
         const promises: Promise<any>[] = [];
@@ -85,11 +110,13 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
         try {
             validateID(this.id);
         } catch (ex) {
-            this.setIssue({[this.loc + ".id"] : {
-                type: "error",
-                message: ex.message,
-                code: ex.code
-            }});
+            this.setIssue({
+                [this.loc + ".id"]: {
+                    type: "error",
+                    message: ex.message,
+                    code: ex.code
+                }
+            });
         }
 
         // inputBinding
@@ -117,6 +144,19 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
 
     deserialize(attr: any): void {
         new UnimplementedMethodException("deserialize", "CommandInputParameterModel");
+    }
+
+
+    protected attachFileTypeListeners() {
+        if (this.eventHub) {
+            this.modelListeners.push(this.eventHub.on("io.change.type", (loc: string) => {
+                if (`${this.loc}.type` === loc) {
+                    if (!isFileType(this)) {
+                        this.updateSecondaryFiles([]);
+                    }
+                }
+            }));
+        }
     }
 
 }
