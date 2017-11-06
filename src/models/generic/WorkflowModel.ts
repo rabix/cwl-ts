@@ -79,8 +79,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             "input.create",
             "output.create",
             "output.remove",
-            "io.change", // change in type, label, etc
+            "io.change", // change in label, etc
             "io.change.id",
+            "io.change.type",
             "connection.create",
             "connection.remove"
         ]);
@@ -296,6 +297,13 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * @param {(io: (WorkflowOutputParameterModel | WorkflowInputParameterModel)) => void} handler
      */
     on(event: "io.change.id", handler: (io: WorkflowOutputParameterModel | WorkflowInputParameterModel) => void);
+
+    /**
+     * Emitted when id of workflow input/output changes
+     * @param {"io.change.type"} event
+     * @param {(loc: string) => void} handler
+     */
+    on(event: "io.change.type", handler: (loc: string) => void);
 
     /**
      * Emitted when validation of workflow connections finishes
