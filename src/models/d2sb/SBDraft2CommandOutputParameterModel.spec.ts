@@ -258,7 +258,7 @@ describe("SBDraft2CommandOutputParameterModel", () => {
             expect(bind.serialize()).to.not.haveOwnProperty("secondaryFiles");
         });
 
-        describe.only("secondaryFiles validation", () => {
+        describe("secondaryFiles validation", () => {
             beforeEach(() => {
                 ExpressionEvaluator.evaluate = JSExecutor.evaluate;
             });
@@ -356,7 +356,7 @@ describe("SBDraft2CommandOutputParameterModel", () => {
                 }).then(done, done);
             });
 
-            it.only("should be invalid when adding and then updating secondary files", (done) => {
+            it("should be invalid when adding and then updating secondary files", (done) => {
                 const tool = new SBDraft2CommandLineToolModel({
                     class: "CommandLineTool",
                     outputs: [

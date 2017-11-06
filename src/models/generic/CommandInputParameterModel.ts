@@ -8,11 +8,10 @@ import {CommandLineBinding as SBDraft2CommandLineBinding} from "../../mappings/d
 import {CommandLineBinding as V1CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {ExpressionModel} from "./ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
-import {incrementLastLoc, validateID} from "../helpers/utils";
+import {incrementLastLoc, validateID, isFileType} from "../helpers/utils";
 import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
 import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
-import {isFileType} from "../index";
 
 export abstract class CommandInputParameterModel extends ValidationBase implements InputParameter, Serializable<any> {
     /** unique identifier of input */
