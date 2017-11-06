@@ -1731,6 +1731,9 @@
                     "$ref": "#/definitions/Draft2CommandInputArraySchema"
                 },
                 {
+                    "$ref": "#/definitions/Draft2MapSchema"
+                },
+                {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Draft2CommandInputType"
@@ -1924,6 +1927,27 @@
                 }
             },
             "required": [
+                "type"
+            ]
+        },
+        "Draft2MapSchema": {
+            "type": "object",
+            "properties": {
+                "values": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "map"
+                    ]
+                },
+                "name": {
+                    "type": ["string", "null"]
+                }
+            },
+            "required": [
+                "values",
                 "type"
             ]
         },

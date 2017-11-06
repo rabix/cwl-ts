@@ -70,9 +70,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             "step.inPort.show",
             "step.inPort.hide",
             "step.inPort.remove",
-            "step.inPort.add",
+            "step.inPort.create",
             "step.outPort.remove",
-            "step.outPort.add",
+            "step.outPort.create",
             "step.port.change",
             "connections.updated",
             "input.remove",
@@ -93,10 +93,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         /**
          * Adds inPort to graph
          * called on step update
-         * @name step.inPort.add
+         * @name step.inPort.create
          * @see StepModel.compareInPorts
          */
-        this.eventHub.on("step.inPort.add", (port: WorkflowStepInputModel) => {
+        this.eventHub.on("step.inPort.create", (port: WorkflowStepInputModel) => {
             this.graph.addVertex(port.connectionId, port);
             this.graph.addEdge({
                     id: port.connectionId,
@@ -113,10 +113,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         /**
          * Adds outPort to graph
          * called on step update
-         * @name step.outPort.add
+         * @name step.outPort.create
          * @see StepModel.compareOutPorts
          */
-        this.eventHub.on("step.outPort.add", (port: WorkflowStepOutputModel) => {
+        this.eventHub.on("step.outPort.create", (port: WorkflowStepOutputModel) => {
             this.graph.addVertex(port.connectionId, port);
 
             this.graph.addEdge({
@@ -185,11 +185,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     on(event: "step.remove", handler: (step: StepModel) => void);
 
     /**
-     * @deprecated
+     * Emitted after a step's label has changed
      * @param {"step.change"} event
-     * @param {() => void} handler
+     * @param {(step: StepModel) => void} handler
      */
-    on(event: "step.change", handler: () => void);
+    on(event: "step.change", handler: (step: StepModel) => void);
 
     /**
      * Emitted when step's run is updated
@@ -228,10 +228,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     /**
      * Emitted when an in port is added to the step, such as after an update of the step's run
-     * @param {"step.inPort.add"} event
+     * @param {"step.inPort.create"} event
      * @param {(inPort: WorkflowStepInputModel) => void} handler
      */
-    on(event: "step.inPort.add", handler: (inPort: WorkflowStepInputModel) => void);
+    on(event: "step.inPort.create", handler: (inPort: WorkflowStepInputModel) => void);
 
     /**
      * Emitted when an out port is removed from the step, such as after an update of the step's run
@@ -242,10 +242,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     /**
      * Emitted when an in port is added to the step, such as after an update of the step's run
-     * @param {"step.outPort.add"} event
+     * @param {"step.outPort.create"} event
      * @param {(outPort: WorkflowStepOutputModel) => void} handler
      */
-    on(event: "step.outPort.add", handler: (outPort: WorkflowStepOutputModel) => void);
+    on(event: "step.outPort.create", handler: (outPort: WorkflowStepOutputModel) => void);
 
     /**
      * Emitted when a step in/out port is changed during an update of the step's run
@@ -420,50 +420,33 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * @name step.inPort.hide
      */
     clearPort(inPort: WorkflowStepInputModel) {
-        // remove port from canvas
-        inPort.isVisible = false;
-        inPort.clearIssue(ErrorCode.ALL);
-
         // loop through sources, removing their connections and clearing dangling inputs
-        while (inPort.source.length > 0) {
-
-            // pop each source so no connections lead back to port
-            let source = inPort.source.pop();
-
-            // source belongs to a step
+        inPort.source.forEach(source => {
             const sourceConnectionId = this.getSourceConnectionId(source);
-            if (source.indexOf("/") !== -1) {
-                this.graph.removeEdge([sourceConnectionId, inPort.connectionId]);
-            } else {
-                // source is an input
-                this.graph.removeEdge([sourceConnectionId, inPort.connectionId]);
-                this.removeDanglingInput(sourceConnectionId);
-            }
-        }
+
+            // disconnect takes care of edges and dangling inputs
+            this.disconnect(sourceConnectionId, inPort.connectionId);
+        });
 
         this.eventHub.emit("step.inPort.hide", inPort);
+
+        // remove visibility on the port so it isn't shown on canvas anymore
+        inPort.isVisible = false;
+        inPort.clearIssue(ErrorCode.ALL);
     }
 
     clearOutPort(outPort: WorkflowStepOutputModel) {
-        outPort.isVisible = false;
-
         this.graph.edges.forEach(e => {
             // if the edge is connected to the output, it needs to be cleared and removed
             if (e.source.id === outPort.connectionId) {
-                const dest: WorkflowStepInputModel | WorkflowOutputParameterModel = this.graph.getVertexData(e.destination.id);
 
-                // remove the source of the outPort to be cleared
-                dest.source.splice(dest.source.indexOf(outPort.sourceId), 1);
-
-                // remove the edge from the graph
-                this.graph.removeEdge(e);
-
-                // in case the destination was an output, remove it if it's left dangling
-                if (dest instanceof WorkflowOutputParameterModel) {
-                    this.removeDanglingOutput(dest.connectionId);
-                }
+                // if a connection is found, disconnect it
+                // this handles dangling outputs
+                this.disconnect(outPort.connectionId, e.destination.id);
             }
         });
+
+        outPort.isVisible = false;
     }
 
     /**
@@ -473,7 +456,13 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // remove dangling input if it has been left over
         if (!this.graph.hasOutgoing(connectionId)) {
             this.graph.removeVertex(connectionId);
-            this.inputs = this.inputs.filter(input => input.connectionId !== connectionId);
+            this.inputs = this.inputs.filter(input => {
+                if (input.connectionId === connectionId){
+                    this.eventHub.emit("input.remove", input);
+                    return false;
+                }
+                return true;
+            });
         }
     }
 
@@ -483,7 +472,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
             this.outputs = this.outputs.filter(output => {
                 if (output.connectionId === connectionId) {
+                    this.eventHub.emit("output.remove", output);
                     output.clearIssue(ErrorCode.ALL);
+                    this.eventHub.emit("output.remove", output);
                     return false;
                 }
 
@@ -548,10 +539,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const stepIn  = step.in.map(i => i.connectionId);
         const stepOut = step.out.map(o => o.connectionId);
 
-        // remove in ports and out ports from graph
-        stepIn.forEach(input => this.graph.removeVertex(input));
-        stepOut.forEach(output => this.graph.removeVertex(output));
-
         // clean up connections between in/out ports and other nodes
         // and in/out ports and the step itself
         this.graph.edges.forEach(edge => {
@@ -562,9 +549,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             } else if (edge.destination.id === step.connectionId ||
                 edge.source.id === step.connectionId) {
                 this.graph.removeEdge(edge);
-
             }
         });
+
+        // remove in ports and out ports from graph
+        stepIn.forEach(input => this.graph.removeVertex(input));
+        stepOut.forEach(output => this.graph.removeVertex(output));
     }
 
     /**
@@ -808,7 +798,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     }
 
     public disconnect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
-                      destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
+               destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
         [source, destination] = this.checkSrcAndDest(source, destination);
 
         if (this.graph.removeEdge({
@@ -844,9 +834,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     }
 
     connect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
-                   destination: WorkflowOutputParameterModel
-                       | WorkflowStepInputModel
-                       | string, show = true) {
+            destination: WorkflowOutputParameterModel
+                | WorkflowStepInputModel
+                | string, show = true) {
 
         [source, destination] = this.checkSrcAndDest(source, destination);
 
@@ -1074,8 +1064,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      */
     protected _createInputFromPort(inPort: WorkflowStepInputModel | string,
                                    inputConstructor: { new(...args: any[]): WorkflowInputParameterModel },
-                                   show: boolean   = true,
-                                   create: boolean = false,
+                                   show: boolean      = true,
+                                   create: boolean    = false,
                                    data: Customizable = {}): WorkflowInputParameterModel {
         if (typeof inPort === "string") {
             inPort = <WorkflowStepInputModel> this.graph.getVertexData(inPort);
@@ -1098,13 +1088,13 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
 
         // create new input on the workflow to connect with the port
-        const inputParam    = Object.assign({
+        const inputParam = Object.assign({
             id: this.getNextAvailableId(`${STEP_OUTPUT_CONNECTION_PREFIX}${inPort.id}/${inPort.id}`, true), // might change later in case input is already taken
             type: inPort.type ? inPort.type.serialize() : "null",
             ["sbg:fileTypes"]: inPort.fileTypes,
             inputBinding: inPort["inputBinding"]
         }, data.customProps);
-        const input = new inputConstructor(<InputParameter>inputParam, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
+        const input      = new inputConstructor(<InputParameter>inputParam, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
 
         // add it to the workflow tree
         input.setValidationCallback(err => this.updateValidity(err));
@@ -1112,6 +1102,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         // add input to graph
         this.addInputToGraph(input);
+        input.isVisible = show;
 
         this.eventHub.emit("input.create", input);
 
@@ -1131,8 +1122,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     protected _createOutputFromPort(outPort: WorkflowStepOutputModel | string,
                                     outputConstructor: { new(...args: any[]): WorkflowOutputParameterModel },
-                                    show: boolean   = true,
-                                    create: boolean = false,
+                                    show: boolean      = true,
+                                    create: boolean    = false,
                                     opts: Customizable = {}): WorkflowOutputParameterModel {
 
         if (typeof outPort === "string") {
@@ -1192,7 +1183,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Helper function to connect source to destination
      */
     private connectSource(sourceId: string, dest: WorkflowOutputParameterModel
-                              | WorkflowStepInputModel, destNode: EdgeNode, graph: Graph = this.graph) {
+        | WorkflowStepInputModel, destNode: EdgeNode, graph: Graph = this.graph) {
         const sourceConnectionId = this.getSourceConnectionId(sourceId);
         // detect if source is a port of an input (has a step in its identifier),
         // if it is a port then add the prefix to form the connectionId
@@ -1301,7 +1292,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      */
     protected validateConnections(): void {
 
-        const sources = this.gatherSources();
+        const sources      = this.gatherSources();
         const destinations = this.gatherDestinations();
 
         this.connections.forEach((connection) => {
@@ -1323,8 +1314,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Validate connection between source and destination and sets correct validity state on destination
      */
-    private validateConnection (destination: WorkflowOutputParameterModel | WorkflowStepInputModel,
-                        source: WorkflowInputParameterModel | WorkflowStepOutputModel, graph = this.graph) {
+    private validateConnection(destination: WorkflowOutputParameterModel | WorkflowStepInputModel,
+                               source: WorkflowInputParameterModel | WorkflowStepOutputModel, graph = this.graph) {
 
         if (!source || !destination) {
             return;
@@ -1375,7 +1366,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         // Validate all connections
         sources.forEach((source) => {
-           this.validateConnection(destination, source);
+            this.validateConnection(destination, source);
         });
 
     }

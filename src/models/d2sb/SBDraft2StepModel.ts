@@ -89,7 +89,7 @@ export class SBDraft2StepModel extends StepModel {
             // in case the port was inserted, signify to parent workflow that
             // it should be added to the graph
             if (inserted.find(i => i.id === newPort.id)) {
-                this.eventHub.emit("step.inPort.add", newPort);
+                this.eventHub.emit("step.inPort.create", newPort);
             }
 
             // in case there is a match and the step is being updated, signify to parent workflow
@@ -128,7 +128,7 @@ export class SBDraft2StepModel extends StepModel {
             }, this, `${this.loc}.outputs[${index}]`);
 
             if (inserted.find(i => i.id === model.id)) {
-                this.eventHub.emit("step.outPort.add", model);
+                this.eventHub.emit("step.outPort.create", model);
             }
 
             if (match && isUpdate) {
