@@ -68,8 +68,6 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
             (<CommandOutputParameter> base).streamable = this.streamable;
         }
 
-        this.attachFileTypeListeners();
-
         return spreadAllProps(base, this.customProps);
     }
 
@@ -80,7 +78,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
 
         this.id = (<CommandOutputParameter> attr).id || (<CommandOutputRecordField> attr).name;
 
-        this.type = new ParameterTypeModel(attr.type, V1CommandOutputParameterModel, `${this.id}_field`,`${this.loc}.type`);
+        this.type = new ParameterTypeModel(attr.type, V1CommandOutputParameterModel, `${this.id}_field`,`${this.loc}.type`, this.eventHub);
         this.type.setValidationCallback(err => this.updateValidity(err));
         this.type.hasDirectoryType = true;
 
@@ -98,6 +96,8 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         this.secondaryFiles = ensureArray((<CommandOutputParameter> attr).secondaryFiles).map(f => this.addSecondaryFile(f));
         this.fileTypes      = commaSeparatedToArray((<CommandOutputParameter> attr)["sbg:fileTypes"]);
         this.streamable     = (<CommandOutputParameter> attr).streamable;
+
+        this.attachFileTypeListeners();
 
         spreadSelectProps(attr, this.customProps, serializedKeys);
     }
