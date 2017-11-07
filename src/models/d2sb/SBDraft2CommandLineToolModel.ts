@@ -27,6 +27,7 @@ import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {SBDraft2ResourceRequirementModel} from "./SBDraft2ResourceRequirementModel";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
     public cwlVersion = "sbg:draft-2";
@@ -125,6 +126,12 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         c.setValidationCallback(err => this.updateValidity(err));
 
         return c;
+    }
+
+    public updateBaseCommand(cmd: SBDraft2ExpressionModel[]) {
+        this.baseCommand.forEach(c => c.clearIssue(ErrorCode.EXPR_ALL));
+        this.baseCommand = [];
+        cmd.forEach(c => this.addBaseCommand(c.serialize()));
     }
 
     public addArgument(arg?: string | CommandLineBinding): SBDraft2CommandArgumentModel {
