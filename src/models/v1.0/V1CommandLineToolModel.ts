@@ -235,7 +235,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         // create ResourceRequirement for manipulation
         if (!this.resources) {
-            this.resources = new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${++counter}]`);
+            this.resources = new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${++counter}]`, this.eventHub);
         }
         this.resources.setValidationCallback(err => this.updateValidity(err));
 

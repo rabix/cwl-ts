@@ -40,7 +40,7 @@ export class V1InitialWorkDirRequirementModel extends CreateFileRequirementModel
             listing: this.listing.reduce((acc, item) => {
                 const serialized = item.serialize();
 
-                if (serialized && ((item instanceof ExpressionModel) || (serialized.entryname && serialized.entry))) {
+                if (serialized && ((item instanceof ExpressionModel) || serialized.entryname || serialized.entry)) {
                     acc.push(serialized);
                 }
 
@@ -80,7 +80,7 @@ export class V1InitialWorkDirRequirementModel extends CreateFileRequirementModel
             attr.listing.forEach((listing) => {
 
                 if (listing) {
-                    if ((<Dirent> listing).entryname && (<Dirent> listing).entry) {
+                    if ((<Dirent> listing).entryname || (<Dirent> listing).entry) {
                         const any = this.addDirent(<Dirent> listing);
                         listings.push(any);
                     } else if (typeof listing === "string") {
