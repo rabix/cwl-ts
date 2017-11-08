@@ -652,6 +652,57 @@ describe("V1WorkflowModel", () => {
             expect(serialize).to.haveOwnProperty("steps");
             expect(serialize.steps).to.have.length(1);
         });
+
+        it("should serialize SubworkflowFeatureRequirement if any step is a Workflow", () => {
+            wf.addStepFromProcess({
+                class: "Workflow",
+                steps: [],
+                inputs: [],
+                outputs: []
+            } as any);
+
+            const serialized = wf.serialize();
+
+            expect(serialized.requirements).to.have.lengthOf(1);
+            expect(serialized.requirements[0]).to.haveOwnProperty("class");
+            expect(serialized.requirements[0].class).to.equal("SubworkflowFeatureRequirement");
+        });
+
+        it("should not SubworkflowFeatureRequirement if it doesn't know about types of steps", () => {
+            wf.customProps.requirements = [{class: "SubworkflowFeatureRequirement"}];
+
+            const serialized = wf.serialize();
+            expect(serialized.requirements).to.have.lengthOf(1);
+            expect(serialized.requirements[0]).to.haveOwnProperty("class");
+            expect(serialized.requirements[0].class).to.equal("SubworkflowFeatureRequirement");
+        });
+
+        it("should not add SubworkflowFeatureRequirement if no step is a Workflow", () => {
+            const serialized = wf.serialize();
+            expect(serialized.requirements).to.have.lengthOf(0);
+        });
+
+        it("should add ScatterFeatureRequirement if any step has scatter", () => {
+            wf.steps[0].scatter = ["tarfile"];
+
+            const serialized = wf.serialize();
+
+            expect(serialized.requirements).to.have.lengthOf(1);
+            expect(serialized.requirements[0]).to.haveOwnProperty("class");
+            expect(serialized.requirements[0].class).to.equal("ScatterFeatureRequirement");
+        });
+
+        it.only("should add MultipleInputFeatureRequirement if step has multiple source inputs", () => {
+
+            wf.createInputFromPort(wf.steps[0].in[0]);
+            expect(wf.steps[0].in[0].source).to.have.lengthOf(2);
+
+            const serialized = wf.serialize();
+
+            expect(serialized.requirements).to.have.lengthOf(1);
+            expect(serialized.requirements[0]).to.haveOwnProperty("class");
+            expect(serialized.requirements[0].class).to.equal("MultipleInputFeatureRequirement");
+        });
     });
 
     describe("step.setRunProcess", () => {

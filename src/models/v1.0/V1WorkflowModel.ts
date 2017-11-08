@@ -128,7 +128,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     }
 
     _serialize(embed: boolean, retainSource: boolean = false): Workflow {
-        const base: Workflow = <Workflow>{};
+        let base: Workflow = <Workflow>{};
 
         base.class      = "Workflow";
         base.cwlVersion = "v1.0";
@@ -153,6 +153,58 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         });
 
         if (this.hints.length) { base.hints = this.hints.map((hint) => hint.serialize())}
+
+        // adding the proper requirements based on the features of the workflow
+        let requirements    = this.customProps.requirements || [];
+        let allStepsHaveRun = true;
+
+        let reqMap = {
+            SubworkflowFeatureRequirement: false,
+            ScatterFeatureRequirement: false,
+            MultipleInputFeatureRequirement: false
+        };
+
+        // feature detection
+        for (let i = 0; i < this.steps.length; i++) {
+            const step = this.steps[i];
+
+            if (step.run && step.run instanceof WorkflowModel) {
+                reqMap.SubworkflowFeatureRequirement = true;
+            } else if (!step.run) {
+                allStepsHaveRun = false;
+            }
+
+            if (step.scatter.length) {
+                reqMap.ScatterFeatureRequirement = true;
+            }
+
+            for (let j = 0; j < step.in.length; j++) {
+                const inPort = step.in[j];
+                if (inPort.source && inPort.source.length > 1) {
+                    reqMap.MultipleInputFeatureRequirement = true;
+                }
+            }
+        }
+
+        // requirement setting
+        for (let req in reqMap) {
+            // only remove SubworkflowFeatureRequirement if we know the run type of all steps
+            if (allStepsHaveRun || req !== "SubworkflowFeatureRequirement") {
+                // remove each requirement first
+                requirements = requirements.filter(r => r.class !== req);
+            }
+
+            // re-add it only if its needed
+            if (reqMap[req]) {
+                requirements.push({
+                    class: req
+                });
+            }
+        }
+
+        base.requirements = requirements;
+
+        delete this.customProps.requirements;
 
         return spreadAllProps(base, this.customProps);
     }
