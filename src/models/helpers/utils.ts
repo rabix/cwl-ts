@@ -340,9 +340,9 @@ export const returnNumIfNum = (s: any): any | number => {
     return isNaN(s) ? s : parseInt(s);
 };
 
-export const isFileType = (i: { type: {isNullable: boolean, type: string, items: string} }, required = false): boolean => {
-    return i.type && i.type.isNullable !== required && (i.type.type === "File" || i.type.items === "File")
-};
+export const isFileType = (i: { type: {isNullable: boolean, type: string, items: string} }, required?): boolean => {
+    const requiredMatches = required === undefined || i.type.isNullable !== required;
+    return i.type && requiredMatches && (i.type.type === "File" || i.type.items === "File")};
 
 export const getNextAvailableId = (id: string, set: Array<{id: string}>) => {
     let hasId  = true;
