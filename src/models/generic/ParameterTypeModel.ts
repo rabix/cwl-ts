@@ -56,15 +56,15 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             switch (t) {
                 case "enum":
                     this._symbols = [];
-                    this.fields = null;
+                    this.removeAllFields();
                     break;
                 case "record":
-                    this.fields = [];
+                    this.fields   = [];
                     this._symbols = null;
                     break;
                 default:
                     this._symbols = null;
-                    this.fields = null;
+                    this.removeAllFields();
             }
             this._items = t;
 
@@ -324,11 +324,11 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         switch (t) {
             case "array":
                 this._symbols = null;
-                this.fields   = null;
+                this.removeAllFields();
                 break;
             case "enum":
                 this._items = null;
-                this.fields = null;
+                this.removeAllFields();
                 break;
             case "record":
                 this._items   = null;
@@ -436,5 +436,15 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         if (this.eventHub) {
             this.eventHub.emit("field.remove", found);
         }
+    }
+
+    removeAllFields() {
+        if (this.fields && this.fields.length) {
+            this.fields.forEach(f => {
+                f.clearIssue(ErrorCode.ALL);
+            });
+        }
+
+        this.fields = null;
     }
 }
