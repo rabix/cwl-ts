@@ -2,6 +2,7 @@ import {CommandOutputBindingModel} from "../generic/CommandOutputBindingModel";
 import {CommandOutputBinding} from "../../mappings/v1.0/CommandOutputBinding";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 
 export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
@@ -52,6 +53,14 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
                 // remove existing inherit statements if they exist
                 serialized = serialized.replace(new RegExp(V1CommandOutputBindingModel.INHERIT_REGEX), "");
 
+                if (serialized) {
+                    this._outputEval.setIssue({[`${this.loc}.outputEval`]: {
+                        type: "warning",
+                        code: ErrorCode.OUTPUT_EVAL_INHERIT,
+                        message: "Inheriting metadata appended some code to outputEval, this might change its behavior"
+                    }});
+                }
+
                 // output eval exists and is something else
                 this._outputEval.setValue((serialized + "\n\n" + inheritExpr).trim());
             }
@@ -59,6 +68,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
             // inherit was removed and should be removed from outputEval
             const newOutputEval = serialized.replace(new RegExp(V1CommandOutputBindingModel.INHERIT_REGEX), "");
             this._outputEval.setValue(newOutputEval || undefined);
+            this._outputEval.clearIssue(ErrorCode.OUTPUT_EVAL_INHERIT);
             // set inherit to empty value
             this.inheritMetadataFrom = inputId;
         }

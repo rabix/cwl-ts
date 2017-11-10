@@ -107,6 +107,9 @@ export abstract class CommandOutputParameterModel extends ValidationBase impleme
                 if (`${this.loc}.type` === loc) {
                     if (!isFileType(this)) {
                         this.updateSecondaryFiles([]);
+                        if (this.outputBinding) {
+                            this.outputBinding.setInheritMetadataFrom(null);
+                        }
                     }
                 }
             }));

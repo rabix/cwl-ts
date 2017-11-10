@@ -20,6 +20,7 @@ export enum ErrorCode {
     OUTPUT_ALL              = 400,
     OUTPUT_GLOB_MISSING     = 401,
     OUTPUT_EVAL_EXPR        = 402,
+    OUTPUT_EVAL_INHERIT     = 403,
 
     TYPE_ALL                = 500,
     TYPE_FIELDS_MISSING     = 501,
