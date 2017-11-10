@@ -42,18 +42,12 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
     /**
      * Returns CWL representation.
      */
-    public serialize(): any {
-        new UnimplementedMethodException("serialize", "ExpressionModel");
-        return null;
-    }
-
+    abstract serialize(): any;
 
     /**
      * Sets CWL representation as internal value
      */
-    public deserialize(attr: any): void {
-        new UnimplementedMethodException("deserialize", "ExpressionModel");
-    }
+    abstract deserialize(attr: any): void
 
     /**
      * Evaluates expression and sets its result to result property.
@@ -64,37 +58,26 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
      * @param context
      * @returns {any}
      */
-    public evaluate(context: any): Promise<any> {
-        new UnimplementedMethodException("evaluate", "ExpressionModel");
-        return null;
-    }
+    abstract evaluate(context: any): Promise<any>;
 
     /**
      * Returns script value of expression.script, or undefined if not set.
      * @returns {string}
      */
-    public getScript(): string {
-        new UnimplementedMethodException("getScript", "ExpressionModel");
-        return null;
-    }
+    abstract getScript(): string;
 
     /**
      * Sets value of expression.script or primitive based on type parameter.
      */
-    public setValue(val: number | string | SBDraft2Expression | V1Expression, type: "expression"
+    abstract setValue(val: number | string | SBDraft2Expression | V1Expression, type: "expression"
         | "string"
-        | "number") {
-        new UnimplementedMethodException("setValue", "ExpressionModel");
-    }
+        | "number");
 
     /**
      * Returns string representation of expression.script or primitive value.
      * @returns {string}
      */
-    public toString(): string {
-        new UnimplementedMethodException("toString", "ExpressionModel");
-        return null;
-    }
+    abstract toString(): string;
 
     public validate(context?: any): Promise<any> {
         return this.evaluate(context).then((suc) => {

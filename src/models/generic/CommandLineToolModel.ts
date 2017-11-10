@@ -1,5 +1,18 @@
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
+import {CommandLinePart} from "../helpers/CommandLinePart";
+import {generateCommandLineParts} from "../helpers/CommandLineUtils";
+import {EventHub} from "../helpers/EventHub";
+import {JobHelper} from "../helpers/JobHelper";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
+import {
+    checkIdValidity,
+    fetchByLoc,
+    flatten,
+    getNextAvailableId,
+    incrementLastLoc,
+    isType,
+} from "../helpers/utils";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
 import {CommandArgumentModel} from "./CommandArgumentModel";
@@ -12,15 +25,6 @@ import {ProcessRequirement} from "./ProcessRequirement";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {RequirementBaseModel} from "./RequirementBaseModel";
 import {ResourceRequirementModel} from "./ResourceRequirementModel";
-import {EventHub} from "../helpers/EventHub";
-import {
-    fetchByLoc, flatten, getNextAvailableId, checkIdValidity, incrementLastLoc, isEmpty, isType,
-} from "../helpers/utils";
-import {CommandLinePrepare} from "../helpers/CommandLinePrepare";
-import {CommandLinePart} from "../helpers/CommandLinePart";
-import {JobHelper} from "../helpers/JobHelper";
-import {generateCommandLineParts} from "../helpers/CommandLineUtils";
-import {ErrorCode, ValidityError} from "../helpers/validation/ErrorCode";
 
 export abstract class CommandLineToolModel extends ValidationBase implements Serializable<any> {
     // TOOL METADATA //
@@ -102,7 +106,8 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             "binding.shellQuote",
             "expression.create",
             "expression.change",
-            "expression.serialize"
+            "expression.serialize",
+            "output.metadata.inherit"
         ]);
     }
 

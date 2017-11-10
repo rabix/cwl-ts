@@ -169,8 +169,6 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
                 type: {type: "array", items: "int"}
             });
 
-            console.log(input.type);
-
             expect(input.type.isNullable).to.be.false;
         });
 
