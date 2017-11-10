@@ -165,7 +165,24 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
          * @see StepModel.compareInPorts
          */
         this.eventHub.on("step.port.change", (port: WorkflowStepOutputModel | WorkflowStepInputModel) => {
-            this.graph.setVertexData(port.connectionId, port)
+            this.graph.setVertexData(port.connectionId, port);
+            // check if port is connected to a workflow output
+            if (port instanceof WorkflowStepOutputModel && this.graph.hasOutgoing(port.connectionId)) {
+                const temporaryEdges = Array.from(this.graph.edges);
+                temporaryEdges.forEach(e => {
+                    if (e.source.id === port.connectionId) {
+                        const oldOutput = this.findById(e.destination.id);
+                        // make sure the destination is a workflow output and is only connected to the port which changed
+                        if (!(oldOutput instanceof WorkflowOutputParameterModel) || oldOutput.source.length !== 1) return;
+
+                        // remove the outdated workflow output first to avoid an infinite loop and duplicate ids
+                        this.removeOutput(oldOutput);
+
+                        // create a new workflow output in place of the one which changed
+                        this.createOutputFromPort(port.connectionId, {customProps: oldOutput.customProps});
+                    }
+                })
+            }
         });
     }
 
