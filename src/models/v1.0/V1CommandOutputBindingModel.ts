@@ -19,16 +19,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     }
 
     set glob(value: V1ExpressionModel) {
-        this._glob = new V1ExpressionModel(value.serialize(), `${this.loc}.glob`, this.eventHub);
-        this._glob.setValidationCallback(err => this.updateValidity(err));
-        if (this._glob.serialize() === undefined) {
-            this._glob.updateValidity({
-                [`${this.loc}.glob`]: {
-                    message: "Glob should be specified",
-                    type: "warning"
-                }
-            }, true);
-        }
+        this.setGlob(value, V1ExpressionModel);
     }
 
     protected _outputEval: V1ExpressionModel;
@@ -42,8 +33,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
         if (!(new RegExp(V1CommandOutputBindingModel.INHERIT_REGEX).test(serialized)) && this.inheritMetadataFrom) {
             this.inheritMetadataFrom = null;
         }
-        this._outputEval = new V1ExpressionModel(serialized, `${this.loc}.outputEval`, this.eventHub);
-        this._outputEval.setValidationCallback(err => this.updateValidity(err));
+        this.setOutputEval(serialized, V1ExpressionModel);
     }
 
     setInheritMetadataFrom(inputId: string) {
@@ -92,6 +82,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
 
         this._glob = new V1ExpressionModel(<string> glob, `${this.loc}.glob`, this.eventHub);
         this._glob.setValidationCallback(err => this.updateValidity(err));
+        this.validateGlob();
 
         this._outputEval = new V1ExpressionModel(binding.outputEval, `${this.loc}.outputEval`, this.eventHub);
         this._outputEval.setValidationCallback(err => this.updateValidity(err));

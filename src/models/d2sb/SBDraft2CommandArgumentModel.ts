@@ -3,6 +3,7 @@ import {CommandArgumentModel} from "../generic/CommandArgumentModel";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class SBDraft2CommandArgumentModel extends CommandArgumentModel implements Serializable<
     string
@@ -31,9 +32,11 @@ export class SBDraft2CommandArgumentModel extends CommandArgumentModel implement
     toggleBinding(state: boolean): void {
         if (state) {
             this.binding = new SBDraft2CommandLineBindingModel({}, this.loc, this.eventHub);
+            this.binding.setValidationCallback(ev => this.updateValidity(ev));
             this.primitive = undefined;
         } else {
             this.primitive = "";
+            this.binding.clearIssue(ErrorCode.ALL);
             this.binding = undefined;
         }
 

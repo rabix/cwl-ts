@@ -1,6 +1,7 @@
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {Serializable} from "../interfaces/Serializable";
+import {ErrorCode, ValidityError} from "./validation/ErrorCode";
 
 export type PrimitiveType =
     "array"
@@ -109,12 +110,12 @@ export class TypeResolver {
                         result.isItemOrArray = true;
                     } else {
                         result.unionType = type;
-                        throw(`TypeResolverError: Union types not supported yet. Found type ${type}`);
+                        throw new ValidityError(`TypeResolverError: Union types not supported yet. Found type ${type}`, ErrorCode.TYPE_UNSUPPORTED);
                     }
 
                 } else {
                     result.unionType = type;
-                    throw(`TypeResolverError: Union types not supported yet! Found type ${type}`);
+                    throw new ValidityError(`TypeResolverError: Union types not supported yet! Found type ${type}`, ErrorCode.TYPE_UNSUPPORTED);
                 }
             }
 
@@ -124,7 +125,7 @@ export class TypeResolver {
                 if (typeof type[0] === 'object') {
                     return TypeResolver.resolveType(type[0], result);
                 } else {
-                    throw("TypeResolverError: expected complex object, instead got " + type[0]);
+                    throw new ValidityError("TypeResolverError: expected complex object, instead got " + type[0], ErrorCode.TYPE_UNSUPPORTED);
                 }
             }
         } else if (typeof type === 'object') {
@@ -169,15 +170,15 @@ export class TypeResolver {
                     case "double":
                         return result;
                     default:
-                        throw("TypeResolverError: unmatched complex type, expected 'enum', 'array', or 'record', got '" + type.type + "'");
+                        throw new ValidityError("TypeResolverError: unmatched complex type, expected 'enum', 'array', or 'record', got '" + type.type + "'", ErrorCode.TYPE_UNSUPPORTED);
                 }
 
             } else {
-                throw("TypeResolverError: expected complex object with type field, instead got " + JSON.stringify(type));
+                throw new ValidityError("TypeResolverError: expected complex object with type field, instead got " + JSON.stringify(type), ErrorCode.TYPE_UNSUPPORTED);
             }
 
         } else {
-            throw("TypeResolverError: expected complex object, array, or string, instead got " + type);
+            throw new ValidityError("TypeResolverError: expected complex object, array, or string, instead got " + type, ErrorCode.TYPE_UNSUPPORTED);
         }
     }
 

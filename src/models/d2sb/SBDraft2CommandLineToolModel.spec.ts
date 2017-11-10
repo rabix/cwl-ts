@@ -47,8 +47,8 @@ describe("SBDraft2CommandLineToolModel", () => {
         })
     });
 
-    describe("getCommandLine Async", () => {
-        it("should evaluate command line with array of record, in which field is a file", (done) => {
+    describe("generateCommandLine Async", () => {
+        it.skip("should evaluate command line with array of record, in which field is a file", (done) => {
             const tool = new SBDraft2CommandLineToolModel({
                 'class': "CommandLineTool",
                 outputs: [],
@@ -87,8 +87,8 @@ describe("SBDraft2CommandLineToolModel", () => {
                 ]
             });
 
-            tool.getCommandLine().then(function (cmd) {
-                // expect(cmd).to.equal('--rec --s /path/to/file_input.ext --s /path/to/file_input.ext');
+            tool.generateCommandLine().then(function (cmd) {
+                expect(cmd).to.equal('--rec --s /path/to/file_input.ext --s /path/to/file_input.ext');
             }).then(done, done);
         });
 
@@ -169,13 +169,13 @@ describe("SBDraft2CommandLineToolModel", () => {
                 ]
             });
 
-            tool.getCommandLine().then(function (cmd) {
+            tool.generateCommandLine().then(function (cmd) {
                 expect(cmd).to.equal('asdf inp1-string-value --rec --s string_input-string-value --bool 447');
             }).then(done, done);
         });
     });
 
-    describe("getCommandLine", () => {
+    describe("generateCommandLine", () => {
 
         it("Should evaluate baseCommand with expression", (done) => {
             let tool = new SBDraft2CommandLineToolModel({
@@ -189,7 +189,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 }]
             });
 
-            tool.getCommandLine().then(cmd => {
+            tool.generateCommandLine().then(cmd => {
                 expect(cmd).to.equal('aba');
             }).then(done, done);
         });
@@ -206,7 +206,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 }]
             });
 
-            tool.getCommandLine().then(cmd => {
+            tool.generateCommandLine().then(cmd => {
                 expect(cmd).to.equal('6');
             }).then(done, done);
         });
@@ -216,26 +216,26 @@ describe("SBDraft2CommandLineToolModel", () => {
             tool.setJobInputs(BWAMemJob.default);
             tool.setRuntime(BWAMemJob.default.allocatedResources);
 
-            tool.getCommandLine().then(cmd => {
+            tool.generateCommandLine().then(cmd => {
                 expect(cmd).to.equal(`python bwa mem -t 4 -I 1,2,3,4 -m 3 chr20.fa example_human_Illumina.pe_1.fastq example_human_Illumina.pe_2.fastq > output.sam`);
             }).then(done, done);
         });
 
 
-        // it("Should evaluate Bfctools Annotate from sbg", (done) => {
-        //     let tool = new SBDraft2CommandLineToolModel(BfctoolsAnnotate.default);
-        //
-        //     tool.getCommandLine().then(cmd => {
-        //         expect(cmd).to.equal(`bcftools annotate -o annotated_input_file.ext.vcf.gz -a /path/to/annotations.ext -i 'REF=C' -Ob /path/to/input_file.ext.vcf.gz`);
-        //     }).then(done, done);
-        // });
+        it.skip("Should evaluate Bfctools Annotate from sbg", (done) => {
+            let tool = new SBDraft2CommandLineToolModel(BfctoolsAnnotate.default);
+
+            tool.generateCommandLine().then(cmd => {
+                expect(cmd).to.equal(`bcftools annotate -o annotated_input_file.ext.vcf.gz -a /path/to/annotations.ext -i 'REF=C' -Ob /path/to/input_file.ext.vcf.gz`);
+            }).then(done, done);
+        });
 
         it("Should evaluate BWM mem tool: Test nested prefixes with arrays", (done) => {
             let tool = new SBDraft2CommandLineToolModel(BindingTestTool.default);
             tool.setJobInputs(BWAMemJob.default);
             tool.setRuntime(BWAMemJob.default.allocatedResources);
 
-            tool.getCommandLine().then(cmd => {
+            tool.generateCommandLine().then(cmd => {
                 expect(cmd).to.equal(`python bwa mem chr20.fa -XXX -YYY example_human_Illumina.pe_1.fastq -YYY example_human_Illumina.pe_2.fastq`);
             }).then(done, done);
         });
@@ -243,7 +243,7 @@ describe("SBDraft2CommandLineToolModel", () => {
         it("Should evaluate BamTools Index from sbg", (done) => {
             let tool = new SBDraft2CommandLineToolModel(<CommandLineTool> BamtoolsIndex.default);
 
-            tool.getCommandLine().then(cmd => {
+            tool.generateCommandLine().then(cmd => {
                 expect(cmd).to.equal('/opt/bamtools/bin/bamtools index -in input_bam.bam');
             }).then(done, done);
         });
@@ -251,7 +251,7 @@ describe("SBDraft2CommandLineToolModel", () => {
         it("Should evaluate BamTools Split from sbg", (done) => {
             let tool = new SBDraft2CommandLineToolModel(BamtoolsSplit.default);
 
-            tool.getCommandLine().then(cmd => {
+            tool.generateCommandLine().then(cmd => {
                 expect(cmd).to.equal('/opt/bamtools/bin/bamtools split -in input/input_bam.ext -refPrefix refp -tagPrefix tagp -stub input_bam.splitted -mapped -paired -reference -tag tag');
             }).then(done, done);
         });
@@ -695,35 +695,33 @@ describe("SBDraft2CommandLineToolModel", () => {
     });
 
     describe("updateValidity", () => {
-        it("should be triggered when baseCommand is invalid", () => {
-            //@todo fix error reporting in JSExecutor
-            // const tool = new SBDraft2CommandLineToolModel({
-            //     "class": "CommandLineTool",
-            //     inputs: [],
-            //     outputs: [],
-            //     baseCommand: []
-            // });
-            //
-            // expect(tool.errors).to.be.empty;
-            // tool.addBaseCommand({
-            //     "class": "Expression",
-            //     script: "---",
-            //     engine: "#cwl-js-engine"
-            // });
-            // expect(tool.errors).to.be.empty;
-            //
-            // expect(tool.warnings).to.be.empty;
-            // tool.addBaseCommand({
-            //     "class": "Expression",
-            //     script: "abb",
-            //     engine: "#cwl-js-engine"
-            // });
-            //
-            // tool.baseCommand[1].validate({}).then(() => {
-            //     expect(tool.warnings).to.not.deep.equal([], "should have warning");
-            //     expect(tool.warnings[0].loc).to.equal("document.baseCommand[1]", "location of warning");
-            //     expect(tool.warnings[0].message).to.contain("ReferenceError", "value of warning");
-            // }).then(done, done);
+        it("should be triggered when baseCommand is invalid", (done) => {
+            const tool = new SBDraft2CommandLineToolModel({
+                "class": "CommandLineTool",
+                inputs: [],
+                outputs: [],
+                baseCommand: []
+            });
+
+            expect(tool.errors).to.be.empty;
+            tool.addBaseCommand({
+                "class": "Expression",
+                script: "---",
+                engine: "#cwl-js-engine"
+            });
+            expect(tool.errors).to.be.empty;
+
+            expect(tool.warnings).to.be.empty;
+            tool.addBaseCommand({
+                "class": "Expression",
+                script: "abb",
+                engine: "#cwl-js-engine"
+            });
+
+            tool.validate().then(() => {
+                expect(tool.warnings).to.not.deep.equal([], "should have warning");
+                expect(tool.warnings[0].loc).to.equal("document.baseCommand[1]", "location of warning");
+            }).then(done, done);
         });
     });
 

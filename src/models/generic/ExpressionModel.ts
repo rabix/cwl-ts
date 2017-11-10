@@ -5,6 +5,7 @@ import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export abstract class ExpressionModel extends ValidationBase implements Serializable<any> {
     public customProps = {};
@@ -80,12 +81,15 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
 
     public validate(context?: any): Promise<any> {
         return this.evaluate(context).then((suc) => {
-            this.cleanValidity();
+            this.clearIssue(ErrorCode.EXPR_ALL);
         }, (err) => {
-            this.updateValidity({
+            this.clearIssue(ErrorCode.EXPR_ALL);
+
+            this.setIssue({
                 [this.loc]: {
                     type: err.type,
-                    message: err.message
+                    message: err.message,
+                    code: err.code
                 }
             });
         });
@@ -101,17 +105,25 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
             }, ex => {
 
                 let message = ex.message;
+                let code = ErrorCode.EXPR_SYNTAX;
 
                 if (ex.message.startsWith("Uncaught DataCloneError")) {
                     message = "Error: Return value should have transferable data (fully JSON-serializable)";
+                    code = ErrorCode.EXPR_NOT_JSON;
                 }
 
-                const err = {loc: this.loc, message: message};
+                const err = {loc: this.loc, message: message, code};
 
                 if (ex.message.startsWith("Uncaught SyntaxError") || ex.name === "SyntaxError") {
                     rej(Object.assign({type: "error"}, err));
                 } else {
-                    rej(Object.assign({type: "warning"}, err));
+                    if (ex.message.startsWith("Uncaught ReferenceError") || ex.name === "ReferenceError") {
+                        code = ErrorCode.EXPR_REFERENCE;
+                    } else if (ex.message.startsWith("Uncaught TypeError") || ex.name === "TypeError") {
+                        code = ErrorCode.EXPR_TYPE;
+                    }
+
+                    rej(Object.assign({type: "warning", code}, err));
                 }
             });
         });

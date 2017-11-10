@@ -76,6 +76,10 @@ describe("SBDraft2ExpressionModel", () => {
     });
 
     describe("evaluate", () => {
+        beforeEach(() => {
+            ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
+        });
+
         it("should return value if model is string, not expression", (done) => {
             const expr = new SBDraft2ExpressionModel("value");
             expr.evaluate().then(res => {

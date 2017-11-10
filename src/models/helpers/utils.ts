@@ -1,9 +1,13 @@
-import {isObject} from "util";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
 import {ID_REGEX} from "./constants";
+import {ErrorCode, ValidityError} from "./validation/ErrorCode";
+import {InputParameterModel} from "../generic/InputParameterModel";
+import {Issue} from "./validation/Issue";
+import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+
 export const ensureArray = (map: { [key: string]: any }
     | any[]
     | string
@@ -204,11 +208,11 @@ export const nullifyObjValues = (obj: Object): any => {
 
 export const validateID = (id: string) => {
     if (!id) {
-        throw new Error("ID must be set");
+        throw new ValidityError("ID must be set", ErrorCode.ID_MISSING);
     }
 
     if (!ID_REGEX.test(id)) {
-        throw new Error(`ID "${id}" contains invalid characters`);
+        throw new ValidityError(`ID "${id}" contains invalid characters`, ErrorCode.ID_INVALID_CHAR);
     }
 };
 
@@ -254,7 +258,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
 
     // if both ports belong to the same step, connection is not possible
     if (pointA.parentStep && pointB.parentStep && pointA.parentStep.id === pointB.parentStep.id) {
-        throw new Error(`Invalid connection. Source and destination ports belong to the same step`);
+        throw new ValidityError(`Invalid connection. Source and destination ports belong to the same step`, ErrorCode.CONNECTION_SAME_STEP);
     }
 
     const getType = (type) => {
@@ -265,7 +269,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
         if (Array.isArray(type)) {
             return "union";
         }
-        if (isObject(type)) {
+        if (typeof type === "object" && type !== null) {
             return "object";
         }
     };
@@ -296,7 +300,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
 
         // if both are arrays but not of the same type
         if (pointAItems && pointBItems && pointAItems !== pointBItems) {
-            throw new Error(`Invalid connection. Connection type mismatch, attempting to connect "${pointAItems}[]" to "${pointBItems}[]"`);
+            throw new ValidityError(`Invalid connection. Connection type mismatch, attempting to connect "${pointAItems}[]" to "${pointBItems}[]"`, ErrorCode.CONNECTION_TYPE);
         }
         // if type match is file, and fileTypes are defined on both ports,
         // match only if fileTypes match
@@ -304,7 +308,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
             if (!!intersection(pointB.fileTypes.map((type) => type.toLowerCase()), pointA.fileTypes.map(type => type.toLowerCase())).length) {
                 return true;
             } else {
-                throw new Error(`Invalid connection. File type mismatch, connecting formats "${pointA.fileTypes}" to "${pointB.fileTypes}"`);
+                throw new ValidityError(`Invalid connection. File type mismatch, connecting formats "${pointA.fileTypes}" to "${pointB.fileTypes}"`, ErrorCode.CONNECTION_FILE_TYPE);
             }
         }
 
@@ -316,7 +320,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
     const pointATypeOutput = pointAItems ? `"${pointAItems}[]"` :  `"${pointAType}"`;
     const pointBTypeOutput = pointBItems ? `"${pointBItems}[]"` :  `"${pointBType}"`;
 
-    throw new Error(`Invalid connection. Connection type mismatch, attempting to connect ${pointATypeOutput} to ${pointBTypeOutput}`);
+    throw new ValidityError(`Invalid connection. Connection type mismatch, attempting to connect ${pointATypeOutput} to ${pointBTypeOutput}`, ErrorCode.CONNECTION_TYPE);
 };
 
 export const flatten = (arr: any[]) => {
@@ -340,10 +344,30 @@ export const returnNumIfNum = (s: any): any | number => {
     return isNaN(s) ? s : parseInt(s);
 };
 
-export const isFileType = (i: { type: {isNullable: boolean, type: string, items: string} }, required = false): boolean => {
-    return i.type && i.type.isNullable !== required && (i.type.type === "File" || i.type.items === "File")
+export const isFileType = (i: { type: {isNullable: boolean, type: string, items: string} }, required?): boolean => {
+    const requiredMatches = required === undefined || i.type.isNullable !== required;
+    return i.type && requiredMatches && (i.type.type === "File" || i.type.items === "File")
 };
 
+export const hasFileType = (port: {type: ParameterTypeModel} ): boolean => {
+    if (isFileType(port)) return true;
+
+    if (Array.isArray(port.type.fields)) {
+        for (let i = 0; i < port.type.fields.length; i++) {
+            const field = port.type.fields[i];
+            if(hasFileType(field)) return true;
+        }
+    }
+
+    return false;
+};
+
+/**
+ * Returns the next available ID based on the provided ID which is unique in the given array.
+ * @param {string} id
+ * @param {Array<{id: string}>} set
+ * @returns {string}
+ */
 export const getNextAvailableId = (id: string, set: Array<{id: string}>) => {
     let hasId  = true;
     let result = id;
@@ -371,6 +395,74 @@ export const checkIdValidity = (id: string, scope: Array<CommandInputParameterMo
 
     const next = getNextAvailableId(id, scope);
     if (next !== id) {
-        throw new Error(`ID "${id}" already exists in this tool, the next available id is "${next}"`);
+        throw new ValidityError(`ID "${id}" already exists in this tool, the next available id is "${next}"`, ErrorCode.ID_DUPLICATE);
+    }
+};
+
+export const concatIssues = (base: { [key: string]: Issue[] }, add: { [key: string]: Issue[] | Issue }, overwrite: boolean): any => {
+    const addKeys = Object.keys(add);
+
+    for (let i = 0; i < addKeys.length; i++) {
+        const key = addKeys[i];
+        // base[key] is an array and add[key] is an item or an array, can be concatenated
+        if (base[key] && add[key] !== null) {
+            if (overwrite) {
+                base[key] = <Issue[]> (Array.isArray(add[key]) ? add[key] : [add[key]]);
+            } else {
+                const toAdd = <Issue[]> (Array.isArray(add[key]) ? add[key] : [add[key]]);
+                for (let i = 0; i < toAdd.length; i++) {
+                    if (!issueExistsInArray(base[key], toAdd[i])) {
+                        base[key].push(toAdd[i]);
+                    }
+                }
+            }
+        } else {
+            if (Array.isArray(add[key]) || add[key] === null) {
+                base[key] = <Issue[]> add[key];
+            } else {
+                base[key] = [<Issue> add[key]];
+            }
+        }
+    }
+
+    return base;
+};
+
+export const issueExistsInArray = (arr: Issue[], item: Issue): boolean => {
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i].code === item.code && arr[i].message === item.message) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+export const checkPortIdUniqueness = (ports: Array<InputParameterModel | WorkflowOutputParameterModel | CommandOutputParameterModel> ): void => {
+    const map       = {};
+    const duplicate = [];
+
+    for (let i = 0; i < ports.length; i++) {
+        const p = ports[i];
+
+        if (map[p.id]) {
+            duplicate.push(p);
+        } else {
+            map[p.id] = true;
+        }
+    }
+
+    if (duplicate.length > 0) {
+        for (let i = 0; i < duplicate.length; i++) {
+            const port = duplicate[i];
+
+            port.setIssue({
+                [`${port.loc}.id`]: {
+                    type: "error",
+                    code: ErrorCode.ID_DUPLICATE,
+                    message: `Duplicate id found: “${port.id}”`
+                }
+            });
+        }
     }
 };

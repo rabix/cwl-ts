@@ -7,6 +7,7 @@ import {ParameterTypeModel} from "./ParameterTypeModel";
 import {LinkMergeMethod as SBDraft2LinkMergeMethod} from "../../mappings/v1.0/LinkMergeMethod";
 import {LinkMergeMethod as V1LinkMergeMethod} from "../../mappings/d2sb/LinkMergeMethod";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class WorkflowOutputParameterModel extends ValidationBase implements Serializable<any>, Plottable {
     public id: string;
@@ -67,7 +68,7 @@ export class WorkflowOutputParameterModel extends ValidationBase implements Seri
     }
 
     validate(): Promise<any> {
-        this.cleanValidity();
+        this.clearIssue(ErrorCode.ALL);
         const promises = [];
 
         promises.push(this.type.validate());

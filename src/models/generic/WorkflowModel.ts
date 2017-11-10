@@ -20,6 +20,7 @@ import {WorkflowInputParameterModel} from "./WorkflowInputParameterModel";
 import {WorkflowOutputParameterModel} from "./WorkflowOutputParameterModel";
 import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
 import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     id: string;
@@ -78,8 +79,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             "input.create",
             "output.create",
             "output.remove",
-            "io.change", // change in type, label, etc
+            "io.change", // change in label, etc
             "io.change.id",
+            "io.change.type",
             "connection.create",
             "connection.remove"
         ]);
@@ -184,11 +186,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     on(event: "step.remove", handler: (step: StepModel) => void);
 
     /**
-     * @deprecated
+     * Emitted after a step's label has changed
      * @param {"step.change"} event
-     * @param {() => void} handler
+     * @param {(step: StepModel) => void} handler
      */
-    on(event: "step.change", handler: () => void);
+    on(event: "step.change", handler: (step: StepModel) => void);
 
     /**
      * Emitted when step's run is updated
@@ -295,6 +297,13 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * @param {(io: (WorkflowOutputParameterModel | WorkflowInputParameterModel)) => void} handler
      */
     on(event: "io.change.id", handler: (io: WorkflowOutputParameterModel | WorkflowInputParameterModel) => void);
+
+    /**
+     * Emitted when id of workflow input/output changes
+     * @param {"io.change.type"} event
+     * @param {(loc: string) => void} handler
+     */
+    on(event: "io.change.type", handler: (loc: string) => void);
 
     /**
      * Emitted when validation of workflow connections finishes
@@ -431,7 +440,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         // remove visibility on the port so it isn't shown on canvas anymore
         inPort.isVisible = false;
-        inPort.cleanValidity();
+        inPort.clearIssue(ErrorCode.ALL);
     }
 
     clearOutPort(outPort: WorkflowStepOutputModel) {
@@ -456,7 +465,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         if (!this.graph.hasOutgoing(connectionId)) {
             this.graph.removeVertex(connectionId);
             this.inputs = this.inputs.filter(input => {
-                if (input.connectionId === connectionId) {
+                if (input.connectionId === connectionId){
                     this.eventHub.emit("input.remove", input);
                     return false;
                 }
@@ -472,7 +481,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
             this.outputs = this.outputs.filter(output => {
                 if (output.connectionId === connectionId) {
-                    output.cleanValidity();
+                    output.clearIssue(ErrorCode.ALL);
+                    this.eventHub.emit("output.remove", output);
                     this.eventHub.emit("output.remove", output);
                     return false;
                 }
@@ -538,10 +548,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const stepIn  = step.in.map(i => i.connectionId);
         const stepOut = step.out.map(o => o.connectionId);
 
-        // remove in ports and out ports from graph
-        stepIn.forEach(input => this.graph.removeVertex(input));
-        stepOut.forEach(output => this.graph.removeVertex(output));
-
         // clean up connections between in/out ports and other nodes
         // and in/out ports and the step itself
         this.graph.edges.forEach(edge => {
@@ -552,9 +558,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             } else if (edge.destination.id === step.connectionId ||
                 edge.source.id === step.connectionId) {
                 this.graph.removeEdge(edge);
-
             }
         });
+
+        // remove in ports and out ports from graph
+        stepIn.forEach(input => this.graph.removeVertex(input));
+        stepOut.forEach(output => this.graph.removeVertex(output));
     }
 
     /**
@@ -797,7 +806,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         return [source, destination];
     }
 
-    disconnect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
+    public disconnect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
                destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
         [source, destination] = this.checkSrcAndDest(source, destination);
 
@@ -907,7 +916,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
             if (!isConnected) {
 
-                this.updateValidity({
+                this.setIssue({
                     [this.loc]: {
                         message: "Workflow is not connected",
                         type: "warning"
@@ -918,7 +927,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             return isConnected;
 
         } catch (ex) {
-            this.updateValidity({
+            this.setIssue({
                 [this.loc]: {
                     message: ex,
                     type: "error"
@@ -934,7 +943,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             const hasCycles = this.graph.hasCycles();
 
             if (hasCycles) {
-                this.updateValidity({
+                this.setIssue({
                     [this.loc]: {
                         message: "Workflow contains cycles",
                         type: "error"
@@ -945,7 +954,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             return hasCycles;
 
         } catch (ex) {
-            this.updateValidity({
+            this.setIssue({
                 [this.loc]: {
                     message: ex,
                     type: "error"
@@ -980,7 +989,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         | WorkflowStepOutputModel
         | WorkflowOutputParameterModel
         | WorkflowStepInputModel
-        | string) {
+        | string): any[] {
 
         if (typeof port === "string") {
             port = this.graph.getVertexData(port);
@@ -1102,6 +1111,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         // add input to graph
         this.addInputToGraph(input);
+        input.isVisible = show;
 
         this.eventHub.emit("input.create", input);
 
@@ -1191,7 +1201,10 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const sourceModel = graph.getVertexData(sourceConnectionId);
 
         if (sourceModel === undefined) {
-            console.log("Could not find source node ", sourceConnectionId);
+            dest.setIssue({[`${dest.loc}`]: {
+                type: "error",
+                message: `Destination id ${dest.id} has unknown source "${sourceId}". This may result in a cycle in the graph`
+            }});
             return;
         }
 
@@ -1286,7 +1299,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     /**
      * Validate all visible connections and sets correct validity state on destinations
      */
-    private validateConnections(): Promise<any> {
+    protected validateConnections(): void {
 
         const sources      = this.gatherSources();
         const destinations = this.gatherDestinations();
@@ -1305,8 +1318,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 this.validateConnection(destination, source);
             }
         });
-
-        return new Promise((resolve) => resolve());
     }
 
     /**
@@ -1329,10 +1340,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
             const sourceText = destination instanceof V1WorkflowOutputParameterModel ? "outputSource" : "source";
 
-            destination.updateValidity({
+
+            destination.setIssue({
                 [destination.loc + `.${sourceText}[` + source.sourceId + "]"]: {
                     message: e.message,
-                    type: "warning"
+                    type: "warning",
+                    code: e.code
                 }
             });
         }
@@ -1351,7 +1364,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      */
     private validateDestination(destination: WorkflowOutputParameterModel | WorkflowStepInputModel) {
 
-        destination.cleanValidity();
+        destination.clearIssue(ErrorCode.CONNECTION_ALL);
 
         // Find all sources connected to given destination
         const sources = this.connections.filter((connection) => {
@@ -1394,29 +1407,19 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.eventHub.emit("connections.updated");
     }
 
-    validate(): Promise<any> {
-
-        this.cleanValidity();
-        const promises = [];
-
-        promises.concat(this.steps.map(step => step.validate()));
-        promises.concat(this.inputs.map(inp => inp.validate()));
-        promises.concat(this.outputs.map(out => out.validate()));
-
-        promises.push(this.validateConnections());
-
+    protected validateGraph() {
         try {
             this.graph.topSort();
         } catch (ex) {
             if (ex.message === "Graph has cycles") {
-                this.updateValidity({
+                this.setIssue({
                     [this.loc]: {
                         message: "Graph has cycles",
                         type: "error"
                     }
                 });
             } else if (ex === "Can't sort unconnected graph") {
-                this.updateValidity({
+                this.setIssue({
                     [this.loc]: {
                         message: "Graph is not connected",
                         type: "warning"
@@ -1424,8 +1427,5 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 });
             }
         }
-
-        return Promise.all(promises).then(() => this.issues);
     }
-
 }
