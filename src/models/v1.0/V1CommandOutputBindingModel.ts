@@ -29,11 +29,10 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     }
 
     set outputEval(value: V1ExpressionModel) {
-        const serialized = value.serialize();
-        if (!(new RegExp(V1CommandOutputBindingModel.INHERIT_REGEX).test(serialized)) && this.inheritMetadataFrom) {
+        if (!(new RegExp(V1CommandOutputBindingModel.INHERIT_REGEX).test(value.serialize())) && this.inheritMetadataFrom) {
             this.inheritMetadataFrom = null;
         }
-        this.setOutputEval(serialized, V1ExpressionModel);
+        this.setOutputEval(value, V1ExpressionModel);
     }
 
     setInheritMetadataFrom(inputId: string) {

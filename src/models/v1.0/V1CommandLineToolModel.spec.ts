@@ -1341,7 +1341,7 @@ describe("V1CommandLineToolModel", () => {
         let input: V1CommandInputParameterModel;
 
         beforeEach(() => {
-            ExpressionEvaluator.evaluate = JSExecutor.evaluate;
+            ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
             model = new V1CommandLineToolModel({
                 inputs: {
                     input: "File",
