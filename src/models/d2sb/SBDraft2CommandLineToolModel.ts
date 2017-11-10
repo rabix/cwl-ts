@@ -14,6 +14,7 @@ import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {JobHelper} from "../helpers/JobHelper";
 import {
+    checkPortIdUniqueness,
     ensureArray, incrementLastLoc, returnNumIfNum, snakeCase,
     spreadSelectProps
 } from "../helpers/utils";
@@ -26,21 +27,16 @@ import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {SBDraft2ResourceRequirementModel} from "./SBDraft2ResourceRequirementModel";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
-    public id: string;
-    public label: string;
-    public description: string;
-
     public cwlVersion = "sbg:draft-2";
 
     public baseCommand: Array<SBDraft2ExpressionModel>         = [];
     public inputs: Array<SBDraft2CommandInputParameterModel>   = [];
     public outputs: Array<SBDraft2CommandOutputParameterModel> = [];
 
-    public resources = new SBDraft2ResourceRequirementModel();
-
-    public docker: DockerRequirementModel;
+    public resources: SBDraft2ResourceRequirementModel;
 
     public requirements: Array<ProcessRequirementModel> = [];
 
@@ -55,20 +51,29 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     public hasStdErr = false;
 
-    public customProps: any = {};
+    constructor(json?: CommandLineTool, loc?: string) {
+        super(loc);
 
-    public jobInputs: any = {};
-    public runtime: any   = {};
+        this.initializeExprWatchers();
 
-    public setJobInputs(inputs: any) {
-        this.jobInputs = inputs;
+        if (json) this.deserialize(json);
+        this.constructed = true;
+        this.validateAllExpressions();
+        this.initializeJobWatchers();
     }
+
+    // EXPRESSION CONTEXT //
 
     public setRuntime(runtime: any = {}): void {
         this.runtime.cpu = runtime.cpu !== undefined ? runtime.cpu : this.runtime.cpu;
         this.runtime.mem   = runtime.mem !== undefined ? runtime.mem : this.runtime.mem;
     }
 
+    /**
+     * Returns the context object for expressions in supplied port
+     * @param port
+     * @returns {{$job?: {inputs?: any; allocatedResources?: any}; $self?: any}}
+     */
     public getContext(port?: any): { $job?: { inputs?: any, allocatedResources?: any }, $self?: any } {
         const context: any = {
             $job: {
@@ -94,21 +99,18 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         return context;
     }
 
+    /**
+     * Resets job value to dummy values
+     */
     public resetJobDefaults() {
         this.jobInputs = JobHelper.getJobInputs(this);
         this.updateCommandLine();
     }
 
-    constructor(attr?: CommandLineTool, loc?: string) {
-        super(loc || "document");
-
-        if (attr) this.deserialize(attr);
-        this.constructed = true;
-        this.initializeJobWatchers();
-    }
+    // CRUD HELPER METHODS //
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
-        const h = new RequirementBaseModel(hint, SBDraft2ExpressionModel, `${this.loc}.hints[${this.hints.length}]`);
+        const h = new RequirementBaseModel(hint, SBDraft2ExpressionModel, `${this.loc}.hints[${this.hints.length}]`, this.eventHub);
         h.setValidationCallback(err => this.updateValidity(err));
         this.hints.push(h);
 
@@ -124,6 +126,12 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         c.setValidationCallback(err => this.updateValidity(err));
 
         return c;
+    }
+
+    public updateBaseCommand(cmd: SBDraft2ExpressionModel[]) {
+        this.baseCommand.forEach(c => c.clearIssue(ErrorCode.EXPR_ALL));
+        this.baseCommand = [];
+        cmd.forEach(c => this.addBaseCommand(c.serialize()));
     }
 
     public addArgument(arg?: string | CommandLineBinding): SBDraft2CommandArgumentModel {
@@ -156,55 +164,147 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         stream.setValidationCallback((err) => this.updateValidity(err));
     }
 
-    public getCommandLine(): Promise<string> {
-        return this.generateCommandLineParts().then(cmd => {
-            const parts = cmd.map(part => part.value).join(" ");
+    private createReq(req: ProcessRequirement, loc: string, hint?: boolean) {
+        let reqModel: ProcessRequirementModel;
+        const property = hint ? "hints" : "requirements";
 
-            return parts.trim();
-        });
+        switch (req.class) {
+            case "DockerRequirement":
+                this.docker = new DockerRequirementModel(req, loc);
+                this.docker.setValidationCallback(err => this.updateValidity(err));
+                return;
+            case "CreateFileRequirement":
+                reqModel             = new SBDraft2CreateFileRequirementModel(<CreateFileRequirement>req, loc, this.eventHub);
+                this.fileRequirement = <SBDraft2CreateFileRequirementModel> reqModel;
+                reqModel.setValidationCallback(err => this.updateValidity(err));
+                return;
+            case "sbg:CPURequirement":
+                this.resources.cores = new SBDraft2ExpressionModel((<SBGCPURequirement>req).value, `${loc}.value`, this.eventHub);
+                this.resources.cores.setValidationCallback(err => this.updateValidity(err));
+                return;
+            case "sbg:MemRequirement":
+                this.resources.mem = new SBDraft2ExpressionModel((<SBGMemRequirement>req).value, `${loc}.value`, this.eventHub);
+                this.resources.mem.setValidationCallback(err => this.updateValidity(err));
+                return;
+            default:
+                reqModel = new RequirementBaseModel(req, SBDraft2ExpressionModel, loc);
+        }
+        if (reqModel) {
+            this[property].push(reqModel);
+            reqModel.setValidationCallback((err) => this.updateValidity(err));
+        }
     }
 
-    validate(): Promise<any> {
-        this.cleanValidity();
-        const promises = [];
+    // SERIALIZATION //
 
-        // validate baseCommand
-        promises.concat(this.baseCommand.map(cmd => cmd.validate(this.getContext())));
+    deserialize(tool: CommandLineTool): void {
+        const serializedAttr = [
+            "baseCommand",
+            "class",
+            "id",
+            "label",
+            "description",
+            "inputs",
+            "hints",
+            "requirements",
+            "arguments",
+            "outputs",
+            "stdin",
+            "stdout",
+            "successCodes",
+            "temporaryFailCodes",
+            "permanentFailCodes",
+            "cwlVersion",
+            "sbg:job"
+        ];
 
-        // validate inputs
-        promises.concat(this.inputs.map(input => input.validate(this.getContext(input))));
+        this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 2 ?
+            tool["sbg:id"].split("/")[2] :
+            snakeCase(tool.id);
 
-        // validate outputs
-        promises.concat(this.outputs.map(output => output.validate(this.getContext(output))));
+        this.sbgId = tool["sbg:id"];
 
-        // must be after input/output validation because otherwise it will be cleared
-        this.checkPortIdUniqueness();
+        this.label       = tool.label;
+        this.description = tool.description;
 
-        // validate arguments
-        promises.concat(this.arguments.map(arg => arg.validate(this.getContext())));
+        ensureArray(tool.inputs).forEach(i => this.addInput(i));
 
-        if (this.stdin) {
-            promises.push(this.stdin.validate(this.getContext()));
+        ensureArray(tool.outputs).forEach(o => this.addOutput(o));
+
+        // Validate inputs and output uniqueness
+        // this method sets an error on the second input/output with a repeat identifier
+        checkPortIdUniqueness([...this.inputs, ...this.outputs]);
+
+        if (tool.arguments) {
+            tool.arguments.forEach((arg) => {
+                this.addArgument(arg);
+            });
         }
 
-        if (this.stdout) {
-            promises.push(this.stdout.validate(this.getContext()));
+        this.resources = this.resources || new SBDraft2ResourceRequirementModel(`${this.loc}.hints[${this.hints.length}]`, this.eventHub);
+        this.resources.setValidationCallback(ev => this.updateValidity(ev));
+
+        if (tool.requirements) {
+            tool.requirements.forEach((req, index) => {
+                this.createReq(req, `${this.loc}.requirements[${index}]`);
+            });
         }
 
-
-        // validate CreateFileRequirement
-        if (this.fileRequirement) {
-            promises.push(this.fileRequirement.validate(this.getContext()));
+        if (tool.hints) {
+            tool.hints.forEach((hint, index) => {
+                this.createReq(hint, `${this.loc}.hints[${index}]`, true);
+            });
         }
 
+        this.docker        = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.hints[${this.hints.length}]`);
+        this.docker.isHint = true;
+        this.docker.setValidationCallback(err => this.updateValidity(err));
 
-        if (this.resources) {
-            // validate sbg:CPURequirement and sbg:MemRequirement
-            promises.push(this.resources.validate(this.getContext()));
+        this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`, this.eventHub);
+        this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
+
+        this.updateStream(new SBDraft2ExpressionModel(tool.stdin, `${this.loc}.stdin`, this.eventHub), "stdin");
+        this.updateStream(new SBDraft2ExpressionModel(tool.stdout, `${this.loc}.stdout`, this.eventHub), "stdout");
+
+        this.successCodes       = ensureArray(tool.successCodes);
+        this.temporaryFailCodes = ensureArray(tool.temporaryFailCodes);
+        this.permanentFailCodes = ensureArray(tool.permanentFailCodes);
+
+        tool.baseCommand        = tool.baseCommand || [''];
+
+        // wrap to array
+        tool.baseCommand = !Array.isArray(tool.baseCommand)
+            ? [<string | Expression> tool.baseCommand]
+            : <Array<string | Expression>> tool.baseCommand;
+
+        this.baseCommand = [];
+
+        (<Array<string | Expression>> tool.baseCommand).reduce((acc, curr) => {
+            if (typeof curr === "string") {
+                if (typeof acc[acc.length - 1] === "string") {
+                    acc[acc.length - 1] += ` ${curr}`;
+                    return acc;
+                } else {
+                    return acc.concat([curr]);
+                }
+            } else {
+                return acc.concat([curr]);
+            }
+        }, []).forEach((cmd) => {
+            this.addBaseCommand(cmd);
+        });
+
+        this.runtime = {mem: 1000, cpu: 1};
+
+        if (tool["sbg:job"]) {
+            this.jobInputs = {...JobHelper.getNullJobInputs(this), ...tool["sbg:job"].inputs};
+            this.runtime   = {...this.runtime, ...tool["sbg:job"].allocatedResources};
+        } else {
+            this.jobInputs = JobHelper.getJobInputs(this);
         }
 
-
-        return Promise.all(promises).then(res => this.issues);
+        // populates object with all custom attributes not covered in model
+        spreadSelectProps(tool, this.customProps, serializedAttr);
     }
 
     serialize(): CommandLineTool | any {
@@ -337,143 +437,5 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         base = Object.assign({}, base, this.customProps);
 
         return base;
-    }
-
-    deserialize(tool: CommandLineTool): void {
-        const serializedAttr = [
-            "baseCommand",
-            "class",
-            "id",
-            "label",
-            "description",
-            "inputs",
-            "hints",
-            "requirements",
-            "arguments",
-            "outputs",
-            "stdin",
-            "stdout",
-            "successCodes",
-            "temporaryFailCodes",
-            "permanentFailCodes",
-            "cwlVersion",
-            "sbg:job"
-        ];
-
-        this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 2 ?
-            tool["sbg:id"].split("/")[2] :
-            snakeCase(tool.id);
-
-        this.sbgId = tool["sbg:id"];
-
-        this.label       = tool.label;
-        this.description = tool.description;
-
-        ensureArray(tool.inputs).forEach(i => this.addInput(i));
-
-        ensureArray(tool.outputs).forEach(o => this.addOutput(o));
-
-        if (tool.arguments) {
-            tool.arguments.forEach((arg) => {
-                this.addArgument(arg);
-            });
-        }
-
-        if (tool.requirements) {
-            tool.requirements.forEach((req, index) => {
-                this.createReq(req, `${this.loc}.requirements[${index}]`);
-            });
-        }
-
-        if (tool.hints) {
-            tool.hints.forEach((hint, index) => {
-                this.createReq(hint, `${this.loc}.hints[${index}]`, true);
-            });
-        }
-
-        this.docker        = this.docker || new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.hints[${this.hints.length}]`);
-        this.docker.isHint = true;
-        this.docker.setValidationCallback(err => this.updateValidity(err));
-
-
-        this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`, this.eventHub);
-        this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
-
-        this.updateStream(new SBDraft2ExpressionModel(tool.stdin, `${this.loc}.stdin`, this.eventHub), "stdin");
-        this.updateStream(new SBDraft2ExpressionModel(tool.stdout, `${this.loc}.stdout`, this.eventHub), "stdout");
-
-        this.successCodes       = ensureArray(tool.successCodes);
-        this.temporaryFailCodes = ensureArray(tool.temporaryFailCodes);
-        this.permanentFailCodes = ensureArray(tool.permanentFailCodes);
-
-        tool.baseCommand        = tool.baseCommand || [''];
-
-        // wrap to array
-        tool.baseCommand = !Array.isArray(tool.baseCommand)
-            ? [<string | Expression> tool.baseCommand]
-            : <Array<string | Expression>> tool.baseCommand;
-
-        this.baseCommand = [];
-
-        (<Array<string | Expression>> tool.baseCommand).reduce((acc, curr) => {
-            if (typeof curr === "string") {
-                if (typeof acc[acc.length - 1] === "string") {
-                    acc[acc.length - 1] += ` ${curr}`;
-                    return acc;
-                } else {
-                    return acc.concat([curr]);
-                }
-            } else {
-                return acc.concat([curr]);
-            }
-        }, []).forEach((cmd) => {
-            this.addBaseCommand(cmd);
-        });
-
-        this.runtime = {mem: 1000, cpu: 1};
-
-        if (tool["sbg:job"]) {
-            this.jobInputs = {...JobHelper.getNullJobInputs(this), ...tool["sbg:job"].inputs};
-            this.runtime   = {...this.runtime, ...tool["sbg:job"].allocatedResources};
-        } else {
-            this.jobInputs = JobHelper.getJobInputs(this);
-        }
-
-        // populates object with all custom attributes not covered in model
-        spreadSelectProps(tool, this.customProps, serializedAttr);
-
-        // validate all objects within
-        this.validate().then(() => this.issues, () => this.issues);
-    }
-
-    private createReq(req: ProcessRequirement, loc: string, hint?: boolean) {
-        let reqModel: ProcessRequirementModel;
-        const property = hint ? "hints" : "requirements";
-
-        switch (req.class) {
-            case "DockerRequirement":
-                this.docker = new DockerRequirementModel(req, loc);
-                this.docker.setValidationCallback(err => this.updateValidity(err));
-                return;
-            case "CreateFileRequirement":
-                reqModel             = new SBDraft2CreateFileRequirementModel(<CreateFileRequirement>req, loc, this.eventHub);
-                this.fileRequirement = <SBDraft2CreateFileRequirementModel> reqModel;
-                reqModel.setValidationCallback(err => this.updateValidity(err));
-                return;
-            case "sbg:CPURequirement":
-                this.resources.cores = new SBDraft2ExpressionModel((<SBGCPURequirement>req).value, `${loc}.value`, this.eventHub);
-                this.resources.cores.setValidationCallback(err => this.updateValidity(err));
-                return;
-            case "sbg:MemRequirement":
-                this.resources.mem = new SBDraft2ExpressionModel((<SBGMemRequirement>req).value, `${loc}.value`, this.eventHub);
-                this.resources.mem.setValidationCallback(err => this.updateValidity(err));
-                return;
-            default:
-                reqModel = new RequirementBaseModel(req, SBDraft2ExpressionModel, loc);
-        }
-        if (reqModel) {
-            this[property].push(reqModel);
-            reqModel.setValidationCallback((err) => this.updateValidity(err));
-        }
     }
 }

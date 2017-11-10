@@ -7,8 +7,8 @@ import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2FileDefModel extends DirentModel implements Serializable<FileDef>{
-    public entryName = new SBDraft2ExpressionModel("", `${this.loc}.filename`);
-    public entry     = new SBDraft2ExpressionModel("", `${this.loc}.fileContent`);
+    public entryName = new SBDraft2ExpressionModel("", `${this.loc}.filename`, this.eventHub);
+    public entry     = new SBDraft2ExpressionModel("", `${this.loc}.fileContent`, this.eventHub);
 
     constructor(fileDef?: FileDef, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);

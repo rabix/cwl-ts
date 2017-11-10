@@ -3,15 +3,15 @@ import {CommandInputRecordField} from "../../mappings/d2sb/CommandInputRecordFie
 import {Expression} from "../../mappings/d2sb/Expression";
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
-import {ID_REGEX} from "../helpers/constants";
 import {EventHub} from "../helpers/EventHub";
 import {
     commaSeparatedToArray, ensureArray, incrementLastLoc, isType,
-    spreadSelectProps
+    spreadSelectProps, validateID
 } from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter
     | CommandInputRecordField> {
@@ -22,7 +22,6 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
     public hasSecondaryFilesInRoot                   = false;
     public hasStageInput                             = true;
     public secondaryFiles: SBDraft2ExpressionModel[] = [];
-
 
     public job: any;
 
@@ -74,6 +73,18 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
                 || (<CommandInputRecordField> input).name || ""; // for record fields
         }
 
+        try {
+            validateID(this.id);
+        } catch (ex) {
+            this.setIssue({
+                [`${this.loc}.id`]: {
+                    type: "error",
+                    code: ex.code,
+                    message: ex.message
+                }
+            });
+        }
+
         this.label       = input.label;
         this.description = input.description;
         this.fileTypes   = commaSeparatedToArray(input["sbg:fileTypes"]);
@@ -89,12 +100,12 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         }
 
         this.type = new ParameterTypeModel(input.type, SBDraft2CommandInputParameterModel, `${this.id}_field`, `${this.loc}.type`, this.eventHub);
-        this.type.setValidationCallback((err) => {
-            this.updateValidity(err);
-        });
+        this.type.setValidationCallback((err) => this.updateValidity(err));
         if (isType(this, ["record", "enum"]) && !this.type.name) {
             this.type.name = this.id;
         }
+
+        this.attachFileTypeListeners();
 
         // populates object with all custom attributes not covered in model
         spreadSelectProps(input, this.customProps, serializedAttr);
@@ -116,68 +127,19 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
 
     addSecondaryFile(file: Expression | string): SBDraft2ExpressionModel {
         if (this.inputBinding) {
-            const loc = incrementLastLoc(this.secondaryFiles, `${this.inputBinding.loc}.secondaryFiles`);
-            const f   = new SBDraft2ExpressionModel(file, loc, this.eventHub);
-            this.secondaryFiles.push(f);
-            f.setValidationCallback(err => this.updateValidity(err));
-            return f;
+            return this._addSecondaryFile(file, SBDraft2ExpressionModel, this.inputBinding.loc);
         }
     }
 
-    updateSecondaryFiles(files: Array<Expression | Expression | string>) {
+    updateSecondaryFiles(files: Array<Expression | string>) {
         if (this.inputBinding) {
-            this.secondaryFiles = [];
-            files.forEach(f => this.addSecondaryFile(f));
+            this._updateSecondaryFiles(files);
         }
     }
 
     removeSecondaryFile(index: number) {
         if (this.inputBinding) {
-            const file = this.secondaryFiles[index];
-            if (file) {
-                file.setValue("", "string");
-                this.secondaryFiles.splice(index, 1);
-            }
+            this._removeSecondaryFile(index);
         }
-    }
-
-// //@todo(maya) implement validation
-    validate(context): Promise<any> {
-        const promises = [];
-        this.cleanValidity();
-
-        if (this.inputBinding) {
-            promises.push(this.inputBinding.validate(context));
-        }
-
-        promises.push(this.type.validate(context));
-
-        if (this.secondaryFiles) {
-            promises.concat(this.secondaryFiles.map(file => file.validate(context)));
-        }
-
-        // check id validity
-        // doesn't exist
-        if (this.id === "" || this.id === undefined) {
-            this.updateValidity({
-                [`${this.loc}.id`]: {
-                    message: "ID must be set",
-                    type: "error"
-                }
-            });
-            // contains illegal characters
-        } else if (!ID_REGEX.test(this.id.charAt(0) === "#" ? this.id.substring(1) : this.id)) {
-            this.updateValidity({
-                [`${this.loc}.id`]: {
-                    message: "ID can only contain alphanumeric and underscore characters",
-                    type: "error"
-                }
-            });
-        }
-
-        return Promise.all(promises).then(() => this.issues, (ex) => {
-            console.warn(`SBDraft2CommandInputParameterModel threw error in validation: ${ex}`);
-            return this.issues
-        });
     }
 }

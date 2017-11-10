@@ -37,6 +37,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         if (workflow) this.deserialize(workflow);
 
         this.graph = this.constructGraph();
+        this.validateGraph();
 
         this.eventHub.on("io.change.id", (node, oldId)=> {
             if (node instanceof WorkflowInputParameterModel && this.batchInput === oldId) {
@@ -209,25 +210,19 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
                 step.run.cwlVersion = step.run.cwlVersion || "sbg:draft-2";
             }
             const stepModel = new SBDraft2StepModel(step, `${this.loc}.steps[${index}]`, this.eventHub);
-            stepModel.setValidationCallback(err => {
-                this.updateValidity(err)
-            });
+            stepModel.setValidationCallback(err => this.updateValidity(err));
             return stepModel;
         });
 
         this.inputs = ensureArray(workflow.inputs).map((input, index) => {
             const inputParameterModel = new SBDraft2WorkflowInputParameterModel(input, `${this.loc}.inputs[${index}]`, this.eventHub);
-            inputParameterModel.setValidationCallback(err => {
-                this.updateValidity(err)
-            });
+            inputParameterModel.setValidationCallback(err => this.updateValidity(err));
             return inputParameterModel;
         });
 
         this.outputs = ensureArray(workflow.outputs).map((output, index) => {
             const outputParameterModel = new SBDraft2WorkflowOutputParameterModel(output, `${this.loc}.outputs[${index}]`, this.eventHub);
-            outputParameterModel.setValidationCallback(err => {
-                this.updateValidity(err)
-            });
+            outputParameterModel.setValidationCallback(err => this.updateValidity(err));
             return outputParameterModel;
         });
 

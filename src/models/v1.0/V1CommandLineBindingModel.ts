@@ -5,6 +5,7 @@ import {V1ExpressionModel} from "./V1ExpressionModel";
 import {Expression} from "../../mappings/v1.0/Expression";
 import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class V1CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: V1ExpressionModel;
@@ -75,7 +76,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
     }
 
     validate(context): Promise<any> {
-        this.cleanValidity();
+        this.clearIssue(ErrorCode.ALL);
         const promises = [];
 
         promises.push(this.valueFrom.validate(context));

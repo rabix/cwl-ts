@@ -6,6 +6,7 @@ import {CommandLineBindingModel} from "./CommandLineBindingModel";
 import {CommandLineBinding as SBDraft2CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {CommandLineBinding as V1CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export abstract class CommandArgumentModel extends ValidationBase implements Serializable<any> {
     protected binding: CommandLineBindingModel;
@@ -72,7 +73,7 @@ export abstract class CommandArgumentModel extends ValidationBase implements Ser
     }
 
     validate(context): Promise<any> {
-        this.cleanValidity();
+        this.clearIssue(ErrorCode.EXPR_ALL);
 
         if (this.hasBinding) {
             return this.binding.validate(context);

@@ -39,6 +39,11 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
         if (value) {
             this.type = (value as Expression).script ? "expression" : "string"
         }
+
+
+        if (this.eventHub) {
+            this.eventHub.emit("expression.create", this)
+        }
     }
 
     /**
@@ -82,6 +87,10 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
         }
 
         this.type = type;
+
+        if (this.eventHub) {
+            this.eventHub.emit("expression.change", this);
+        }
     }
 
     /**
@@ -110,11 +119,11 @@ export class SBDraft2ExpressionModel extends ExpressionModel implements Serializ
     }
 
     clone(): SBDraft2ExpressionModel {
-        return new SBDraft2ExpressionModel(this.serialize(), this.loc);
+        return new SBDraft2ExpressionModel(this.serialize(), this.loc, this.eventHub);
     }
 
     cloneStatus(clone: SBDraft2ExpressionModel) {
         this.setValue(clone.serialize(), clone.type);
-        this.updateValidity({...clone.issues});
+        this.setIssue({...clone.issues});
     }
 }

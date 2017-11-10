@@ -39,7 +39,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
             this.source = ensureArray((output as WorkflowOutputParameter).outputSource);
         }
 
-        this.type = new ParameterTypeModel(output.type, V1WorkflowOutputParameterModel, `${this.id}_field`, `${this.loc}.type`);
+        this.type = new ParameterTypeModel(output.type, V1WorkflowOutputParameterModel, `${this.id}_field`, `${this.loc}.type`, this.eventHub);
         this.type.setValidationCallback(err => this.updateValidity(err));
         this.type.hasDirectoryType = true;
 

@@ -78,7 +78,7 @@ describe("SBDraft2CommandOutputBindingModel", () => {
         it("should display error if outputEval is not an expression", () => {
             const bind = new SBDraft2CommandOutputBindingModel({}, "binding");
 
-            bind.updateOutputEval(new SBDraft2ExpressionModel("string value"));
+            bind.outputEval = new SBDraft2ExpressionModel("string value");
             expect(bind.errors).to.not.be.empty;
             expect(bind.errors[0].loc).to.equal("binding.outputEval");
         });
@@ -91,7 +91,7 @@ describe("SBDraft2CommandOutputBindingModel", () => {
                 script: "3 + 3"
             };
 
-            bind.updateOutputEval(new SBDraft2ExpressionModel(expr));
+            bind.outputEval = new SBDraft2ExpressionModel(expr);
             expect(bind.errors).to.be.empty;
 
             expect(bind.serialize()).to.deep.equal({
@@ -107,7 +107,7 @@ describe("SBDraft2CommandOutputBindingModel", () => {
                 script: ""
             };
 
-            bind.updateOutputEval(new SBDraft2ExpressionModel(expr));
+            bind.outputEval = new SBDraft2ExpressionModel(expr);
 
             expect(bind.serialize()).to.deep.equal({});
         })

@@ -3,7 +3,7 @@ import {CommandOutputParameterModel} from "../generic/CommandOutputParameterMode
 import {Serializable} from "../interfaces/Serializable";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {
-    commaSeparatedToArray, ensureArray, incrementLastLoc, isType, spreadAllProps,
+    commaSeparatedToArray, ensureArray, isType, spreadAllProps,
     spreadSelectProps
 } from "../helpers/utils";
 import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
@@ -31,23 +31,15 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
     customProps: any = {};
 
     addSecondaryFile(file: string = ""): V1ExpressionModel {
-        const f = new V1ExpressionModel(file, incrementLastLoc(this.secondaryFiles, `${this.loc}.secondaryFiles`), this.eventHub);
-        f.setValidationCallback(err => this.updateValidity(err));
-        this.secondaryFiles.push(f);
-        return f;
+        return this._addSecondaryFile(file, V1ExpressionModel, this.loc);
     }
 
     updateSecondaryFiles(files: Array<Expression | string>) {
-        this.secondaryFiles = [];
-        files.forEach(f => this.addSecondaryFile(f));
+        this._updateSecondaryFiles(files);
     }
 
     removeSecondaryFile(index: number) {
-        const file = this.secondaryFiles[index];
-        if (file) {
-            file.setValue("", "string");
-            this.secondaryFiles.splice(index, 1);
-        }
+        this._removeSecondaryFile(index);
     }
 
     serialize(): CommandOutputParameter {
@@ -86,7 +78,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
 
         this.id = (<CommandOutputParameter> attr).id || (<CommandOutputRecordField> attr).name;
 
-        this.type = new ParameterTypeModel(attr.type, V1CommandOutputParameterModel, `${this.id}_field`,`${this.loc}.type`);
+        this.type = new ParameterTypeModel(attr.type, V1CommandOutputParameterModel, `${this.id}_field`,`${this.loc}.type`, this.eventHub);
         this.type.setValidationCallback(err => this.updateValidity(err));
         this.type.hasDirectoryType = true;
 
@@ -104,6 +96,8 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         this.secondaryFiles = ensureArray((<CommandOutputParameter> attr).secondaryFiles).map(f => this.addSecondaryFile(f));
         this.fileTypes      = commaSeparatedToArray((<CommandOutputParameter> attr)["sbg:fileTypes"]);
         this.streamable     = (<CommandOutputParameter> attr).streamable;
+
+        this.attachFileTypeListeners();
 
         spreadSelectProps(attr, this.customProps, serializedKeys);
     }

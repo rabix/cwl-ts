@@ -34,10 +34,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public inputs: Array<V1CommandInputParameterModel>   = [];
     public outputs: Array<V1CommandOutputParameterModel> = [];
 
-    public id: string;
-    public label: string;
-    public description: string;
-
     public baseCommand: Array<string> = [];
 
     public arguments: Array<V1CommandArgumentModel> = [];
@@ -56,15 +52,23 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     // Context for JavaScript execution
     protected runtime: { ram?: number, cores?: number } = {};
 
-    public setJobInputs(inputs: any): void {
-        this.jobInputs = inputs;
+    constructor(json?: CommandLineTool, loc?: string) {
+        super(loc);
+
+        this.initializeExprWatchers();
+
+        if (json) this.deserialize(json);
+        this.constructed = true;
+        this.validateAllExpressions();
+        this.initializeJobWatchers();
     }
+
+    // EXPRESSION CONTEXT //
 
     public setRuntime(runtime: any = {}): void {
         this.runtime.cores = runtime.cores !== undefined ? runtime.cores : this.runtime.cores;
         this.runtime.ram   = runtime.ram !== undefined ? runtime.ram : this.runtime.ram;
     }
-
 
     public resetJobDefaults(): void {
         this.jobInputs = JobHelper.getJobInputs(this);
@@ -94,16 +98,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         return context;
     };
 
-    constructor(json?: CommandLineTool, loc?: string) {
-        super(loc || "document");
-
-        if (json) this.deserialize(json);
-        this.constructed = true;
-        this.initializeJobWatchers();
-    }
+    // CRUD HELPERS METHODS //
 
     public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
-        const h = new RequirementBaseModel(hint, V1ExpressionModel, `${this.loc}.hints[${this.hints.length}]`);
+        const h = new RequirementBaseModel(hint, V1ExpressionModel, `${this.loc}.hints[${this.hints.length}]`, this.eventHub);
         h.setValidationCallback(err => this.updateValidity(err));
         this.hints.push(h);
 
@@ -165,7 +163,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
                 return;
 
             default:
-                reqModel        = new RequirementBaseModel(req, V1ExpressionModel, loc);
+                reqModel        = new RequirementBaseModel(req, V1ExpressionModel, loc, this.eventHub);
                 reqModel.isHint = hint;
         }
 
@@ -182,53 +180,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         stream.setValidationCallback(err => this.updateValidity(err));
     }
 
-    public validate(): Promise<any> {
-        this.cleanValidity();
-        const promises: Promise<any>[] = [];
-
-        for (let i = 0; i < this.inputs.length; i++) {
-            const input = this.inputs[i];
-            promises.push(input.validate(this.getContext(input)));
-        }
-
-        for (let i = 0; i < this.outputs.length; i++) {
-            const output = this.outputs[i];
-            promises.push(output.validate(this.getContext(output)));
-        }
-
-        // must be after input/output validation because otherwise it will be cleared
-        this.checkPortIdUniqueness();
-
-        for (let i = 0; i < this.arguments.length; i++) {
-            const argument = this.arguments[i];
-            promises.push(argument.validate(this.getContext()));
-        }
-
-        // validate streams to make sure expressions are valid
-        if (this.stdin) {
-            promises.push(this.stdin.validate(this.getContext()));
-        }
-
-        if (this.stdout) {
-            promises.push(this.stdout.validate(this.getContext()));
-        }
-
-        if (this.stderr) {
-            promises.push(this.stderr.validate(this.getContext()));
-        }
-
-        if (this.resources) {
-            promises.push(this.resources.validate(this.getContext()));
-        }
-
-        if (this.fileRequirement) {
-            promises.push(this.fileRequirement.validate(this.getContext()));
-        }
-
-        return Promise.all(promises).then(() => {
-            return this.issues;
-        });
-    }
+    // SERIALIZATION //
 
     public deserialize(tool: CommandLineTool) {
         const serializedKeys = [
@@ -283,7 +235,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         // create ResourceRequirement for manipulation
         if (!this.resources) {
-            this.resources = new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${++counter}]`);
+            this.resources = new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${++counter}]`, this.eventHub);
         }
         this.resources.setValidationCallback(err => this.updateValidity(err));
 

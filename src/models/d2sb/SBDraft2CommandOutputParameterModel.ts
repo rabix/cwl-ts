@@ -3,7 +3,7 @@ import {CommandOutputRecordField} from "../../mappings/d2sb/CommandOutputRecordF
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {
-    commaSeparatedToArray, incrementLastLoc, isType, spreadAllProps,
+    commaSeparatedToArray, isFileType, isType, spreadAllProps,
     spreadSelectProps
 } from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
@@ -32,28 +32,19 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
 
     updateSecondaryFiles(files: Array<Expression | string>) {
         if (this.outputBinding) {
-            this.secondaryFiles = [];
-            files.forEach(f => this.addSecondaryFile(f));
+           this._updateSecondaryFiles(files);
         }
     }
 
     addSecondaryFile(file: Expression | string): SBDraft2ExpressionModel {
         if (this.outputBinding) {
-            const loc = incrementLastLoc(this.outputBinding.secondaryFiles, `${this.outputBinding.loc}.secondaryFiles`);
-            const f   = new SBDraft2ExpressionModel(file, loc, this.eventHub);
-            this.secondaryFiles.push(f);
-            f.setValidationCallback(err => this.updateValidity(err));
-            return f;
+            return this._addSecondaryFile(file, SBDraft2ExpressionModel, this.outputBinding.loc);
         }
     }
 
     removeSecondaryFile(index: number) {
         if (this.outputBinding) {
-            const file = this.secondaryFiles[index];
-            if (file) {
-                file.setValue("", "string");
-                this.secondaryFiles.splice(index, 1);
-            }
+            this._removeSecondaryFile(index);
         }
     }
 
@@ -79,13 +70,13 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
             base.outputBinding = this.outputBinding.serialize();
 
             // only type File or File[] can have secondaryFiles, loadContents and fileTypes
-            if (this.type.type !== "File" && this.type.items !== "File") {
+            if (!isFileType(this)) {
                 delete base.outputBinding.secondaryFiles;
                 delete base.outputBinding.loadContents;
                 delete base["sbg:fileTypes"];
             }
 
-            if ((this.type.type === "File" || this.type.items === "File") && this.secondaryFiles.length > 0) {
+            if (isFileType(this) && this.secondaryFiles.length > 0) {
                 base.outputBinding.secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
             }
 
@@ -133,12 +124,14 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
             this.secondaryFiles = attr.outputBinding.secondaryFiles.map(f => this.addSecondaryFile(f));
         }
 
-        this.type = new ParameterTypeModel(attr.type, SBDraft2CommandOutputParameterModel, `${this.id}_field`,`${this.loc}.type`);
+        this.type = new ParameterTypeModel(attr.type, SBDraft2CommandOutputParameterModel, `${this.id}_field`,`${this.loc}.type`, this.eventHub);
         this.type.setValidationCallback(err => this.updateValidity(err));
 
         if (isType(this, ["record", "enum"]) && !this.type.name) {
             this.type.name = this.id;
         }
+
+        this.attachFileTypeListeners();
 
         spreadSelectProps(attr, this.customProps, serializedAttr);
     }

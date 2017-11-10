@@ -4,6 +4,7 @@ import {CommandArgumentModel} from "../generic/CommandArgumentModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
 import {EventHub} from "../helpers/EventHub";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class V1CommandArgumentModel extends CommandArgumentModel implements Serializable<CommandLineBinding
     | string> {
@@ -31,9 +32,13 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
     toggleBinding(state: boolean): void {
         if (state) {
             this.binding   = new V1CommandLineBindingModel({}, this.loc, this.eventHub);
+            this.binding.setValidationCallback(ev => this.updateValidity(ev));
+            this.primitive.clearIssue(ErrorCode.ALL);
             this.primitive = undefined;
         } else {
             this.primitive = new V1ExpressionModel("", this.loc, this.eventHub);
+            this.primitive.setValidationCallback(ev => this.updateValidity(ev));
+            this.binding.clearIssue(ErrorCode.ALL);
             this.binding   = undefined;
         }
 

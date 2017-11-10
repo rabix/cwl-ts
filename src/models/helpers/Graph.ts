@@ -116,9 +116,12 @@ export class Graph {
         let sorted                    = [];
 
         // go through edges, remove nodes which are destinations (meaning they have incoming connections)
-        for (let e of Array.from(unusedEdges)) {
+        // for (let e of Array.from(unusedEdges)) {
+        //     topNodesInit.delete(e.destination.id);
+        // }
+        unusedEdges.forEach(e => {
             topNodesInit.delete(e.destination.id);
-        }
+        });
 
         // create an array of strings from first nodes
         let topNodes: string[] = Array.from(topNodesInit);
@@ -130,7 +133,7 @@ export class Graph {
             sorted.push(n);
 
             // for each remaining edge check if it originates from this starting node
-            for (let e of Array.from(unusedEdges)) {
+            unusedEdges.forEach(e => {
                 if (e.source.id == n) {
                     // delete the edge as used
                     unusedEdges.delete(e);
@@ -141,7 +144,7 @@ export class Graph {
                         topNodes.push(e.destination.id);
                     }
                 }
-            }
+            });
         }
 
         // leftover edges are back-edges indicating cycles
@@ -209,7 +212,7 @@ export class Graph {
         }
 
         if (reached.size == 0) {
-            console.log("Unreached nodes", Array.from(unvisited));
+            // console.log("Unreached nodes", Array.from(unvisited));
             return false;
         }
 
