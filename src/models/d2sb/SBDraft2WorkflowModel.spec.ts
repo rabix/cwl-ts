@@ -1168,4 +1168,25 @@ describe("SBDraft2WorkflowModel", () => {
             expect(sOutGraphNode[1].type.type).to.equal("File");
         });
     });
+
+    describe.only("duplicate IDs", () => {
+       it("should increment duplicated ID gracefully", () => {
+            const model = new SBDraft2WorkflowModel({
+                inputs: [ {
+                   id: "one"
+                }, {
+                    id: "one"
+                }]
+            } as any);
+
+            expect(model.inputs).to.have.lengthOf(2);
+            expect(model.inputs[0].id).to.equal("one");
+            expect(model.inputs[0].connectionId).to.equal("out/one/one");
+            expect(model.inputs[1].id).to.equal("one_1");
+            expect(model.inputs[1].connectionId).to.equal("out/one_1/one_1");
+
+            expect(model.findById("out/one_1/one_1")).to.equal(model.inputs[1]);
+            expect(model.findById("out/one/one")).to.equal(model.inputs[0]);
+       });
+    });
 });

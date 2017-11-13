@@ -61,8 +61,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     private addVertex(connectionId: string, node: VertexNode, graph: Graph = this.graph) {
         try {
             graph.addVertex(connectionId, node, function onConflict() {
-                node.id = this.getNextAvailableId(connectionId, !(node instanceof StepModel), graph);
-                graph.addVertex(connectionId, node, onConflict);
+                node.id = this.getNextAvailableId(node.connectionId, !(node instanceof StepModel), graph);
+                graph.addVertex(node.connectionId, node, onConflict);
             }.bind(this));
         } catch (ex) {
             node.setIssue({

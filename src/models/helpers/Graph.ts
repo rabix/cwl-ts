@@ -36,8 +36,9 @@ export class Graph {
             } else {
                 throw(new ValidityError("Vertex '" + key + "' already exists", ErrorCode.ID_DUPLICATE));
             }
+        } else {
+            this.vertices.set(key, data);
         }
-        this.vertices.set(key, data);
     }
 
     setVertexData(key: string, data = null): void {
