@@ -43,9 +43,7 @@ export class Graph {
 
     setVertexData(key: string, data = null): void {
         this.throwMissingVertex(key);
-        this.addVertex(key, data, () => {
-            return data;
-        });
+        this.vertices.set(key, data);
     }
 
     getVertexData(key: string): any {

@@ -1169,8 +1169,8 @@ describe("SBDraft2WorkflowModel", () => {
         });
     });
 
-    describe.only("duplicate IDs", () => {
-       it("should increment duplicated ID gracefully", () => {
+    describe("duplicate IDs", () => {
+       it("should increment duplicated input IDs gracefully", () => {
             const model = new SBDraft2WorkflowModel({
                 inputs: [ {
                    id: "one"
@@ -1188,5 +1188,45 @@ describe("SBDraft2WorkflowModel", () => {
             expect(model.findById("out/one_1/one_1")).to.equal(model.inputs[1]);
             expect(model.findById("out/one/one")).to.equal(model.inputs[0]);
        });
+
+        it("should increment duplicated output IDs gracefully", () => {
+            const model = new SBDraft2WorkflowModel({
+                outputs: [ {
+                    id: "one"
+                }, {
+                    id: "one"
+                }]
+            } as any);
+
+            expect(model.outputs).to.have.lengthOf(2);
+            expect(model.outputs[0].id).to.equal("one");
+            expect(model.outputs[0].connectionId).to.equal("in/one/one");
+            expect(model.outputs[1].id).to.equal("one_1");
+            expect(model.outputs[1].connectionId).to.equal("in/one_1/one_1");
+
+            expect(model.findById("in/one_1/one_1")).to.equal(model.outputs[1]);
+            expect(model.findById("in/one/one")).to.equal(model.outputs[0]);
+        });
+
+        it("should increment duplicated step IDs gracefully", () => {
+            const model = new SBDraft2WorkflowModel({
+                steps: [ {
+                    id: "one",
+                    run: ""
+                }, {
+                    id: "one",
+                    run: ""
+                }]
+            } as any);
+
+            expect(model.steps).to.have.lengthOf(2);
+            expect(model.steps[0].id).to.equal("one");
+            expect(model.steps[0].connectionId).to.equal("one");
+            expect(model.steps[1].id).to.equal("one_1");
+            expect(model.steps[1].connectionId).to.equal("one_1");
+
+            expect(model.findById("one_1")).to.equal(model.steps[1]);
+            expect(model.findById("one")).to.equal(model.steps[0]);
+        });
     });
 });
