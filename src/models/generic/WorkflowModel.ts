@@ -22,6 +22,8 @@ import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
 import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
 
+type VertexNode = WorkflowInputParameterModel | WorkflowOutputParameterModel | StepModel | WorkflowStepInputModel | WorkflowStepOutputModel;
+
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     id: string;
     cwlVersion: string | CWLVersion;
@@ -54,6 +56,23 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     get nodes(): [string, any][] {
         return Array.from(this.graph.vertices)
+    }
+
+    private addVertex(connectionId: string, node: VertexNode, graph: Graph = this.graph) {
+        try {
+            graph.addVertex(connectionId, node, function onConflict() {
+                node.id = this.getNextAvailableId(connectionId, !(node instanceof StepModel), graph);
+                graph.addVertex(connectionId, node, onConflict);
+            }.bind(this));
+        } catch (ex) {
+            node.setIssue({
+                [node.loc]: {
+                    message: ex.message,
+                    code: ex.code,
+                    type: "error"
+                }
+            });
+        }
     }
 
     protected graph: Graph;
@@ -98,7 +117,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
          * @see StepModel.compareInPorts
          */
         this.eventHub.on("step.inPort.create", (port: WorkflowStepInputModel) => {
-            this.graph.addVertex(port.connectionId, port);
+
+            this.addVertex(port.connectionId, port);
+
             this.graph.addEdge({
                     id: port.connectionId,
                     type: "StepInput"
@@ -118,7 +139,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
          * @see StepModel.compareOutPorts
          */
         this.eventHub.on("step.outPort.create", (port: WorkflowStepOutputModel) => {
-            this.graph.addVertex(port.connectionId, port);
+            this.addVertex(port.connectionId, port);
 
             this.graph.addEdge({
                     id: port.parentStep.id,
@@ -409,7 +430,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         inPort.isVisible = true;
         // if the port has not been added to the graph yet
         if (!this.graph.hasVertex(inPort.connectionId)) {
-            this.graph.addVertex(inPort.connectionId, inPort);
+            this.addVertex(inPort.connectionId, inPort);
             this.graph.addEdge({
                 id: inPort.parentStep.id,
                 type: "StepInput"
@@ -465,7 +486,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         if (!this.graph.hasOutgoing(connectionId)) {
             this.graph.removeVertex(connectionId);
             this.inputs = this.inputs.filter(input => {
-                if (input.connectionId === connectionId){
+                if (input.connectionId === connectionId) {
                     this.eventHub.emit("input.remove", input);
                     return false;
                 }
@@ -505,6 +526,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // remove step from wf.steps
         for (let i = 0; i < this.steps.length; i++) {
             if (this.steps[i].id === step.id) {
+                this.steps[i].clearIssue(ErrorCode.ALL);
                 this.steps.splice(i, 1);
                 break;
             }
@@ -579,6 +601,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // remove input from list of inputs on workflow model
         for (let i = 0; i < this.inputs.length; i++) {
             if (this.inputs[i].id == input.id) {
+                this.inputs[i].clearIssue(ErrorCode.ALL);
                 this.inputs.splice(i, 1);
                 break;
             }
@@ -618,6 +641,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // remove output from list of outputs on workflow model
         for (let i = 0; i < this.outputs.length; i++) {
             if (this.outputs[i].id == output.id) {
+                this.outputs[i].clearIssue(ErrorCode.ALL);
                 this.outputs.splice(i, 1);
                 break;
             }
@@ -737,7 +761,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         node.id               = id;
 
         this.graph.removeVertex(oldConnectionId);
-        this.graph.addVertex(node.connectionId, node);
+        this.addVertex(node.connectionId, node);
 
 
         // if node is output, just change id, remove from graph, and re-add to graph
@@ -807,7 +831,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     }
 
     public disconnect(source: WorkflowInputParameterModel | WorkflowStepOutputModel | string,
-               destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
+                      destination: WorkflowOutputParameterModel | WorkflowStepInputModel | string) {
         [source, destination] = this.checkSrcAndDest(source, destination);
 
         if (this.graph.removeEdge({
@@ -882,7 +906,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      * Checks for naming collisions in vertex ids, in case of collisions,
      * it will increment the provided id, otherwise it returns the original id
      */
-    protected getNextAvailableId(connectionId: string, isIO = false): string {
+    protected getNextAvailableId(connectionId: string, isIO = false, graph: Graph = this.graph): string {
         let hasId  = true;
         let result = connectionId;
         let arr    = [];
@@ -892,12 +916,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
         while (hasId) {
             if (isIO) {
-                if (hasId = (this.graph.hasVertex(["in", arr[1], arr[2]].join("/")) || this.graph.hasVertex(["out", arr[1], arr[2]].join("/")))) {
+                if (hasId = (graph.hasVertex(["in", arr[1], arr[2]].join("/")) || graph.hasVertex(["out", arr[1], arr[2]].join("/")))) {
                     arr    = [arr[0], incrementString(arr[1]), incrementString(arr[2])];
                     result = arr.join("/");
                 }
             } else {
-                if (hasId = this.graph.hasVertex(result)) {
+                if (hasId = graph.hasVertex(result)) {
                     result = incrementString(result);
                 }
             }
@@ -1027,12 +1051,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     }
 
     protected addStepToGraph(step: StepModel, graph: Graph = this.graph) {
-        graph.addVertex(step.id, step);
+        this.addVertex(step.id, step, graph);
 
         // Sources don't have information about their destinations,
         // so we don't look through them for connections
         step.out.forEach(source => {
-            graph.addVertex(source.connectionId, source);
+            this.addVertex(source.connectionId, source, graph);
             graph.addEdge({
                     id: source.parentStep.id,
                     type: "Step"
@@ -1046,7 +1070,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         });
 
         step.in.forEach(dest => {
-            graph.addVertex(dest.connectionId, dest);
+            this.addVertex(dest.connectionId, dest, graph);
             graph.addEdge({
                     id: dest.connectionId,
                     type: "StepInput"
@@ -1084,7 +1108,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             if (!create) {
                 throw new Error(`WorkflowStepInputModel ${inPort.destinationId} does not exist on the graph`);
             } else {
-                this.graph.addVertex(inPort.connectionId, inPort);
+                this.addVertex(inPort.connectionId, inPort);
                 // connect in port to step
                 this.addEdge({
                     id: inPort.connectionId,
@@ -1143,7 +1167,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             if (!create) {
                 throw new Error(`WorkflowStepInputModel ${outPort.sourceId} does not exist on the graph`);
             } else {
-                this.graph.addVertex(outPort.connectionId, outPort);
+                this.addVertex(outPort.connectionId, outPort);
                 // connect in port to step
                 this.addEdge({
                     id: outPort.connectionId,
@@ -1181,11 +1205,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     }
 
     protected addInputToGraph(input: WorkflowInputParameterModel, graph: Graph = this.graph) {
-        graph.addVertex(input.connectionId, input);
+        this.addVertex(input.connectionId, input, graph);
     }
 
     protected addOutputToGraph(output: WorkflowOutputParameterModel, graph: Graph = this.graph) {
-        graph.addVertex(output.connectionId, output);
+        this.addVertex(output.connectionId, output, graph);
     }
 
     /**
@@ -1201,10 +1225,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const sourceModel = graph.getVertexData(sourceConnectionId);
 
         if (sourceModel === undefined) {
-            dest.setIssue({[`${dest.loc}`]: {
-                type: "error",
-                message: `Destination id ${dest.id} has unknown source "${sourceId}". This may result in a cycle in the graph`
-            }});
+            dest.setIssue({
+                [`${dest.loc}`]: {
+                    type: "error",
+                    message: `Destination id ${dest.id} has unknown source "${sourceId}". This may result in a cycle in the graph`
+                }
+            });
             return;
         }
 
@@ -1351,8 +1377,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         }
 
         Array.from(graph.edges).filter((c) =>
-                    c.isVisible && (c.destination.id === destination.connectionId && c.source.id === source.connectionId))
-                .forEach((c) => {
+            c.isVisible && (c.destination.id === destination.connectionId && c.source.id === source.connectionId))
+            .forEach((c) => {
                 c.isValid = isValid;
             });
 
