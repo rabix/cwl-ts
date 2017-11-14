@@ -1112,6 +1112,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         // add input to graph
         this.addInputToGraph(input);
         input.isVisible = show;
+        inPort.isVisible = show;
 
         this.eventHub.emit("input.create", input);
 
@@ -1173,6 +1174,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.addOutputToGraph(output);
 
         this.eventHub.emit("output.create", output);
+
+        outPort.isVisible = show;
 
         // connect output with outPort
         this.connect(outPort, output, show);
