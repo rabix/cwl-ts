@@ -436,10 +436,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             this.disconnect(sourceConnectionId, inPort.connectionId);
         });
 
-        this.eventHub.emit("step.inPort.hide", inPort);
-
         // remove visibility on the port so it isn't shown on canvas anymore
         inPort.isVisible = false;
+
+        // send an event so the canvas knows it should hide it
+        this.eventHub.emit("step.inPort.hide", inPort);
+
         inPort.clearIssue(ErrorCode.ALL);
     }
 
