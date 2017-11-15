@@ -483,7 +483,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 if (output.connectionId === connectionId) {
                     output.clearIssue(ErrorCode.ALL);
                     this.eventHub.emit("output.remove", output);
-                    this.eventHub.emit("output.remove", output);
                     return false;
                 }
 
