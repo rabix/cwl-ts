@@ -1111,6 +1111,56 @@ describe("SBDraft2WorkflowModel", () => {
             expect(model.steps[0].in).to.have.lengthOf(0);
         });
 
+        it("should remove all dangling inputs if new step doesn't have them", () => {
+            const wf = new SBDraft2WorkflowModel({
+                class: "Workflow",
+                inputs: [
+                    {
+                        type: "string",
+                        id: "#inp_1",
+                    },
+                    {
+                        type: "string",
+                        id: "#inp_2"
+                    }
+                ],
+                outputs: [],
+                steps: [{
+                    id: "step",
+                    inputs: [
+                        {
+                            id: "#step.step_inp",
+                            source: ["#inp_1", "#inp_2"]
+                        }
+                    ],
+                    outputs: [],
+                    run: {
+                        class: "CommandLineTool",
+                        inputs: [
+                            {
+                                type: "string",
+                                id: "#step_inp"
+                            }
+                        ],
+                        outputs: []
+                    }
+                }]
+            });
+
+            wf.steps[0].setRunProcess({
+                class: "CommandLineTool",
+                inputs: [
+                    {
+                        type: "string",
+                        id: "#new_step_id"
+                    }
+                ],
+                baseCommand: [],
+                outputs: []
+            } as any);
+
+            expect(wf.inputs).to.be.empty;
+        });
 
         it("should remove an output port and clean up dangling outputs", () => {
             const update = {
@@ -1131,6 +1181,57 @@ describe("SBDraft2WorkflowModel", () => {
             expect(model.connections).to.have.lengthOf(2);
             expect(model.outputs).to.have.lengthOf(0);
             expect(model.steps[0].out).to.have.lengthOf(0);
+        });
+
+        it("should remove all dangling outputs if new step doesn't have them", () => {
+            const wf = new SBDraft2WorkflowModel({
+                class: "Workflow",
+                inputs: [],
+                outputs: [
+                    {
+                        id: "out_1",
+                        source: ["#step.step_out"]
+                    },
+                    {
+                        id: "out_2",
+                        source: ["#step.step_out"]
+                    }
+                ],
+                steps: [{
+                    id: "step",
+                    outputs: [
+                        {
+                            id: "#step.step_out"
+                        }
+                    ],
+                    inputs: [],
+                    run: {
+                        class: "CommandLineTool",
+                        outputs: [
+                            {
+                                type: "string",
+                                id: "#step_out"
+                            }
+                        ],
+                        inputs: []
+                    }
+                }]
+            });
+            expect(wf.outputs).to.have.lengthOf(2);
+
+            wf.steps[0].setRunProcess({
+                class: "CommandLineTool",
+                outputs: [
+                    {
+                        type: "string",
+                        id: "#new_output_id"
+                    }
+                ],
+                baseCommand: [],
+                inputs: []
+            } as any);
+
+            expect(wf.outputs).to.be.empty;
         });
 
         it("should change type of step input and step output", () => {
@@ -1166,6 +1267,51 @@ describe("SBDraft2WorkflowModel", () => {
 
             expect(sInGraphNode[1].type.type).to.equal("File");
             expect(sOutGraphNode[1].type.type).to.equal("File");
+
+            // required file inputs should be shown on the graph
+            expect(sInGraphNode[1].isVisible).to.be.true;
+            // outputs should always be visible
+            expect(sOutGraphNode[1].isVisible).to.be.true;
+        });
+
+        it("should change required type of step input and step output", () => {
+            const update = {
+                id: "#new_id",
+                cwlVersion: "sbg:draft-2",
+                class: "CommandLineTool",
+                inputs: [
+                    {id: "#sIn", type: ["null", "string"]}
+                ],
+                outputs: [
+                    {id: "#sOut", type: ["null", "string"]}
+                ]
+            };
+
+            expect(model.nodes).to.have.lengthOf(5);
+            expect(model.connections).to.have.lengthOf(4);
+            expect(model.steps[0].in[0].type.type).to.equal("string");
+            expect(model.steps[0].in[0].type.isNullable).to.be.false;
+            expect(model.steps[0].out[0].type.type).to.equal("string");
+            expect(model.steps[0].out[0].type.isNullable).to.be.false;
+
+            model.steps[0].setRunProcess(update);
+
+            expect(model.nodes).to.have.lengthOf(5);
+
+            expect(model.connections).to.have.lengthOf(4);
+            // should update model
+            expect(model.steps[0].in[0].type.type).to.equal("string");
+            expect(model.steps[0].in[0].type.isNullable).to.be.true;
+            expect(model.steps[0].out[0].type.type).to.equal("string");
+            expect(model.steps[0].out[0].type.isNullable).to.be.true;
+            // should update graph
+            const sInGraphNode  = model.nodes.find(n => n[0] === model.steps[0].in[0].connectionId);
+            const sOutGraphNode = model.nodes.find(n => n[0] === model.steps[0].out[0].connectionId);
+
+            expect(sInGraphNode[1].type.type).to.equal("string");
+            expect(sInGraphNode[1].type.isNullable).to.be.true;
+            expect(sOutGraphNode[1].type.type).to.equal("string");
+            expect(sOutGraphNode[1].type.isNullable).to.be.true;
         });
     });
 });

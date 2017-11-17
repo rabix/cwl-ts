@@ -429,12 +429,15 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
      */
     clearPort(inPort: WorkflowStepInputModel) {
         // loop through sources, removing their connections and clearing dangling inputs
-        inPort.source.forEach(source => {
+        while(inPort.source.length) {
+            // because disconnect will remove the source once disconnected, we'll just reference it here
+            const source = inPort.source[0];
+
             const sourceConnectionId = this.getSourceConnectionId(source);
 
             // disconnect takes care of edges and dangling inputs
             this.disconnect(sourceConnectionId, inPort.connectionId);
-        });
+        }
 
         // remove visibility on the port so it isn't shown on canvas anymore
         inPort.isVisible = false;

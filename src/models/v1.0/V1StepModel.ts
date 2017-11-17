@@ -234,7 +234,17 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
             // maintain the same visibility of the port
             // if the match was found, set to old visibility. If not, show if it's a required file
-            model.isVisible = match ? match.isVisible : isFileType(model, true);
+            model.isVisible = match ? (match.isVisible || isFileType(model, true)) : isFileType(model, true);
+
+            // notify the canvas that it should display this port but only if its visibility has changed
+            if (model.isVisible && isUpdate && match && match.isVisible !== model.isVisible) {
+                // wrapping this in a setTimeout so it will execute in the next tick
+                // the svg relies on model.parentStep being correct, which can only happen
+                // after this.in is set, so after all iterations
+                setTimeout(() => {
+                    this.eventHub.emit("step.inPort.show", model);
+                });
+            }
 
             return model;
         }).filter(port => port !== undefined);

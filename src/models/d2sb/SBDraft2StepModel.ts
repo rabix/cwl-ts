@@ -99,7 +99,17 @@ export class SBDraft2StepModel extends StepModel {
             }
 
             // for some absurd reason, visibility is kept inside the run property, on the actual input
-            newPort.isVisible = match ? match.isVisible : !!input["customProps"]["sbg:includeInPorts"] || isFileType(input, true);
+            newPort.isVisible = (match ? match.isVisible : !!input["customProps"]["sbg:includeInPorts"]) || isFileType(input, true);
+            // notify the canvas that it should display this port but only if its visibility has changed
+            if (newPort.isVisible && isUpdate && match && match.isVisible !== newPort.isVisible) {
+                // wrapping this in a setTimeout so it will execute in the next tick
+                // the svg relies on model.parentStep being correct, which can only happen
+                // after this.in is set, so after all iterations
+                setTimeout(() => {
+                    this.eventHub.emit("step.inPort.show", newPort);
+                });
+            }
+
             return newPort;
         }).filter(port => port !== undefined);
     }
