@@ -227,8 +227,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             "label",
             "arguments",
             "hints",
-            "requirements",
-            "sbg:job"
+            "requirements"
         ];
 
         this.id = this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 2 ?
@@ -421,20 +420,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             });
         }
         expressionWatcherDispose();
-
-        if (this.jobInputs) {
-            base["sbg:job"] = {
-                inputs: this.jobInputs,
-                runtime: {}
-            };
-
-            if (this.runtime && this.runtime.cores !== undefined) {
-                base["sbg:job"].runtime.cores = this.runtime.cores;
-            }
-            if (this.runtime && this.runtime.ram !== undefined) {
-                base["sbg:job"].runtime.ram = this.runtime.ram;
-            }
-        }
 
         return spreadAllProps(base, this.customProps);
     }

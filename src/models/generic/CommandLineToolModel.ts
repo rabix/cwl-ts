@@ -115,6 +115,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     public setJobInputs(inputs: any): void {
         this.jobInputs = inputs;
         this.validateAllExpressions();
+        this.updateCommandLine();
     }
 
     public setRuntime(runtime: any): void {

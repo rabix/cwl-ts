@@ -214,8 +214,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             "successCodes",
             "temporaryFailCodes",
             "permanentFailCodes",
-            "cwlVersion",
-            "sbg:job"
+            "cwlVersion"
         ];
 
         this.id = tool["sbg:id"] && tool["sbg:id"].split("/").length > 2 ?
@@ -424,15 +423,6 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
             }
         }
         expressionWatcherDispose();
-
-        // JOB
-        if (this.jobInputs || this.runtime) {
-            base["sbg:job"] = {
-                inputs: this.jobInputs,
-                allocatedResources: this.runtime
-            };
-        }
-
 
         base = Object.assign({}, base, this.customProps);
 
