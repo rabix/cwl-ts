@@ -155,7 +155,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         if (this.hints.length) { base.hints = this.hints.map((hint) => hint.serialize())}
 
         // adding the proper requirements based on the features of the workflow
-        let requirements    = this.customProps.requirements || [];
+        let requirements    = ensureArray(this.customProps.requirements, "class", "value") || [];
         let allStepsHaveRun = true;
 
         let reqMap = {
@@ -194,7 +194,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
                 requirements = requirements.filter(r => r.class !== req);
             }
 
-            // re-add it only if its needed
+            // re-add it only if it's needed
             if (reqMap[req]) {
                 requirements.push({
                     class: req
