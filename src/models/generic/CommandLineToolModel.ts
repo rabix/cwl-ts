@@ -112,23 +112,17 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     }
 
     // EXPRESSION CONTEXT //
-    public setJobInputs(inputs: any = {}): void {
-        this.jobInputs = inputs;
+    public setJobInputs(inputs: any): void {
+        this.jobInputs = inputs || JobHelper.getNullJobInputs(this);
         this.validateAllExpressions();
         this.updateCommandLine();
     }
 
-    public setRuntime(runtime: any): void {
-        new UnimplementedMethodException("setRuntime", "CommandLineToolModel");
-    }
+    abstract setRuntime(runtime: any): void;
 
-    public getContext(input?: any): any {
-        new UnimplementedMethodException("getContext", "CommandLineToolModel");
-    };
+    abstract getContext(input?: any): any;
 
-    public resetJobDefaults(): void {
-        new UnimplementedMethodException("resetJobDefaults", "CommandLineToolModel");
-    }
+    abstract resetJobDefaults(): void;
 
 
     // EVENT HANDLING //

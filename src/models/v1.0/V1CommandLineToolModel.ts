@@ -99,9 +99,9 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (port && port instanceof CommandInputParameterModel) {
             if (port.isField) {
                 const root   = this.findFieldRoot(port, this.jobInputs);
-                context.self = root[port.id];
+                context.self = root ? root[port.id] : null;
             } else {
-                context.self = this.jobInputs[port.id];
+                context.self = this.jobInputs ? this.jobInputs[port.id] : null;
 
             }
         }
