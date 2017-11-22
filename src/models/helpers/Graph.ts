@@ -1,3 +1,5 @@
+import {ErrorCode, ValidityError} from "./validation/ErrorCode";
+
 export enum VertexMissing {CreateVertex, IgnoreEdge, AddEdge, Error}
 
 export interface EdgeNode {
@@ -32,17 +34,16 @@ export class Graph {
             if (onConflict) {
                 data = onConflict(this.vertices.get(key));
             } else {
-                throw(new Error("Vertex '" + key + "' already exist"));
+                throw(new ValidityError("Vertex '" + key + "' already exists", ErrorCode.ID_DUPLICATE));
             }
+        } else {
+            this.vertices.set(key, data);
         }
-        this.vertices.set(key, data);
     }
 
     setVertexData(key: string, data = null): void {
         this.throwMissingVertex(key);
-        this.addVertex(key, data, () => {
-            return data;
-        });
+        this.vertices.set(key, data);
     }
 
     getVertexData(key: string): any {
