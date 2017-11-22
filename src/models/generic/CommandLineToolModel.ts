@@ -112,7 +112,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     }
 
     // EXPRESSION CONTEXT //
-    public setJobInputs(inputs: any): void {
+    public setJobInputs(inputs: any = {}): void {
         this.jobInputs = inputs;
         this.validateAllExpressions();
         this.updateCommandLine();
