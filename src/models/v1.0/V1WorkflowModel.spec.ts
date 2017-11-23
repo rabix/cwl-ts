@@ -692,7 +692,7 @@ describe("V1WorkflowModel", () => {
             expect(serialized.requirements[0].class).to.equal("ScatterFeatureRequirement");
         });
 
-        it.only("should add MultipleInputFeatureRequirement if step has multiple source inputs", () => {
+        it("should add MultipleInputFeatureRequirement if step has multiple source inputs", () => {
 
             wf.createInputFromPort(wf.steps[0].in[0]);
             expect(wf.steps[0].in[0].source).to.have.lengthOf(2);

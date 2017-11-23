@@ -289,6 +289,10 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
         // traverse jobInputs with the ids generated from field parents, find root of field
         const traversePath = (path: { id: string, isArray: boolean }[], root: any[]) => {
+            if (root === null) {
+                return null;
+            }
+
             // starting from the root of the tree, going down each level till we find the port
             if (path.length === 0) {
                 return root;
