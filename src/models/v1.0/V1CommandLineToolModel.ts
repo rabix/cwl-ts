@@ -181,7 +181,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
                 return;
 
             case "InlineJavascriptRequirement":
-                loc = this.resources ? this.inlineJavascriptRequirement.loc || loc : loc;
+                loc = this.inlineJavascriptRequirement ? this.inlineJavascriptRequirement.loc || loc : loc;
 
                 this.inlineJavascriptRequirement = new V1InlineJavascriptRequirementModel(req, loc);
                 this.inlineJavascriptRequirement.setValidationCallback(err => this.updateValidity(err));
