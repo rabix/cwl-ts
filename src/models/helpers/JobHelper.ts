@@ -40,8 +40,7 @@ export class JobHelper {
                     'class': 'File',
                 size: 0,
                 contents: "file contents",
-                secondaryFiles: [],
-                metadata: {}
+                secondaryFiles: []
             }
         };
 
