@@ -795,7 +795,6 @@ describe("SBDraft2CommandLineToolModel", () => {
             expect(model.getContext().$job.inputs).to.deep.equal({});
         });
 
-
         it("should change job value when changing input items type", () => {
             const model = new SBDraft2CommandLineToolModel(<any> {
                 inputs: [{

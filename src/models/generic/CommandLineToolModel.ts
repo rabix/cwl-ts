@@ -289,7 +289,9 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
         // traverse jobInputs with the ids generated from field parents, find root of field
         const traversePath = (path: { id: string, isArray: boolean }[], root: any[]) => {
-            if (root === null) {
+            // null is if the record itself is set to null,
+            // undefined is if the id isn't even defined in the job object
+            if (root === null || root === undefined) {
                 return null;
             }
 
@@ -313,7 +315,11 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     }
 
     protected findFieldParent(loc: string): CommandOutputParameterModel | CommandOutputParameterModel {
-        loc = loc.substr(this.loc.length).replace(/\.fields\[\d+]$/, "").replace(/\.type$/, "");
+        // remove base of location that's the same as this location
+        // remove the ".type.fields[#]" which signifies the field so the loc points to its parent
+        // before: "document.inputs[3].type.fields[3]
+        // after: ".inputs[3]"
+        loc = loc.substr(this.loc.length).replace(/\.type\.fields\[\d+]$/, "");
         return fetchByLoc(this, loc);
     }
 

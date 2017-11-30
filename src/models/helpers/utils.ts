@@ -1,6 +1,5 @@
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
-import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
 import {ID_REGEX} from "./constants";
 import {ErrorCode, ValidityError} from "./validation/ErrorCode";
@@ -238,11 +237,8 @@ export const incrementLastLoc = (items: { loc: string }[] = [], prefix: string) 
  * @param port
  * @param type
  */
-export const isType = (port: CommandInputParameterModel |
-    CommandOutputParameterModel |
-    WorkflowInputParameterModel |
-    WorkflowOutputParameterModel, type: string | string[]): boolean => {
-
+export const isType = (port: { type: ParameterTypeModel },
+                       type: string | string[]): boolean => {
     if (!port.type || !port.type.type) {
         return false;
     }
