@@ -129,14 +129,10 @@ export class JobHelper {
         let job = {};
 
         app.inputs.forEach(input => {
-            job[input.id] = JobHelper.nullifyInput(input);
+            job[input.id] = null;
         });
 
         return job;
-    }
-
-    private static nullifyInput(input: InputParameterModel) {
-        return input.type.type === "array" ? [] : null;
     }
 }
 

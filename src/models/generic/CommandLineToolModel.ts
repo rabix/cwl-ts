@@ -522,13 +522,9 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     // SERIALIZATION //
 
-    public serialize(): any {
-        new UnimplementedMethodException("serialize", "CommandLineToolModel");
-    }
+    abstract  serialize(): any;
 
-    public deserialize(attr: any): void {
-        new UnimplementedMethodException("deserialize", "CommandLineToolModel");
-    }
+    abstract deserialize(attr: any): void;
 
     // VALIDATION //
 
