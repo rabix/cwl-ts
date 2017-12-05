@@ -303,6 +303,9 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
             const part = path[0];
 
             if (part.isArray) {
+                if (!Array.isArray(root[part.id])) {
+                    return null;
+                }
                 // flatten the nested array, if it contains arrays itself
                 return flatten(root[part.id].map(obj => traversePath(path.slice(1), obj)));
             }

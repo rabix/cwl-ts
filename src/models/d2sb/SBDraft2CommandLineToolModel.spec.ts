@@ -681,7 +681,7 @@ describe("SBDraft2CommandLineToolModel", () => {
                 "inputs": [],
                 "outputs": [],
                 "class": "CommandLineTool",
-                "successCodes": [123, 456 , 789],
+                "successCodes": [123, 456, 789],
                 "permanentFailCodes": [11],
                 "temporaryFailCodes": [34, 23, 221]
             };
@@ -852,6 +852,42 @@ describe("SBDraft2CommandLineToolModel", () => {
             expect(context.$job.inputs.input).to.be.undefined;
             expect(context.$job.inputs.newId).to.not.be.undefined;
 
+        });
+
+        it("should not break if input type record[] is null when retrieving field value", () => {
+            const model = new SBDraft2CommandLineToolModel(<any> {
+                inputs: [{
+                    id: "input",
+                    type: {
+                        type: "array",
+                        items: {
+                            type: "record",
+                            fields: [
+                                {
+                                    name: "field1",
+                                    type: "string"
+                                }
+                            ]
+                        }
+                    }
+                }]
+            });
+
+            model.setJobInputs({input: null});
+            const context = model.getContext(model.inputs[0].type.fields[0]);
+
+            expect(context).to.deep.equal({
+                $job: {
+                    allocatedResources: {
+                        cpu: 1,
+                        mem: 1000
+                    },
+                    inputs: {
+                        input: null
+                    }
+                },
+                $self: null
+            });
         });
     });
 
