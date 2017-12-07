@@ -232,6 +232,7 @@ export class TypeResolver {
                         type: "array",
                         items: {
                             type: "enum",
+                            name: type.name || "",
                             symbols: type.symbols
                         }
                     }
@@ -240,6 +241,7 @@ export class TypeResolver {
                         type: "array",
                         items: {
                             type: "record",
+                            name: type.name || "",
                             fields: type.fields.map(field => {
                                 if (typeof field.serialize === "function") {
                                     return field.serialize();
