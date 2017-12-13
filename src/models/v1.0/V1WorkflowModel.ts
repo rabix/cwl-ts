@@ -133,6 +133,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         base.class      = "Workflow";
         base.cwlVersion = "v1.0";
+        base["$namespaces"] = { sbg: "http://rabix.org/cwl#" };
 
         if (this.sbgId || this.id) {
             base.id = this.sbgId || this.id;
