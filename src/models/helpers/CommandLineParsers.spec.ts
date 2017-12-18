@@ -79,6 +79,20 @@ describe("CommandLineParsers", () => {
                 expect(res.value).to.equal("-S /path/to/file");
 
             }).then(done, done);
-        })
-    })
+        });
+
+        it("should not exclude Int(0) from command line", done => {
+             const input = new SBDraft2CommandInputParameterModel({
+                 id: "#sample_int",
+                 type: "int",
+                 inputBinding: {}
+             });
+
+             CommandLineParsers.primitive(input, {}, 0, {}, "input", "input")
+                 .then(function(part) {
+                     expect(part.value).to.equal("0")
+                 })
+                 .then(done, done);
+        });
+    });
 });

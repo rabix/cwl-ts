@@ -9,15 +9,18 @@ export class CommandLineParsers {
 
     static primitive(input, job, value, context, cmdType, loc): Promise<CommandLinePart> {
         CommandLineParsers.checkMismatch(input, job, value);
-        const prefix    = input.inputBinding.prefix || "";
-        const separator = input.inputBinding.separate !== false ? " " : "";
-        value           = value || job[input.id];
 
-        if (value !== null && value !== undefined) {
-            if (value.hasOwnProperty("path")) {
-                value = value.path;
-            } else if (value.hasOwnProperty("location")) {
-                value = value.location;
+        const prefix      = input.inputBinding.prefix || "";
+        const separator   = input.inputBinding.separate !== false ? " " : "";
+        const valueExists = value !== undefined && value !== null;
+
+        let checkedValue = valueExists ? value : job[input.id];
+
+        if (checkedValue !== null && checkedValue !== undefined) {
+            if (checkedValue.hasOwnProperty("path")) {
+                checkedValue = checkedValue.path;
+            } else if (checkedValue.hasOwnProperty("location")) {
+                checkedValue = checkedValue.location;
             }
         }
 
@@ -31,7 +34,7 @@ export class CommandLineParsers {
         }
 
         return new Promise(res => {
-            res(new CommandLinePart(prefix + separator + value, cmdType, loc));
+            res(new CommandLinePart(prefix + separator + checkedValue, cmdType, loc));
         });
     }
 
