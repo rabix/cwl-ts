@@ -64,7 +64,7 @@ describe("SBDraft2WorkflowModel", () => {
 
             const inPort = wf.steps[0].in[1];
             expect(inPort.isVisible).to.be.false;
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
 
             wf.includePort(inPort);
 
@@ -101,7 +101,7 @@ describe("SBDraft2WorkflowModel", () => {
             expect(inPort.status).to.equal("port");
 
             wf.clearPort(inPort);
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
             expect(wf.inputs).to.have.length(inputs - 1);
         });
 
@@ -110,7 +110,7 @@ describe("SBDraft2WorkflowModel", () => {
 
             const inPort = wf.steps[0].in[1];
             expect(inPort.isVisible).to.be.false;
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
 
             wf.includePort(inPort);
 
@@ -119,7 +119,7 @@ describe("SBDraft2WorkflowModel", () => {
 
             wf.clearPort(inPort);
 
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
             expect(inPort.isVisible).to.be.false;
         });
 
@@ -128,7 +128,7 @@ describe("SBDraft2WorkflowModel", () => {
 
             const inPort = wf.steps[0].in[1];
             expect(inPort.isVisible).to.be.false;
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
 
             wf.exposePort(inPort);
 
@@ -137,7 +137,7 @@ describe("SBDraft2WorkflowModel", () => {
 
             wf.clearPort(inPort);
 
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
             expect(inPort.isVisible).to.be.false;
         });
     });
