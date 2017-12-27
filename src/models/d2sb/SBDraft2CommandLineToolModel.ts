@@ -269,7 +269,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.temporaryFailCodes = ensureArray(tool.temporaryFailCodes);
         this.permanentFailCodes = ensureArray(tool.permanentFailCodes);
 
-        tool.baseCommand        = tool.baseCommand || [''];
+        tool.baseCommand        = tool.baseCommand || [];
 
         // wrap to array
         tool.baseCommand = !Array.isArray(tool.baseCommand)
