@@ -42,13 +42,13 @@ export class WorkflowStepInputModel extends ValidationBase implements Serializab
         return `${this.parentStep.id}/${this.id}`;
     }
 
-    public get status(): "port" | "editable" | "exposed" {
+    public get status(): "port" | "default" | "exposed" {
         //  A port is displayed on canvas (if it has connections or
         // if it is required file, by default)
         if (this.isVisible) return "port";
 
         // Neither included in ports nor "exposed"
-        if (!this.source.length) return "editable";
+        if (!this.source.length) return "default";
 
         // An in port is "exposed" when it isn't visible but has
         // a workflow input to which it is solely connected
