@@ -31,6 +31,11 @@ export interface TypeResolution {
     unionType?: any
 
 }
+/**
+ * Name has to be present even if not initially added because of Avro compatibility
+ * @name nameRequirement
+ * @link https://docs.oracle.com/cd/E57769_01/html/GettingStartedGuide/avroschemas.html
+ */
 
 export class TypeResolver {
 
@@ -232,6 +237,7 @@ export class TypeResolver {
                         type: "array",
                         items: {
                             type: "enum",
+                            /** @see nameRequirement */
                             name: type.name || "",
                             symbols: type.symbols
                         }
@@ -241,6 +247,7 @@ export class TypeResolver {
                         type: "array",
                         items: {
                             type: "record",
+                            /** @see nameRequirement */
                             name: type.name || "",
                             fields: type.fields.map(field => {
                                 if (typeof field.serialize === "function") {
@@ -273,6 +280,7 @@ export class TypeResolver {
                             return field;
                         }
                     }),
+                    /** @see nameRequirement */
                     name: type.name || ""
                 };
                 if (type.typeBinding) t.inputBinding = type.typeBinding;
@@ -282,6 +290,7 @@ export class TypeResolver {
                 t = {
                     type: "enum",
                     symbols: type.symbols,
+                    /** @see nameRequirement */
                     name: type.name || ""
                 };
 

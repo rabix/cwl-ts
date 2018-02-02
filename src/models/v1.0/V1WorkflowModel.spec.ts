@@ -64,7 +64,7 @@ describe("V1WorkflowModel", () => {
 
             const inPort = wf.steps[0].in[1];
             expect(inPort.isVisible).to.be.false;
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
 
             wf.includePort(inPort);
 
@@ -103,7 +103,7 @@ describe("V1WorkflowModel", () => {
             expect(inPort.status).to.equal("port");
 
             wf.clearPort(inPort);
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
             expect(wf.inputs).to.have.length(0);
         });
 
@@ -112,7 +112,7 @@ describe("V1WorkflowModel", () => {
 
             const inPort = wf.steps[0].in[1];
             expect(inPort.isVisible).to.be.false;
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
 
             wf.includePort(inPort);
 
@@ -121,7 +121,7 @@ describe("V1WorkflowModel", () => {
 
             wf.clearPort(inPort);
 
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
             expect(inPort.isVisible).to.be.false;
         });
 
@@ -130,7 +130,7 @@ describe("V1WorkflowModel", () => {
 
             const inPort = wf.steps[0].in[1];
             expect(inPort.isVisible).to.be.false;
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
 
             wf.exposePort(inPort);
 
@@ -139,7 +139,7 @@ describe("V1WorkflowModel", () => {
 
             wf.clearPort(inPort);
 
-            expect(inPort.status).to.equal("editable");
+            expect(inPort.status).to.equal("default");
             expect(inPort.isVisible).to.be.false;
         });
     });

@@ -369,7 +369,7 @@ describe("TypeResolver", () => {
         });
 
         it("should serialize array of enum", () => {
-            const data       = [{type: "array", items: {type: "enum", symbols: ["foo", "bar"]}}];
+            const data       = [{type: "array", items: {name: "some-string", type: "enum", symbols: ["foo", "bar"]}}];
             const resolved   = TypeResolver.resolveType(data);
             const serialized = TypeResolver.serializeType(resolved);
 
@@ -379,7 +379,7 @@ describe("TypeResolver", () => {
         it("should serialize array of records", () => {
             const data       = [{
                 type: "array",
-                items: {type: "record", fields: [{name: "a", type: "string"}]}
+                items: {type: "record", name: "some-string", fields: [{name: "a", type: "string"}]}
             }];
             const resolved   = TypeResolver.resolveType(data);
             const serialized = TypeResolver.serializeType(resolved);
