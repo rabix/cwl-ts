@@ -211,7 +211,13 @@ export const validateID = (id: string) => {
     }
 
     if (!ID_REGEX.test(id)) {
-        throw new ValidityError(`ID "${id}" contains invalid characters`, ErrorCode.ID_INVALID_CHAR);
+        const invChars = [];
+        for (let i = 0; i < id.length; i++) {
+            if(!ID_REGEX.test(id[i]) && !~invChars.indexOf(i)) {
+                invChars.push(`"${id[i]}"`);
+            }
+        }
+        throw new ValidityError(`ID "${id}" contains invalid characters: ${invChars.join(", ")}`, ErrorCode.ID_INVALID_CHAR);
     }
 };
 
