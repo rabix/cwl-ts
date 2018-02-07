@@ -1,7 +1,6 @@
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
-import {ID_REGEX} from "./constants";
 import {ErrorCode, ValidityError} from "./validation/ErrorCode";
 import {InputParameterModel} from "../generic/InputParameterModel";
 import {Issue} from "./validation/Issue";
@@ -208,10 +207,6 @@ export const nullifyObjValues = (obj: Object): any => {
 export const validateID = (id: string) => {
     if (!id) {
         throw new ValidityError("ID must be set", ErrorCode.ID_MISSING);
-    }
-
-    if (!ID_REGEX.test(id)) {
-        throw new ValidityError(`ID "${id}" contains invalid characters`, ErrorCode.ID_INVALID_CHAR);
     }
 };
 
