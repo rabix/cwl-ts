@@ -34,8 +34,8 @@ export enum ErrorCode {
     TYPE_FIELD_DUPLICATE_ID = 507,
 }
 
-export class ValidityError extends Error {
-    constructor(str, public code: ErrorCode) {
+export class ValidityError<T> extends Error {
+    constructor(str, public code: ErrorCode, public data?: T) {
         super(str);
     }
 }

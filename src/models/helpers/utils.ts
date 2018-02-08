@@ -1,11 +1,11 @@
-import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
-import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
-import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
-import {ID_ALLOWED_CHARS} from "./constants";
-import {ErrorCode, ValidityError} from "./validation/ErrorCode";
+import {
+    CommandInputParameterModel,
+    CommandOutputParameterModel,
+    ParameterTypeModel,
+    WorkflowOutputParameterModel
+} from "../generic";
 import {InputParameterModel} from "../generic/InputParameterModel";
-import {Issue} from "./validation/Issue";
-import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+import {ErrorCode, Issue, ValidityError} from "./validation";
 
 export const ensureArray = (map: { [key: string]: any }
     | any[]
@@ -205,24 +205,29 @@ export const nullifyObjValues = (obj: Object): any => {
     return tmp;
 };
 
-export const validateID = (id: string) => {
+/**
+ * FIXME: any unicode string should be a valid ID. Split connectionID props into distinct chunk map and sync that with SVG
+ */
+export function validateID(id: string) {
     if (!id) {
         throw new ValidityError("ID must be set", ErrorCode.ID_MISSING);
     }
 
-    let match;
-    const invalidChars     = new Set();
-    const invalidCharRegex = new RegExp(`[^${ID_ALLOWED_CHARS}]`, "g");
+    const invalidChars     = new Set<string>();
+    const validPattern     = "a-zA-Z0-9_;?\\-:@&=+$,.#!~*'()\\[\\]";
+    const invalidCharRegex = new RegExp(`[^${validPattern}]`, "g");
 
+    let match;
     while (match = invalidCharRegex.exec(id)) {
-        invalidChars.add(`"${match[0]}"`);
+        invalidChars.add(match[0]);
     }
 
     if (invalidChars.size) {
-        throw new ValidityError(`ID "${id}" contains invalid characters: ${Array.from(invalidChars.values()).join(", ")}`,
-            ErrorCode.ID_INVALID_CHAR);
+        const list = Array.from(invalidChars);
+        const formattedList = list.map(v => `“${v}”`).join(", ");
+        throw new ValidityError(`ID “${id}” contains invalid characters: ${formattedList}`, ErrorCode.ID_INVALID_CHAR, list);
     }
-};
+}
 
 export const incrementLastLoc = (items: { loc: string }[] = [], prefix: string) => {
     if (items.length === 0) {
@@ -256,7 +261,6 @@ export const isType = (port: { type: ParameterTypeModel },
 
     return type.filter(t => port.type.type === t || port.type.items === t).length > 0;
 };
-
 
 
 export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
@@ -322,8 +326,8 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
     }
 
     // if types are both defined and do not match
-    const pointATypeOutput = pointAItems ? `"${pointAItems}[]"` :  `"${pointAType}"`;
-    const pointBTypeOutput = pointBItems ? `"${pointBItems}[]"` :  `"${pointBType}"`;
+    const pointATypeOutput = pointAItems ? `"${pointAItems}[]"` : `"${pointAType}"`;
+    const pointBTypeOutput = pointBItems ? `"${pointBItems}[]"` : `"${pointBType}"`;
 
     throw new ValidityError(`Invalid connection. Connection type mismatch, attempting to connect ${pointATypeOutput} to ${pointBTypeOutput}`, ErrorCode.CONNECTION_TYPE);
 };
@@ -349,18 +353,18 @@ export const returnNumIfNum = (s: any): any | number => {
     return isNaN(s) ? s : parseInt(s);
 };
 
-export const isFileType = (i: { type: {isNullable: boolean, type: string, items: string} }, required?): boolean => {
+export const isFileType = (i: { type: { isNullable: boolean, type: string, items: string } }, required?): boolean => {
     const requiredMatches = required === undefined || i.type.isNullable !== required;
     return i.type && requiredMatches && (i.type.type === "File" || i.type.items === "File")
 };
 
-export const hasFileType = (port: {type: ParameterTypeModel} ): boolean => {
+export const hasFileType = (port: { type: ParameterTypeModel }): boolean => {
     if (isFileType(port)) return true;
 
     if (Array.isArray(port.type.fields)) {
         for (let i = 0; i < port.type.fields.length; i++) {
             const field = port.type.fields[i];
-            if(hasFileType(field)) return true;
+            if (hasFileType(field)) return true;
         }
     }
 
@@ -373,7 +377,7 @@ export const hasFileType = (port: {type: ParameterTypeModel} ): boolean => {
  * @param {Array<{id: string}>} set
  * @returns {string}
  */
-export const getNextAvailableId = (id: string, set: Array<{id: string}>) => {
+export const getNextAvailableId = (id: string, set: Array<{ id: string }>) => {
     let hasId  = true;
     let result = id;
 
@@ -443,7 +447,7 @@ export const issueExistsInArray = (arr: Issue[], item: Issue): boolean => {
     return false;
 };
 
-export const checkPortIdUniqueness = (ports: Array<InputParameterModel | WorkflowOutputParameterModel | CommandOutputParameterModel> ): void => {
+export const checkPortIdUniqueness = (ports: Array<InputParameterModel | WorkflowOutputParameterModel | CommandOutputParameterModel>): void => {
     const map       = {};
     const duplicate = [];
 

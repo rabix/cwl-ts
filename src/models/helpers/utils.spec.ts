@@ -1,15 +1,29 @@
 import {expect} from "chai";
 import {
-    ensureArray, checkMapValueType, incrementString, spreadSelectProps,
-    snakeCase, fetchByLoc, cleanupNull, incrementLastLoc, charSeparatedToArray, flatten,
-    concatIssues, checkIfConnectionIsValid, hasFileType
-} from "./utils";
-import {V1WorkflowOutputParameterModel} from "../v1.0/V1WorkflowOutputParameterModel";
-import {V1WorkflowInputParameterModel} from "../v1.0/V1WorkflowInputParameterModel";
-import {V1StepModel} from "../v1.0/V1StepModel";
+    V1CommandInputParameterModel,
+    V1StepModel,
+    V1WorkflowInputParameterModel,
+    V1WorkflowOutputParameterModel
+} from "../v1.0";
 import {V1WorkflowStepInputModel} from "../v1.0/V1WorkflowStepInputModel";
 import {V1WorkflowStepOutputModel} from "../v1.0/V1WorkflowStepOutputModel";
-import {V1CommandInputParameterModel} from "../v1.0/V1CommandInputParameterModel";
+import {
+    charSeparatedToArray,
+    checkIfConnectionIsValid,
+    checkMapValueType,
+    cleanupNull,
+    concatIssues,
+    ensureArray,
+    fetchByLoc,
+    flatten,
+    hasFileType,
+    incrementLastLoc,
+    incrementString,
+    snakeCase,
+    spreadSelectProps,
+    validateID
+} from "./utils";
+import {ErrorCode} from "./validation";
 
 describe("ensureArray", () => {
     it("should return an array of mismatched objects", () => {
@@ -432,7 +446,7 @@ describe("checkIfConnectionIsValid", () => {
             type: "File"
         });
 
-        inputFile.fileTypes       = [];
+        inputFile.fileTypes  = [];
         outputFile.fileTypes = [];
 
         expect(checkIfConnectionIsValid(inputFile, outputFile)).equal(true);
@@ -440,11 +454,11 @@ describe("checkIfConnectionIsValid", () => {
         inputFile.fileTypes = ["s", "c", "d"];
         expect(checkIfConnectionIsValid(inputFile, outputFile)).equal(true);
 
-        inputFile.fileTypes       = [];
+        inputFile.fileTypes  = [];
         outputFile.fileTypes = ["B", "c", "d"];
         expect(checkIfConnectionIsValid(inputFile, outputFile)).equal(true);
 
-        inputFile.fileTypes       = ["D", "c"];
+        inputFile.fileTypes  = ["D", "c"];
         outputFile.fileTypes = ["b", "C", "d"];
         expect(checkIfConnectionIsValid(inputFile, outputFile)).equal(true);
     });
@@ -462,7 +476,7 @@ describe("checkIfConnectionIsValid", () => {
             type: "File[]"
         });
 
-        inputFileArray.fileTypes = [];
+        inputFileArray.fileTypes  = [];
         outputFileArray.fileTypes = [];
 
         expect(checkIfConnectionIsValid(inputFileArray, outputFileArray)).equal(true);
@@ -470,11 +484,11 @@ describe("checkIfConnectionIsValid", () => {
         inputFileArray.fileTypes = ["s", "c", "d"];
         expect(checkIfConnectionIsValid(inputFileArray, outputFileArray)).equal(true);
 
-        inputFileArray.fileTypes = [];
+        inputFileArray.fileTypes  = [];
         outputFileArray.fileTypes = ["B", "c", "d"];
         expect(checkIfConnectionIsValid(inputFileArray, outputFileArray)).equal(true);
 
-        inputFileArray.fileTypes = ["D", "c"];
+        inputFileArray.fileTypes  = ["D", "c"];
         outputFileArray.fileTypes = ["b", "C", "d"];
         expect(checkIfConnectionIsValid(inputFileArray, outputFileArray)).equal(true);
     });
@@ -500,7 +514,7 @@ describe("checkIfConnectionIsValid", () => {
 
     it("should be invalid when source (File[]) and destination (File[]) file-types does not have an intersection", () => {
 
-        const inputFileArray = new V1WorkflowInputParameterModel({
+        const inputFileArray     = new V1WorkflowInputParameterModel({
             id: "pointA",
             type: "File[]"
         });
@@ -878,131 +892,155 @@ describe("concatKeyArrays", () => {
 });
 
 describe("hasFileType", () => {
-   it("should return true for File", () => {
-       const input = new V1CommandInputParameterModel({
-           type: "File"
-       } as any);
+    it("should return true for File", () => {
+        const input = new V1CommandInputParameterModel({
+            type: "File"
+        } as any);
 
-       expect(hasFileType(input)).to.be.true;
-   });
+        expect(hasFileType(input)).to.be.true;
+    });
 
-   it("should return true for File[]", () => {
-       const input = new V1CommandInputParameterModel({
-           type: "File[]"
-       } as any);
+    it("should return true for File[]", () => {
+        const input = new V1CommandInputParameterModel({
+            type: "File[]"
+        } as any);
 
-       expect(hasFileType(input)).to.be.true;
-   });
+        expect(hasFileType(input)).to.be.true;
+    });
 
-   it("should return false for int", () => {
-       const input = new V1CommandInputParameterModel({
-           type: "int"
-       } as any);
+    it("should return false for int", () => {
+        const input = new V1CommandInputParameterModel({
+            type: "int"
+        } as any);
 
-       expect(hasFileType(input)).to.be.false;
-   });
+        expect(hasFileType(input)).to.be.false;
+    });
 
-   it("should return false for int[]", () => {
-       const input = new V1CommandInputParameterModel({
-           type: "int[]"
-       } as any);
+    it("should return false for int[]", () => {
+        const input = new V1CommandInputParameterModel({
+            type: "int[]"
+        } as any);
 
-       expect(hasFileType(input)).to.be.false;
-   });
+        expect(hasFileType(input)).to.be.false;
+    });
 
-   it("should return true for record with nested File", () => {
-       const input = new V1CommandInputParameterModel({
-           type: {
-               name: "input",
-               type: "record",
-               fields: [
-                   {
-                       id: "field",
-                       type: "File"
-                   }
-               ]
-           }
-       } as any);
+    it("should return true for record with nested File", () => {
+        const input = new V1CommandInputParameterModel({
+            type: {
+                name: "input",
+                type: "record",
+                fields: [
+                    {
+                        id: "field",
+                        type: "File"
+                    }
+                ]
+            }
+        } as any);
 
-       expect(hasFileType(input)).to.be.true;
-   });
+        expect(hasFileType(input)).to.be.true;
+    });
 
-   it("should return true for record with 2 levels of nesting with File", () => {
-       const input = new V1CommandInputParameterModel({
-           type: {
-               name: "input",
-               type: "record",
-               fields: [
-                   {
-                       id: "field",
-                       type: {
-                           name: "field",
-                           type: "record",
-                           fields: [
-                               {
-                                   id: "field2",
-                                   type: "File"
-                               }
-                           ]
-                       }
-                   }
-               ]
-           }
-       } as any);
+    it("should return true for record with 2 levels of nesting with File", () => {
+        const input = new V1CommandInputParameterModel({
+            type: {
+                name: "input",
+                type: "record",
+                fields: [
+                    {
+                        id: "field",
+                        type: {
+                            name: "field",
+                            type: "record",
+                            fields: [
+                                {
+                                    id: "field2",
+                                    type: "File"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        } as any);
 
-       expect(hasFileType(input)).to.be.true;
-   });
+        expect(hasFileType(input)).to.be.true;
+    });
 
-   it("should return true for record with 2 levels of nesting with File[]", () => {
-       const input = new V1CommandInputParameterModel({
-           type: {
-               name: "input",
-               type: "record",
-               fields: [
-                   {
-                       id: "field",
-                       type: {
-                           name: "field",
-                           type: "record",
-                           fields: [
-                               {
-                                   id: "field2",
-                                   type: "File[]"
-                               }
-                           ]
-                       }
-                   }
-               ]
-           }
-       } as any);
+    it("should return true for record with 2 levels of nesting with File[]", () => {
+        const input = new V1CommandInputParameterModel({
+            type: {
+                name: "input",
+                type: "record",
+                fields: [
+                    {
+                        id: "field",
+                        type: {
+                            name: "field",
+                            type: "record",
+                            fields: [
+                                {
+                                    id: "field2",
+                                    type: "File[]"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        } as any);
 
-       expect(hasFileType(input)).to.be.true;
-   });
+        expect(hasFileType(input)).to.be.true;
+    });
 
-   it("should return false for record with no File fields", () => {
-       const input = new V1CommandInputParameterModel({
-           type: {
-               name: "input",
-               type: "record",
-               fields: [
-                   {
-                       id: "field",
-                       type: {
-                           name: "field",
-                           type: "record",
-                           fields: [
-                               {
-                                   id: "field2",
-                                   type: "int"
-                               }
-                           ]
-                       }
-                   }
-               ]
-           }
-       } as any);
+    it("should return false for record with no File fields", () => {
+        const input = new V1CommandInputParameterModel({
+            type: {
+                name: "input",
+                type: "record",
+                fields: [
+                    {
+                        id: "field",
+                        type: {
+                            name: "field",
+                            type: "record",
+                            fields: [
+                                {
+                                    id: "field2",
+                                    type: "int"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        } as any);
 
-       expect(hasFileType(input)).to.be.false;
-   })
+        expect(hasFileType(input)).to.be.false;
+    })
 
+});
+
+/**
+ * TODO: Should be removed when we fix input IDs to accept all unicode characters
+ */
+describe("validateID", function () {
+    it("show throw an error that an id must be set", function () {
+        try {
+            validateID(null);
+            throw new Error("Validating an empty id should fail");
+        } catch (err) {
+            expect(err.code).to.equal(ErrorCode.ID_MISSING);
+        }
+    });
+
+    it("should disallow whitespaces and slashes", () => {
+        try {
+            validateID("foo bar/baz");
+            throw new Error("ID should not be allowed to have whitespaces or slashes");
+        } catch(err){
+            expect(err.code).to.equal(ErrorCode.ID_INVALID_CHAR);
+            expect(err.data).to.deep.members([" ", "/"]);
+        }
+    });
 });
