@@ -2,16 +2,15 @@
   "name": "cwlts",
   "version": "1.15.18",
   "description": "TypeScript data model for Common Workflow Language",
-  "main": "lib/index.js",
-  "typings": "lib/index.d.ts",
   "scripts": {
-    "tsc": "tsc -p tsconfig.json",
+    "tsc": "npx tsc",
     "test": "./node_modules/typescript/bin/tsc --outDir ./compiled --declaration false && ./node_modules/mocha/bin/_mocha --ui bdd ./compiled/**/*.spec.js",
     "coverage": "npm install istanbul && ./node_modules/typescript/bin/tsc --outDir ./compiled --declaration false && ./node_modules/istanbul/lib/cli.js cover -x '**/*.spec.js' _mocha ./compiled/**/*.spec.js",
     "regenerate": "./node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
     "schemas": "npm install cwl-ts-parser && scripts/schemas.sh",
     "d2sb-test": "mocha src/tests/*.d2sb.spec.js",
-    "v1-test": "mocha src/tests/*.v1.spec.js"
+    "v1-test": "mocha src/tests/*.v1.spec.js",
+    "prepare": "node ./scripts/prepublish.js && npm run tsc"
   },
   "repository": {
     "type": "git",
@@ -29,17 +28,23 @@
   },
   "devDependencies": {
     "@types/chai": "^3.5.2",
-    "@types/chai-spies": "^0.0.0",
     "@types/chai-as-promised": "0.0.29",
+    "@types/chai-spies": "^0.0.0",
+    "@types/fs-extra": "^5.0.0",
     "@types/mocha": "^2.2.41",
     "@types/node": "^6.0.83",
+    "@types/rimraf": "^2.0.2",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "chai-spies": "^0.7.1",
+    "fs-extra": "^5.0.0",
     "istanbul": "^0.4.5",
     "jsonschema": "^1.1.1",
     "mocha": "^2.5.3",
     "typescript": "^2.5.2",
     "typescript-json-schema": "0.1.1"
+  },
+  "engines": {
+    "npm": "~5.5.0"
   }
 }

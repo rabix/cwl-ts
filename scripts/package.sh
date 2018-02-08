@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# run this from root
+# cd lib, do npm version bump
+# npm publish inside lib
 
 # clears lib directory
 rm -r lib/mappings

@@ -9,13 +9,18 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "declaration": true,
-        "outDir": "./lib",
+        "outDir": "dist",
         "target": "es5",
-        "lib": ["dom", "es6"],
-        "types": ["node", "mocha", "chai", "chai-as-promised"]
+        "lib": [
+            "dom",
+            "es6"
+        ],
+        "typeRoots": [
+            "node_modules/@types"
+        ]
     },
     "exclude": [
-        "lib",
+        "dist",
         "node_modules",
         "**/*.json"
     ]

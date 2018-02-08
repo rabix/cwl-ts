@@ -4,5 +4,7 @@
 node_modules
 compiled/
 coverage/
-dist
+src
+scripts
 compiled
+dist/tests
