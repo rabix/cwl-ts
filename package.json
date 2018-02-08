@@ -10,7 +10,8 @@
     "schemas": "npm install cwl-ts-parser && scripts/schemas.sh",
     "d2sb-test": "mocha src/tests/*.d2sb.spec.js",
     "v1-test": "mocha src/tests/*.v1.spec.js",
-    "publish-dist": "node ./scripts/prepublish.js && npm run tsc && cd dist && npm run publish"
+    "publish:prepare": "node ./scripts/prepublish.js && npm run tsc",
+    "publish:dist": "npm run publish:prepare && cd dist && npm publish"
   },
   "repository": {
     "type": "git",
