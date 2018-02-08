@@ -4,7 +4,7 @@
   "description": "TypeScript data model for Common Workflow Language",
   "scripts": {
     "tsc": "npx tsc",
-    "test": "./node_modules/typescript/bin/tsc --outDir ./compiled --declaration false && ./node_modules/mocha/bin/_mocha --ui bdd ./compiled/**/*.spec.js",
+    "test": "npx tsc --outDir ./compiled --declaration false && ./node_modules/mocha/bin/_mocha --ui bdd ./compiled/**/*.spec.js",
     "coverage": "npm install istanbul && ./node_modules/typescript/bin/tsc --outDir ./compiled --declaration false && ./node_modules/istanbul/lib/cli.js cover -x '**/*.spec.js' _mocha ./compiled/**/*.spec.js",
     "regenerate": "./node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
     "schemas": "npm install cwl-ts-parser && scripts/schemas.sh",
@@ -41,7 +41,7 @@
     "istanbul": "^0.4.5",
     "jsonschema": "^1.1.1",
     "mocha": "^2.5.3",
-    "typescript": "^2.5.2",
+    "typescript": "^2.6.2",
     "typescript-json-schema": "0.1.1"
   },
   "engines": {
