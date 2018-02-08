@@ -1,7 +1,7 @@
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
-import {ID_REGEX_NOT_ALLOWED} from "./constants";
+import {ID_ALLOWED_CHARS} from "./constants";
 import {ErrorCode, ValidityError} from "./validation/ErrorCode";
 import {InputParameterModel} from "../generic/InputParameterModel";
 import {Issue} from "./validation/Issue";
@@ -211,9 +211,10 @@ export const validateID = (id: string) => {
     }
 
     let match;
-    const invalidChars = new Set();
+    const invalidChars     = new Set();
+    const invalidCharRegex = new RegExp(`[^${ID_ALLOWED_CHARS}]`, "g");
 
-    while (match = ID_REGEX_NOT_ALLOWED.exec(id)) {
+    while (match = invalidCharRegex.exec(id)) {
         invalidChars.add(`"${match[0]}"`);
     }
 
