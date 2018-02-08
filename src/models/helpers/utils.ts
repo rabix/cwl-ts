@@ -1,7 +1,7 @@
 import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
-import {ID_REGEX} from "./constants";
+import {ID_REGEX_NOT_ALLOWED} from "./constants";
 import {ErrorCode, ValidityError} from "./validation/ErrorCode";
 import {InputParameterModel} from "../generic/InputParameterModel";
 import {Issue} from "./validation/Issue";
@@ -210,8 +210,16 @@ export const validateID = (id: string) => {
         throw new ValidityError("ID must be set", ErrorCode.ID_MISSING);
     }
 
-    if (!ID_REGEX.test(id)) {
-        throw new ValidityError(`ID "${id}" contains invalid characters`, ErrorCode.ID_INVALID_CHAR);
+    let match;
+    const invalidChars = new Set();
+
+    while (match = ID_REGEX_NOT_ALLOWED.exec(id)) {
+        invalidChars.add(`"${match[0]}"`);
+    }
+
+    if (invalidChars.size) {
+        throw new ValidityError(`ID "${id}" contains invalid characters: ${Array.from(invalidChars.values()).join(", ")}`,
+            ErrorCode.ID_INVALID_CHAR);
     }
 };
 
