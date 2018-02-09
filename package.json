@@ -24,27 +24,27 @@
   },
   "homepage": "https://github.com/rabix/cwl-ts#readme",
   "dependencies": {
-    "ajv": "^4.8.2",
-    "js-yaml": "^3.9.0"
+    "ajv": "^6.1.1",
+    "js-yaml": "^3.10.0"
   },
   "devDependencies": {
-    "@types/chai": "^3.5.2",
-    "@types/chai-as-promised": "0.0.29",
+    "@types/chai": "^4.1.2",
+    "@types/chai-as-promised": "^7.1.0",
     "@types/chai-spies": "^0.0.0",
     "@types/fs-extra": "^5.0.0",
-    "@types/mocha": "^2.2.41",
-    "@types/node": "^6.0.83",
+    "@types/mocha": "^2.2.48",
+    "@types/node": "^8.9.1",
     "@types/rimraf": "^2.0.2",
-    "chai": "^3.5.0",
-    "chai-as-promised": "^6.0.0",
-    "chai-spies": "^0.7.1",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-spies": "^1.0.0",
     "fs-extra": "^5.0.0",
     "istanbul": "^0.4.5",
-    "jsonschema": "^1.1.1",
-    "mocha": "^2.5.3",
+    "jsonschema": "^1.2.2",
+    "mocha": "^5.0.0",
     "ts-node": "^4.1.0",
-    "typescript": "^2.6.2",
-    "typescript-json-schema": "0.1.1"
+    "typescript": "^2.7.1",
+    "typescript-json-schema": "0.20.0"
   },
   "engines": {
     "npm": "~5.5.0"

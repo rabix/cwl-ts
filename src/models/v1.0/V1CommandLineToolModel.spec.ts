@@ -1084,7 +1084,7 @@ describe("V1CommandLineToolModel", () => {
             });
 
             const serialize = tool.serialize();
-            expect(serialize.requirements).to.be.empty;
+            expect(serialize.requirements).to.not.exist;
         });
 
         it("should remove ShellQuoteRequirement if no binding has shellQuote: false", () => {
@@ -1112,7 +1112,7 @@ describe("V1CommandLineToolModel", () => {
             });
 
             const serialize = tool.serialize();
-            expect(serialize.requirements).to.be.empty;
+            expect(serialize.requirements).to.not.exist;
         });
 
         it("should not duplicate requirement", () => {
