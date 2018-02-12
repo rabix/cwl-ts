@@ -66,7 +66,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         // We check for not having a loc, because having it means that this tool is embedded as a step
         if (!loc && !this.namespaces.has("sbg")) {
-            this.namespaces.set("sbg", "https://sevenbridges.com");
+            this.namespaces.set("sbg", "https://www.sevenbridges.com");
         }
 
         this.constructed = true;

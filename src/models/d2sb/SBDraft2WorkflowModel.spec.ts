@@ -591,7 +591,7 @@ describe("SBDraft2WorkflowModel", () => {
     describe("serialize", () => {
         it("should return the same basic workflow with all properties", () => {
             const data = {
-                $namespaces: {sbg: "https://sevenbridges.com"},
+                $namespaces: {sbg: "https://www.sevenbridges.com"},
                 "class": "Workflow",
                 "cwlVersion": "sbg:draft-2",
                 "steps": [

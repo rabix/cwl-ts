@@ -40,7 +40,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
         // We check for not having a loc, because having it means that this is embedded as a step
         if (!loc && !this.namespaces.has("sbg")) {
-            this.namespaces.set("sbg", "https://sevenbridges.com");
+            this.namespaces.set("sbg", "https://www.sevenbridges.com");
         }
 
         this.graph = this.constructGraph();
