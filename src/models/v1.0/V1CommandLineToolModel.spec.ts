@@ -1,11 +1,12 @@
 import {expect} from "chai";
-import {V1CommandLineToolModel} from "./V1CommandLineToolModel";
 import {CommandLineTool} from "../../mappings/v1.0/CommandLineTool";
+import {testNamespaces} from "../../tests/shared/model";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {JSExecutor} from "../helpers/JSExecutor";
-import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
 import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
+import {V1CommandLineToolModel} from "./V1CommandLineToolModel";
+import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 
 function runTest(app: CommandLineTool, job: any, expected: CommandLinePart[], done) {
@@ -44,6 +45,9 @@ function makeTests(specPath: string) {
 }
 
 describe("V1CommandLineToolModel", () => {
+
+    testNamespaces(V1CommandLineToolModel);
+
     describe("generateCommandLineParts conformance", () => {
         const path     = require('path');
         const specPath = path.join(__dirname, '../../../src/tests/cli-conformance/conformance-test-v1.yaml');
@@ -152,6 +156,7 @@ describe("V1CommandLineToolModel", () => {
             expect(serialized.baseCommand).to.have.length(2);
             expect(serialized.baseCommand).to.deep.equal(["one", "two"]);
         });
+
     });
 
     describe("jobManagement", () => {
@@ -1342,7 +1347,7 @@ describe("V1CommandLineToolModel", () => {
 
         beforeEach(() => {
             ExpressionEvaluator.evaluateExpression = JSExecutor.evaluate;
-            model = new V1CommandLineToolModel({
+            model                                  = new V1CommandLineToolModel({
                 inputs: {
                     input: "File",
                     input2: "File"
@@ -1358,8 +1363,8 @@ describe("V1CommandLineToolModel", () => {
                 }
             } as any);
 
-            output = model.outputs[0];
-            input = model.inputs[0];
+            output            = model.outputs[0];
+            input             = model.inputs[0];
             outputWithInherit = model.outputs[1];
         });
 
@@ -1383,7 +1388,7 @@ describe("V1CommandLineToolModel", () => {
         });
 
         it("should add to outputEval if it is already set", () => {
-            const expr = "${ return 4 + 3}";
+            const expr                      = "${ return 4 + 3}";
             output.outputBinding.outputEval = new V1ExpressionModel(expr);
             output.outputBinding.setInheritMetadataFrom("input");
 
@@ -1410,7 +1415,7 @@ describe("V1CommandLineToolModel", () => {
             output.outputBinding.setInheritMetadataFrom(null);
             outputWithInherit.outputBinding.setInheritMetadataFrom(null);
 
-            const expr = "${ return 4 + 3}";
+            const expr                      = "${ return 4 + 3}";
             output.outputBinding.outputEval = new V1ExpressionModel(expr);
 
             const serialized = model.serialize();

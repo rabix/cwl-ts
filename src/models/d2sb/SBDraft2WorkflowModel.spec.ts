@@ -1,4 +1,5 @@
 import {expect} from "chai";
+import {testNamespaces} from "../../tests/shared/model";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
 import * as OneStepWf from "../../tests/apps/one-step-wf-draf2";
 import * as TwoStepWf from "../../tests/apps/two-step-wf-draft2";
@@ -7,6 +8,9 @@ import {SBDraft2WorkflowModel} from "./SBDraft2WorkflowModel";
 
 
 describe("SBDraft2WorkflowModel", () => {
+
+    testNamespaces(SBDraft2WorkflowModel);
+
     describe("exposePort", () => {
         it("should add a new input on the workflow and connect it to port", () => {
             const wf          = WorkflowFactory.from(OneStepWf.default);
@@ -587,6 +591,7 @@ describe("SBDraft2WorkflowModel", () => {
     describe("serialize", () => {
         it("should return the same basic workflow with all properties", () => {
             const data = {
+                $namespaces: {sbg: "https://sevenbridges.com"},
                 "class": "Workflow",
                 "cwlVersion": "sbg:draft-2",
                 "steps": [

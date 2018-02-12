@@ -1,5 +1,6 @@
 import {Process as SBDraft2Process} from "../../mappings/d2sb/Process";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
+import {NamespaceBag} from "../elements/namespace-bag";
 import {STEP_INPUT_CONNECTION_PREFIX, STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {EventHub} from "../helpers/EventHub";
 import {Edge, EdgeNode, Graph} from "../helpers/Graph";
@@ -27,7 +28,7 @@ type VertexNode = WorkflowInputParameterModel | WorkflowOutputParameterModel | S
 export abstract class WorkflowModel extends ValidationBase implements Serializable<any> {
     id: string;
     cwlVersion: string | CWLVersion;
-    "class" = "Workflow";
+    class = "Workflow";
 
     sbgId: string;
 
@@ -36,12 +37,14 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     batchInput: string;
 
     batchByValue: string | string [];
+    namespaces = new NamespaceBag();
 
     steps: StepModel[]                      = [];
     inputs: WorkflowInputParameterModel[]   = [];
     outputs: WorkflowOutputParameterModel[] = [];
 
     hints: Array<ProcessRequirementModel> = [];
+
 
     protected readonly eventHub: EventHub;
 

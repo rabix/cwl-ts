@@ -1,12 +1,16 @@
 import {expect} from "chai";
 import * as OneStepWf from "../../tests/apps/one-step-wf";
 import * as TwoStepWf from "../../tests/apps/first-workflow";
+import {testNamespaces} from "../../tests/shared/model";
 import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {WorkflowModel} from "../generic/WorkflowModel";
 import {V1WorkflowModel} from "./V1WorkflowModel";
 import {Workflow} from "../../mappings/v1.0/Workflow";
 
 describe("V1WorkflowModel", () => {
+
+    testNamespaces(V1WorkflowModel);
+
     describe("exposePort", () => {
         it("should add a new input on the workflow and connect it to port", () => {
             const wf          = WorkflowFactory.from(OneStepWf.default);
