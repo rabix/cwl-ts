@@ -8,16 +8,23 @@ import {Expression} from "../../mappings/d2sb/Expression";
 import {ProcessRequirement} from "../../mappings/d2sb/ProcessRequirement";
 import {SBGCPURequirement} from "../../mappings/d2sb/SBGCPURequirement";
 import {SBGMemRequirement} from "../../mappings/d2sb/SBGMemRequirement";
+import {NamespaceBag} from "../elements/namespace-bag";
+import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
+import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {DockerRequirementModel} from "../generic/DockerRequirementModel";
 import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {JobHelper} from "../helpers/JobHelper";
 import {
     checkPortIdUniqueness,
-    ensureArray, incrementLastLoc, returnNumIfNum, snakeCase,
+    ensureArray,
+    incrementLastLoc,
+    returnNumIfNum,
+    snakeCase,
     spreadSelectProps
 } from "../helpers/utils";
+import {ErrorCode} from "../helpers/validation/ErrorCode";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandArgumentModel} from "./SBDraft2CommandArgumentModel";
 import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParameterModel";
@@ -25,38 +32,43 @@ import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParame
 import {SBDraft2CreateFileRequirementModel} from "./SBDraft2CreateFileRequirementModel";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {SBDraft2ResourceRequirementModel} from "./SBDraft2ResourceRequirementModel";
-import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
-import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
-import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
-    public cwlVersion = "sbg:draft-2";
+    cwlVersion = "sbg:draft-2";
 
-    public baseCommand: Array<SBDraft2ExpressionModel>         = [];
-    public inputs: Array<SBDraft2CommandInputParameterModel>   = [];
-    public outputs: Array<SBDraft2CommandOutputParameterModel> = [];
+    baseCommand: Array<SBDraft2ExpressionModel>         = [];
+    inputs: Array<SBDraft2CommandInputParameterModel>   = [];
+    outputs: Array<SBDraft2CommandOutputParameterModel> = [];
 
-    public resources: SBDraft2ResourceRequirementModel;
+    resources: SBDraft2ResourceRequirementModel;
 
-    public requirements: Array<ProcessRequirementModel> = [];
+    requirements: Array<ProcessRequirementModel> = [];
 
-    public fileRequirement: SBDraft2CreateFileRequirementModel;
+    fileRequirement: SBDraft2CreateFileRequirementModel;
 
-    public hints: Array<ProcessRequirementModel> = [];
+    hints: Array<ProcessRequirementModel> = [];
 
-    public arguments: Array<SBDraft2CommandArgumentModel> = [];
+    arguments: Array<SBDraft2CommandArgumentModel> = [];
 
-    public stdin: SBDraft2ExpressionModel;
-    public stdout: SBDraft2ExpressionModel;
+    stdin: SBDraft2ExpressionModel;
+    stdout: SBDraft2ExpressionModel;
 
-    public hasStdErr = false;
+    hasStdErr = false;
 
     constructor(json?: CommandLineTool, loc?: string) {
         super(loc);
 
         this.initializeExprWatchers();
 
-        if (json) this.deserialize(json);
+        if (json) {
+            this.deserialize(json);
+        }
+
+        // We check for not having a loc, because having it means that this tool is embedded as a step
+        if (!loc && !this.namespaces.has("sbg")) {
+            this.namespaces.set("sbg", "https://www.sevenbridges.com");
+        }
+
         this.constructed = true;
         this.validateAllExpressions();
         this.initializeJobWatchers();
@@ -64,9 +76,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     // EXPRESSION CONTEXT //
 
-    public setRuntime(runtime: any = {}): void {
+    setRuntime(runtime: any = {}): void {
         this.runtime.cpu = runtime.cpu !== undefined ? runtime.cpu : this.runtime.cpu;
-        this.runtime.mem   = runtime.mem !== undefined ? runtime.mem : this.runtime.mem;
+        this.runtime.mem = runtime.mem !== undefined ? runtime.mem : this.runtime.mem;
     }
 
     /**
@@ -74,7 +86,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
      * @param port
      * @returns {{$job?: {inputs?: any; allocatedResources?: any}; $self?: any}}
      */
-    public getContext(port?: any): { $job?: { inputs?: any, allocatedResources?: any }, $self?: any } {
+    getContext(port?: any): { $job?: { inputs?: any, allocatedResources?: any }, $self?: any } {
         const context: any = {
             $job: {
                 inputs: this.jobInputs,
@@ -84,7 +96,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         if (port && port instanceof CommandInputParameterModel) {
             if (port.isField) {
-                const root = this.findFieldRoot(port, this.jobInputs);
+                const root    = this.findFieldRoot(port, this.jobInputs);
                 context.$self = root ? root[port.id] : null;
             } else {
                 context.$self = this.jobInputs ? this.jobInputs[port.id] : null;
@@ -102,14 +114,14 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
     /**
      * Resets job value to dummy values
      */
-    public resetJobDefaults() {
+    resetJobDefaults() {
         this.jobInputs = JobHelper.getJobInputs(this);
         this.updateCommandLine();
     }
 
     // CRUD HELPER METHODS //
 
-    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+    addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
         const h = new RequirementBaseModel(hint, SBDraft2ExpressionModel, `${this.loc}.hints[${this.hints.length}]`, this.eventHub);
         h.setValidationCallback(err => this.updateValidity(err));
         this.hints.push(h);
@@ -117,7 +129,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         return h;
     }
 
-    public addBaseCommand(cmd: Expression | string | number = ""): SBDraft2ExpressionModel {
+    addBaseCommand(cmd: Expression | string | number = ""): SBDraft2ExpressionModel {
         const loc = incrementLastLoc(this.baseCommand, `${this.loc}.baseCommand`);
 
         const c = new SBDraft2ExpressionModel(cmd, loc, this.eventHub);
@@ -128,13 +140,13 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         return c;
     }
 
-    public updateBaseCommand(cmd: SBDraft2ExpressionModel[]) {
+    updateBaseCommand(cmd: SBDraft2ExpressionModel[]) {
         this.baseCommand.forEach(c => c.clearIssue(ErrorCode.EXPR_ALL));
         this.baseCommand = [];
         cmd.forEach(c => this.addBaseCommand(c.serialize()));
     }
 
-    public addArgument(arg?: string | CommandLineBinding): SBDraft2CommandArgumentModel {
+    addArgument(arg?: string | CommandLineBinding): SBDraft2CommandArgumentModel {
         const loc = incrementLastLoc(this.arguments, `${this.loc}.arguments`);
 
         const argument = new SBDraft2CommandArgumentModel(arg, loc, this.eventHub);
@@ -145,20 +157,20 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         return argument;
     }
 
-    public addInput(input?: CommandInputParameter): SBDraft2CommandInputParameterModel {
+    addInput(input?: CommandInputParameter): SBDraft2CommandInputParameterModel {
         return super._addInput(SBDraft2CommandInputParameterModel, input);
     }
 
-    public addOutput(output: CommandOutputParameter): SBDraft2CommandOutputParameterModel {
+    addOutput(output: CommandOutputParameter): SBDraft2CommandOutputParameterModel {
         return super._addOutput(SBDraft2CommandOutputParameterModel, output);
     }
 
-    public setRequirement(req: ProcessRequirement, hint?: boolean) {
+    setRequirement(req: ProcessRequirement, hint?: boolean) {
         const prop = hint ? "hints" : "requirements";
         this.createReq(req, `${this.loc}.${prop}[${this[prop].length}]`, hint);
     }
 
-    public updateStream(stream: SBDraft2ExpressionModel, type: "stdin" | "stdout") {
+    updateStream(stream: SBDraft2ExpressionModel, type: "stdin" | "stdout") {
         this[type] = stream;
         stream.loc = `${this.loc}.${type}`;
         stream.setValidationCallback((err) => this.updateValidity(err));
@@ -199,6 +211,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
     deserialize(tool: CommandLineTool): void {
         const serializedAttr = [
+            "$namespaces",
             "baseCommand",
             "class",
             "id",
@@ -225,6 +238,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         this.label       = tool.label;
         this.description = tool.description;
+        this.namespaces  = new NamespaceBag(tool.$namespaces);
 
         ensureArray(tool.inputs).forEach(i => this.addInput(i));
 
@@ -269,7 +283,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         this.temporaryFailCodes = ensureArray(tool.temporaryFailCodes);
         this.permanentFailCodes = ensureArray(tool.permanentFailCodes);
 
-        tool.baseCommand        = tool.baseCommand || [];
+        tool.baseCommand = tool.baseCommand || [];
 
         // wrap to array
         tool.baseCommand = !Array.isArray(tool.baseCommand)
@@ -312,6 +326,10 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         base.cwlVersion = "sbg:draft-2";
         base.class      = "CommandLineTool";
+
+        if (this.namespaces.isNotEmpty()) {
+            base.$namespaces = this.namespaces.serialize();
+        }
 
         if (this.sbgId || this.id) {
             base.id = this.sbgId || this.id;

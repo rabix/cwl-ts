@@ -5,11 +5,16 @@ import {CommandOutputParameter} from "../../mappings/v1.0/CommandOutputParameter
 import {DockerRequirement} from "../../mappings/v1.0/DockerRequirement";
 import {InitialWorkDirRequirement} from "../../mappings/v1.0/InitialWorkDirRequirement";
 import {ResourceRequirement} from "../../mappings/v1.0/ResourceRequirement";
+import {NamespaceBag} from "../elements/namespace-bag";
+import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
+import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {DockerRequirementModel} from "../generic/DockerRequirementModel";
 import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
+import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {JobHelper} from "../helpers/JobHelper";
+import {sbgHelperLibrary} from "../helpers/sbg-expression-lib";
 import {
     charSeparatedToArray,
     ensureArray,
@@ -20,16 +25,12 @@ import {
 } from "../helpers/utils";
 import {V1CommandArgumentModel} from "./V1CommandArgumentModel";
 import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
+import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1InitialWorkDirRequirementModel} from "./V1InitialWorkDirRequirementModel";
 import {V1InlineJavascriptRequirementModel} from "./V1InlineJavascriptRequirementModel";
 import {V1ResourceRequirementModel} from "./V1ResourceRequirementModel";
-import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
-import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
-import {sbgHelperLibrary} from "../helpers/sbg-expression-lib";
-import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
-import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
 
@@ -63,7 +64,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         this.initializeExprWatchers();
 
-        if (json) this.deserialize(json);
+        if (json) {
+            this.deserialize(json);
+        }
+
         this.constructed = true;
         this.validateAllExpressions();
         this.initializeJobWatchers();
@@ -211,6 +215,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
     public deserialize(tool: CommandLineTool) {
         const serializedKeys = [
+            "$namespaces",
             "baseCommand",
             "stdout",
             "stdin",
@@ -236,6 +241,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         this.description = tool.doc;
         this.label       = tool.label;
+        this.namespaces  = new NamespaceBag(tool.$namespaces);
 
         this.baseCommand = charSeparatedToArray(tool.baseCommand, /\s+/);
         ensureArray(tool.inputs, "id", "type").map(inp => this.addInput(inp));
@@ -312,6 +318,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         base.class      = "CommandLineTool";
         base.cwlVersion = "v1.0";
+
+        if (this.namespaces.isNotEmpty()) {
+            base.$namespaces = this.namespaces.serialize();
+        }
 
         if (this.sbgId || this.id) {
             base.id = this.sbgId || this.id;

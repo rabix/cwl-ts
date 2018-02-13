@@ -23,7 +23,7 @@ describe("Graph", () => {
 
         it("should return false for unconnected graphs", () => {
             let vertices: Array<[string, any]> = [['a', null]];
-            let edges: [[string, string]] = [['b', 'c']];
+            let edges: [string, string][] = [['b', 'c']];
             let g = new Graph(vertices, edges, VertexMissing.CreateVertex);
             expect(g.isConnected()).to.be.false;
 
@@ -40,7 +40,7 @@ describe("Graph", () => {
 
         it("should return false for two unconnected graphs", () => {
            let vertices: Array<[string, any]> = [['a', null], ['b', null], ['c', null], ['d', null], ['e', null]];
-           let edges: [[string, string]] = [
+           let edges: [string, string][] = [
                ['a', 'b'],
                ['c', 'b'],
                ['d', 'e']
@@ -52,7 +52,7 @@ describe("Graph", () => {
 
         it("should return true for connected graphs", () => {
 
-            let edges: [[string, string]] = [
+            let edges: [string, string][] = [
                 ['a', 'b'],
                 ['b', 'c'],
                 ['b', 'e'],
@@ -79,7 +79,7 @@ describe("Graph", () => {
         });
 
         it("should return topological sort for graph", () => {
-            let edges: [[string, string]] = [
+            let edges: [string, string][] = [
                 ['a', 'b'],
                 ['b', 'c'],
                 ['b', 'e'],
@@ -113,7 +113,7 @@ describe("Graph", () => {
         });
 
         it("should fail when graph has cycles", () => {
-            let edges: [[string, string]] = [
+            let edges: [string, string][] = [
                 ['a', 'b'],
                 ['b', 'c'],
                 ['c', 'e'],
@@ -127,7 +127,7 @@ describe("Graph", () => {
 
     describe("hasCycles", () => {
         it("should detect cycle in graph", () => {
-            const edges: [[string, string]] = [
+            const edges: [string, string][] = [
                 ['a', 'b'],
                 ['b', 'c'],
                 ['d', 'e'],

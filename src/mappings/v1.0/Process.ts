@@ -14,6 +14,8 @@ import {CWLVersion} from "./CWLVersion";
 
 export interface Process {
 
+    $namespaces?: {[namespace: string]: string};
+
     "class"?: string;
 
 

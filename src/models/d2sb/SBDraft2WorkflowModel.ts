@@ -1,40 +1,47 @@
+import {Process} from "../../mappings/d2sb/Process";
+import {SBGWorkflowInputParameter} from "../../mappings/d2sb/SBGWorkflowInputParameter";
+import {BatchInput, Workflow} from "../../mappings/d2sb/Workflow";
+import {WorkflowOutputParameter} from "../../mappings/d2sb/WorkflowOutputParameter";
+import {NamespaceBag} from "../elements/namespace-bag";
+import {ProcessRequirement} from "../generic/ProcessRequirement";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
+import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 import {WorkflowModel} from "../generic/WorkflowModel";
-import {Workflow} from "../../mappings/d2sb/Workflow";
-import {BatchInput} from "../../mappings/d2sb/Workflow";
+import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {Customizable} from '../interfaces/Customizable';
+import {Serializable} from "../interfaces/Serializable";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {SBDraft2StepModel} from "./SBDraft2StepModel";
 import {SBDraft2WorkflowInputParameterModel} from "./SBDraft2WorkflowInputParameterModel";
 import {SBDraft2WorkflowOutputParameterModel} from "./SBDraft2WorkflowOutputParameterModel";
-import {Serializable} from "../interfaces/Serializable";
-import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
-import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
-import {Process} from "../../mappings/d2sb/Process";
 import {SBDraft2WorkflowStepOutputModel} from "./SBDraft2WorkflowStepOutputModel";
-import {SBGWorkflowInputParameter} from "../../mappings/d2sb/SBGWorkflowInputParameter";
-import {WorkflowOutputParameter} from "../../mappings/d2sb/WorkflowOutputParameter";
-import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
-import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
-import {ProcessRequirement} from "../generic/ProcessRequirement";
-import {RequirementBaseModel} from "../generic/RequirementBaseModel";
-import {Customizable} from '../interfaces/Customizable';
 
 export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
-    public id: string;
+    id: string;
 
-    public cwlVersion = "sbg:draft-2";
+    cwlVersion = "sbg:draft-2";
 
-    public steps: SBDraft2StepModel[] = [];
+    steps: SBDraft2StepModel[] = [];
 
-    public inputs: SBDraft2WorkflowInputParameterModel[] = [];
+    inputs: SBDraft2WorkflowInputParameterModel[] = [];
 
-    public outputs: SBDraft2WorkflowOutputParameterModel[] = [];
+    outputs: SBDraft2WorkflowOutputParameterModel[] = [];
 
-    public hasBatch: boolean = true;
+    hasBatch: boolean = true;
 
     constructor(workflow: Workflow, loc: string = "document") {
         super(loc);
 
-        if (workflow) this.deserialize(workflow);
+        if (workflow) {
+            this.deserialize(workflow);
+        }
+
+        // We check for not having a loc, because having it means that this is embedded as a step
+        if (!loc && !this.namespaces.has("sbg")) {
+            this.namespaces.set("sbg", "https://www.sevenbridges.com");
+        }
 
         this.graph = this.constructGraph();
         this.validateGraph();
@@ -47,20 +54,22 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     }
 
 
-    public createInputFromPort(inPort: SBDraft2WorkflowStepInputModel | string,
-                               data: Customizable = {}): SBDraft2WorkflowInputParameterModel {
+    createInputFromPort(inPort: SBDraft2WorkflowStepInputModel | string,
+                        data: Customizable = {}): SBDraft2WorkflowInputParameterModel {
+
         const port = super._createInputFromPort(inPort, SBDraft2WorkflowInputParameterModel, undefined, undefined, data);
+
         port.customProps["sbg:includeInPorts"] = true;
         return port;
     }
 
-    public createOutputFromPort(outPort: SBDraft2WorkflowStepOutputModel
+    createOutputFromPort(outPort: SBDraft2WorkflowStepOutputModel
                                     | string, data: Customizable = {}): SBDraft2WorkflowOutputParameterModel {
 
         return super._createOutputFromPort(outPort, SBDraft2WorkflowOutputParameterModel, undefined, undefined, data);
     }
 
-    public exposePort(inPort: SBDraft2WorkflowStepInputModel) {
+    exposePort(inPort: SBDraft2WorkflowStepInputModel) {
         super._exposePort(inPort, SBDraft2WorkflowInputParameterModel);
     }
 
@@ -93,7 +102,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         return null;
     }
 
-    public addStepFromProcess(proc: Process): SBDraft2StepModel {
+    addStepFromProcess(proc: Process): SBDraft2StepModel {
         const loc  = `${this.loc}.steps[${this.steps.length}]`;
         const step = new SBDraft2StepModel({
             inputs: [],
@@ -111,7 +120,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         return step;
     }
 
-    public setBatch(input: string, value: string | string []): void {
+    setBatch(input: string, value: string | string []): void {
 
         if (!value || value === "none") {
             this.batchByValue = null;
@@ -123,11 +132,11 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         this.batchByValue = value;
     }
 
-    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+    addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
         return this.createReq(hint, SBDraft2ExpressionModel, undefined, true);
     }
 
-    public serializeEmbedded(retainSource: boolean = false): Workflow {
+    serializeEmbedded(retainSource: boolean = false): Workflow {
         return this._serialize(true, retainSource);
     }
 
@@ -139,7 +148,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     _serialize(embed: boolean, retainSource: boolean = false): Workflow {
         const base: Workflow = <Workflow>{};
 
-        base.class = "Workflow";
+        base.class      = "Workflow";
         base.cwlVersion = "sbg:draft-2";
 
         if (this.sbgId || this.id) {
@@ -149,9 +158,13 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         if (this.label) base.label = this.label;
         if (this.description) base.description = this.description;
 
-        base.inputs = <SBGWorkflowInputParameter[]> this.inputs.map(i => i.serialize());
+        if (this.namespaces.isNotEmpty()) {
+            base.$namespaces = this.namespaces.serialize();
+        }
+
+        base.inputs  = <SBGWorkflowInputParameter[]> this.inputs.map(i => i.serialize());
         base.outputs = <WorkflowOutputParameter[]>this.outputs.map(o => o.serialize());
-        base.steps = this.steps.map(s => {
+        base.steps   = this.steps.map(s => {
             if (embed) {
                 return s.serializeEmbedded(retainSource);
             } else {
@@ -159,7 +172,9 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
             }
         });
 
-        if (this.hints.length) { base.hints = this.hints.map((hint) => hint.serialize())}
+        if (this.hints.length) {
+            base.hints = this.hints.map((hint) => hint.serialize())
+        }
 
         if (this.batchInput) base["sbg:batchInput"] = "#" + this.batchInput;
 
@@ -167,7 +182,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
             const valueIsArray = Array.isArray(this.batchByValue);
 
-            let batchBy : BatchInput = {
+            let batchBy: BatchInput = {
                 type: valueIsArray ? "criteria" : "item"
             };
 
@@ -184,6 +199,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     deserialize(workflow: Workflow): void {
         const serializedKeys = [
             "id",
+            "$namespaces",
             "class",
             "cwlVersion",
             "steps",
@@ -198,6 +214,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
         this.label       = workflow.label;
         this.description = workflow.description;
+        this.namespaces  = new NamespaceBag(workflow.$namespaces);
 
         this.id = workflow["sbg:id"] && workflow["sbg:id"].split("/").length > 2 ?
             workflow["sbg:id"].split("/")[2] :

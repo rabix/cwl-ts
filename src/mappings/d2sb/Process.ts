@@ -16,6 +16,7 @@ export interface SBGLink {
 }
 
 export interface Process {
+    $namespaces?: {[namespace: string]: string};
     id?: string;
     cwlVersion?: string;
     "class": "Workflow" | "CommandLineTool" | "ExpressionTool" | string;

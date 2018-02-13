@@ -1,17 +1,11 @@
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
+import {NamespaceBag} from "../elements/namespace-bag";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {generateCommandLineParts} from "../helpers/CommandLineUtils";
 import {EventHub} from "../helpers/EventHub";
 import {JobHelper} from "../helpers/JobHelper";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
-import {
-    checkIdValidity,
-    fetchByLoc,
-    flatten,
-    getNextAvailableId,
-    incrementLastLoc,
-    isType,
-} from "../helpers/utils";
+import {checkIdValidity, fetchByLoc, flatten, getNextAvailableId, incrementLastLoc, isType,} from "../helpers/utils";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
@@ -28,36 +22,38 @@ import {ResourceRequirementModel} from "./ResourceRequirementModel";
 
 export abstract class CommandLineToolModel extends ValidationBase implements Serializable<any> {
     // TOOL METADATA //
-    public id: string;
-    public cwlVersion: string | CWLVersion;
-    public "class" = "CommandLineTool";
-    public sbgId: string;
-    public label?: string;
-    public description?: string;
+    id: string;
+    cwlVersion: string | CWLVersion;
+    "class" = "CommandLineTool";
+    sbgId: string;
+    label?: string;
+    description?: string;
 
     // CWL PROPERTIES //
-    public baseCommand: Array<ExpressionModel | string> = [];
-    public inputs: CommandInputParameterModel[]         = [];
-    public outputs: CommandOutputParameterModel[]       = [];
+    namespaces = new NamespaceBag();
 
-    public arguments: CommandArgumentModel[] = [];
+    baseCommand: Array<ExpressionModel | string> = [];
+    inputs: CommandInputParameterModel[]         = [];
+    outputs: CommandOutputParameterModel[]       = [];
 
-    public docker: DockerRequirementModel;
+    arguments: CommandArgumentModel[] = [];
 
-    public requirements: Array<ProcessRequirementModel> = [];
-    public hints: Array<ProcessRequirementModel>        = [];
+    docker: DockerRequirementModel;
 
-    public stdin: ExpressionModel;
-    public stdout: ExpressionModel;
-    public stderr: ExpressionModel;
+    requirements: Array<ProcessRequirementModel> = [];
+    hints: Array<ProcessRequirementModel>        = [];
 
-    public successCodes: number[]       = [];
-    public temporaryFailCodes: number[] = [];
-    public permanentFailCodes: number[] = [];
+    stdin: ExpressionModel;
+    stdout: ExpressionModel;
+    stderr: ExpressionModel;
 
-    public fileRequirement: CreateFileRequirementModel;
+    successCodes: number[]       = [];
+    temporaryFailCodes: number[] = [];
+    permanentFailCodes: number[] = [];
 
-    public resources: ResourceRequirementModel;
+    fileRequirement: CreateFileRequirementModel;
+
+    resources: ResourceRequirementModel;
 
     /** Set of all expressions the tool contains */
     private expressions                        = new Set<ExpressionModel>();
@@ -74,13 +70,13 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     /** Flag to indicate that the tool has finished deserializing */
     protected constructed: boolean = false;
     /** Flag to indicate that tool has stdErr field */
-    public hasStdErr: boolean;
+    hasStdErr: boolean;
     /** Custom properties that weren't serialized */
-    public customProps: any        = {};
+    customProps: any        = {};
 
     /** EventHub that is passed to all children of the tool,
      * used for upward communication in the tool tree */
-    public eventHub: EventHub;
+    eventHub: EventHub;
 
     /** Function which is called when the command line is changed */
     protected commandLineWatcher: Function = () => {
@@ -112,7 +108,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     }
 
     // EXPRESSION CONTEXT //
-    public setJobInputs(inputs: any): void {
+    setJobInputs(inputs: any): void {
         this.jobInputs = inputs || JobHelper.getNullJobInputs(this);
         this.validateAllExpressions();
         this.updateCommandLine();
@@ -126,13 +122,13 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
 
     // EVENT HANDLING //
-    public on(event: string, handler): { dispose: Function } {
+    on(event: string, handler): { dispose: Function } {
         return {
             dispose: this.eventHub.on(event, handler)
         }
     }
 
-    public off(event: string, handler) {
+    off(event: string, handler) {
         this.eventHub.off(event, handler);
     }
 
@@ -328,7 +324,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     // CRUD HELPER METHODS //
 
-    public changeIOId(port: CommandInputParameterModel | CommandOutputParameterModel, id: string) {
+    changeIOId(port: CommandInputParameterModel | CommandOutputParameterModel, id: string) {
         if (port.id === id) {
             return;
         }
@@ -362,12 +358,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.eventHub.emit(`${type}.change.id`, {port, oldId, newId: port.id});
     }
 
-    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+    addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
         new UnimplementedMethodException("addHint", "CommandLineToolModel");
         return null;
     }
 
-    public updateStream(stream: ExpressionModel, type: "stderr" | "stdin" | "stdout") {
+    updateStream(stream: ExpressionModel, type: "stderr" | "stdin" | "stdout") {
         new UnimplementedMethodException("updateStream", "CommandLineToolModel");
     }
 
@@ -396,12 +392,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         return o;
     }
 
-    public addOutput(output?): CommandOutputParameterModel {
+    addOutput(output?): CommandOutputParameterModel {
         new UnimplementedMethodException("addOutput", "CommandLineToolModel");
         return null;
     }
 
-    public removeOutput(output: CommandOutputParameterModel) {
+    removeOutput(output: CommandOutputParameterModel) {
         const index = this.outputs.indexOf(output);
         if (index < 0) {
             return;
@@ -445,12 +441,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         return i;
     }
 
-    public addInput(input?): CommandInputParameterModel {
+    addInput(input?): CommandInputParameterModel {
         new UnimplementedMethodException("addInput", "CommandLineToolModel");
         return null;
     }
 
-    public removeInput(input: CommandInputParameterModel) {
+    removeInput(input: CommandInputParameterModel) {
         const index = this.inputs.indexOf(input);
         if (index < 0) {
             return;
@@ -467,12 +463,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.eventHub.emit("input.remove", input);
     }
 
-    public addArgument(arg?): CommandArgumentModel {
+    addArgument(arg?): CommandArgumentModel {
         new UnimplementedMethodException("addArgument", "CommandLineToolModel");
         return null;
     }
 
-    public removeArgument(arg: CommandArgumentModel) {
+    removeArgument(arg: CommandArgumentModel) {
         const index = this.arguments.indexOf(arg);
         if (index < 0) {
             return;
@@ -489,18 +485,18 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         this.eventHub.emit("argument.remove", arg);
     }
 
-    public addBaseCommand(cmd?): ExpressionModel | void {
+    addBaseCommand(cmd?): ExpressionModel | void {
         new UnimplementedMethodException("addBaseCommand", "CommandLineToolModel");
         return null;
     }
 
-    public setRequirement(req: ProcessRequirement, hint?: boolean) {
+    setRequirement(req: ProcessRequirement, hint?: boolean) {
         new UnimplementedMethodException("setRequirement", "CommandLineToolModel");
     }
 
     // COMMAND LINE //
 
-    public updateCommandLine(): void {
+    updateCommandLine(): void {
         if (this.constructed) {
             this.generateCommandLineParts().then(res => {
                 this.commandLineWatcher(res);
@@ -508,18 +504,18 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         }
     }
 
-    public onCommandLineResult(fn: Function) {
+    onCommandLineResult(fn: Function) {
         this.commandLineWatcher = fn;
     }
 
-    public generateCommandLine(): Promise<string> {
+    generateCommandLine(): Promise<string> {
         return this.generateCommandLineParts().then((parts: CommandLinePart[]) => {
             const res = parts.filter(p => !!p.value).map(p => p.value).join(" ");
             return res.trim();
         });
     }
 
-    public generateCommandLineParts(): Promise<CommandLinePart[]> {
+    generateCommandLineParts(): Promise<CommandLinePart[]> {
         return generateCommandLineParts(this, this.jobInputs, this.runtime);
     }
 
@@ -531,7 +527,7 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
 
     // VALIDATION //
 
-    public validate(): Promise<any> {
+    validate(): Promise<any> {
         return Promise.all(this.validationPromises).then(() => {
             this.validationPromises = [];
         });

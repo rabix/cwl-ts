@@ -1,47 +1,51 @@
+import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
+import {InputParameter} from "../../mappings/v1.0/InputParameter";
+import {Workflow} from "../../mappings/v1.0/Workflow";
+import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
+import {NamespaceBag} from "../elements/namespace-bag";
+import {Process} from "../generic/Process";
+import {ProcessRequirement} from "../generic/ProcessRequirement";
+import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {WorkflowModel} from "../generic/WorkflowModel";
+import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {Customizable} from '../interfaces/Customizable';
+import {Serializable} from "../interfaces/Serializable";
+import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1StepModel} from "./V1StepModel";
 import {V1WorkflowInputParameterModel} from "./V1WorkflowInputParameterModel";
 import {V1WorkflowOutputParameterModel} from "./V1WorkflowOutputParameterModel";
-import {Workflow} from "../../mappings/v1.0/Workflow";
-import {Serializable} from "../interfaces/Serializable";
-import {RequirementBaseModel} from "../generic/RequirementBaseModel";
-import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
-import {InputParameter} from "../../mappings/v1.0/InputParameter";
-import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
-import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
-import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
-import {Process} from "../generic/Process";
 import {V1WorkflowStepOutputModel} from "./V1WorkflowStepOutputModel";
-import {ProcessRequirement} from "../generic/ProcessRequirement";
-import {V1ExpressionModel} from "./V1ExpressionModel";
-import {Customizable} from '../interfaces/Customizable';
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
-    public id: string;
+    id: string;
 
-    public cwlVersion: CWLVersion = "v1.0";
+    cwlVersion: CWLVersion = "v1.0";
 
-    public steps: V1StepModel[] = [];
+    steps: V1StepModel[] = [];
 
-    public inputs: V1WorkflowInputParameterModel[] = [];
+    inputs: V1WorkflowInputParameterModel[] = [];
 
-    public outputs: V1WorkflowOutputParameterModel[] = [];
+    outputs: V1WorkflowOutputParameterModel[] = [];
 
-    public requirements: RequirementBaseModel[] = [];
+    requirements: RequirementBaseModel[] = [];
 
     constructor(workflow?: Workflow, loc?: string) {
         super(loc || "document");
 
-        if (workflow) this.deserialize(workflow);
+        if (workflow) {
+            this.deserialize(workflow);
+        }
+
         this.graph = this.constructGraph();
         this.validateGraph();
     }
 
-    public loc: string;
-    public customProps: any = {};
+    loc: string;
+    customProps: any = {};
 
-    public addStepFromProcess(proc: Process): V1StepModel {
+    addStepFromProcess(proc: Process): V1StepModel {
         const loc  = `${this.loc}.steps[${this.steps.length}]`;
         const step = new V1StepModel({
             in: [],
@@ -62,7 +66,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     /**
      * Adds Input, Output, or Step to workflow. Does not add them to the graph.
      */
-    public addEntry(entry: V1StepModel
+    addEntry(entry: V1StepModel
                         | V1WorkflowInputParameterModel
                         | V1WorkflowOutputParameterModel, type: "inputs" | "outputs" | "steps") {
         entry.loc = `${this.loc}.${type}[${this[type].length}]`;
@@ -73,19 +77,19 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         return entry;
     }
 
-    public createInputFromPort(inPort: V1WorkflowStepInputModel | string,
+    createInputFromPort(inPort: V1WorkflowStepInputModel | string,
                                data: Customizable = {}): V1WorkflowInputParameterModel {
 
         return super._createInputFromPort(inPort, V1WorkflowInputParameterModel, undefined, undefined, data);
     }
 
-    public createOutputFromPort(outPort: V1WorkflowStepOutputModel
+    createOutputFromPort(outPort: V1WorkflowStepOutputModel
                                     | string, data: Customizable = {}): V1WorkflowOutputParameterModel {
 
         return super._createOutputFromPort(outPort, V1WorkflowOutputParameterModel, undefined, undefined, data);
     }
 
-    public exposePort(inPort: V1WorkflowStepInputModel) {
+    exposePort(inPort: V1WorkflowStepInputModel) {
         const port = super._exposePort(inPort, V1WorkflowInputParameterModel);
         port.customProps["sbg:exposed"] = true;
         port.isVisible = false;
@@ -116,11 +120,11 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         return null;
     }
 
-    public addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
+    addHint(hint?: ProcessRequirement | any): RequirementBaseModel {
         return this.createReq(hint, V1ExpressionModel, undefined,  true);
     }
 
-    public serializeEmbedded(retainSource: boolean = false): Workflow {
+    serializeEmbedded(retainSource: boolean = false): Workflow {
         return this._serialize(true, retainSource);
     }
 
@@ -140,6 +144,10 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         if (this.description) base.doc = this.description;
         if (this.label) base.label = this.label;
+
+        if (this.namespaces.isNotEmpty()) {
+            base.$namespaces = this.namespaces.serialize();
+        }
 
         //@todo SERIALIZING HINTS AND REQUIREMENTS
 
@@ -213,6 +221,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     deserialize(workflow: Workflow): void {
         const serializedKeys = [
             "class",
+            "$namespaces",
             "id",
             "inputs",
             "outputs",
@@ -233,6 +242,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         this.label       = workflow.label;
         this.description = workflow.doc;
+        this.namespaces  = new NamespaceBag(workflow.$namespaces);
 
         ensureArray(workflow.inputs, "id", "type").forEach((input, i) => {
             this.addEntry(new V1WorkflowInputParameterModel(input, `${this.loc}.inputs[${i}]`, this.eventHub), "inputs");

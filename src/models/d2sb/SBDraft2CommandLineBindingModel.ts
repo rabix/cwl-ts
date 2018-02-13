@@ -4,8 +4,6 @@ import {CommandLineBindingModel} from "../generic/CommandLineBindingModel";
 import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
-import * as ts from "typescript-json-schema/typings/typescript/typescript";
-import warning = ts.ScriptElementKind.warning;
 import {EventHub} from "../helpers/EventHub";
 
 export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
