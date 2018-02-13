@@ -1,10 +1,11 @@
-import {WorkflowStepInputModel} from "../generic/WorkflowStepInputModel"
 import {WorkflowStepInput} from "../../mappings/v1.0/WorkflowStepInput";
-import {Serializable} from "../interfaces/Serializable";
-import {V1StepModel} from "./V1StepModel";
-import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {LinkMerge} from "../elements/link-merge";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+import {WorkflowStepInputModel} from "../generic/WorkflowStepInputModel"
+import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {Serializable} from "../interfaces/Serializable";
 import {V1ExpressionModel} from "./V1ExpressionModel";
+import {V1StepModel} from "./V1StepModel";
 
 export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements Serializable<WorkflowStepInput> {
 
@@ -26,8 +27,18 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
             id: this.id
         };
 
+        (base.linkMerge = this.linkMerge.serialize()) || delete base.linkMerge;
+
         if (this.default !== undefined && this.default !== null) base.default = this.default;
-        if (this.source.length) base.source = this.source.slice();
+
+        if (this.source.length) {
+
+            if (this.source.length === 1 && !this.type.isItemOrArray && !this.type.items && this.linkMerge.value === "merge_nested") {
+                base.source = this.source[0];
+            } else {
+                base.source = this.source.slice();
+            }
+        }
 
         if (this.valueFrom && this.valueFrom.serialize()) base.valueFrom = this.valueFrom.serialize();
 
@@ -43,6 +54,7 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
     deserialize(attr: WorkflowStepInput): void {
         const serializedKeys = [
             "id",
+            "linkMerge",
             "default",
             "source",
             "type",
@@ -51,9 +63,10 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
             "fileTypes"
         ];
 
-        this.id      = attr.id;
-        this.default = attr.default;
-        this.source  = ensureArray(attr.source);
+        this.id        = attr.id;
+        this.default   = attr.default;
+        this.source    = ensureArray(attr.source);
+        this.linkMerge = new LinkMerge(attr.linkMerge);
 
         this.valueFrom = new V1ExpressionModel(attr.valueFrom, `${this.loc}.valueFrom`);
 
