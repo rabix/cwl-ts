@@ -63,6 +63,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
 
     serialize(): CommandOutputBinding {
         let base: CommandOutputBinding = {};
+
         if (this._glob && this._glob.serialize()) {
             base.glob = <string | Expression> this._glob.serialize();
         }
@@ -81,7 +82,10 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
             base["sbg:inheritMetadataFrom"] = this.inheritMetadataFrom.substr(0) === "#" ? this.inheritMetadataFrom : "#" + this.inheritMetadataFrom;
         }
 
-        if (this.loadContents) base.loadContents = true;
+        if (this.loadContents) {
+            base.loadContents = true;
+        }
+
         if (this._outputEval.serialize()) {
             base.outputEval = <Expression> this._outputEval.serialize();
         }
