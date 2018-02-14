@@ -92,12 +92,15 @@ describe("SBDraft2CommandOutputParameterModel", () => {
                 }
             });
             expect(out.serialize()).to.deep.equal({
-                "type": [
+                type: [
                     "null",
                     "string"
                 ],
-                "id": "#result",
-                "label": "Result"
+                id: "#result",
+                label: "Result",
+                outputBinding:{
+                    loadContents: true
+                }
             });
         });
     });
