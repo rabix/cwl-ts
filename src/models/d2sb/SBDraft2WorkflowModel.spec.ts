@@ -695,11 +695,11 @@ describe("SBDraft2WorkflowModel", () => {
                                     }
                                 },
                                 {
+                                    "id": "#inFile",
                                     "type": [
                                         "null",
                                         "File"
                                     ],
-                                    "id": "#inFile",
                                     "required": false
                                 }
                             ],
@@ -724,9 +724,7 @@ describe("SBDraft2WorkflowModel", () => {
                         "inputs": [
                             {
                                 "id": "#io_tool.inFile",
-                                "source": [
-                                    "#inFile"
-                                ]
+                                "source": "#inFile"
                             }
                         ],
                         "outputs": [
@@ -868,9 +866,7 @@ describe("SBDraft2WorkflowModel", () => {
                         "inputs": [
                             {
                                 "id": "#io_tool_1.inFile",
-                                "source": [
-                                    "#io_tool.result"
-                                ]
+                                "source": "#io_tool.result"
                             }
                         ],
                         "outputs": [
@@ -981,7 +977,7 @@ describe("SBDraft2WorkflowModel", () => {
                         inputs: [
                             {
                                 id: "#step1.sIn",
-                                source: ["#inp"]
+                                source: "#inp"
                             }
                         ],
                         outputs: [

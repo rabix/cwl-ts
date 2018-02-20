@@ -1,10 +1,11 @@
-import {WorkflowStepInputModel} from "../generic/WorkflowStepInputModel";
 import {WorkflowStepInput} from "../../mappings/d2sb/WorkflowStepInput";
-import {SBDraft2StepModel} from "./SBDraft2StepModel";
-import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
-import {StepModel} from "../generic/StepModel";
-import {STEP_INPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {LinkMerge} from "../elements/link-merge";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+import {StepModel} from "../generic/StepModel";
+import {WorkflowStepInputModel} from "../generic/WorkflowStepInputModel";
+import {STEP_INPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {SBDraft2StepModel} from "./SBDraft2StepModel";
 
 export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
     private _id: string;
@@ -32,9 +33,18 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
         let base: WorkflowStepInput = <WorkflowStepInput>{};
 
         base.id = `#${this.parentStep.id}.${this._id}`;
-        if (this.source.length) base.source = this.source.slice();
-        if (this.linkMerge) base.linkMerge = this.linkMerge;
         if (this.default !== undefined && this.default !== null) base.default = this.default;
+
+        if (this.source.length) {
+
+            if (this.source.length === 1 && !this.type.isItemOrArray && !this.type.items && this.linkMerge.value === "merge_nested") {
+                base.source = this.source[0];
+            } else {
+                base.source = this.source.slice();
+            }
+        }
+
+        (base.linkMerge = this.linkMerge.serialize()) || delete base.linkMerge;
 
         base = spreadAllProps(base, this.customProps);
 
@@ -53,7 +63,8 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
             "type",
             "description",
             "label",
-            "source"
+            "source",
+            "linkMerge"
         ];
 
         this.default     = attr.default;
@@ -65,6 +76,7 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
         this.description = attr["description"];
         this.label       = attr["label"];
         this.source      = ensureArray(attr.source);
+        this.linkMerge   = new LinkMerge(attr.linkMerge);
 
         this.type = attr["type"];
         if (!this.type) this.type = new ParameterTypeModel(null);

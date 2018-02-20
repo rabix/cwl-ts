@@ -1,20 +1,19 @@
+import {LinkMerge} from "../elements/link-merge";
+import {STEP_INPUT_CONNECTION_PREFIX} from "../helpers/constants";
+import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
-import {Expression} from "../../mappings/v1.0/Expression";
-import {LinkMergeMethod} from "../../mappings/v1.0/LinkMergeMethod";
-import {StepModel} from "./StepModel";
-import {Plottable} from "./Plottable";
-import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
-import {STEP_INPUT_CONNECTION_PREFIX} from "../helpers/constants";
-import {ParameterTypeModel} from "./ParameterTypeModel";
 import {ExpressionModel} from "./ExpressionModel";
+import {ParameterTypeModel} from "./ParameterTypeModel";
+import {Plottable} from "./Plottable";
+import {StepModel} from "./StepModel";
 
 export class WorkflowStepInputModel extends ValidationBase implements Serializable<any>, Plottable {
     id: string;
     'default': any;
     valueFrom: ExpressionModel;
     source: string[] = [];
-    linkMerge: LinkMergeMethod;
+    linkMerge: LinkMerge;
     label: string;
     description: string;
 
