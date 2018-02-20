@@ -60,8 +60,14 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
 
         base.type = this.type.serialize();
 
-        if (this.label) base.label = this.label;
-        if (this.description) base.description = this.description;
+        if (this.label) {
+            base.label = this.label;
+        }
+
+        if (this.description) {
+            base.description = this.description;
+        }
+
         if (this.fileTypes && this.fileTypes.length) {
             base["sbg:fileTypes"] = (this.fileTypes || []).join(", ");
         }
@@ -71,9 +77,15 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
 
             // only type File or File[] can have secondaryFiles, loadContents and fileTypes
             if (!isFileType(this)) {
-                delete base.outputBinding.secondaryFiles;
-                delete base.outputBinding.loadContents;
                 delete base["sbg:fileTypes"];
+                delete base.outputBinding.secondaryFiles;
+
+                // This should be done per draft2 specification
+                // http://www.commonwl.org/draft-2/#commandoutputbinding
+                // but it turns out that d2sb apps are using loadContents for non-file apps
+                // who knows what executors are doing with this, but just leave it be and don't break old stuff
+                // delete base.outputBinding.loadContents;
+
             }
 
             if (isFileType(this) && this.secondaryFiles.length > 0) {
