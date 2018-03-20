@@ -2,6 +2,7 @@ import {expect} from "chai";
 import {CommandLineParsers} from "./CommandLineParsers";
 import {SBDraft2ExpressionModel} from "../d2sb/SBDraft2ExpressionModel";
 import {SBDraft2CommandInputParameterModel} from "../d2sb/SBDraft2CommandInputParameterModel";
+import {V1CommandInputParameterModel} from "../v1.0";
 
 describe("CommandLineParsers", () => {
     describe("streams", () => {
@@ -50,6 +51,64 @@ describe("CommandLineParsers", () => {
 
                 expect(res.value).to.equal("/path/to/file /path/to/file2");
 
+            }).then(done, done);
+        });
+
+        it("should evaluate an array of records", (done) => {
+            const input = new V1CommandInputParameterModel({
+                type: {
+                    type: "array",
+                    items: {
+                        type: "record",
+                        fields: [
+                            {
+                                name: "f1",
+                                type: "string",
+                                inputBinding: {}
+                            },
+                            {
+                                name: "f2",
+                                type: "int",
+                                inputBinding: {}
+                            }
+                        ]
+                    }
+                },
+                id: "input",
+                inputBinding: {}
+            });
+
+            CommandLineParsers.array(input, {}, [
+                {f1: "hello", f2: 3},
+                {f1: "world", f2: 4}
+            ], {}, "input", "input").then(function (res) {
+                expect(res.value).to.equal("hello 3 world 4");
+            }).then(done, done);
+        });
+
+        it("should evaluate a single record", (done) => {
+            const input = new V1CommandInputParameterModel({
+                type: {
+                    type: "record",
+                    fields: [
+                        {
+                            name: "f1",
+                            type: "string",
+                            inputBinding: {}
+                        },
+                        {
+                            name: "f2",
+                            type: "int",
+                            inputBinding: {}
+                        }
+                    ]
+                },
+                id: "input",
+                inputBinding: {}
+            });
+
+            CommandLineParsers.record(input, {}, {f1: "hello", f2: 3}, {}, "input", "input").then(function (res) {
+                expect(res.value).to.equal("hello 3");
             }).then(done, done);
         });
     });
