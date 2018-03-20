@@ -8,6 +8,7 @@ import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
 import {V1CommandLineToolModel} from "./V1CommandLineToolModel";
 import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
+import {CommandLineParsers} from "../helpers/CommandLineParsers";
 
 function runTest(app: CommandLineTool, job: any, expected: CommandLinePart[], done) {
     let model = new V1CommandLineToolModel(app, "document");
@@ -55,6 +56,84 @@ describe("V1CommandLineToolModel", () => {
     });
 
     describe("generateCommandLineParts", () => {
+        it("should evaluate an array of records", (done) => {
+            const model = new V1CommandLineToolModel({
+                class: "CommandLineTool",
+                inputs: [
+                    {
+                        type: {
+                            type: "array",
+                            items: {
+                                type: "record",
+                                fields: [
+                                    {
+                                        name: "f1",
+                                        type: "string",
+                                        inputBinding: {}
+                                    },
+                                    {
+                                        name: "f2",
+                                        type: "int",
+                                        inputBinding: {}
+                                    }
+                                ]
+                            }
+                        },
+                        id: "input",
+                        inputBinding: {}
+                    }
+                ],
+                outputs: []
+            });
+
+            model.setJobInputs({
+                input: [
+                    {f1: "hello", f2: 3},
+                    {f1: "world", f2: 4}
+                ]
+            });
+
+            model.generateCommandLine().then(function(cmd) {
+                expect(cmd).to.equal("hello 3 world 4");
+            }).then(done, done);
+        });
+
+        it("should evaluate a single record", (done) => {
+            const model = new V1CommandLineToolModel({
+                class: "CommandLineTool",
+                inputs: [
+                    {
+                        type: {
+                            type: "record",
+                            fields: [
+                                {
+                                    name: "f1",
+                                    type: "string",
+                                    inputBinding: {}
+                                },
+                                {
+                                    name: "f2",
+                                    type: "int",
+                                    inputBinding: {}
+                                }
+                            ]
+                        },
+                        id: "input",
+                        inputBinding: {}
+                    }
+                ],
+                outputs: []
+            });
+
+            model.setJobInputs({
+                input: {f1: "hello", f2: 3},
+            });
+
+            model.generateCommandLine().then(function(cmd) {
+                expect(cmd).to.equal("hello 3");
+            }).then(done, done);
+        });
+
         it("should evaluate valueFrom in input", (done) => {
             const model = new V1CommandLineToolModel(<any> {
                 inputs: {

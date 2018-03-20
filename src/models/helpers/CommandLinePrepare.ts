@@ -48,7 +48,7 @@ export class CommandLinePrepare {
 
         let parser = CommandLineParsers[inputType];
 
-        return parser(input, flatJobInputs, flatJobInputs[input.id || null], context, cmdType, loc);
+        return parser(input, flatJobInputs, flatJobInputs[input.id === undefined ? null : input.id], context, cmdType, loc);
     };
 
     static flattenInputsAndArgs(inputs: Array<CommandInputParameterModel | CommandArgumentModel>): Array<CommandInputParameterModel | CommandArgumentModel> {
@@ -70,9 +70,12 @@ export class CommandLinePrepare {
             };
 
             if (input instanceof CommandInputParameterModel) {
-                if (input.type.fields) {
-                    return acc.concat(input, ...CommandLinePrepare.flattenInputsAndArgs(input.type.fields).sort(sortFn));
-                }
+                // don't flatten fields here,
+                // instead iterate through them when you get to the actual record or array or records
+
+                // if (input.type.fields) {
+                //     return acc.concat(input, ...CommandLinePrepare.flattenInputsAndArgs(input.type.fields).sort(sortFn));
+                // }
             }
 
             return acc.concat(input).sort(sortFn);

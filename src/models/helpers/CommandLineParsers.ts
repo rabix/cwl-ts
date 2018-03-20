@@ -80,8 +80,17 @@ export class CommandLineParsers {
         const prefix    = input.inputBinding.prefix || "";
         const separator = input.inputBinding.separate !== false ? " " : "";
 
-        return new Promise(res => {
-            res(new CommandLinePart(prefix + separator, cmdType, loc));
+        // input.fields will be populated if the record is part of an array (input.type is overwritten by the item type)
+        // input.type.fields will be populated if the record is not in an array
+        const flatFields = CommandLinePrepare.flattenInputsAndArgs(input.fields || input.type.fields);
+        const flatRecordValue = CommandLinePrepare.flattenJob(value, {});
+
+
+        // context is probably the wrong context here, it should be the context on the tool level for the field
+        return Promise.all(flatFields.map(field => {
+            return CommandLinePrepare.prepare(field, flatRecordValue, context, loc);
+        })).then(parts => {
+            return new CommandLinePart(prefix +  separator + parts.map(p => p.value).join(" "), cmdType, loc);
         });
     }
 
@@ -99,6 +108,7 @@ export class CommandLineParsers {
                 return Object.assign({}, input, {
                     id: index,
                     type: input.type.items,
+                    fields: input.type.fields,
                     inputBinding: input.type.typeBinding || {}
                 }, {items: undefined});
             }).map((item: any): Promise<CommandLinePart> => {
