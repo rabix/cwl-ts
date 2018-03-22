@@ -181,6 +181,32 @@ describe("SBDraft2CommandLineToolModel", () => {
 
     describe("generateCommandLine", () => {
 
+        it("should evaluate an incorrectly formed job", (done) => {
+            const model = new SBDraft2CommandLineToolModel({
+                class: "CommandLineTool",
+                cwlVersion: "sbg:draft-2",
+                inputs: [
+                    {
+                        id: "#reference",
+                        type: "File",
+                        inputBinding: {}
+                    }
+                ],
+                outputs: [],
+                baseCommand: "",
+            });
+            model.setJobInputs({
+                "reference": {
+                    "path": "."
+                }
+            });
+
+            model.generateCommandLine().then(cmd => {
+                expect(cmd).to.equal(".");
+            }).then(done, done);
+
+        });
+
         it("Should evaluate baseCommand with expression", (done) => {
             let tool = new SBDraft2CommandLineToolModel({
                 "class": "CommandLineTool",
