@@ -4,11 +4,13 @@ import {CommandInputParameterModel} from "../generic/CommandInputParameterModel"
 import {ExpressionModel} from "../generic/ExpressionModel";
 
 import {CommandLinePart, CommandType} from "./CommandLinePart";
+import {isType} from "./utils";
 
 export class CommandLinePrepare {
 
     static prepare(input, flatJobInputs, context, loc?: string, cmdType?: CommandType): Promise<CommandLinePart> {
         let inputType = "primitive";
+        const isFileOrDirectory = isType(input, ["File", "Directory"]);
 
         if (!input) {
             inputType === "nullValue";
@@ -24,7 +26,7 @@ export class CommandLinePrepare {
                 inputType = "array";
             } else if (typeof value === "boolean") {
                 inputType = "boolean";
-            } else if (typeof value === "object" && value.class !== "File" && value.class !== "Directory") {
+            } else if (typeof value === "object" && value.class !== "File" && value.class !== "Directory" && !isFileOrDirectory) {
                 inputType = "record";
             }
         }
