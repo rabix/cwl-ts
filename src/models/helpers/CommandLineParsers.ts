@@ -82,7 +82,9 @@ export class CommandLineParsers {
 
         // input.fields will be populated if the record is part of an array (input.type is overwritten by the item type)
         // input.type.fields will be populated if the record is not in an array
-        const flatFields = CommandLinePrepare.flattenInputsAndArgs(input.fields || input.type.fields);
+        // the empty array is passed in case the type of input isn't really a record, but its value in the job was malformed
+        // to make it look like it is a record, in this case the parser will return nothing
+        const flatFields = CommandLinePrepare.flattenInputsAndArgs(input.fields || input.type.fields || []);
         const flatRecordValue = CommandLinePrepare.flattenJob(value, {});
 
 
