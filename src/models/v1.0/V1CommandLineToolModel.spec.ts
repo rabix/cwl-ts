@@ -1508,7 +1508,7 @@ describe("V1CommandLineToolModel", () => {
             output.outputBinding.setInheritMetadataFrom(null);
 
             const serialized = model.serialize();
-            expect(serialized.outputs[0].outputBinding.outputEval).to.be.undefined;
+            expect(serialized.outputs[0].outputBinding).to.be.undefined;
         });
 
         it("should remove only inherit script from outputEval if inherit is removed", () => {

@@ -1,13 +1,17 @@
 import {expect} from "chai";
 import {CommandOutputBinding} from "../../mappings/d2sb/CommandOutputBinding";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
-import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
-import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParameterModel";
-import {SBDraft2CommandLineToolModel} from "./SBDraft2CommandLineToolModel";
+import {testCommandOutputBindingSerialization} from '../../tests/shared/model';
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 import {JSExecutor} from "../helpers/JSExecutor";
+import {SBDraft2CommandLineToolModel} from "./SBDraft2CommandLineToolModel";
+import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
+import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParameterModel";
 
 describe("SBDraft2CommandOutputParameterModel", () => {
+
+    testCommandOutputBindingSerialization(SBDraft2CommandLineToolModel);
+
     describe("constructor", () => {
         it("Should initialize with an empty constructor", () => {
             const out = new SBDraft2CommandOutputParameterModel();
@@ -98,7 +102,7 @@ describe("SBDraft2CommandOutputParameterModel", () => {
                 ],
                 id: "#result",
                 label: "Result",
-                outputBinding:{
+                outputBinding: {
                     loadContents: true
                 }
             });
@@ -268,7 +272,7 @@ describe("SBDraft2CommandOutputParameterModel", () => {
             });
 
             it("should be invalid when loading", (done) => {
-                const tool = new SBDraft2CommandLineToolModel({
+                const tool   = new SBDraft2CommandLineToolModel({
                     class: "CommandLineTool",
                     outputs: [
                         {
@@ -293,24 +297,24 @@ describe("SBDraft2CommandOutputParameterModel", () => {
             });
 
             it("should maintain validation after updateSecondaryFiles", (done) => {
-               const tool = new SBDraft2CommandLineToolModel({
-                   class: "CommandLineTool",
-                   outputs: [
-                       {
-                           type: "File",
-                           outputBinding: {
-                               secondaryFiles: [
-                                   {
-                                       class: "Expression",
-                                       engine: "cwl-js-engine",
-                                       script: "!!!"
-                                   }
-                               ]
-                           }
-                       }
-                   ]
-               } as any);
-               const output = tool.outputs[0];
+                const tool   = new SBDraft2CommandLineToolModel({
+                    class: "CommandLineTool",
+                    outputs: [
+                        {
+                            type: "File",
+                            outputBinding: {
+                                secondaryFiles: [
+                                    {
+                                        class: "Expression",
+                                        engine: "cwl-js-engine",
+                                        script: "!!!"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                } as any);
+                const output = tool.outputs[0];
 
                 output.updateSecondaryFiles([{
                     class: "Expression",
@@ -323,13 +327,13 @@ describe("SBDraft2CommandOutputParameterModel", () => {
                 }]);
 
                 tool.validate().then(res => {
-                   expect(output.secondaryFiles[0].errors).to.have.lengthOf(1);
-                   expect(output.secondaryFiles[1].errors).to.have.lengthOf(1);
-               }).then(done, done);
-           });
+                    expect(output.secondaryFiles[0].errors).to.have.lengthOf(1);
+                    expect(output.secondaryFiles[1].errors).to.have.lengthOf(1);
+                }).then(done, done);
+            });
 
             it("should be invalid when adding a secondary file", (done) => {
-                const tool = new SBDraft2CommandLineToolModel({
+                const tool   = new SBDraft2CommandLineToolModel({
                     class: "CommandLineTool",
                     outputs: [
                         {
@@ -361,7 +365,7 @@ describe("SBDraft2CommandOutputParameterModel", () => {
             });
 
             it("should be invalid when adding and then updating secondary files", (done) => {
-                const tool = new SBDraft2CommandLineToolModel({
+                const tool   = new SBDraft2CommandLineToolModel({
                     class: "CommandLineTool",
                     outputs: [
                         {

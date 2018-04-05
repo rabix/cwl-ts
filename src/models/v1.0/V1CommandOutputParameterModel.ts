@@ -1,16 +1,13 @@
 import {CommandOutputParameter} from "../../mappings/v1.0";
-import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
-import {Serializable} from "../interfaces/Serializable";
-import {ParameterTypeModel} from "../generic/ParameterTypeModel";
-import {
-    commaSeparatedToArray, ensureArray, isType, spreadAllProps,
-    spreadSelectProps
-} from "../helpers/utils";
-import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
-import {V1ExpressionModel} from "./V1ExpressionModel";
 import {CommandOutputRecordField} from "../../mappings/v1.0/CommandOutputRecordField";
 import {Expression} from "../../mappings/v1.0/Expression";
+import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
+import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {EventHub} from "../helpers/EventHub";
+import {commaSeparatedToArray, ensureArray, isType, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {Serializable} from "../interfaces/Serializable";
+import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
+import {V1ExpressionModel} from "./V1ExpressionModel";
 
 export class V1CommandOutputParameterModel extends CommandOutputParameterModel implements Serializable<CommandOutputParameter> {
     public label: string;
@@ -53,7 +50,10 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         base.type = this.type.serialize("v1.0");
 
         if (this.outputBinding) {
-            base.outputBinding = this.outputBinding.serialize();
+            const serialized = this.outputBinding.serialize();
+            if (Object.keys(serialized).length !== 0) {
+                base.outputBinding = serialized;
+            }
         }
 
         if (!this.isField && this.secondaryFiles.length && (this.type.type === "File" || this.type.items === "File")) {
