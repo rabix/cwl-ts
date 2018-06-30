@@ -33,7 +33,7 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
 
         if (this.source.length) {
 
-            if (this.source.length === 1 && !this.type.isItemOrArray && !this.type.items && this.linkMerge.value === "merge_nested") {
+            if (this.source.length === 1) {
                 base.source = this.source[0];
             } else {
                 base.source = this.source.slice();
@@ -66,6 +66,9 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
         this.id        = attr.id;
         this.default   = attr.default;
         this.source    = ensureArray(attr.source);
+        if (this.source.length) {
+          this.source = this.source.length === 1 ? this.source[0] : this.source;
+        };
         this.linkMerge = new LinkMerge(attr.linkMerge);
 
         this.valueFrom = new V1ExpressionModel(attr.valueFrom, `${this.loc}.valueFrom`);

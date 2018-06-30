@@ -903,6 +903,7 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             throw new Error(`Cannot connect ports that belong to the same step: ${(destination as WorkflowStepInputModel).parentStep.id}`);
         }
         // add source to destination
+        destination.source = utils_1.ensureArray(destination.source)
         destination.source.push(source.sourceId);
 
         const isValid = this.validateConnection(destination, source);

@@ -36,7 +36,8 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
         }
 
         if (!this.isField) {
-            this.source = ensureArray((output as WorkflowOutputParameter).outputSource);
+            var sourceArray = ensureArray((output as WorkflowOutputParameter).outputSource);
+            this.source = sourceArray.length == 1 ? sourceArray[0] : sourceArray;
         }
 
         this.type = new ParameterTypeModel(output.type, V1WorkflowOutputParameterModel, `${this.id}_field`, `${this.loc}.type`, this.eventHub);
