@@ -17,7 +17,7 @@ export class CommandLinePrepare {
         }
 
         if (input instanceof CommandInputParameterModel || input.type === "record") {
-            const value = flatJobInputs[input.id] || null;
+            const value = flatJobInputs[input.id] !== undefined ? flatJobInputs[input.id] : null;
             cmdType     = "input";
 
             if (value === null) {
