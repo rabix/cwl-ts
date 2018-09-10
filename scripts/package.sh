@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
 # run this from root
-# cd lib, do npm version bump
-# npm publish inside lib
+# cd dist, do npm version bump
+# npm publish inside dist
 
-# clears lib directory
-rm -r lib/mappings
-rm -r lib/models
-rm -r lib/schemas
+# clears dist directory
+rm -r dist/mappings
+rm -r dist/models
+rm -r dist/schemas
 
-mkdir lib/schemas
+mkdir dist/schemas
 
 # copies schemas (that are version controlled)
-cp -R src/schemas/d2sb/ lib/schemas/d2sb/
-cp -R src/schemas/draft-3/ lib/schemas/draft-3/
-cp src/schemas/cwl-v10.json lib/schemas/cwl-v10.json
-cp src/schemas/cwl-mixed.json lib/schemas/cwl-mixed.json
+cp -R src/schemas/d2sb/ dist/schemas/d2sb/
+cp -R src/schemas/draft-3/ dist/schemas/draft-3/
+cp src/schemas/cwl-v10.json dist/schemas/cwl-v10.json
+cp src/schemas/cwl-mixed.json dist/schemas/cwl-mixed.json
 
 # compiles ts and generates declarations for mappings and model
 tsc -p tsconfig.json
 
 # removes tests in case tsconfig didn't exclude them
-rm -r lib/tests
+rm -r dist/tests
 
-cd lib
+cd dist
 
 #npm publish cwlts
 

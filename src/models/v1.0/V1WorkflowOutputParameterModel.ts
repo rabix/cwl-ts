@@ -10,9 +10,10 @@ import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 import {LinkMergeMethod} from "../../mappings/v1.0/LinkMergeMethod";
 import {EventHub} from "../helpers/EventHub";
 import {OutputRecordField} from "../../mappings/v1.0/OutputRecordField";
+import {Expression} from "../../mappings/v1.0";
+import {ExpressionModel} from "../generic/ExpressionModel";
 
 export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel {
-    secondaryFiles?: V1ExpressionModel[];
     linkMerge: LinkMergeMethod;
     streamable?: boolean;
     outputBinding?: V1CommandOutputBindingModel;
@@ -23,7 +24,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
     }
 
     deserialize(output: WorkflowOutputParameter | OutputRecordField) {
-        const serializedKeys = ["id", "name", "outputSource", "type", "label", "doc", "sbg:fileTypes"];
+        const serializedKeys = ["id", "name", "outputSource", "type", "label", "doc", "sbg:fileTypes", "secondaryFiles"];
         //@todo deserialization of outputBinding, streamable, linkMerge, secondaryFiles
 
         this.isField = !!(<OutputRecordField> output).name; // record fields don't have ids
@@ -49,6 +50,11 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
         if (!this.isField) {
             this.fileTypes = commaSeparatedToArray((output as WorkflowOutputParameter)["sbg:fileTypes"]);
         }
+
+        this.secondaryFiles = ensureArray((<WorkflowOutputParameter> output).secondaryFiles).map(f => this.addSecondaryFile(f));
+
+        this.attachFileTypeListeners();
+
         spreadSelectProps(output, this.customProps, serializedKeys);
     }
 
@@ -71,6 +77,22 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
         if (this._label) base.label = this._label;
         if (this.description) base.doc = this.description;
 
+        if (this.secondaryFiles && this.secondaryFiles.length) {
+            (base as WorkflowOutputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
+        }
+
         return spreadAllProps(base, this.customProps);
+    }
+
+    addSecondaryFile(file: Expression | string): ExpressionModel {
+        return this._addSecondaryFile(file, V1ExpressionModel, `${this.loc}`);
+    }
+
+    updateSecondaryFiles(files: Array<Expression | string>) {
+        this._updateSecondaryFiles(files);
+    }
+
+    removeSecondaryFile(index: number) {
+        this._removeSecondaryFile(index);
     }
 }

@@ -888,6 +888,7 @@ describe("SBDraft2WorkflowModel", () => {
                             "null",
                             "File"
                         ],
+                        "secondaryFiles": ["one", "three"],
                         "id": "#inFile"
                     }
                 ],
@@ -905,7 +906,8 @@ describe("SBDraft2WorkflowModel", () => {
                         "required": false,
                         "source": [
                             "#io_tool_1.result"
-                        ]
+                        ],
+                        "secondaryFiles": ["one", "four"]
                     }
                 ],
                 "sbg:validationErrors": [],

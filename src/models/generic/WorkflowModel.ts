@@ -5,7 +5,7 @@ import {STEP_INPUT_CONNECTION_PREFIX, STEP_OUTPUT_CONNECTION_PREFIX} from "../he
 import {EventHub} from "../helpers/EventHub";
 import {Edge, EdgeNode, Graph} from "../helpers/Graph";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
-import {checkIfConnectionIsValid, incrementString, validateID} from "../helpers/utils";
+import {checkIfConnectionIsValid, fetchByLoc, incrementString, validateID} from "../helpers/utils";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Customizable} from '../interfaces/Customizable';
 import {Serializable} from "../interfaces/Serializable";
@@ -22,6 +22,7 @@ import {WorkflowOutputParameterModel} from "./WorkflowOutputParameterModel";
 import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
 import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
+import {ExpressionModel} from "./ExpressionModel";
 
 type VertexNode = WorkflowInputParameterModel | WorkflowOutputParameterModel | StepModel | WorkflowStepInputModel | WorkflowStepOutputModel;
 
@@ -45,6 +46,14 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     hints: Array<ProcessRequirementModel> = [];
 
+    /** Flag to indicate that the tool has finished deserializing */
+    protected constructed: boolean = false;
+
+    /** Set of all expressions the tool contains */
+    private expressions                        = new Set<ExpressionModel>();
+
+    /** Array of all validation processes that are currently occurring */
+    private validationPromises: Promise<any>[] = [];
 
     protected readonly eventHub: EventHub;
 
@@ -104,8 +113,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             "io.change", // change in label, etc
             "io.change.id",
             "io.change.type",
+            "validate",
             "connection.create",
-            "connection.remove"
+            "connection.remove",
+            "expression.create",
+            "expression.change",
+            "expression.serialize"
         ]);
 
         this.initializeGraphWatchers();
@@ -209,6 +222,39 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                     }
                 })
             }
+        });
+    }
+
+    protected initializeExprWatchers() {
+        this.eventHub.on("expression.create", (expr: ExpressionModel) => {
+            this.expressions.add(expr);
+
+            if (this.constructed) {
+                this.validationPromises.push(this.validateExpression(expr));
+            }
+        });
+
+        this.eventHub.on("expression.change", (expr: ExpressionModel) => {
+            this.validationPromises.push(this.validateExpression(expr));
+        });
+    }
+
+    protected validateExpression(expression: ExpressionModel): Promise<any> {
+        let input;
+        if (/inputs|outputs/.test(expression.loc)) {
+            const loc = /.*(?:inputs\[\d+]|.*outputs\[\d+]|.*fields\[\d+])/
+                .exec(expression.loc)[0] // take the first match
+                .replace("document", ""); // so loc is relative to root
+            input     = fetchByLoc(this, loc);
+        }
+
+        return expression.validate();
+        // return expression.validate(this.getContext(input));
+    }
+
+    protected validateAllExpressions() {
+        this.expressions.forEach(e => {
+            this.validationPromises.push(this.validateExpression(e));
         });
     }
 
@@ -1149,7 +1195,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             id: this.getNextAvailableId(`${STEP_OUTPUT_CONNECTION_PREFIX}${inPort.id}/${inPort.id}`, true), // might change later in case input is already taken
             type: inPort.type ? inPort.type.serialize() : "null",
             ["sbg:fileTypes"]: inPort.fileTypes,
-            inputBinding: inPort["inputBinding"]
+            inputBinding: inPort["inputBinding"],
+            secondaryFiles: inPort["secondaryFiles"]
         }, data.customProps);
         const input      = new inputConstructor(<InputParameter>inputParam, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
 
@@ -1208,7 +1255,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         let outputParam = Object.assign({
             id: this.getNextAvailableId(`${STEP_INPUT_CONNECTION_PREFIX}${outPort.id}/${outPort.id}`, true), // might change later in case output is already taken
             type: outPort.type ? outPort.type.serialize() : "null",
-            ["sbg:fileTypes"]: outPort.fileTypes
+            ["sbg:fileTypes"]: outPort.fileTypes,
+            secondaryFiles: outPort["secondaryFiles"]
         }, opts.customProps) as OutputParameter;
 
         const output = new outputConstructor(outputParam, `${this.loc}.outputs[${this.outputs.length}]`, this.eventHub);
@@ -1480,5 +1528,11 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 });
             }
         }
+    }
+
+    validate(): Promise<any> {
+        return Promise.all(this.validationPromises).then(() => {
+            this.validationPromises = [];
+        });
     }
 }

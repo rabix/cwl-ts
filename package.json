@@ -1,6 +1,6 @@
 {
   "name": "cwlts",
-  "version": "1.15.23",
+  "version": "1.15.24",
   "description": "TypeScript data model for Common Workflow Language",
   "scripts": {
     "tsc": "npx tsc",
@@ -10,7 +10,7 @@
     "schemas": "npm install cwl-ts-parser && scripts/schemas.sh",
     "d2sb-test": "mocha src/tests/*.d2sb.spec.js",
     "v1-test": "mocha src/tests/*.v1.spec.js",
-    "publish:prepare": "node ./scripts/prepublish.js && npm run tsc",
+    "publish:prepare": "node ./scripts/prepublish.js && ./node_modules/typescript/bin/tsc",
     "publish:dist": "npm run publish:prepare && cd dist && npm publish"
   },
   "repository": {
@@ -43,7 +43,7 @@
     "jsonschema": "^1.2.2",
     "mocha": "^5.0.0",
     "ts-node": "^4.1.0",
-    "typescript": "^2.7.1",
+    "typescript": "2.7.1",
     "typescript-json-schema": "0.20.0"
   },
   "engines": {

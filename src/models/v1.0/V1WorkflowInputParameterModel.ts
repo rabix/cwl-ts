@@ -11,9 +11,10 @@ import {
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
 import {EventHub} from "../helpers/EventHub";
+import {Expression} from "../../mappings/v1.0";
+import {ExpressionModel} from "../generic/ExpressionModel";
 
 export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
-    public secondaryFiles?: Array<V1ExpressionModel>;
     public streamable?: boolean;
     public inputBinding?: V1CommandLineBindingModel;
 
@@ -23,9 +24,9 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
     }
 
     deserialize(attr: InputParameter | RecordField) {
-        const serializedKeys = ["id", "name", "type", "label", "doc", "sbg:fileTypes"];
+        const serializedKeys = ["id", "name", "type", "label", "doc", "sbg:fileTypes", "secondaryFiles"];
 
-        // @todo serialization of secondaryFiles, streamable, inputBinding
+        // @todo serialization of streamable, inputBinding
 
         this._label      = attr.label;
         this.description = ensureArray(attr.doc).join("\n\n");
@@ -40,7 +41,24 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
         this.isVisible = !attr["sbg:exposed"];
 
+        this.secondaryFiles = ensureArray((<InputParameter> attr).secondaryFiles).map(f => this.addSecondaryFile(f));
+
+        this.attachFileTypeListeners();
+
         spreadSelectProps(attr, this.customProps, serializedKeys);
+    }
+
+    addSecondaryFile(file: Expression | string): ExpressionModel {
+        return this._addSecondaryFile(file, V1ExpressionModel, `${this.loc}`);
+    }
+
+    updateSecondaryFiles(files: Array<Expression | string>) {
+        this._updateSecondaryFiles(files);
+
+    }
+
+    removeSecondaryFile(index: number) {
+        this._removeSecondaryFile(index);
     }
 
     serialize(): InputParameter | RecordField {
@@ -57,6 +75,10 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
         if (this._label) base.label = this._label;
         if (this.description) base.doc = this.description;
+
+        if (this.secondaryFiles && this.secondaryFiles.length) {
+            (base as InputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
+        }
 
         return spreadAllProps(base, this.customProps);
     }

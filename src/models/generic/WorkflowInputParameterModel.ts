@@ -7,11 +7,16 @@ import {UnimplementedMethodException} from "../helpers/UnimplementedMethodExcept
 import {EventHub} from "../helpers/EventHub";
 import {ParameterTypeModel} from "./ParameterTypeModel";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
+import {ExpressionModel} from "./ExpressionModel";
+import {Expression as V1Expression} from "../../mappings/v1.0/Expression";
+import {incrementLastLoc, isFileType} from "../helpers/utils";
+import {Expression as SBDraft2Expression} from "../../mappings/d2sb/Expression";
 
-export class WorkflowInputParameterModel extends ValidationBase implements InputParameter, Serializable<any>, Plottable {
+export abstract class WorkflowInputParameterModel extends ValidationBase implements InputParameter, Serializable<any>, Plottable {
     public id: string;
     public type: ParameterTypeModel;
     public fileTypes: string[] = [];
+    public secondaryFiles: ExpressionModel[] = [];
 
     public inputBinding?: any;
 
@@ -64,6 +69,39 @@ export class WorkflowInputParameterModel extends ValidationBase implements Input
         this.type.updateLoc(`${loc}.type`);
     }
 
+
+    abstract addSecondaryFile(file: V1Expression | SBDraft2Expression | string): ExpressionModel;
+
+    protected _addSecondaryFile<T extends ExpressionModel>(file: V1Expression | SBDraft2Expression | string,
+                                                           exprConstructor: new(...args: any[]) => T,
+                                                           locBase: string): T {
+        const loc = incrementLastLoc(this.secondaryFiles, `${locBase}.secondaryFiles`);
+        const f   = new exprConstructor(file, loc, this.eventHub);
+        this.secondaryFiles.push(f);
+        f.setValidationCallback(err => this.updateValidity(err));
+        return f;
+    }
+
+    abstract updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>);
+
+    protected _updateSecondaryFiles(files: Array<V1Expression | SBDraft2Expression | string>) {
+        this.secondaryFiles.forEach(f => f.clearIssue(ErrorCode.EXPR_ALL));
+        this.secondaryFiles = [];
+        files.forEach(f => this.addSecondaryFile(f));
+
+    }
+
+    abstract removeSecondaryFile(index: number);
+
+    protected _removeSecondaryFile(index: number) {
+        const file = this.secondaryFiles[index];
+        if (file) {
+            file.setValue("", "string");
+            this.secondaryFiles.splice(index, 1);
+        }
+    }
+
+
     serialize(): any {
         new UnimplementedMethodException("serialize", "WorkflowInputParameterModel");
     }
@@ -79,5 +117,17 @@ export class WorkflowInputParameterModel extends ValidationBase implements Input
         promises.push(this.type.validate());
 
         return Promise.all(promises).then(res => this.issues);
+    }
+
+    protected attachFileTypeListeners() {
+        if (this.eventHub) {
+            this.modelListeners.push(this.eventHub.on("io.change.type", (loc: string) => {
+                if (`${this.loc}.type` === loc) {
+                    if (!isFileType(this)) {
+                        this.updateSecondaryFiles([]);
+                    }
+                }
+            }));
+        }
     }
 }

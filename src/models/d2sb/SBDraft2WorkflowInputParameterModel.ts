@@ -3,8 +3,11 @@ import {SBGWorkflowInputParameter} from "../../mappings/d2sb/SBGWorkflowInputPar
 import {RecordField} from "../../mappings/draft-3/RecordField";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
-import {commaSeparatedToArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {commaSeparatedToArray, ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
+import {Expression} from "../../mappings/d2sb/Expression";
+import {ExpressionModel} from "../generic/ExpressionModel";
 
 export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
@@ -22,7 +25,7 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
     }
 
     deserialize(input: SBGWorkflowInputParameter | RecordField) {
-        const serializedKeys = ["name", "id", "type", "label", "description", "sbg:fileTypes"];
+        const serializedKeys = ["name", "id", "type", "label", "description", "sbg:fileTypes", "secondaryFiles"];
 
         this.isField = !!(<RecordField> input).name;
 
@@ -45,6 +48,10 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
         // only show inputs which are type File or File[], or should be explicitly shown
         this.isVisible = this.type.type === "File" || this.type.items === "File" || !!input["sbg:includeInPorts"];
 
+        this.secondaryFiles = ensureArray((<SBGWorkflowInputParameter> input).secondaryFiles).map(f => this.addSecondaryFile(f));
+
+        this.attachFileTypeListeners();
+
         spreadSelectProps(input, this.customProps, serializedKeys);
     }
 
@@ -62,6 +69,23 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
             base.id = "#" + this.id;
         }
 
+        if (this.secondaryFiles && this.secondaryFiles.length) {
+            (base as SBGWorkflowInputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
+        }
+
         return spreadAllProps(base, this.customProps);
+    }
+
+    addSecondaryFile(file: Expression | string): ExpressionModel {
+        return this._addSecondaryFile(file, SBDraft2ExpressionModel, this.loc);
+    }
+
+    updateSecondaryFiles(files: Array<Expression | Expression | string>) {
+        this._updateSecondaryFiles(files);
+    }
+
+
+    removeSecondaryFile(index: number) {
+        this._removeSecondaryFile(index);
     }
 }

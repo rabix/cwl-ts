@@ -34,11 +34,16 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     constructor(workflow?: Workflow, loc?: string) {
         super(loc || "document");
 
+        this.initializeExprWatchers();
+
         if (workflow) {
             this.deserialize(workflow);
         }
 
+        this.constructed = true;
+
         this.graph = this.constructGraph();
+        this.validateAllExpressions();
         this.validateGraph();
     }
 

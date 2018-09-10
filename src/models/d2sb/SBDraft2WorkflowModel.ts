@@ -34,9 +34,13 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
     constructor(workflow: Workflow, loc: string = "document") {
         super(loc);
 
+        this.initializeExprWatchers();
+
         if (workflow) {
             this.deserialize(workflow);
         }
+
+        this.constructed = true;
 
         // We check for not having a loc, because having it means that this is embedded as a step
         if (!loc && !this.namespaces.has("sbg")) {
@@ -44,6 +48,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         }
 
         this.graph = this.constructGraph();
+        this.validateAllExpressions();
         this.validateGraph();
 
         this.eventHub.on("io.change.id", (node, oldId)=> {
