@@ -17,8 +17,21 @@
     "type": "git",
     "url": "git+https://github.com/rabix/cwl-ts.git"
   },
-  "author": "Ivan Batić",
-  "contributors": ["Maja Nedeljkovic", "Marijan Lekic"],
+  "author": {
+    "name": "Maja Nedeljković",
+    "email": "maya.nedeljko@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "Marijan Lekić",
+      "email": "marijanlekic89@gmail.com"
+    },
+    {
+      "name": "Ivan Batić",
+      "email": "ivan.batic@live.com",
+      "url": "https://twitter.com/ivanbatic"
+    }
+  ],
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/rabix/cwl-ts/issues"
