@@ -8,6 +8,7 @@ import {ErrorCode} from "../helpers/validation/ErrorCode";
 export abstract class DirentModel extends ValidationBase implements Serializable<any> {
     entry: ExpressionModel;
     entryName: ExpressionModel;
+    writable: boolean;
 
     customProps: any = {};
 

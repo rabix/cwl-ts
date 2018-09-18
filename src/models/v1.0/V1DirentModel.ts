@@ -7,6 +7,7 @@ import {EventHub} from "../helpers/EventHub";
 
 export class V1DirentModel extends DirentModel {
 
+   public writable: boolean;
 
     constructor(dirent?: Dirent, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
@@ -24,6 +25,8 @@ export class V1DirentModel extends DirentModel {
             base.entry = <string | Expression> this.entry.serialize();
         }
 
+        base.writable = !!this.writable;
+
         return spreadAllProps(base, this.customProps);
     }
 
@@ -34,6 +37,8 @@ export class V1DirentModel extends DirentModel {
         this.entry = new V1ExpressionModel(attr.entry, `${this.loc}.entry`, this.eventHub);
         this.entry.setValidationCallback(err => this.updateValidity(err));
 
-        spreadSelectProps(attr, this.customProps, ["entry", "entryname"]);
+        this.writable = !!attr.writable;
+
+        spreadSelectProps(attr, this.customProps, ["entry", "entryname", "writable"]);
     }
 }
