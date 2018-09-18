@@ -1,6 +1,6 @@
 {
   "name": "cwlts",
-  "version": "1.15.25",
+  "version": "1.15.26",
   "description": "TypeScript data model for Common Workflow Language",
   "scripts": {
     "tsc": "npx tsc",
@@ -40,6 +40,9 @@
   "dependencies": {
     "ajv": "^6.1.1",
     "js-yaml": "^3.10.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
     "@types/chai": "^4.1.2",
