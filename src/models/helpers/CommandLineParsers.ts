@@ -106,6 +106,15 @@ export class CommandLineParsers {
         const itemSeparator = typeof input.inputBinding.itemSeparator === "string" ?
             input.inputBinding.itemSeparator : " ";
 
+        if (input.inputBinding.valueFrom && input.inputBinding.valueFrom.serialize() !== undefined) {
+            return input.inputBinding.valueFrom.evaluate(context)
+                .then(res => {
+                    return new CommandLinePart(prefix + separator + res, cmdType, loc);
+                }, err => {
+                    return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, loc);
+                });
+        }
+
         return (Promise.all(value.map((val, index) => {
                 return Object.assign({}, input, {
                     id: index,
