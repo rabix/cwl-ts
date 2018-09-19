@@ -161,6 +161,11 @@ export class CommandLineParsers {
 
         if (arg.valueFrom) {
             return CommandLinePrepare.prepare(arg.valueFrom, job, context, loc).then(res => {
+
+                if (!res) {
+                    return new CommandLinePart("", cmdType, loc);
+                }
+
                 if (res instanceof CommandLinePart) {
                     return res;
                 }
