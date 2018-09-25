@@ -4,7 +4,7 @@ export type LinkMergeMethod = "merge_nested" | "merge_flattened";
 
 export class LinkMerge {
 
-    value: LinkMergeMethod = "merge_nested";
+    value: LinkMergeMethod;
     readonly originalValue: Optional<LinkMergeMethod>;
 
     constructor(value?: LinkMergeMethod) {
@@ -22,7 +22,7 @@ export class LinkMerge {
 
     serialize(): Optional<LinkMergeMethod> {
 
-        if (this.originalValue || this.value === "merge_flattened") {
+        if (this.originalValue || this.value === "merge_flattened" || this.value === "merge_nested") {
             return this.value;
         }
     }
