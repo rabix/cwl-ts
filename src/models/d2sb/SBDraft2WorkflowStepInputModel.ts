@@ -37,7 +37,8 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
 
         if (this.source.length) {
 
-            if (this.source.length === 1 && !this.type.isItemOrArray && !this.type.items && this.linkMerge.value === "merge_nested") {
+            if (this.source.length === 1 && !this.type.isItemOrArray && !this.type.items
+                && (!this.linkMerge.value || this.linkMerge.value === "merge_nested")) {
                 base.source = this.source[0];
             } else {
                 base.source = this.source.slice();
