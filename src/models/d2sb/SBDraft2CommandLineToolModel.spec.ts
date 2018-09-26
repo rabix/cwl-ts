@@ -290,7 +290,7 @@ describe("SBDraft2CommandLineToolModel", () => {
     describe("serialize", () => {
         it("should return same object for template", () => {
             const tool: CommandLineTool = {
-                $namespaces: {sbg: "https://www.sevenbridges.com"},
+                $namespaces: {sbg: "https://www.sevenbridges.com/"},
                 class: "CommandLineTool",
                 cwlVersion: "sbg:draft-2",
                 inputs: [],
@@ -307,7 +307,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
         it("should return same object for tool with baseCommand", () => {
             const tool: CommandLineTool = {
-                $namespaces: {sbg: "https://www.sevenbridges.com"},
+                $namespaces: {sbg: "https://www.sevenbridges.com/"},
                 "class": "CommandLineTool",
                 cwlVersion: "sbg:draft-2",
                 inputs: [],
@@ -402,7 +402,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
         it("should serialize arguments", () => {
             const tool: CommandLineTool = {
-                $namespaces: {sbg: "https://www.sevenbridges.com"},
+                $namespaces: {sbg: "https://www.sevenbridges.com/"},
                 inputs: [],
                 outputs: [],
                 cwlVersion: "sbg:draft-2",
@@ -445,7 +445,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
         it("should serialize inputs", () => {
             const tool: CommandLineTool = {
-                $namespaces: {sbg: "https://www.sevenbridges.com"},
+                $namespaces: {sbg: "https://www.sevenbridges.com/"},
                 outputs: [],
                 baseCommand: 'cmd',
                 cwlVersion: "sbg:draft-2",
@@ -558,7 +558,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
         it("should serialize outputs", () => {
             const tool: CommandLineTool = {
-                $namespaces: {sbg: "https://www.sevenbridges.com"},
+                $namespaces: {sbg: "https://www.sevenbridges.com/"},
                 inputs: [],
                 cwlVersion: "sbg:draft-2",
                 baseCommand: 'cmd',
@@ -631,7 +631,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
         it("should serialize createFileRequirement", () => {
             const tool = {
-                $namespaces: {sbg: "https://www.sevenbridges.com"},
+                $namespaces: {sbg: "https://www.sevenbridges.com/"},
                 "baseCommand": [],
                 cwlVersion: "sbg:draft-2",
                 "inputs": [],
@@ -677,7 +677,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
         it("should serialize hints", () => {
             const tool = {
-                $namespaces: {sbg: "https://www.sevenbridges.com"},
+                $namespaces: {sbg: "https://www.sevenbridges.com/"},
                 "baseCommand": [],
                 cwlVersion: "sbg:draft-2",
                 "inputs": [],
@@ -713,7 +713,7 @@ describe("SBDraft2CommandLineToolModel", () => {
 
         it("should serialize success/permanentFail/temporaryFail codes", () => {
             const tool = {
-                $namespaces: {sbg: "https://www.sevenbridges.com"},
+                $namespaces: {sbg: "https://www.sevenbridges.com/"},
                 "baseCommand": [],
                 cwlVersion: "sbg:draft-2",
                 "inputs": [],
