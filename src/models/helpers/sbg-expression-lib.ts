@@ -1,11 +1,10 @@
 export const sbgHelperLibrary = `
 var setMetadata = function(file, metadata) {
-    if (!('metadata' in file))
-        file['metadata'] = metadata;
-    else {
-        for (var key in metadata) {
-            file['metadata'][key] = metadata[key];
-        }
+    if (!('metadata' in file)) {
+        file['metadata'] = {}
+    }
+    for (var key in metadata) {
+        file['metadata'][key] = metadata[key];
     }
     return file
 };
