@@ -8,7 +8,7 @@ import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 
 export class ExpressionToolModel extends ValidationBase implements Serializable<any> {
     id: string;
-    "class" = "ExperssionTool";
+    "class" = "ExpressionTool";
     customProps: any = {};
     cwlVersion: CWLVersion;
 
