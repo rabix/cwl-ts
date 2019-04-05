@@ -35,13 +35,21 @@ export class JobHelper {
         }
 
         const file = (name) => {
-            return {
+
+            let obj: any = {
                 path: '/path/to/' + name + '.ext',
-                    'class': 'File',
+                'class': 'File',
                 size: 0,
                 contents: "file contents",
                 secondaryFiles: []
+            };
+
+            if (version === "v1.0") {
+                obj = {...obj, ...{basename: name + ".ext", nameroot: name, nameext: ".ext"}};
             }
+
+            return obj;
+
         };
 
         let map = {
@@ -105,10 +113,6 @@ export class JobHelper {
             input.type.fields.forEach(field => {
                 val[field.id] = JobHelper.generateMockJobData(field);
             });
-        }
-
-        if (type === "File" && version === "v1.0") {
-            val = {...val, ...{basename: name + ".ext", nameroot: name, nameext: ".ext"}};
         }
 
         return val !== undefined ? val : null;
