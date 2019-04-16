@@ -384,7 +384,8 @@ describe("V1CommandLineToolModel", () => {
                         contents: "file contents",
                         nameext: ".ext",
                         size: 0,
-                        secondaryFiles: []
+                        secondaryFiles: [],
+                        metadata: {}
                     }
                 }
             });
