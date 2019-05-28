@@ -43,6 +43,8 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
 
     public hasDirectoryType = false;
 
+    public hasMapType = false;
+
     private _items: PrimitiveParameterType = null;
 
     get items(): PrimitiveParameterType {
