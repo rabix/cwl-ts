@@ -6,7 +6,8 @@ describe("V1CommandArgumentModel", () => {
             const data = {
                 prefix: "--pref",
                 position: 3,
-                valueFrom: "string"
+                valueFrom: "string",
+                shellQuote: false
             };
 
             const arg = new V1CommandArgumentModel(data);
