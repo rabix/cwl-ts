@@ -1149,7 +1149,7 @@ describe("V1CommandLineToolModel", () => {
             expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
         });
 
-        it("should not add ShellQuoteRequirement if no binding has shellQuote: false", () => {
+        it("should add ShellQuoteRequirement if there is a binding without shellQuote property", () => {
             const tool = new V1CommandLineToolModel(<any> {
                 inputs: {
                     first: "string",
@@ -1169,10 +1169,10 @@ describe("V1CommandLineToolModel", () => {
             });
 
             const serialize = tool.serialize();
-            expect(serialize.requirements).to.not.exist;
+            expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
         });
 
-        it("should remove ShellQuoteRequirement if no binding has shellQuote: false", () => {
+        it("should not remove ShellQuoteRequirement if there is a binding without shellQuote property", () => {
             const tool = new V1CommandLineToolModel(<any> {
                 inputs: {
                     first: "string",
@@ -1197,7 +1197,7 @@ describe("V1CommandLineToolModel", () => {
             });
 
             const serialize = tool.serialize();
-            expect(serialize.requirements).to.not.exist;
+            expect(serialize.requirements).to.exist;
         });
 
         it("should not duplicate requirement", () => {
@@ -1232,8 +1232,11 @@ describe("V1CommandLineToolModel", () => {
 
             const serialize = tool.serialize();
             expect(serialize.requirements).to.not.be.empty;
-            expect(serialize.requirements).to.have.length(1);
-            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+            expect(serialize.requirements).to.have.length(2);
+            const hasInlineJavascriptRequirement =
+                !!serialize.requirements.find((req) => req.class && req.class === "InlineJavascriptRequirement");
+
+            expect(hasInlineJavascriptRequirement).to.be.true;
         });
 
         it("should add requirement if input.secondaryFile is expression", () => {
@@ -1342,8 +1345,11 @@ describe("V1CommandLineToolModel", () => {
 
             const serialize = tool.serialize();
             expect(serialize.requirements).to.not.be.empty;
-            expect(serialize.requirements).to.have.length(1);
-            expect(serialize.requirements[0].class).to.equal("InlineJavascriptRequirement");
+            expect(serialize.requirements).to.exist;
+            const hasInlineJavascriptRequirement =
+                !!serialize.requirements.find((req) => req.class && req.class === "InlineJavascriptRequirement");
+
+            expect(hasInlineJavascriptRequirement).to.be.true;
         });
 
         it("should add requirement if argument is expression", () => {
@@ -1372,7 +1378,10 @@ describe("V1CommandLineToolModel", () => {
             const serialize = tool.serialize();
             expect(serialize.requirements).to.not.be.empty;
             expect(serialize.requirements).to.have.length(2);
-            expect(serialize.requirements[1].class).to.equal("InlineJavascriptRequirement");
+            const hasInlineJavascriptRequirement =
+                !!serialize.requirements.find((req) => req.class && req.class === "InlineJavascriptRequirement");
+
+            expect(hasInlineJavascriptRequirement).to.be.true;
         });
 
         it("should add requirement if resourceRequirement has expression", () => {
@@ -1388,7 +1397,10 @@ describe("V1CommandLineToolModel", () => {
             const serialize = tool.serialize();
             expect(serialize.requirements).to.not.be.empty;
             expect(serialize.requirements).to.have.length(2);
-            expect(serialize.requirements[1].class).to.equal("InlineJavascriptRequirement");
+            const hasInlineJavascriptRequirement =
+                !!serialize.requirements.find((req) => req.class && req.class === "InlineJavascriptRequirement");
+
+            expect(hasInlineJavascriptRequirement).to.be.true;
         });
 
         it("should not remove existing requirement", () => {

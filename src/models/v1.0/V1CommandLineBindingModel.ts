@@ -9,7 +9,7 @@ import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class V1CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: V1ExpressionModel;
-    public shellQuote = true;
+    public shellQuote = false;
     public hasSecondaryFiles = false;
     public hasShellQuote     = true;
 
@@ -39,7 +39,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
         this.prefix        = binding.prefix;
         this.separate      = binding.separate !== false; // default is true if not specified
         this.itemSeparator = binding.itemSeparator;
-        this.shellQuote    = binding.shellQuote !== false; // default is true if not specified
+        this.shellQuote    = binding.shellQuote || false; // default is false if not specified
         this.loadContents  = binding.loadContents === true;
 
         this.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`, this.eventHub);
