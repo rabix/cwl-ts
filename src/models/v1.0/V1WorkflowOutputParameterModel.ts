@@ -3,7 +3,7 @@ import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParamet
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {
     commaSeparatedToArray, ensureArray, spreadAllProps,
-    spreadSelectProps
+    spreadSelectProps, isFileType
 } from "../helpers/utils";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
@@ -65,7 +65,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
             if (this.source.length)  {
                 (<WorkflowOutputParameter> base).outputSource = this.source.slice();
             }
-            if (this.fileTypes.length) {
+            if (isFileType(this) && this.fileTypes.length) {
                 (base as WorkflowOutputParameter)["sbg:fileTypes"] = this.fileTypes.join(", ");
             }
 

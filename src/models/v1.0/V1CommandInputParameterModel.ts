@@ -3,7 +3,7 @@ import {CommandInputParameterModel} from "../generic/CommandInputParameterModel"
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {Serializable} from "../interfaces/Serializable";
 import {
-    commaSeparatedToArray, ensureArray, isType, spreadSelectProps
+    commaSeparatedToArray, ensureArray, isType, spreadSelectProps, isFileType
 } from "../helpers/utils";
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
@@ -69,7 +69,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         if (this.label) base.label = this.label;
         if (this.description) base.doc = this.description;
 
-        if (this.fileTypes.length && !this.isField) {
+        if (isFileType(this) && this.fileTypes.length && !this.isField) {
             (base as CommandInputParameter)["sbg:fileTypes"] = this.fileTypes.join(", ");
         }
 

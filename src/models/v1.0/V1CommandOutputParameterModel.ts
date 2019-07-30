@@ -4,7 +4,7 @@ import {Expression} from "../../mappings/v1.0/Expression";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {EventHub} from "../helpers/EventHub";
-import {commaSeparatedToArray, ensureArray, isType, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {commaSeparatedToArray, ensureArray, isType, spreadAllProps, spreadSelectProps, isFileType} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
@@ -60,7 +60,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
             (<CommandOutputParameter> base).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
-        if (!this.isField && this.fileTypes.length) {
+        if (isFileType(this) && !this.isField && this.fileTypes.length) {
             (<CommandOutputParameter> base)["sbg:fileTypes"] = this.fileTypes.join(", ");
         }
 

@@ -6,7 +6,8 @@ import {
     commaSeparatedToArray,
     ensureArray,
     spreadAllProps,
-    spreadSelectProps
+    spreadSelectProps,
+    isFileType
 } from "../helpers/utils";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
@@ -68,7 +69,9 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
             (base as RecordField).name = this.id;
         } else {
             (base as InputParameter).id = this.id;
-            if (this.fileTypes.length) (base as InputParameter)["sbg:fileTypes"] = this.fileTypes.join(", ");
+            if (isFileType(this) && this.fileTypes.length) {
+                (base as InputParameter)["sbg:fileTypes"] = this.fileTypes.join(", ");
+            }
         }
 
         if (this.type.type) base.type = this.type.serialize("v1.0");

@@ -3,7 +3,7 @@ import {WorkflowOutputParameter} from "../../mappings/d2sb/WorkflowOutputParamet
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {
     commaSeparatedToArray, ensureArray, spreadAllProps,
-    spreadSelectProps
+    spreadSelectProps, isFileType
 } from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
 import {Expression} from "../../mappings/v1.0";
@@ -33,7 +33,9 @@ export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParamete
 
         base.source = ensureArray(this.source);
         if (this.type) base.type = this.type.serialize();
-        if (this.fileTypes.length) base["sbg:fileTypes"] = this.fileTypes.join(", ");
+        if (isFileType(this) && this.fileTypes.length) {
+            base["sbg:fileTypes"] = this.fileTypes.join(", ");
+        }
 
         if (this.secondaryFiles && this.secondaryFiles.length) {
             (base as SBGWorkflowInputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);

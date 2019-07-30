@@ -5,13 +5,12 @@ import {CommandInputParameterModel} from "../generic/CommandInputParameterModel"
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {EventHub} from "../helpers/EventHub";
 import {
-    commaSeparatedToArray, ensureArray, incrementLastLoc, isType,
+    commaSeparatedToArray, ensureArray, isFileType, isType,
     spreadSelectProps, validateID
 } from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
-import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class SBDraft2CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter
     | CommandInputRecordField> {
@@ -40,14 +39,17 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
         if (this.inputBinding) {
             base.inputBinding = this.inputBinding.serialize();
 
-            if (this.type.type === "File" || this.type.items === "File" && this.secondaryFiles.length) {
+            if (isFileType(this) && this.secondaryFiles.length) {
                 base.inputBinding.secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
             }
         }
 
         if (this.label) base.label = this.label;
         if (this.description) base.description = this.description;
-        if (this.fileTypes.length) base["sbg:fileTypes"] = this.fileTypes.join(", ");
+
+        if (isFileType(this) && this.fileTypes.length) {
+            base["sbg:fileTypes"] = this.fileTypes.join(", ");
+        }
 
         if (this.isField) {
             base.name = this.id;

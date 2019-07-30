@@ -3,7 +3,7 @@ import {SBGWorkflowInputParameter} from "../../mappings/d2sb/SBGWorkflowInputPar
 import {RecordField} from "../../mappings/draft-3/RecordField";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
-import {commaSeparatedToArray, ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {commaSeparatedToArray, ensureArray, spreadAllProps, spreadSelectProps, isFileType} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
@@ -64,7 +64,10 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
 
         if (this._label) base.label = this._label;
         if (this.description) base.description = this.description;
-        if (this.fileTypes.length) base["sbg:fileTypes"] = this.fileTypes.join(", ");
+
+        if (this.fileTypes.length && isFileType(this)) {
+            base["sbg:fileTypes"] = this.fileTypes.join(", ");
+        }
 
         if (this.isField) {
             base.name = this.id;

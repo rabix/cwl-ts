@@ -68,7 +68,7 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
             base.description = this.description;
         }
 
-        if (this.fileTypes && this.fileTypes.length) {
+        if (isFileType(this) && this.fileTypes && this.fileTypes.length) {
             base["sbg:fileTypes"] = (this.fileTypes || []).join(", ");
         }
 
