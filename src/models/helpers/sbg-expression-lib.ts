@@ -8,9 +8,11 @@ var setMetadata = function(file, metadata) {
     }
     return file
 };
-
 var inheritMetadata = function(o1, o2) {
     var commonMetadata = {};
+    if (!o2) {
+        return o1;
+    };
     if (!Array.isArray(o2)) {
         o2 = [o2]
     }
@@ -23,6 +25,11 @@ var inheritMetadata = function(o1, o2) {
                 if (!(commonMetadata[key] == example[key])) {
                     delete commonMetadata[key]
                 }
+            }
+        }
+        for (var key in commonMetadata) {
+            if (!(key in example)) {
+                delete commonMetadata[key]
             }
         }
     }
