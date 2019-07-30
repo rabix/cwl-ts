@@ -105,6 +105,8 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
             this.type.name = this.id;
         }
 
+        this.type.hasMapType = true;
+
         this.attachFileTypeListeners();
 
         // populates object with all custom attributes not covered in model

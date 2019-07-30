@@ -41,6 +41,9 @@ export class SBDraft2WorkflowInputParameterModel extends WorkflowInputParameterM
                 this.updateValidity(err)
             }
         );
+
+        this.type.hasMapType = true;
+
         this.fileTypes   = commaSeparatedToArray(input["sbg:fileTypes"]);
         this._label       = (input as SBGWorkflowInputParameter).label;
         this.description = (input as SBGWorkflowInputParameter).description;

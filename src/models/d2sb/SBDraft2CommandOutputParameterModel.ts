@@ -138,6 +138,7 @@ export class SBDraft2CommandOutputParameterModel extends CommandOutputParameterM
 
         this.type = new ParameterTypeModel(attr.type, SBDraft2CommandOutputParameterModel, `${this.id}_field`,`${this.loc}.type`, this.eventHub);
         this.type.setValidationCallback(err => this.updateValidity(err));
+        this.type.hasMapType = true;
 
         if (isType(this, ["record", "enum"]) && !this.type.name) {
             this.type.name = this.id;

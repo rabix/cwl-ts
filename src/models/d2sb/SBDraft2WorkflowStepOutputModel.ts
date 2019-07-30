@@ -46,6 +46,7 @@ export class SBDraft2WorkflowStepOutputModel extends WorkflowStepOutputModel {
         this.description = attr["description"];
         this.label       = attr["label"];
         if (!this.type) this.type = new ParameterTypeModel(null);
+        this.type.hasMapType = true;
 
         spreadSelectProps(attr, this.customProps, serializedKeys);
     }
