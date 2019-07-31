@@ -17,7 +17,6 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
     linkMerge: LinkMergeMethod;
     streamable?: boolean;
     outputBinding?: V1CommandOutputBindingModel;
-    doc?: string;
 
     constructor(output?: WorkflowOutputParameter, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
@@ -46,7 +45,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
         this.type.hasDirectoryType = true;
 
         this._label      = output.label;
-        this.doc = ensureArray(output.doc).join("\n\n");
+        this.description = ensureArray(output.doc).join("\n\n");
 
         if (!this.isField) {
             this.fileTypes = commaSeparatedToArray((output as WorkflowOutputParameter)["sbg:fileTypes"]);
@@ -76,7 +75,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
 
         if (this.type) base.type = this.type.serialize("v1.0");
         if (this._label) base.label = this._label;
-        if (this.doc) base.doc = this.doc;
+        if (this.description) base.doc = this.description;
 
         if (this.secondaryFiles && this.secondaryFiles.length) {
             (base as WorkflowOutputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);

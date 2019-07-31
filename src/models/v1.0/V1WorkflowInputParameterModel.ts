@@ -18,7 +18,6 @@ import {ExpressionModel} from "../generic/ExpressionModel";
 export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
     public streamable?: boolean;
     public inputBinding?: V1CommandLineBindingModel;
-    public doc?: string;
 
     constructor(input?: InputParameter | RecordField, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
@@ -31,7 +30,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
         // @todo serialization of streamable, inputBinding
 
         this._label      = attr.label;
-        this.doc = ensureArray(attr.doc).join("\n\n");
+        this.description = ensureArray(attr.doc).join("\n\n");
 
         this.id      = (<InputParameter> attr).id || (<RecordField> attr).name;
         this.isField = !!(<RecordField> attr).name;
@@ -78,7 +77,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
         if (this.type.type) base.type = this.type.serialize("v1.0");
 
         if (this._label) base.label = this._label;
-        if (this.doc) base.doc = this.description;
+        if (this.description) base.doc = this.description;
 
         if (this.secondaryFiles && this.secondaryFiles.length) {
             (base as InputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);

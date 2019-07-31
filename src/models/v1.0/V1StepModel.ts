@@ -28,7 +28,6 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
     public hasMultipleScatter               = true;
     public hasScatterMethod                 = true;
     public scatter;
-    public doc: string;
 
     constructor(step?, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
@@ -75,7 +74,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         }
 
         if (this._label) base.label = this.label;
-        if (this.doc) base.doc = this.doc;
+        if (this.description) base.doc = this.description;
         if (this.scatter.length) base.scatter = this.scatter;
         if (this.scatterMethod) base.scatterMethod = this.scatterMethod;
 
