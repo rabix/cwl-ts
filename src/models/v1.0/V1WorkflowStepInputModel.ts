@@ -61,7 +61,8 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
             "type",
             "doc",
             "label",
-            "fileTypes"
+            "fileTypes",
+            "secondaryFiles"
         ];
 
         this.id        = attr.id;
@@ -81,6 +82,8 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
         this.label       = attr["label"];
 
         this.fileTypes = attr["fileTypes"];
+
+        this.secondaryFiles = attr["secondaryFiles"];
 
         spreadSelectProps(attr, this.customProps, serializedKeys);
     }

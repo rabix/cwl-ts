@@ -1,4 +1,5 @@
 import {ParameterTypeModel} from "./ParameterTypeModel";
+import {ExpressionModel} from "./ExpressionModel";
 
 export interface OutputParameter {
     id: string;
@@ -7,4 +8,6 @@ export interface OutputParameter {
     description?: string;
 
     fileTypes?: string[];
+
+    secondaryFiles?: ExpressionModel[];
 }

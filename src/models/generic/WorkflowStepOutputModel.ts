@@ -5,12 +5,15 @@ import {Serializable} from "../interfaces/Serializable";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {ParameterTypeModel} from "./ParameterTypeModel";
+import {ExpressionModel} from "./ExpressionModel";
 
 export class WorkflowStepOutputModel extends ValidationBase implements Plottable, Serializable<any> {
     type?: ParameterTypeModel;
     fileTypes: string[] = [];
     label?: string;
     description?: string;
+
+    secondaryFiles: ExpressionModel[] = [];
 
     parentStep: StepModel;
     id: string;

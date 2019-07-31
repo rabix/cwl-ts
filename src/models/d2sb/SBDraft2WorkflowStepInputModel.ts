@@ -65,7 +65,8 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
             "description",
             "label",
             "source",
-            "linkMerge"
+            "linkMerge",
+            "secondaryFiles"
         ];
 
         this.default     = attr.default;
@@ -78,6 +79,7 @@ export class SBDraft2WorkflowStepInputModel extends WorkflowStepInputModel {
         this.label       = attr["label"];
         this.source      = ensureArray(attr.source);
         this.linkMerge   = new LinkMerge(attr.linkMerge);
+        this.secondaryFiles = attr["secondaryFiles"];
 
         this.type = attr["type"];
         if (!this.type) this.type = new ParameterTypeModel(null);

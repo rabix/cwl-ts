@@ -7,9 +7,9 @@ import {
 } from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
 import {Expression} from "../../mappings/v1.0";
-import {V1ExpressionModel} from "../v1.0/V1ExpressionModel";
 import {ExpressionModel} from "../generic/ExpressionModel";
 import {SBGWorkflowInputParameter} from "../../mappings/d2sb/SBGWorkflowInputParameter";
+import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 
 export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParameterModel {
 
@@ -69,7 +69,7 @@ export class SBDraft2WorkflowOutputParameterModel extends WorkflowOutputParamete
 
 
     addSecondaryFile(file: Expression | string): ExpressionModel {
-        return this._addSecondaryFile(file, V1ExpressionModel, `${this.loc}`);
+        return this._addSecondaryFile(file, SBDraft2ExpressionModel, `${this.loc}`);
     }
 
     updateSecondaryFiles(files: Array<Expression | string>) {

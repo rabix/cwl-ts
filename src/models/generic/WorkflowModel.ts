@@ -206,22 +206,22 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         this.eventHub.on("step.port.change", (port: WorkflowStepOutputModel | WorkflowStepInputModel) => {
             this.graph.setVertexData(port.connectionId, port);
             // check if port is connected to a workflow output
-            if (port instanceof WorkflowStepOutputModel && this.graph.hasOutgoing(port.connectionId)) {
-                const temporaryEdges = Array.from(this.graph.edges);
-                temporaryEdges.forEach(e => {
-                    if (e.source.id === port.connectionId) {
-                        const oldOutput = this.findById(e.destination.id);
-                        // make sure the destination is a workflow output and is only connected to the port which changed
-                        if (!(oldOutput instanceof WorkflowOutputParameterModel) || oldOutput.source.length !== 1) return;
-
-                        // remove the outdated workflow output first to avoid an infinite loop and duplicate ids
-                        this.removeOutput(oldOutput);
-
-                        // create a new workflow output in place of the one which changed
-                        this.createOutputFromPort(port.connectionId, {customProps: oldOutput.customProps});
-                    }
-                })
-            }
+            // if (port instanceof WorkflowStepOutputModel && this.graph.hasOutgoing(port.connectionId)) {
+            //     const temporaryEdges = Array.from(this.graph.edges);
+            //     temporaryEdges.forEach(e => {
+            //         if (e.source.id === port.connectionId) {
+            //             const oldOutput = this.findById(e.destination.id);
+            //             // make sure the destination is a workflow output and is only connected to the port which changed
+            //             if (!(oldOutput instanceof WorkflowOutputParameterModel) || oldOutput.source.length !== 1) return;
+            //
+            //             // remove the outdated workflow output first to avoid an infinite loop and duplicate ids
+            //             this.removeOutput(oldOutput);
+            //
+            //             // create a new workflow output in place of the one which changed
+            //             this.createOutputFromPort(port.connectionId, {customProps: oldOutput.customProps});
+            //         }
+            //     })
+            // }
         });
     }
 
@@ -1194,6 +1194,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const inputParam = Object.assign({
             id: this.getNextAvailableId(`${STEP_OUTPUT_CONNECTION_PREFIX}${inPort.id}/${inPort.id}`, true), // might change later in case input is already taken
             type: inPort.type ? inPort.type.serialize() : "null",
+            description: inPort.description,
+            label: inPort.label,
             ["sbg:fileTypes"]: inPort.fileTypes,
             inputBinding: inPort["inputBinding"],
             secondaryFiles: inPort["secondaryFiles"]
@@ -1256,7 +1258,9 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             id: this.getNextAvailableId(`${STEP_INPUT_CONNECTION_PREFIX}${outPort.id}/${outPort.id}`, true), // might change later in case output is already taken
             type: outPort.type ? outPort.type.serialize() : "null",
             ["sbg:fileTypes"]: outPort.fileTypes,
-            secondaryFiles: outPort["secondaryFiles"]
+            secondaryFiles: outPort["secondaryFiles"],
+            description: outPort.description,
+            label: outPort.label,
         }, opts.customProps) as OutputParameter;
 
         const output = new outputConstructor(outputParam, `${this.loc}.outputs[${this.outputs.length}]`, this.eventHub);

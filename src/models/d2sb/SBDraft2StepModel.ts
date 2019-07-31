@@ -78,6 +78,7 @@ export class SBDraft2StepModel extends StepModel {
                 fileTypes: input.fileTypes || [],
                 description: input.description,
                 label: input.label,
+                secondaryFiles: input.secondaryFiles,
                 ...serialized,
                 "sbg:toolDefaultValue": input.customProps["sbg:toolDefaultValue"],
                 "sbg:category": input.customProps["sbg:category"],
@@ -135,6 +136,7 @@ export class SBDraft2StepModel extends StepModel {
                 type: output.type,
                 fileTypes: output.fileTypes,
                 description: output.description,
+                secondaryFiles: output.secondaryFiles,
                 label: output.label,
                 ...match,
             }, this, `${this.loc}.outputs[${index}]`);

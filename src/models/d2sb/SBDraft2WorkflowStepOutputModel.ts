@@ -45,6 +45,7 @@ export class SBDraft2WorkflowStepOutputModel extends WorkflowStepOutputModel {
         this.type        = attr["type"];
         this.description = attr["description"];
         this.label       = attr["label"];
+        this.secondaryFiles = attr["secondaryFiles"];
         if (!this.type) this.type = new ParameterTypeModel(null);
         this.type.hasMapType = true;
 

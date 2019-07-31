@@ -34,6 +34,7 @@ export class V1WorkflowStepOutputModel extends WorkflowStepOutputModel implement
 
         this.description = output["doc"];
         this.label = output["label"];
+        this.secondaryFiles = output["secondaryFiles"];
 
         this.fileTypes = output["format"];
     }
