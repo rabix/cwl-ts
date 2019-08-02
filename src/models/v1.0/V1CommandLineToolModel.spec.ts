@@ -1516,6 +1516,24 @@ describe("V1CommandLineToolModel", () => {
             expect(serialized.requirements[0]).to.not.haveOwnProperty("expressionLib");
         });
 
+        it('should allow custom expression after inherit script', () => {
+           const expr = `
+               \${
+                   inheritMetadata(self, inputs.input)
+                   self[0].metadata.library_id = self[0].metadata.library_id + '_new'
+                   return self
+               }
+           `;
+           outputWithInherit.outputBinding.setInheritMetadataFrom("input");
+           outputWithInherit.outputBinding.outputEval = new V1ExpressionModel(expr);
+
+           const serialized = model.serialize();
+
+           expect(serialized.requirements).to.not.be.empty;
+           expect(serialized.requirements[0].class).to.equal("InlineJavascriptRequirement");
+           expect(serialized.requirements[0]).to.haveOwnProperty("expressionLib");
+        });
+
         it("should remove outputEval inherit script if inherit metadata is removed", () => {
             output.outputBinding.setInheritMetadataFrom("input");
             output.outputBinding.setInheritMetadataFrom(null);
