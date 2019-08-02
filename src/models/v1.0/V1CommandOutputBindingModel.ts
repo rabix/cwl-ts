@@ -10,7 +10,7 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     public hasMetadata        = false;
     public hasInheritMetadata = true;
 
-    static INHERIT_REGEX = /\$\(inheritMetadata\(self, inputs.(.*?)\)\)/g;
+    static INHERIT_REGEX = /.*(?:\s*)inheritMetadata\((?:\s*)self(?:\s*),(?:\s*)inputs.(.*?)(?:\s*)\)(?:\s*).*/g;
     public inheritMetadataFrom: string;
 
     protected _glob: V1ExpressionModel;
