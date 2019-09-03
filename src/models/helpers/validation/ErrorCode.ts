@@ -11,6 +11,7 @@ export enum ErrorCode {
     EXPR_REFERENCE          = 202,
     EXPR_TYPE               = 203,
     EXPR_NOT_JSON           = 204,
+    EXPR_LINTER_WARNING     = 205,
 
     CONNECTION_ALL          = 300,
     CONNECTION_TYPE         = 301,
