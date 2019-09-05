@@ -23,9 +23,9 @@ export class ExpressionEvaluator {
                     switch (token.type) {
                         case "func":
                             return ExpressionEvaluator.evaluateExpression("(function() {" + this.libraries.join("\n\n") + "\n\n"
-                                + token.value + "})()", context);
+                                + token.value + "})()", context, version);
                         case "expr":
-                            return ExpressionEvaluator.evaluateExpression(this.libraries.join("\n\n") + "\n\n" + token.value, context);
+                            return ExpressionEvaluator.evaluateExpression(this.libraries.join("\n\n") + "\n\n" + token.value, context, version);
                         case "literal":
                             return new Promise(res => res(token.value));
                     }
@@ -50,7 +50,7 @@ export class ExpressionEvaluator {
                     ? "(function()" + expr.script + ")()"
                     : expr.script;
 
-                return ExpressionEvaluator.evaluateExpression(script, context);
+                return ExpressionEvaluator.evaluateExpression(script, context, version);
             }
         }
 

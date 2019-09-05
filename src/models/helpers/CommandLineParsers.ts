@@ -4,6 +4,7 @@ import {CommandLinePrepare} from "./CommandLinePrepare";
 import {TypeResolver} from "./TypeResolver";
 import {V1CommandArgumentModel} from "../v1.0/V1CommandArgumentModel";
 import {V1ExpressionModel} from "../v1.0/V1ExpressionModel";
+import {ErrorCode} from "./validation";
 
 export class CommandLineParsers {
 
@@ -29,6 +30,10 @@ export class CommandLineParsers {
                 .then(res => {
                     return new CommandLinePart(prefix + separator + res, cmdType, loc);
                 }, err => {
+                    if (err.type === "warning" && err.code === ErrorCode.EXPR_LINTER_WARNING) {
+                        const evaluation = err.payload.evaluation == null ? "" : err.payload.evaluation;
+                        return new CommandLinePart(prefix + separator + evaluation, cmdType, loc);
+                    }
                     return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, loc);
                 });
         }
@@ -62,6 +67,10 @@ export class CommandLineParsers {
                     .then(res => {
                         return new CommandLinePart(prefix + separator + res, type, loc);
                     }, err => {
+                        if (err.type === "warning" && err.code === ErrorCode.EXPR_LINTER_WARNING) {
+                            const evaluation = err.payload.evaluation == null ? "" : err.payload.evaluation;
+                            return new CommandLinePart(prefix + separator + evaluation, type, loc);
+                        }
                         return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, loc);
                     });
             }
@@ -111,6 +120,10 @@ export class CommandLineParsers {
                 .then(res => {
                     return new CommandLinePart(prefix + separator + res, cmdType, loc);
                 }, err => {
+                    if (err.type === "warning" && err.code === ErrorCode.EXPR_LINTER_WARNING) {
+                        const evaluation = err.payload.evaluation == null ? "" : err.payload.evaluation;
+                        return new CommandLinePart(prefix + separator + evaluation, cmdType, loc);
+                    }
                     return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, loc);
                 });
         }
@@ -135,6 +148,9 @@ export class CommandLineParsers {
         return expr.evaluate(context).then(res => {
             return res === undefined ? "" : res;
         }, err => {
+            if (err.type === "warning" && err.code === ErrorCode.EXPR_LINTER_WARNING) {
+                return err.payload.evaluation == null ? "" : err.payload.evaluation;
+            }
             return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type, loc);
         });
     }
