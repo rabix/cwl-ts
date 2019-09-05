@@ -134,7 +134,8 @@ export abstract class ExpressionModel extends ValidationBase implements Serializ
                         code = ErrorCode.EXPR_TYPE;
                     }
 
-                    rej(Object.assign({type: "warning", code}, err));
+                    const type = version === 'v1.0' ? "error" : "warning";
+                    rej(Object.assign({type, code}, err));
                 }
             });
         });
