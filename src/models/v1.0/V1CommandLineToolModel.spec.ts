@@ -180,6 +180,18 @@ describe("V1CommandLineToolModel", () => {
                 expect(res[0].value).to.equal("<error at document.arguments[0]>");
             }).then(done, done);
         });
+
+        it('should generate valid command line input/output redirection',  (done) => {
+            const model = new V1CommandLineToolModel(<any> {
+                baseCommand: 'sort',
+                stdin: 'unsorted.txt',
+                stdout: 'sorted.txt'
+            });
+
+            model.generateCommandLine().then(res => {
+                expect(res).to.equal("sort < unsorted.txt > sorted.txt");
+            }).then(done, done)
+        });
     });
 
     describe("serialize", () => {

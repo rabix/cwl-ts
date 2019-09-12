@@ -31,10 +31,10 @@ export const generateCommandLineParts = (tool: CommandLineToolModel, jobInputs, 
         });
     });
 
-    const stdOutPromise = CommandLinePrepare.prepare(tool.stdout, flatJobInputs, tool.getContext(), tool.stdout.loc, "stdout");
     const stdInPromise  = CommandLinePrepare.prepare(tool.stdin, flatJobInputs, tool.getContext(), tool.stdin.loc, "stdin");
+    const stdOutPromise = CommandLinePrepare.prepare(tool.stdout, flatJobInputs, tool.getContext(), tool.stdout.loc, "stdout");
 
-    return Promise.all([].concat(baseCmdPromise, inputPromise, stdOutPromise, stdInPromise)).then((parts: CommandLinePart[]) => {
+    return Promise.all([].concat(baseCmdPromise, inputPromise, stdInPromise, stdOutPromise)).then((parts: CommandLinePart[]) => {
         return parts.filter(part => part !== null);
     });
 };
