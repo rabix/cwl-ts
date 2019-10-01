@@ -69,7 +69,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         if (this.label) base.label = this.label;
         if (this.description) base.doc = this.description;
 
-        if (isFileType(this) && this.fileTypes.length && !this.isField) {
+        if (isFileType(this) && this.fileTypes.length) {
             (base as CommandInputParameter)["sbg:fileTypes"] = this.fileTypes.join(", ");
         }
 

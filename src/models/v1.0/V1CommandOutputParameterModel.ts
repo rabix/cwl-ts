@@ -60,7 +60,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
             (<CommandOutputParameter> base).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
-        if (isFileType(this) && !this.isField && this.fileTypes.length) {
+        if (isFileType(this) && this.fileTypes.length) {
             (<CommandOutputParameter> base)["sbg:fileTypes"] = this.fileTypes.join(", ");
         }
 
