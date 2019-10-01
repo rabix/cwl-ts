@@ -69,15 +69,15 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         if (this.label) base.label = this.label;
         if (this.description) base.doc = this.description;
 
-        if (isFileType(this) && this.fileTypes.length && !this.isField) {
+        if (isFileType(this) && this.fileTypes.length) {
             (base as CommandInputParameter)["sbg:fileTypes"] = this.fileTypes.join(", ");
         }
 
-        if (this.streamable !== undefined && !this.isField) {
+        if (this.streamable !== undefined) {
             (base as CommandInputParameter).streamable = this.streamable;
         }
 
-        if (this.secondaryFiles && this.secondaryFiles.length && !this.isField) {
+        if (this.secondaryFiles && this.secondaryFiles.length) {
             (base as CommandInputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 

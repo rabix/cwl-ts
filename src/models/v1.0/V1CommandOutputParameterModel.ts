@@ -56,15 +56,15 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
             }
         }
 
-        if (!this.isField && this.secondaryFiles.length && (this.type.type === "File" || this.type.items === "File")) {
+        if (this.secondaryFiles.length && (this.type.type === "File" || this.type.items === "File")) {
             (<CommandOutputParameter> base).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
-        if (isFileType(this) && !this.isField && this.fileTypes.length) {
+        if (isFileType(this) && this.fileTypes.length) {
             (<CommandOutputParameter> base)["sbg:fileTypes"] = this.fileTypes.join(", ");
         }
 
-        if (!this.isField && this.streamable) {
+        if (this.streamable) {
             (<CommandOutputParameter> base).streamable = this.streamable;
         }
 
