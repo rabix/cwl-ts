@@ -73,11 +73,11 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
             (base as CommandInputParameter)["sbg:fileTypes"] = this.fileTypes.join(", ");
         }
 
-        if (this.streamable !== undefined) {
+        if (this.streamable !== undefined && !this.isField) {
             (base as CommandInputParameter).streamable = this.streamable;
         }
 
-        if (this.secondaryFiles && this.secondaryFiles.length) {
+        if (this.secondaryFiles && this.secondaryFiles.length && !this.isField) {
             (base as CommandInputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
