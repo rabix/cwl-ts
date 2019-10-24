@@ -12,6 +12,7 @@ export class V1WorkflowStepOutputModel extends WorkflowStepOutputModel implement
     }
 
     customProps: any;
+    doc: string | string[];
 
     serialize(): WorkflowStepOutput {
         return {
@@ -32,7 +33,7 @@ export class V1WorkflowStepOutputModel extends WorkflowStepOutputModel implement
         if (!this.type) this.type = new ParameterTypeModel(null);
         this.type.hasDirectoryType = true;
 
-        this.description = output["doc"];
+        this.doc = output["doc"];
         this.label = output["label"];
         this.secondaryFiles = output["secondaryFiles"];
 
