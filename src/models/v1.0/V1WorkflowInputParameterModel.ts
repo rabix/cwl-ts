@@ -18,6 +18,7 @@ import {ExpressionModel} from "../generic/ExpressionModel";
 export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
     public streamable?: boolean;
     public inputBinding?: V1CommandLineBindingModel;
+    public doc?: string;
 
     constructor(input?: InputParameter | RecordField, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
@@ -31,6 +32,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
 
         this._label      = attr.label;
         this.description = ensureArray(attr.doc).join("\n\n");
+        this.doc         = this.description;
 
         this.id      = (<InputParameter> attr).id || (<RecordField> attr).name;
         this.isField = !!(<RecordField> attr).name;
