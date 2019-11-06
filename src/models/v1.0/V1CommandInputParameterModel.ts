@@ -15,6 +15,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
     public inputBinding: V1CommandLineBindingModel;
     public secondaryFiles: V1ExpressionModel[] = [];
     public streamable: boolean;
+    public default: any;
 
     public hasSecondaryFiles       = true;
     public hasSecondaryFilesInRoot = true;
@@ -81,6 +82,8 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
             (base as CommandInputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
+        (base as CommandInputParameter).default = this.default;
+
         return base;
     }
 
@@ -113,6 +116,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         this.secondaryFiles = ensureArray((<CommandInputParameter> attr).secondaryFiles).map(f => this.addSecondaryFile(f));
         this.fileTypes      = commaSeparatedToArray(attr["sbg:fileTypes"]);
         this.streamable     = (<CommandInputParameter> attr).streamable;
+        this.default        = (<CommandInputParameter> attr).default;
 
         this.attachFileTypeListeners();
 
