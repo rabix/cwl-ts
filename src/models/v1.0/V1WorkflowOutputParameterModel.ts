@@ -17,6 +17,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
     linkMerge: LinkMergeMethod;
     streamable?: boolean;
     outputBinding?: V1CommandOutputBindingModel;
+    doc?: string;
 
     constructor(output?: WorkflowOutputParameter, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
@@ -46,6 +47,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
 
         this._label      = output.label;
         this.description = ensureArray(output.doc).join("\n\n");
+        this.doc         = this.description;
 
         if (!this.isField) {
             this.fileTypes = commaSeparatedToArray((output as WorkflowOutputParameter)["sbg:fileTypes"]);

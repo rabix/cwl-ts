@@ -1194,7 +1194,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         const inputParam = Object.assign({
             id: this.getNextAvailableId(`${STEP_OUTPUT_CONNECTION_PREFIX}${inPort.id}/${inPort.id}`, true), // might change later in case input is already taken
             type: inPort.type ? inPort.type.serialize() : "null",
-            description: inPort.description,
+            description: (inPort["doc"] === undefined) && inPort.description ? inPort.description : undefined,
+            doc: inPort.description ? inPort.description : inPort["doc"],
             label: inPort.label,
             ["sbg:fileTypes"]: inPort.fileTypes,
             inputBinding: inPort["inputBinding"],
@@ -1259,7 +1260,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             type: outPort.type ? outPort.type.serialize() : "null",
             ["sbg:fileTypes"]: outPort.fileTypes,
             secondaryFiles: outPort["secondaryFiles"],
-            description: outPort.description,
+            description: (outPort["doc"] === undefined) && outPort.description ? outPort.description : undefined,
+            doc: outPort.description ? outPort.description : outPort["doc"],
             label: outPort.label,
         }, opts.customProps) as OutputParameter;
 

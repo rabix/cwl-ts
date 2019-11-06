@@ -15,6 +15,8 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
      */
     isVisible = false;
 
+    doc: string | string[];
+
     constructor(stepInput?: WorkflowStepInput, step?: V1StepModel, loc?: string) {
         super(loc);
         this.parentStep = step;
@@ -78,7 +80,7 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
         if (!this.type) this.type = new ParameterTypeModel(null);
         this.type.hasDirectoryType = true;
 
-        this.description = attr["doc"];
+        this.doc         = attr["doc"];
         this.label       = attr["label"];
 
         this.fileTypes = attr["fileTypes"];
