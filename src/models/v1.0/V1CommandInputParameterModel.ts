@@ -82,13 +82,15 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
             (base as CommandInputParameter).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
-        (base as CommandInputParameter).default = this.default;
+        if (this.default !== undefined) {
+            (base as CommandInputParameter).default = this.default;
+        }
 
         return base;
     }
 
     deserialize(attr: CommandInputParameter | CommandInputRecordField): void {
-        const serializedKeys = ["type", "doc", "inputBinding", "label", "secondaryFiles", "sbg:fileTypes", "streamable"];
+        const serializedKeys = ["type", "doc", "inputBinding", "label", "secondaryFiles", "sbg:fileTypes", "streamable", "default"];
 
         if ((<CommandInputRecordField> attr).name) {
             this.id      = (<CommandInputRecordField> attr).name;
