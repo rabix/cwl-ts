@@ -39,7 +39,9 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
         this.prefix        = binding.prefix;
         this.separate      = binding.separate !== false; // default is true if not specified
         this.itemSeparator = binding.itemSeparator;
-        this.shellQuote    = binding.shellQuote || false; // default is false if not specified
+        if (binding.shellQuote !== undefined) {
+            this.shellQuote = binding.shellQuote;
+        }
         this.loadContents  = binding.loadContents === true;
 
         this.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`, this.eventHub);
@@ -58,9 +60,7 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
 
         if (!base.loadContents) delete base.loadContents;
 
-        if (base.shellQuote !== false) {
-            delete base.shellQuote; // true by default
-        } else if (base.shellQuote === false && this.eventHub) {
+        if (base.shellQuote === false && this.eventHub) {
             this.eventHub.emit("binding.shellQuote", true);
         }
 
