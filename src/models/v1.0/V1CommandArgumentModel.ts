@@ -58,7 +58,7 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
         this.binding.separate      = binding.separate;
         this.binding.itemSeparator = binding.itemSeparator;
         this.binding.shellQuote    = binding.shellQuote;
-        this.binding.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`);
+        this.binding.valueFrom = new V1ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`, this.eventHub);
         this.binding.valueFrom.setValidationCallback(err => this.updateValidity(err));
 
         this.primitive  = undefined;
