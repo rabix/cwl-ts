@@ -266,7 +266,7 @@ describe("SBDraft2CommandLineToolModel", () => {
             tool.setRuntime(BWAMemJob.default.allocatedResources);
 
             tool.generateCommandLine().then(cmd => {
-                expect(cmd).to.equal(`python bwa mem chr20.fa -XXX -YYY example_human_Illumina.pe_1.fastq -YYY example_human_Illumina.pe_2.fastq`);
+                expect(cmd).to.equal(`python bwa mem chr20.fa -YYY example_human_Illumina.pe_1.fastq -YYY example_human_Illumina.pe_2.fastq`);
             }).then(done, done);
         });
 
@@ -411,12 +411,14 @@ describe("SBDraft2CommandLineToolModel", () => {
                 "arguments": [
                     "hello world",
                     {
+                        "itemSeparator": "null",
                         "prefix": "asdf",
                         "position": 3
                     },
                     {
                         "separate": true,
                         position: 0,
+                        "itemSeparator": "null",
                         "valueFrom": {
                             "script": "{\n  reference_file = $job.inputs.reference.path.split('/')[$job.inputs.reference.path.split('/').length-1]\n  ext = reference_file.split('.')[reference_file.split('.').length-1]\n  if(ext=='tar'){\n    return ''\n  }\n  else{\n    tar_cmd = 'tar -cf ' + reference_file + '.tar ' + reference_file + ' *.amb' + ' *.ann' + ' *.bwt' + ' *.pac' + ' *.sa' \n    return ' ; ' + tar_cmd\n  }\n}",
                             "class": "Expression",
@@ -468,7 +470,8 @@ describe("SBDraft2CommandLineToolModel", () => {
                             position: 0,
                             "separate": true,
                             "sbg:cmdInclude": true,
-                            "prefix": "-a"
+                            "prefix": "-a",
+                            "itemSeparator": "null"
                         },
                         "sbg:toolDefaultValue": "auto",
                         "description": "Algorithm for constructing BWT index. Available options are:s\tIS linear-time algorithm for constructing suffix array. It requires 5.37N memory where N is the size of the database. IS is moderately fast, but does not work with database larger than 2GB. IS is the default algorithm due to its simplicity. The current codes for IS algorithm are reimplemented by Yuta Mori. bwtsw\tAlgorithm implemented in BWT-SW. This method works with the whole human genome. Warning: `-a bwtsw' does not work for short genomes, while `-a is' and `-a div' do not work not for long genomes.",

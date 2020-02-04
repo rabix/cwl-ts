@@ -19,8 +19,7 @@ export default JSON.parse(`
         }
       },
       "inputBinding": {
-        "position": 3,
-        "prefix": "-XXX"
+        "position": 3
       }
     },
     {

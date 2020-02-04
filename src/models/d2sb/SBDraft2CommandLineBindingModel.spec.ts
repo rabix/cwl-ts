@@ -32,6 +32,7 @@ describe("SBDraft2CommandLineBindingModel d2sb", () => {
         it("Should serialize binding with valueFrom", () => {
             const data    = {
                 position: 0,
+                itemSeparator: "null",
                 valueFrom: {
                     "class": <ExpressionClass> "Expression",
                     engine: "#cwl-js-engine",
@@ -44,7 +45,7 @@ describe("SBDraft2CommandLineBindingModel d2sb", () => {
         });
 
         it("Should serialize only prefix", () => {
-            const data    = {prefix: "--pr", position: 0};
+            const data    = {prefix: "--pr", position: 0, itemSeparator: "null"};
             const binding = new SBDraft2CommandLineBindingModel(<CommandLineBinding>data);
 
             expect(binding.serialize()).to.deep.equal(data);
@@ -53,6 +54,7 @@ describe("SBDraft2CommandLineBindingModel d2sb", () => {
         it("Should serialize binding with customProps", () => {
             const data    = {
                 position: 0,
+                itemSeparator: "null",
                 valueFrom: {
                     "class": <ExpressionClass> "Expression",
                     engine: "#cwl-js-engine",
