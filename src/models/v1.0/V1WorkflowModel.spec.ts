@@ -6,6 +6,8 @@ import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {WorkflowModel} from "../generic/WorkflowModel";
 import {V1WorkflowModel} from "./V1WorkflowModel";
 import {Workflow} from "../../mappings/v1.0/Workflow";
+import {RequirementBaseModel} from "../generic";
+import {V1ExpressionModel} from "./V1ExpressionModel";
 
 describe("V1WorkflowModel", () => {
 
@@ -673,7 +675,7 @@ describe("V1WorkflowModel", () => {
         });
 
         it("should not SubworkflowFeatureRequirement if it doesn't know about types of steps", () => {
-            wf.customProps.requirements = [{class: "SubworkflowFeatureRequirement"}];
+            wf.requirements = [new RequirementBaseModel({class: "SubworkflowFeatureRequirement"}, V1ExpressionModel)];
 
             const serialized = wf.serialize();
             expect(serialized.requirements).to.have.lengthOf(1);
