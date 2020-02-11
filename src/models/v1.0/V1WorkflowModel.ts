@@ -169,7 +169,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         if (this.hints.length) { base.hints = this.hints.map((hint) => hint.serialize())}
 
         // adding the proper requirements based on the features of the workflow
-        let requirements    = ensureArray(this.customProps.requirements, "class", "value") || [];
+        let requirements    = ensureArray(this.requirements, "class", "value").map((req) => req.serialize()) || [];
         let allStepsHaveRun = true;
 
         let reqMap = {
@@ -234,7 +234,8 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
             "cwlVersion",
             "doc",
             "label",
-            "hints"
+            "hints",
+            "requirements"
         ];
 
         //@todo DESERIALIZING HINTS AND REQUIREMENTS
@@ -266,6 +267,10 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         this.hints = ensureArray(workflow.hints).map((hint, i) => {
             return this.createReq(hint, V1ExpressionModel, `${this.loc}.hints[${i}]`, true);
+        });
+
+        this.requirements = ensureArray(workflow.requirements).map((req, i) => {
+            return this.createReq(req, V1ExpressionModel, `${this.loc}.requirements[${i}]`);
         });
 
         // populates object with all custom attributes not covered in model
