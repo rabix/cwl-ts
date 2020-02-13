@@ -402,16 +402,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         }
 
         // remove expression lib if it is no longer necessary (no output inherits metadata)
-        let hasMetadataScript = false;
-        for (let i = 0; i < base.outputs.length; i++) {
-            const out = base.outputs[i];
-            if (out.outputBinding && new RegExp(V1CommandOutputBindingModel.INHERIT_REGEX).test(out.outputBinding.outputEval)) {
-                hasMetadataScript = true;
-                break;
-            }
-        }
-
-        if (!hasMetadataScript) {
+        if (!this.hasMetadataScript(this.outputs)) {
             this.inlineJavascriptRequirement.removeExpressionLib(sbgHelperLibrary);
         }
 
@@ -432,5 +423,15 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         expressionWatcherDispose();
 
         return spreadAllProps(base, this.customProps);
+    }
+
+    private hasMetadataScript(outputs: V1CommandOutputParameterModel[]) {
+        return outputs.some(output => {
+            if (!output.type.fields) {
+                return output.outputBinding.hasInheritMetadata && output.outputBinding.inheritMetadataFrom;
+            }
+
+            return this.hasMetadataScript(output.type.fields);
+        })
     }
 }
