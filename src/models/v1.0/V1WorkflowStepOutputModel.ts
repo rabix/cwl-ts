@@ -3,6 +3,7 @@ import {WorkflowStepOutput} from "../../mappings/v1.0/WorkflowStepOutput";
 import {Serializable} from "../interfaces/Serializable";
 import {V1StepModel} from "./V1StepModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
+import {ensureArray} from "../helpers";
 
 export class V1WorkflowStepOutputModel extends WorkflowStepOutputModel implements Serializable<WorkflowStepOutput>{
     constructor(output?, step?: V1StepModel, loc?: string) {
@@ -34,6 +35,7 @@ export class V1WorkflowStepOutputModel extends WorkflowStepOutputModel implement
         this.type.hasDirectoryType = true;
 
         this.doc = output["doc"];
+        this.description = ensureArray(this.doc).join("\n\n");
         this.label = output["label"];
         this.secondaryFiles = output["secondaryFiles"];
 
