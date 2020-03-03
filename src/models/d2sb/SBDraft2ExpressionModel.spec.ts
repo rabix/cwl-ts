@@ -2,7 +2,7 @@ import {expect} from "chai";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {Expression} from "../../mappings/d2sb/Expression";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
-import {JSExecutor} from "../helpers/JSExecutor";
+import {JSExecutor} from "../../tests/shared/JSExecutor";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 
 describe("SBDraft2ExpressionModel", () => {

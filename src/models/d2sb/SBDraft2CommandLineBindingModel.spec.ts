@@ -2,7 +2,7 @@ import {expect} from "chai";
 import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
-import {JSExecutor} from "../helpers/JSExecutor";
+import {JSExecutor} from "../../tests/shared/JSExecutor";
 import {SBDraft2CommandLineBindingModel} from "./SBDraft2CommandLineBindingModel";
 
 describe("SBDraft2CommandLineBindingModel d2sb", () => {
