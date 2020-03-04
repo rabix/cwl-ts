@@ -1,4 +1,3 @@
-declare function require(name: string);
 const vm = require('vm');
 
 export class JSExecutor {

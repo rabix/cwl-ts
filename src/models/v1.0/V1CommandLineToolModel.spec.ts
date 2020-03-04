@@ -3,12 +3,11 @@ import {CommandLineTool} from "../../mappings/v1.0/CommandLineTool";
 import {testNamespaces} from "../../tests/shared/model";
 import {CommandLinePart} from "../helpers/CommandLinePart";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
-import {JSExecutor} from "../helpers/JSExecutor";
+import {JSExecutor} from "../../tests/shared/JSExecutor";
 import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
 import {V1CommandLineToolModel} from "./V1CommandLineToolModel";
 import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
-import {CommandLineParsers} from "../helpers/CommandLineParsers";
 
 function runTest(app: CommandLineTool, job: any, expected: CommandLinePart[], done) {
     let model = new V1CommandLineToolModel(app, "document");

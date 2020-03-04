@@ -2,7 +2,7 @@ import {SBDraft2CommandInputParameterModel} from "./SBDraft2CommandInputParamete
 import {expect} from "chai";
 import {CommandInputParameter} from "../../mappings/d2sb/CommandInputParameter";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
-import {JSExecutor} from "../helpers/JSExecutor";
+import {JSExecutor} from "../../tests/shared/JSExecutor";
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
 
 describe("SBDraft2CommandInputParameterModel d2sb", () => {

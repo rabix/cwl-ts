@@ -3,7 +3,7 @@ import {CommandOutputBinding} from "../../mappings/d2sb/CommandOutputBinding";
 import {ExpressionClass} from "../../mappings/d2sb/Expression";
 import {testCommandOutputBindingSerialization} from '../../tests/shared/model';
 import {ExpressionEvaluator} from "../helpers/ExpressionEvaluator";
-import {JSExecutor} from "../helpers/JSExecutor";
+import {JSExecutor} from "../../tests/shared/JSExecutor";
 import {SBDraft2CommandLineToolModel} from "./SBDraft2CommandLineToolModel";
 import {SBDraft2CommandOutputBindingModel} from "./SBDraft2CommandOutputBindingModel";
 import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParameterModel";
