@@ -6,10 +6,13 @@ import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
 
+export const SBDRAFT2_EXECUTOR_REPEAT_PREFIX = "null";
+
 export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: SBDraft2ExpressionModel;
     public hasSecondaryFiles = true;
     public hasShellQuote = false;
+    public itemSeparator: string = SBDRAFT2_EXECUTOR_REPEAT_PREFIX;
 
     protected context: { $job: any, $self: any };
 
@@ -69,7 +72,7 @@ export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel imp
             this.position      = !isNaN(binding.position) ? parseInt(<any> binding.position) : 0;
             this.prefix        = binding.prefix;
             this.separate      = binding.separate;
-            this.itemSeparator = binding.itemSeparator;
+            binding.itemSeparator && (this.itemSeparator = binding.itemSeparator);
             this.loadContents  = binding.loadContents === true;
 
             this.valueFrom = new SBDraft2ExpressionModel(binding.valueFrom, `${this.loc}.valueFrom`, this.eventHub);

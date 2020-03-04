@@ -112,8 +112,14 @@ export class CommandLineParsers {
 
         const prefix        = input.inputBinding.prefix || "";
         const separator     = input.inputBinding.separate !== false ? " " : "";
-        const itemSeparator = typeof input.inputBinding.itemSeparator === "string" ?
+        let itemSeparator = typeof input.inputBinding.itemSeparator === "string" ?
             input.inputBinding.itemSeparator : " ";
+
+        // Cannot import SBDraft2CommandLineBindingModel since its then a circular dependency
+        // So check if its SBDraft2 by checking if does not have flag hasSecondaryFiles
+        if (!input.hasSecondaryFiles && input.inputBinding.itemSeparator === "null"){
+                    itemSeparator = prefix ?  ` ${prefix}${separator}` : " ";
+        }
 
         if (input.inputBinding.valueFrom && input.inputBinding.valueFrom.serialize() !== undefined) {
             return input.inputBinding.valueFrom.evaluate(context)

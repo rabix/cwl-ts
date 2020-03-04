@@ -361,7 +361,8 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
                 id: "#hello",
                 inputBinding: {
                     position: 0,
-                    prefix: "--prefix"
+                    prefix: "--prefix",
+                    itemSeparator: "null"
                 }
             };
             const input = new SBDraft2CommandInputParameterModel(<CommandInputParameter>data);
@@ -378,6 +379,7 @@ describe("SBDraft2CommandInputParameterModel d2sb", () => {
                 inputBinding: {
                     prefix: "--prefix",
                     position: 0,
+                    itemSeparator: "null",
                     valueFrom: {
                         'class': <ExpressionClass> "Expression",
                         engine: "#cwl-js-engine",
