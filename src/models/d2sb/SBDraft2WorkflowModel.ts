@@ -17,6 +17,7 @@ import {SBDraft2WorkflowInputParameterModel} from "./SBDraft2WorkflowInputParame
 import {SBDraft2WorkflowOutputParameterModel} from "./SBDraft2WorkflowOutputParameterModel";
 import {SBDraft2WorkflowStepInputModel} from "./SBDraft2WorkflowStepInputModel";
 import {SBDraft2WorkflowStepOutputModel} from "./SBDraft2WorkflowStepOutputModel";
+import {StepModel} from "../generic";
 
 export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     id: string;
@@ -58,6 +59,8 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
         });
     }
 
+    getContext(step: StepModel): any {
+    }
 
     createInputFromPort(inPort: SBDraft2WorkflowStepInputModel | string,
                         data: Customizable = {}): SBDraft2WorkflowInputParameterModel {

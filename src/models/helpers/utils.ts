@@ -7,6 +7,11 @@ import {
 import {InputParameterModel} from "../generic/InputParameterModel";
 import {ErrorCode, Issue, ValidityError} from "./validation";
 
+export const flatArray = (arr: any [], d: number = 1) => {
+    return d > 0 ? arr.reduce((acc, val) => acc.concat(Array.isArray(val) ? flatArray(val, d - 1) : val), [])
+        : arr.slice();
+};
+
 export const ensureArray = (map: { [key: string]: any }
     | any[]
     | string

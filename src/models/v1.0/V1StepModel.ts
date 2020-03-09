@@ -111,7 +111,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         }
 
         this.in  = ensureArray(step.in, "id", "source")
-            .map((i, index) => new V1WorkflowStepInputModel(i, this, `${this.loc}.in[${index}]`));
+            .map((i, index) => new V1WorkflowStepInputModel(i, this, `${this.loc}.in[${index}]`, this.eventHub));
         this.out = ensureArray(step.out, "id")
             .map((o, index) => new V1WorkflowStepOutputModel(o, this, `${this.loc}.out[${index}]`));
 
@@ -217,7 +217,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
                 "sbg:category": input.customProps["sbg:category"],
                 "sbg:altPrefix": input.customProps["sbg:altPrefix"],
                 ...serialized // serialized match goes last so changed properties are overwritten
-            }, this, `${this.loc}.in[${index}]`);
+            }, this, `${this.loc}.in[${index}]`, this.eventHub);
 
             model.setValidationCallback((err) => this.updateValidity(err));
 

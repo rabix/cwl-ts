@@ -225,6 +225,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         });
     }
 
+    abstract getContext(step: StepModel): any;
+
     protected initializeExprWatchers() {
         this.eventHub.on("expression.create", (expr: ExpressionModel) => {
             this.expressions.add(expr);
@@ -601,6 +603,19 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 break;
             }
         }
+
+        const dests = this.gatherDestinations();
+
+        for (let j = 0; j < dests.length; j++) {
+            for (let i = 0; i < step.out.length; i++) {
+                const indexOf = dests[j].source.indexOf(step.out[i].sourceId);
+                if (indexOf > -1) {
+                    dests[j].source.splice(indexOf, 1);
+                    this.validateDestination(dests[j]);
+                }
+            }
+        }
+
         // remove step from graph and remove all connections
         this.removeStepFromGraph(step);
 
@@ -614,18 +629,6 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         let out = this.outputs.length;
         while (out--) {
             this.removeDanglingOutput(this.outputs[out].connectionId);
-        }
-
-        const dests = this.gatherDestinations();
-
-        for (let j = 0; j < dests.length; j++) {
-            for (let i = 0; i < step.out.length; i++) {
-                const indexOf = dests[j].source.indexOf(step.out[i].sourceId);
-                if (indexOf > -1) {
-                    dests[j].source.splice(indexOf, 1);
-                    this.validateDestination(dests[j]);
-                }
-            }
         }
 
         step.cleanValidity();
@@ -1537,6 +1540,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     }
 
     validate(): Promise<any> {
+        this.validateAllExpressions();
+
         return Promise.all(this.validationPromises).then(() => {
             this.validationPromises = [];
         });
