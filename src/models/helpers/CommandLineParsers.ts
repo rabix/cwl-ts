@@ -117,8 +117,9 @@ export class CommandLineParsers {
 
         // Cannot import SBDraft2CommandLineBindingModel since its then a circular dependency
         // So check if its SBDraft2 by checking if does not have flag hasSecondaryFiles
-        if (!input.hasSecondaryFiles && input.inputBinding.itemSeparator === "null"){
-                    itemSeparator = prefix ?  ` ${prefix}${separator}` : " ";
+        if (!input.hasSecondaryFiles &&
+            (input.inputBinding.itemSeparator === null || input.inputBinding.itemSeparator === undefined)) {
+            itemSeparator = prefix ? ` ${prefix}${separator}` : " ";
         }
 
         if (input.inputBinding.valueFrom && input.inputBinding.valueFrom.serialize() !== undefined) {
