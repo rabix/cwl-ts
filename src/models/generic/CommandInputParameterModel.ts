@@ -61,6 +61,10 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
         }
 
         this.inputBinding = null;
+
+        if (this.type) {
+            this.type.typeBinding = null;
+        }
     }
 
     updateLoc(loc: string) {
