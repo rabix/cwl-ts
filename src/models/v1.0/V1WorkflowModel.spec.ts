@@ -669,23 +669,45 @@ describe("V1WorkflowModel", () => {
 
             const serialized = wf.serialize();
 
-            expect(serialized.requirements).to.have.lengthOf(1);
-            expect(serialized.requirements[0]).to.haveOwnProperty("class");
-            expect(serialized.requirements[0].class).to.equal("SubworkflowFeatureRequirement");
+            expect(serialized.requirements).to.have.lengthOf(3);
+            const requirements = [
+                {
+                    class: "SubworkflowFeatureRequirement"
+                },
+                {
+                    class: "InlineJavascriptRequirement"
+                },
+                {
+                    class: "StepInputExpressionRequirement"
+                }];
+
+            expect(serialized.requirements).to.have.deep.members(requirements);
+
         });
 
         it("should not SubworkflowFeatureRequirement if it doesn't know about types of steps", () => {
             wf.requirements = [new RequirementBaseModel({class: "SubworkflowFeatureRequirement"}, V1ExpressionModel)];
 
             const serialized = wf.serialize();
-            expect(serialized.requirements).to.have.lengthOf(1);
+            expect(serialized.requirements).to.have.lengthOf(3);
             expect(serialized.requirements[0]).to.haveOwnProperty("class");
             expect(serialized.requirements[0].class).to.equal("SubworkflowFeatureRequirement");
         });
 
         it("should not add SubworkflowFeatureRequirement if no step is a Workflow", () => {
             const serialized = wf.serialize();
-            expect(serialized.requirements).to.have.lengthOf(0);
+
+            expect(serialized.requirements).to.have.lengthOf(2);
+
+            const requirements = [
+                {
+                    class: "InlineJavascriptRequirement"
+                },
+                {
+                    class: "StepInputExpressionRequirement"
+                }];
+
+            expect(serialized.requirements).to.have.deep.members(requirements);
         });
 
         it("should add ScatterFeatureRequirement if any step has scatter", () => {
@@ -693,9 +715,24 @@ describe("V1WorkflowModel", () => {
 
             const serialized = wf.serialize();
 
-            expect(serialized.requirements).to.have.lengthOf(1);
-            expect(serialized.requirements[0]).to.haveOwnProperty("class");
-            expect(serialized.requirements[0].class).to.equal("ScatterFeatureRequirement");
+            console.log(serialized.requirements)
+
+            expect(serialized.requirements).to.have.lengthOf(3);
+
+            const requirements = [
+                {
+                    class: "ScatterFeatureRequirement"
+                },
+                {
+                    class: "InlineJavascriptRequirement"
+                },
+                {
+                    class: "StepInputExpressionRequirement"
+                }
+            ];
+
+            expect(serialized.requirements).to.have.deep.members(requirements);
+
         });
 
         it("should add MultipleInputFeatureRequirement if step has multiple source inputs", () => {
@@ -705,9 +742,19 @@ describe("V1WorkflowModel", () => {
 
             const serialized = wf.serialize();
 
-            expect(serialized.requirements).to.have.lengthOf(1);
-            expect(serialized.requirements[0]).to.haveOwnProperty("class");
-            expect(serialized.requirements[0].class).to.equal("MultipleInputFeatureRequirement");
+            const requirements = [
+                {
+                    class: "MultipleInputFeatureRequirement"
+                },
+                {
+                    class: "InlineJavascriptRequirement"
+                },
+                {
+                    class: "StepInputExpressionRequirement"
+                }
+            ];
+
+            expect(serialized.requirements).to.have.deep.members(requirements);
         });
     });
 

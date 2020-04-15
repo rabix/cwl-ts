@@ -6,6 +6,7 @@ import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1StepModel} from "./V1StepModel";
+import {EventHub} from "../helpers/EventHub";
 
 export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements Serializable<WorkflowStepInput> {
 
@@ -17,8 +18,12 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
 
     doc: string | string[];
 
-    constructor(stepInput?: WorkflowStepInput, step?: V1StepModel, loc?: string) {
+    protected readonly eventHub: EventHub;
+
+    constructor(stepInput?: WorkflowStepInput, step?: V1StepModel, loc?: string,  eventHub?: EventHub) {
         super(loc);
+        // TODO
+        // this.eventHub = eventHub;
         this.parentStep = step;
 
         if (stepInput) this.deserialize(stepInput);
@@ -64,7 +69,8 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
             "doc",
             "label",
             "fileTypes",
-            "secondaryFiles"
+            "secondaryFiles",
+            "valueFrom"
         ];
 
         this.id        = attr.id;
@@ -72,8 +78,9 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
         this.source    = ensureArray(attr.source);
         this.linkMerge = new LinkMerge(attr.linkMerge);
 
-        this.valueFrom = new V1ExpressionModel(attr.valueFrom, `${this.loc}.valueFrom`);
-
+        this.valueFrom = new V1ExpressionModel(attr.valueFrom, `${this.loc}.valueFrom`,  this.eventHub);
+        // TODO
+        // this.valueFrom.setValidationCallback(err => this.updateValidity(err));
         // properties that will not be serialized on the step.in,
         // but are necessary for internal functions
         this.type = attr["type"];

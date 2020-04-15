@@ -8,7 +8,7 @@ import {ProcessRequirement} from "../generic/ProcessRequirement";
 import {RequirementBaseModel} from "../generic/RequirementBaseModel";
 import {WorkflowModel} from "../generic/WorkflowModel";
 import {STEP_OUTPUT_CONNECTION_PREFIX} from "../helpers/constants";
-import {ensureArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
+import {ensureArray, flatArray, snakeCase, spreadAllProps, spreadSelectProps} from "../helpers/utils";
 import {Customizable} from '../interfaces/Customizable';
 import {Serializable} from "../interfaces/Serializable";
 import {V1ExpressionModel} from "./V1ExpressionModel";
@@ -17,6 +17,8 @@ import {V1WorkflowInputParameterModel} from "./V1WorkflowInputParameterModel";
 import {V1WorkflowOutputParameterModel} from "./V1WorkflowOutputParameterModel";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
 import {V1WorkflowStepOutputModel} from "./V1WorkflowStepOutputModel";
+import {JobHelper} from "../helpers/JobHelper";
+import {StepModel, WorkflowStepInputModel} from "../generic";
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     id: string;
@@ -80,6 +82,84 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         entry.setValidationCallback((err) => this.updateValidity(err));
         return entry;
+    }
+
+    getContext(step: StepModel): any {
+
+        const destStep = step;
+
+        const inputs = destStep.in.reduce((acc, stepInput) => {
+
+            const inputSource: string | string [] = stepInput.source;
+
+            // If there is no source or source is an empty array
+            if (!inputSource || (Array.isArray(inputSource) && !inputSource.length)) {
+                acc[stepInput.id] = null;
+                return acc;
+            }
+            const getMockData = (sourceId: string) => {
+
+                const source = this.graph.getVertexData(this.getSourceConnectionId(sourceId));
+
+                const sourceType = source.type;
+
+                const sourceScatter = source instanceof WorkflowStepInputModel ? undefined : source.parentStep.scatter;
+
+                const wfInParameter = new V1WorkflowInputParameterModel({id: stepInput.id});
+                wfInParameter.type = sourceType;
+
+                // Generate mock data for particular type
+                let result = JobHelper.generateMockJobData(wfInParameter);
+
+                // If source is scattered then wrap mock data in array
+                if (sourceScatter && (typeof sourceScatter === "string" || sourceScatter.length)) {
+                    result = [result];
+                }
+
+                return result;
+
+            };
+
+            let mockData;
+
+            // If array length === 1 then interpret as it is just "input" instead of ["input"]
+            if (Array.isArray(inputSource)) {
+                if (inputSource.length === 1) {
+                    mockData = getMockData(inputSource[0]);
+                } else {
+                    mockData = inputSource.reduce((acc: any, source: string) => {
+                        acc.push(getMockData(source));
+                        return acc;
+                    }, []);
+                }
+            } else {
+                // If its just "input"
+                mockData = getMockData(inputSource);
+            }
+
+            if (Array.isArray(mockData) && stepInput.linkMerge.value === "merge_flattened") {
+                mockData = flatArray(mockData, Infinity);
+            }
+
+            let takeFirst = false;
+
+            const destScatter = destStep.scatter;
+
+            if (destScatter && typeof destScatter === "string") {
+                if (destScatter === stepInput.id) takeFirst = true;
+            } else if (Array.isArray(destScatter)) {
+                const scatter = destScatter.find((id) => id === stepInput.id);
+                if (scatter) takeFirst = true;
+            }
+
+            acc[stepInput.id] = (takeFirst && Array.isArray(mockData)) ? mockData [0] : mockData;
+
+            return acc;
+
+        }, {});
+
+        return {inputs};
+
     }
 
     createInputFromPort(inPort: V1WorkflowStepInputModel | string,
@@ -175,7 +255,9 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         let reqMap = {
             SubworkflowFeatureRequirement: false,
             ScatterFeatureRequirement: false,
-            MultipleInputFeatureRequirement: false
+            MultipleInputFeatureRequirement: false,
+            InlineJavascriptRequirement: false,
+            StepInputExpressionRequirement: false
         };
 
         // feature detection
@@ -194,10 +276,18 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
             for (let j = 0; j < step.in.length; j++) {
                 const inPort = step.in[j];
+
                 if (inPort.source && inPort.source.length > 1) {
                     reqMap.MultipleInputFeatureRequirement = true;
                 }
+
+                if (inPort.valueFrom) {
+                    reqMap.InlineJavascriptRequirement = true;
+                    reqMap.StepInputExpressionRequirement = true;
+                }
+
             }
+
         }
 
         // requirement setting
