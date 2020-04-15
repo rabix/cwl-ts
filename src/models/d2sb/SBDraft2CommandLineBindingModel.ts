@@ -6,13 +6,11 @@ import {Serializable} from "../interfaces/Serializable";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {EventHub} from "../helpers/EventHub";
 
-export const SBDRAFT2_EXECUTOR_REPEAT_PREFIX = "null";
-
 export class SBDraft2CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: SBDraft2ExpressionModel;
     public hasSecondaryFiles = true;
     public hasShellQuote = false;
-    public itemSeparator: string = SBDRAFT2_EXECUTOR_REPEAT_PREFIX;
+    public itemSeparator: string = null;
 
     protected context: { $job: any, $self: any };
 
