@@ -1,6 +1,6 @@
 {
   "name": "cwlts",
-  "version": "1.17.0",
+  "version": "1.17.2",
   "description": "TypeScript data model for Common Workflow Language",
   "scripts": {
     "tsc": "npx tsc",
