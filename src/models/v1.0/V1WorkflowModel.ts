@@ -18,7 +18,7 @@ import {V1WorkflowOutputParameterModel} from "./V1WorkflowOutputParameterModel";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
 import {V1WorkflowStepOutputModel} from "./V1WorkflowStepOutputModel";
 import {JobHelper} from "../helpers/JobHelper";
-import {StepModel, WorkflowStepInputModel} from "../generic";
+import {StepModel} from "../generic";
 
 export class V1WorkflowModel extends WorkflowModel implements Serializable<Workflow> {
     id: string;
@@ -99,11 +99,13 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
             }
             const getMockData = (sourceId: string) => {
 
-                const source = this.graph.getVertexData(this.getSourceConnectionId(sourceId));
+                let source = this.graph.getVertexData(this.getSourceConnectionId(sourceId));
 
                 const sourceType = source.type;
+                // If has parent step then source is step, otherwise its input
+                source = source.parentStep || source;
 
-                const sourceScatter = source instanceof WorkflowStepInputModel ? undefined : source.parentStep.scatter;
+                const sourceScatter = source.scatter;
 
                 const wfInParameter = new V1WorkflowInputParameterModel({id: stepInput.id});
                 wfInParameter.type = sourceType;
