@@ -21,7 +21,7 @@ export abstract class CommandOutputParameterModel extends ValidationBase impleme
     /** Description of file types expected for output to be */
     public fileTypes: string[];
 
-    public secondaryFiles: ExpressionModel[];
+    public secondaryFiles: ExpressionModel[] | any;
 
     public hasSecondaryFiles: boolean;
     public hasSecondaryFilesInRoot: boolean;

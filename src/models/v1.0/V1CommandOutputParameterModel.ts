@@ -13,7 +13,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
     public label: string;
     public outputBinding: V1CommandOutputBindingModel;
     public description: string;
-    public secondaryFiles: V1ExpressionModel[] = [];
+    public secondaryFiles: V1ExpressionModel[] | any = [];
     public streamable: boolean;
     public id: string;
 

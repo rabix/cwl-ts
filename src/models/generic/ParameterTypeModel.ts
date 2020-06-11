@@ -11,6 +11,7 @@ import {CommandInputParameterType as V1CommandInputParameterType} from "../../ma
 import {ensureArray, incrementLastLoc, incrementString, spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
+import {V1_1CommandLineBindingModel} from "../v1.1/V1_1CommandLineBindingModel";
 
 export type PrimitiveParameterType =
     "array"
@@ -26,7 +27,8 @@ export type PrimitiveParameterType =
     | "double"
     | "bytes"
     | "Directory"
-    | "map";
+    | "map"
+    | "stdin"
 
 export class ParameterTypeModel extends ValidationBase implements Serializable<any>, TypeResolution {
     get symbols(): string[] {
@@ -39,9 +41,14 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             this.eventHub.emit("io.change.type", this.loc);
         }
     }
+
+    public doc?: string;
+
     public customProps: any = {};
 
     public hasDirectoryType = false;
+
+    public hasStdinType = false;
 
     public hasMapType = false;
 
@@ -114,6 +121,7 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         }
     }
 
+    public inputBinding: any               = null;
     public isNullable: boolean             = false;
     public isItemOrArray: boolean          = false;
     public typeBinding: CommandLineBinding = null;
@@ -271,11 +279,15 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
         });
     }
 
-    serialize(version?: "v1.0" | "draft-2"): any {
+    serialize(version?: "v1.1" |"v1.0" | "draft-2"): any {
         let type = TypeResolver.serializeType(this, version);
 
-        if (typeof type === "object" && !Array.isArray(type) && version !== "v1.0" && type !== null) {
+        if (typeof type === "object" && !Array.isArray(type) && version === "draft-2" && type !== null) {
             type = {...{}, ...type, ...this.customProps};
+        }
+
+        if (this.inputBinding && typeof this.inputBinding.serialize === 'function') {
+            type.inputBinding = this.inputBinding.serialize();
         }
 
         return type
@@ -294,6 +306,11 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     code: ex.code
                 }
             });
+        }
+
+        if (attr && attr.inputBinding) {
+            this.inputBinding = new V1_1CommandLineBindingModel(attr.inputBinding, `${this.loc}.inputBinding`, this.eventHub);
+            this.inputBinding.setValidationCallback(err => this.updateValidity(err));
         }
 
         // populates object with all custom attributes not covered in model

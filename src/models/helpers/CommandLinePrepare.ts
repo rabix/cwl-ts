@@ -10,7 +10,7 @@ export class CommandLinePrepare {
 
     static prepare(input, flatJobInputs, context, loc?: string, cmdType?: CommandType): Promise<CommandLinePart> {
         let inputType = "primitive";
-        const isFileOrDirectory = isType(input, ["File", "Directory"]);
+        const isFileOrDirectory = isType(input, ["File", "Directory", "stdin"]);
 
         if (!input) {
             inputType === "nullValue";
@@ -26,7 +26,7 @@ export class CommandLinePrepare {
                 inputType = "array";
             } else if (typeof value === "boolean") {
                 inputType = "boolean";
-            } else if (typeof value === "object" && value.class !== "File" && value.class !== "Directory" && !isFileOrDirectory) {
+            } else if (typeof value === "object" && value.class !== "File" && value.class !== "Directory" && value.class !== 'stdin' && !isFileOrDirectory) {
                 inputType = "record";
             }
         }
@@ -42,6 +42,10 @@ export class CommandLinePrepare {
 
         if (cmdType === "stdin" || cmdType === "stdout") {
             inputType = "stream";
+        }
+
+        if (isType(input, "stdin")) {
+            inputType = "stdin";
         }
 
         if (typeof input === "string") {

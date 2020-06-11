@@ -25,7 +25,6 @@ import {
 } from "../helpers/utils";
 import {V1CommandArgumentModel} from "./V1CommandArgumentModel";
 import {V1CommandInputParameterModel} from "./V1CommandInputParameterModel";
-import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 import {V1CommandOutputParameterModel} from "./V1CommandOutputParameterModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1InitialWorkDirRequirementModel} from "./V1InitialWorkDirRequirementModel";
@@ -55,6 +54,8 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
     public inlineJavascriptRequirement: V1InlineJavascriptRequirementModel;
 
     public resources: V1ResourceRequirementModel;
+
+    protected requirementsCounter = 0;
 
     // Context for JavaScript execution
     protected runtime: { ram?: number, cores?: number } = {};
@@ -157,7 +158,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.createReq(req, null, hint);
     }
 
-    private createReq(req: ProcessRequirement, loc?: string, hint = false): ProcessRequirementModel {
+    protected createReq(req: ProcessRequirement, loc?: string, hint = false): ProcessRequirementModel {
         let reqModel: ProcessRequirementModel;
         const property = hint ? "hints" : "requirements";
         loc            = loc || `${this.loc}.${property}[${this[property].length}]`;
@@ -252,28 +253,28 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         ensureArray(tool.hints, "class", "value").map((h, i) => this.createReq(h, null, true));
         ensureArray(tool.requirements, "class", "value").map((r, i) => this.createReq(r));
 
-        let counter = this.requirements.length;
+        this.requirementsCounter = this.requirements.length;
         // create DockerRequirement for manipulation
         if (!this.docker) {
-            this.docker = new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.requirements[${++counter}]`);
+            this.docker = new DockerRequirementModel(<DockerRequirement> {}, `${this.loc}.requirements[${++this.requirementsCounter}]`);
         }
         this.docker.setValidationCallback(err => this.updateValidity(err));
 
         // create InitialWorkDirRequirement for manipulation
         if (!this.fileRequirement) {
-            this.fileRequirement = new V1InitialWorkDirRequirementModel(<InitialWorkDirRequirement> {}, `${this.loc}.requirements[${++counter}]`, this.eventHub);
+            this.fileRequirement = new V1InitialWorkDirRequirementModel(<InitialWorkDirRequirement> {}, `${this.loc}.requirements[${++this.requirementsCounter}]`, this.eventHub);
         }
         this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
 
         // create ResourceRequirement for manipulation
         if (!this.resources) {
-            this.resources = new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${++counter}]`, this.eventHub);
+            this.resources = new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${++this.requirementsCounter}]`, this.eventHub);
         }
         this.resources.setValidationCallback(err => this.updateValidity(err));
 
         // create InlineJavascriptRequirement for manipulation
         if (!this.inlineJavascriptRequirement) {
-            this.inlineJavascriptRequirement = new V1InlineJavascriptRequirementModel({}, `${this.loc}.requirements[${++counter}]`)
+            this.inlineJavascriptRequirement = new V1InlineJavascriptRequirementModel({}, `${this.loc}.requirements[${++this.requirementsCounter}]`)
         }
 
         this.stdin = new V1ExpressionModel(tool.stdin, `${this.loc}.stdin`, this.eventHub);

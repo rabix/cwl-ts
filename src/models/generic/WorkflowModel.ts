@@ -5,7 +5,7 @@ import {STEP_INPUT_CONNECTION_PREFIX, STEP_OUTPUT_CONNECTION_PREFIX} from "../he
 import {EventHub} from "../helpers/EventHub";
 import {Edge, EdgeNode, Graph} from "../helpers/Graph";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
-import {checkIfConnectionIsValid, fetchByLoc, incrementString, validateID} from "../helpers/utils";
+import {checkIfConnectionIsValid, fetchByLoc, incrementString, isType, validateID} from "../helpers/utils";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Customizable} from '../interfaces/Customizable';
 import {Serializable} from "../interfaces/Serializable";
@@ -1193,10 +1193,14 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             }
         }
 
+        let type = inPort.type ? inPort.type.serialize() : "null";
+
+        if (isType(inPort, ['stdin'])) type = 'File';
+
         // create new input on the workflow to connect with the port
         const inputParam = Object.assign({
             id: this.getNextAvailableId(`${STEP_OUTPUT_CONNECTION_PREFIX}${inPort.id}/${inPort.id}`, true), // might change later in case input is already taken
-            type: inPort.type ? inPort.type.serialize() : "null",
+            type,
             description: (inPort["doc"] === undefined) && inPort.description ? inPort.description : undefined,
             doc: inPort.description ? inPort.description : inPort["doc"],
             label: inPort.label,

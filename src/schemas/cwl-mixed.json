@@ -162,6 +162,12 @@
                 }
             ]
         },
+        "V1_1SecondaryFiles": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
         "StringOrArrayOfStrings": {
             "anyOf": [
                 {
@@ -234,7 +240,14 @@
             "type": "object",
             "properties": {
                 "secondaryFiles": {
-                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/V1_1SecondaryFiles"
+                        },
+                        {
+                            "$ref": "#/definitions/StringOrArrayOfStrings"
+                        }
+                    ]
                 },
                 "format": {
                     "$ref": "#/definitions/StringOrArrayOfStrings"
@@ -362,7 +375,14 @@
                             "$ref": "#/definitions/CwlType"
                         },
                         "secondaryFiles": {
-                            "$ref": "#/definitions/StringOrArrayOfStrings"
+                            "anyOf": [
+                                {
+                                    "$ref": "#/definitions/V1_1SecondaryFiles"
+                                },
+                                {
+                                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                                }
+                            ]
                         }
                     }
                 },
@@ -814,7 +834,14 @@
             "type": "object",
             "properties": {
                 "position": {
-                    "type": "number"
+                    "oneOf": [
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
                 },
                 "prefix": {
                     "type": "string"
@@ -968,7 +995,14 @@
                     "$ref": "#/definitions/CommandOutputType"
                 },
                 "secondaryFiles": {
-                    "$ref": "#/definitions/StringOrArrayOfStrings"
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/V1_1SecondaryFiles"
+                        },
+                        {
+                            "$ref": "#/definitions/StringOrArrayOfStrings"
+                        }
+                    ]
                 },
                 "format": {
                     "$ref": "#/definitions/StringOrArrayOfStrings"
@@ -1767,7 +1801,14 @@
             "type": "object",
             "properties": {
                 "position": {
-                    "type": "number"
+                    "oneOf": [
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
                 },
                 "prefix": {
                     "type": ["string", "null"]

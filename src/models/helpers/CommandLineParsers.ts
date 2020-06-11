@@ -201,6 +201,22 @@ export class CommandLineParsers {
         });
     }
 
+    static stdin(input, job, value, context, cmdType, loc) : Promise<CommandLinePart> {
+
+        let checkedValue = (value !== undefined && value !== null) ? value : job[input.id];
+
+        if (checkedValue && checkedValue.hasOwnProperty("path")) {
+            checkedValue = checkedValue.path;
+        }
+
+        const result = checkedValue ? `< ${checkedValue}` : "";
+
+        return new Promise(res => {
+            res(new CommandLinePart(result, cmdType, loc));
+        });
+
+    }
+
     static stream(stream, job, value, context, cmdType, loc): Promise<CommandLinePart> {
         if (stream instanceof ExpressionModel) {
             return CommandLineParsers.expression(stream, job, value, context, cmdType, loc).then(res => {

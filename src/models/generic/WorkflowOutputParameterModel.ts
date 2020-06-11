@@ -19,7 +19,7 @@ export abstract class WorkflowOutputParameterModel extends ValidationBase implem
     public type: ParameterTypeModel;
     public description?: string;
     public fileTypes: string[] = [];
-    public secondaryFiles: ExpressionModel[] = [];
+    public secondaryFiles: ExpressionModel[] | any = [];
 
     public isField = false;
 
@@ -70,7 +70,7 @@ export abstract class WorkflowOutputParameterModel extends ValidationBase implem
                                                            exprConstructor: new(...args: any[]) => T,
                                                            locBase: string): T {
         const loc = incrementLastLoc(this.secondaryFiles, `${locBase}.secondaryFiles`);
-        const f   = new exprConstructor(file, loc, this.eventHub);
+        const f = new exprConstructor(file, loc, this.eventHub);
         this.secondaryFiles.push(f);
         f.setValidationCallback(err => this.updateValidity(err));
         return f;
