@@ -10,7 +10,7 @@ export abstract class CommandLineBindingModel extends ValidationBase implements 
     public customProps = {};
 
     public loadContents: boolean;
-    public position: number;
+    public position: number | ExpressionModel;
     public prefix: string;
     public itemSeparator: string;
     public separate: boolean;

@@ -294,6 +294,10 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
     const pointAItems = getType(pointA.type.items);
     const pointBItems = getType(pointB.type.items);
 
+    if (pointAType === 'File' && pointBType === 'stdin') {
+        return true
+    }
+
     // match types, defined types can be matched with undefined types
     if (pointAType === pointBType // match exact type
         || ((pointAItems === pointBType || pointAItems === "union") && !ltr) //match File[] to File

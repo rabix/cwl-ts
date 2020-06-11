@@ -35,7 +35,8 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
     }
 
     deserialize(binding: CommandLineBinding): void {
-        this.position      = !isNaN(binding.position) ? parseInt(<any> binding.position) : 0;
+
+        this.position = !isNaN(<any> binding.position) ? parseInt(<any> binding.position): 0;
         this.prefix        = binding.prefix;
         this.separate      = binding.separate !== false; // default is true if not specified
         this.itemSeparator = binding.itemSeparator;
@@ -53,10 +54,12 @@ export class V1CommandLineBindingModel extends CommandLineBindingModel implement
     serialize(): any {
         const base: CommandLineBinding = <CommandLineBinding> {};
         this.serializedKeys.forEach(key => {
-            if (this[key] !== undefined && this[key] !== null && key !== "valueFrom") {
+            if (this[key] !== undefined && this[key] !== null && key !== "valueFrom" && key !== "position") {
                 base[key] = this[key];
             }
         });
+
+        base.position = <number | Expression> (!isNaN(<any> this.position) ? this.position : 0);
 
         if (!base.loadContents) delete base.loadContents;
 

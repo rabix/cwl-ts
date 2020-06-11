@@ -13,7 +13,7 @@ import {Expression} from "../../mappings/v1.0/Expression";
 export class V1CommandInputParameterModel extends CommandInputParameterModel implements Serializable<CommandInputParameter
     | CommandInputRecordField> {
     public inputBinding: V1CommandLineBindingModel;
-    public secondaryFiles: V1ExpressionModel[] = [];
+    public secondaryFiles: V1ExpressionModel[] | any = [];
     public streamable: boolean;
     public default: any;
 
@@ -41,7 +41,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         return this.inputBinding;
     }
 
-    addSecondaryFile(file: Expression | string): V1ExpressionModel {
+    addSecondaryFile(file: Expression | string): any {
         return this._addSecondaryFile(file, V1ExpressionModel, this.loc);
     }
 
@@ -89,8 +89,24 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         return base;
     }
 
+    addParameter(attr: CommandInputParameter | CommandInputRecordField) {
+        this.type = new ParameterTypeModel(
+            attr.type,
+            V1CommandInputParameterModel,
+            `${this.id}_field`,
+            `${this.loc}.type`,
+            this.eventHub);
+
+        this.type.setValidationCallback(err => this.updateValidity(err));
+    }
+
+    addInputBinding(attr: CommandInputParameter | CommandInputRecordField) {
+        this.inputBinding = new V1CommandLineBindingModel(attr.inputBinding, `${this.loc}.inputBinding`, this.eventHub);
+        this.inputBinding.setValidationCallback(err => this.updateValidity(err));
+    }
+
     deserialize(attr: CommandInputParameter | CommandInputRecordField): void {
-        const serializedKeys = ["type", "doc", "inputBinding", "label", "secondaryFiles", "sbg:fileTypes", "streamable", "default"];
+        const serializedKeys = ["type", "doc", "inputBinding", "label", "secondaryFiles", "sbg:fileTypes", "streamable", "default", "loadContents"];
 
         if ((<CommandInputRecordField> attr).name) {
             this.id      = (<CommandInputRecordField> attr).name;
@@ -101,16 +117,15 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
             serializedKeys.push("id");
         }
 
-        this.type = new ParameterTypeModel(attr.type, V1CommandInputParameterModel, `${this.id}_field`,`${this.loc}.type`, this.eventHub);
-        this.type.setValidationCallback(err => this.updateValidity(err));
+        this.addParameter(attr);
+
         this.type.hasDirectoryType = true;
         if (isType(this, ["record", "enum"]) && !this.type.name) {
             this.type.name = this.id;
         }
 
         if (attr.inputBinding) {
-            this.inputBinding = new V1CommandLineBindingModel(attr.inputBinding, `${this.loc}.inputBinding`, this.eventHub);
-            this.inputBinding.setValidationCallback(err => this.updateValidity(err));
+            this.addInputBinding(attr);
         }
 
         this.label          = attr.label;
