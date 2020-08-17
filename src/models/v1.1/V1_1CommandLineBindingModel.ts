@@ -14,7 +14,7 @@ export class V1_1CommandLineBindingModel extends V1CommandLineBindingModel {
 
         val = val || ~~val;
 
-        if (!this.position) {
+        if (!this.position || !(this.position instanceof ExpressionModel)) {
             this.position = new V1ExpressionModel(val.toString(), `${this.loc}.position`, this.eventHub);
             this.position.setValidationCallback(err => this.updateValidity(err));
         } else {
