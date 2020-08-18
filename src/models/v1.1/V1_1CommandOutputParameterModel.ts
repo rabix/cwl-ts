@@ -1,9 +1,11 @@
 import {CommandOutputParameter, CommandOutputRecordField} from "../../mappings/v1.0";
 import {V1CommandOutputParameterModel} from "../v1.0/V1CommandOutputParameterModel";
+import {ParameterTypeModel} from "../generic";
 import {incrementLastLoc, isType} from "../helpers/utils";
 
 import {V1_1SecondaryFileSchemaModel} from "./V1_1SecondaryFileSchemaModel";
 import {LoadListing} from "../elements/load-listing";
+
 
 export class V1_1CommandOutputParameterModel extends V1CommandOutputParameterModel {
 
@@ -18,6 +20,19 @@ export class V1_1CommandOutputParameterModel extends V1CommandOutputParameterMod
         secondaryFile.setValidationCallback(err => this.updateValidity(err));
         this.secondaryFiles.push(secondaryFile);
         return secondaryFile;
+
+    }
+
+    addParameter(attr) {
+
+        this.type = new ParameterTypeModel(
+            attr.type,
+            V1_1CommandOutputParameterModel,
+            `${this.id}_field`,
+            `${this.loc}.type`,
+            this.eventHub);
+
+        this.type.setValidationCallback(err => this.updateValidity(err));
 
     }
 

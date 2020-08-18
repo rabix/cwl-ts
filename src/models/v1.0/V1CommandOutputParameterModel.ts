@@ -39,6 +39,11 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         this._removeSecondaryFile(index);
     }
 
+    addParameter(attr) {
+        this.type = new ParameterTypeModel(attr.type, V1CommandOutputBindingModel, `${this.id}_field`,`${this.loc}.type`, this.eventHub);
+        this.type.setValidationCallback(err => this.updateValidity(err));
+    }
+
     serialize(): CommandOutputParameter {
         let base: CommandOutputParameter | CommandOutputRecordField = <any> {};
 
@@ -79,8 +84,8 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
 
         this.id = (<CommandOutputParameter> attr).id || (<CommandOutputRecordField> attr).name;
 
-        this.type = new ParameterTypeModel(attr.type, V1CommandOutputParameterModel, `${this.id}_field`, `${this.loc}.type`, this.eventHub);
-        this.type.setValidationCallback(err => this.updateValidity(err));
+        this.addParameter(attr);
+
         this.type.hasDirectoryType = true;
 
         if (isType(this, ["record", "enum"]) && !this.type.name) {
