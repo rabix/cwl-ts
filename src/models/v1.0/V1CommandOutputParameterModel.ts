@@ -40,7 +40,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
     }
 
     addParameter(attr) {
-        this.type = new ParameterTypeModel(attr.type, V1CommandOutputBindingModel, `${this.id}_field`,`${this.loc}.type`, this.eventHub);
+        this.type = new ParameterTypeModel(attr.type, V1CommandOutputParameterModel, `${this.id}_field`,`${this.loc}.type`, this.eventHub);
         this.type.setValidationCallback(err => this.updateValidity(err));
     }
 
