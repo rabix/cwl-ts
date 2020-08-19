@@ -6,8 +6,9 @@ import {isEmpty, isType} from "./utils";
 import {JobHelper} from "./JobHelper";
 
 
-export const generateCommandLineParts = (tool: CommandLineToolModel, jobInputs, runtime): Promise<CommandLinePart[]> => {
-    const flatInputs = CommandLinePrepare.flattenInputsAndArgs([].concat(tool.arguments).concat(tool.inputs));
+export const generateCommandLineParts = async (tool: CommandLineToolModel, jobInputs, runtime): Promise<CommandLinePart[]> => {
+    const flatInputs = await CommandLinePrepare
+        .flattenInputsAndArgs([].concat(tool.arguments).concat(tool.inputs), tool.getContext());
 
     const job = isEmpty(jobInputs) ? // if job has not been populated
         {...{inputs: JobHelper.getJobInputs(tool)}, ...{runtime: runtime}} : // supply dummy values
