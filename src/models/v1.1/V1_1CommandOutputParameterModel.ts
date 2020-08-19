@@ -23,7 +23,7 @@ export class V1_1CommandOutputParameterModel extends V1CommandOutputParameterMod
 
     }
 
-    addParameter(attr) {
+    addParameter(attr: CommandOutputParameter | CommandOutputRecordField) {
 
         this.type = new ParameterTypeModel(
             attr.type,

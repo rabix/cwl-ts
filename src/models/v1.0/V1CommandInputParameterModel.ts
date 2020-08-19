@@ -89,12 +89,18 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         return base;
     }
 
-    addParameter(attr) {
-        this.type = new ParameterTypeModel(attr.type, V1CommandInputParameterModel, `${this.id}_field`,`${this.loc}.type`, this.eventHub);
+    addParameter(attr: CommandInputParameter | CommandInputRecordField) {
+        this.type = new ParameterTypeModel(
+            attr.type,
+            V1CommandInputParameterModel,
+            `${this.id}_field`,
+            `${this.loc}.type`,
+            this.eventHub);
+
         this.type.setValidationCallback(err => this.updateValidity(err));
     }
 
-    addInputBinding(attr) {
+    addInputBinding(attr: CommandInputParameter | CommandInputRecordField) {
         this.inputBinding = new V1CommandLineBindingModel(attr.inputBinding, `${this.loc}.inputBinding`, this.eventHub);
         this.inputBinding.setValidationCallback(err => this.updateValidity(err));
     }

@@ -4,7 +4,14 @@ import {Expression} from "../../mappings/v1.0/Expression";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {EventHub} from "../helpers/EventHub";
-import {commaSeparatedToArray, ensureArray, isType, spreadAllProps, spreadSelectProps, isFileType} from "../helpers/utils";
+import {
+    commaSeparatedToArray,
+    ensureArray,
+    isType,
+    spreadAllProps,
+    spreadSelectProps,
+    isFileType
+} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
@@ -39,8 +46,15 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         this._removeSecondaryFile(index);
     }
 
-    addParameter(attr) {
-        this.type = new ParameterTypeModel(attr.type, V1CommandOutputParameterModel, `${this.id}_field`,`${this.loc}.type`, this.eventHub);
+    addParameter(attr: CommandOutputParameter | CommandOutputRecordField) {
+
+        this.type = new ParameterTypeModel(
+            attr.type,
+            V1CommandOutputParameterModel,
+            `${this.id}_field`,
+            `${this.loc}.type`,
+            this.eventHub);
+
         this.type.setValidationCallback(err => this.updateValidity(err));
     }
 

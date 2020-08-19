@@ -99,7 +99,7 @@ export class V1_1CommandInputParameterModel extends V1CommandInputParameterModel
         return base;
     }
 
-    addParameter(attr) {
+    addParameter(attr: CommandInputParameter | CommandInputRecordField): void {
 
         this.type = new ParameterTypeModel(
             attr.type,
@@ -108,8 +108,13 @@ export class V1_1CommandInputParameterModel extends V1CommandInputParameterModel
             `${this.loc}.type`,
             this.eventHub);
 
-        this.type.setValidationCallback(err => this.updateValidity(err));
 
+        if (attr.inputBinding) {
+            const binding = new V1_1CommandLineBindingModel(attr.inputBinding, `${this.type.loc}.inputBinding`, this.eventHub);
+            this.type.addInputBinding(binding);
+        }
+
+        this.type.setValidationCallback(err => this.updateValidity(err));
     }
 
     public createInputBinding(): V1_1CommandLineBindingModel {

@@ -1,4 +1,3 @@
-import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 import {InputParameter} from "../../mappings/v1.0/InputParameter";
 import {RecordField} from "../../mappings/v1.0/RecordField";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
@@ -14,6 +13,7 @@ import {V1CommandLineBindingModel} from "./V1CommandLineBindingModel";
 import {EventHub} from "../helpers/EventHub";
 import {Expression} from "../../mappings/v1.0";
 import {ExpressionModel} from "../generic/ExpressionModel";
+import {WorkflowInputParameterModel} from "../generic/WorkflowInputParameterModel";
 
 export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
     public streamable?: boolean;
@@ -25,6 +25,18 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
         if (input) this.deserialize(input);
     }
 
+    addParameter(attr: InputParameter | RecordField): void {
+
+        this.type = new ParameterTypeModel(
+            attr.type,
+            V1WorkflowInputParameterModel,
+            `${this.id}_field`,
+            `${this.loc}.type`,
+            this.eventHub);
+
+        this.type.setValidationCallback(err => this.updateValidity(err));
+    }
+
     deserialize(attr: InputParameter | RecordField) {
         const serializedKeys = ["id", "name", "type", "label", "doc", "sbg:fileTypes", "secondaryFiles"];
 
@@ -34,10 +46,11 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
         this.description = ensureArray(attr.doc).join("\n\n");
         this.doc         = this.description;
 
-        this.id      = (<InputParameter> attr).id || (<RecordField> attr).name;
-        this.isField = !!(<RecordField> attr).name;
-        this.type    = new ParameterTypeModel(attr.type, V1WorkflowInputParameterModel, `${this.id}_field`, `${this.loc}.type`, this.eventHub);
-        this.type.setValidationCallback(err => this.updateValidity(err));
+        this.id = (<InputParameter>attr).id || (<RecordField>attr).name;
+        this.isField = !!(<RecordField>attr).name;
+
+        this.addParameter(attr);
+
         this.type.hasDirectoryType = true;
 
         this.fileTypes = commaSeparatedToArray(attr["sbg:fileTypes"]);

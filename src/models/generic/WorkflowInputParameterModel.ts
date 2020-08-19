@@ -69,6 +69,8 @@ export abstract class WorkflowInputParameterModel extends ValidationBase impleme
         this.type.updateLoc(`${loc}.type`);
     }
 
+    abstract addParameter(attr: any): void;
+
 
     abstract addSecondaryFile(file: V1Expression | SBDraft2Expression | string): ExpressionModel;
 

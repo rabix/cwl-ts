@@ -11,7 +11,7 @@ import {CommandInputParameterType as V1CommandInputParameterType} from "../../ma
 import {ensureArray, incrementLastLoc, incrementString, spreadSelectProps} from "../helpers/utils";
 import {EventHub} from "../helpers/EventHub";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
-import {V1_1CommandLineBindingModel} from "../v1.1/V1_1CommandLineBindingModel";
+import {InputBinding} from "../../mappings/v1.0";
 
 export type PrimitiveParameterType =
     "array"
@@ -286,11 +286,16 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             type = {...{}, ...type, ...this.customProps};
         }
 
-        if (this.inputBinding && typeof this.inputBinding.serialize === 'function') {
+        if (typeof type === "object" && this.inputBinding && typeof this.inputBinding.serialize === 'function') {
             type.inputBinding = this.inputBinding.serialize();
         }
 
-        return type
+        return type;
+    }
+
+    addInputBinding(binding: InputBinding) {
+        this.inputBinding = binding;
+        this.inputBinding.setValidationCallback(err => this.updateValidity(err));
     }
 
     deserialize(attr: any): void {
@@ -306,11 +311,6 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
                     code: ex.code
                 }
             });
-        }
-
-        if (attr && attr.inputBinding) {
-            this.inputBinding = new V1_1CommandLineBindingModel(attr.inputBinding, `${this.loc}.inputBinding`, this.eventHub);
-            this.inputBinding.setValidationCallback(err => this.updateValidity(err));
         }
 
         // populates object with all custom attributes not covered in model

@@ -1,8 +1,9 @@
 import {InputParameter, RecordField} from "../../mappings/v1.0";
-import {V1WorkflowInputParameterModel} from "../v1.0/V1WorkflowInputParameterModel";
 import {V1_1SecondaryFileSchemaModel} from "./V1_1SecondaryFileSchemaModel";
 import {incrementLastLoc, isType} from "../helpers";
 import {LoadListing} from "../elements/load-listing";
+import {V1WorkflowInputParameterModel} from "../v1.0/V1WorkflowInputParameterModel";
+import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 
 export class V1_1WorkflowInputParameterModel extends V1WorkflowInputParameterModel {
 
@@ -29,6 +30,15 @@ export class V1_1WorkflowInputParameterModel extends V1WorkflowInputParameterMod
         if (file) {
             this.secondaryFiles.splice(index, 1);
         }
+    }
+
+    addParameter(attr: InputParameter | RecordField): void {
+        this.type = new ParameterTypeModel(attr.type,
+            V1_1WorkflowInputParameterModel,
+            `${this.id}_field`,
+            `${this.loc}.type`,
+            this.eventHub);
+        this.type.setValidationCallback(err => this.updateValidity(err));
     }
 
     serialize(): InputParameter | RecordField {
