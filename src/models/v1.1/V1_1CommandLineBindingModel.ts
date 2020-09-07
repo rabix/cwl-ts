@@ -27,7 +27,6 @@ export class V1_1CommandLineBindingModel extends V1CommandLineBindingModel {
 
         super.deserialize(binding);
         this.setPosition(binding.position);
-
     }
 
     serialize(): any {

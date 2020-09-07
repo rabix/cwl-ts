@@ -58,12 +58,11 @@ export class V1_1CommandOutputParameterModel extends V1CommandOutputParameterMod
             (base as any).secondaryFiles = this.secondaryFiles.map(f => f.serialize()).filter(f => !!f);
         }
 
-        const isDirectory = isType(this, ["Directory"]);
-
-        if (isDirectory) {
-            base["loadListing"] = `${this.loadListing}`;
-        } else {
-            delete base["loadListing"];
+        if (isType(this, ['Directory'])) {
+            base.outputBinding = base.outputBinding || {};
+            base.outputBinding["loadListing"] = `${this.loadListing}`;
+        } else if (base.outputBinding) {
+            delete base.outputBinding["loadListing"];
         }
 
         return base;
@@ -72,11 +71,7 @@ export class V1_1CommandOutputParameterModel extends V1CommandOutputParameterMod
     deserialize(attr: CommandOutputParameter | CommandOutputRecordField): void {
         super.deserialize(attr);
 
-        const isDirectory = isType(this, ["Directory"]);
-
-        if (isDirectory) {
-            this.loadListing = new LoadListing(attr["loadListing"]);
-        }
+        this.loadListing = new LoadListing((attr.outputBinding && attr.outputBinding["loadListing"]) || "deep_listing");
 
     }
 

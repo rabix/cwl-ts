@@ -60,11 +60,7 @@ export class V1_1WorkflowInputParameterModel extends V1WorkflowInputParameterMod
     deserialize(attr: InputParameter | RecordField): void {
         super.deserialize(attr);
 
-        const isDirectory = isType(this, ['Directory']);
-
-        if (isDirectory) {
-            this.loadListing = new LoadListing(attr["loadListing"]);
-        }
+        this.loadListing = new LoadListing(attr["loadListing"]);
 
     }
 
