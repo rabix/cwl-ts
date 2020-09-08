@@ -30,7 +30,7 @@ export class V1_1WorkflowStepInputModel extends V1WorkflowStepInputModel {
         const isDirectory = isType(this, ['Directory']);
 
         if (isDirectory) {
-            this.loadListing = new LoadListing(attr["loadListing"]);
+            this.loadListing = new LoadListing(attr["listing"]);
         }
 
     }
