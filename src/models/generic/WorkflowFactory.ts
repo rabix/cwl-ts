@@ -5,6 +5,7 @@ import {Workflow as V1Workflow} from "../../mappings/v1.0/Workflow";
 import {Workflow as SBDraft2Workflow} from "../../mappings/d2sb/Workflow";
 import {SBDraft2WorkflowModel} from "../d2sb/SBDraft2WorkflowModel";
 import {Process} from "../../mappings/v1.0/Process";
+import {V1_1WorkflowModel} from "../v1.1/V1_1WorkflowModel";
 
 export class WorkflowFactory {
     public static from(workflow?: V1Workflow | SBDraft2Workflow | Process, loc?: string): WorkflowModel {
@@ -13,6 +14,8 @@ export class WorkflowFactory {
 
         if (workflow) {
             switch (workflow.cwlVersion) {
+                case "v1.1":
+                    return new V1_1WorkflowModel(workflow as V1Workflow, loc);
                 case "v1.0":
                     return new V1WorkflowModel(workflow as V1Workflow, loc);
                 case "sbg:draft-2":

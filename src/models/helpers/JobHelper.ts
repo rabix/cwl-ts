@@ -55,6 +55,7 @@ export class JobHelper {
 
         let map = {
             File: file(name),
+            stdin: file(name),
             Directory: {path: "/path/to/" + name, "class": "Directory", basename: name},
             'enum': symbols ? symbols[0] : name,
             string: name + '-string-value',
@@ -65,6 +66,10 @@ export class JobHelper {
             map: {},
             array: {
                 File: [
+                    file(name + "-1"),
+                    file(name + "-2")
+                ],
+                stdin: [
                     file(name + "-1"),
                     file(name + "-2")
                 ],
@@ -96,7 +101,7 @@ export class JobHelper {
             val = val[items];
 
             if (items === "record" && input.type.fields) {
-                val       = [];
+                val = [];
                 const obj = {};
 
                 input.type.fields.forEach(field => {
@@ -119,7 +124,7 @@ export class JobHelper {
         return val !== undefined ? val : null;
     }
 
-    public static getJobInputs(app: {inputs: InputParameterModel[]} ): any {
+    public static getJobInputs(app: { inputs: InputParameterModel[] }): any {
         let job = {};
 
 
@@ -130,7 +135,7 @@ export class JobHelper {
         return job;
     }
 
-    public static getNullJobInputs(app: {inputs: InputParameterModel[]}): any {
+    public static getNullJobInputs(app: { inputs: InputParameterModel[] }): any {
         let job = {};
 
         app.inputs.forEach(input => {

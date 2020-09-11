@@ -2,6 +2,7 @@ import {CommandLineBinding} from "../../mappings/d2sb/CommandLineBinding";
 import {CWLVersion} from "../../mappings/v1.0/CWLVersion";
 import {Serializable} from "../interfaces/Serializable";
 import {ErrorCode, ValidityError} from "./validation/ErrorCode";
+import {ensureArray} from "./utils";
 
 export type PrimitiveType =
     "array"
@@ -17,7 +18,8 @@ export type PrimitiveType =
     | "double"
     | "bytes"
     | "Directory"
-    | "map";
+    | "map"
+    | "stdin"
 
 export interface TypeResolution {
     type: PrimitiveType;
@@ -28,6 +30,8 @@ export interface TypeResolution {
     isItemOrArray: boolean;
     typeBinding: CommandLineBinding;
     name: string;
+    doc?: string;
+    label?: string;
     unionType?: any
 
 }
@@ -49,7 +53,9 @@ export class TypeResolver {
                 isItemOrArray: false,
                 typeBinding: null,
                 name: null,
-                unionType: null
+                unionType: null,
+                label: "",
+                doc: ""
             };
 
         if (originalType === null || originalType === undefined) {
@@ -135,6 +141,15 @@ export class TypeResolver {
             }
         } else if (typeof type === 'object') {
             if (type.type) {
+
+                if (type.doc) {
+                    result.doc = ensureArray(type.doc).join("\n");;
+                }
+
+                if (type.label) {
+                    result.label = type.label;
+                }
+
                 // result type has already been set, pass through is evaluating complex items type
                 if (result.type === "array") {
                     result.items = type.type;
@@ -299,6 +314,14 @@ export class TypeResolver {
 
             default:
                 t = type.type;
+        }
+
+        if (type.doc) {
+            t.doc = type.doc;
+        }
+
+        if (type.label) {
+            t.label = type.label;
         }
 
         // type should be serialized as an array of ["item", "item[]"]

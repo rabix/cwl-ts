@@ -1,10 +1,10 @@
 import {expect} from "chai";
-import {
-    V1CommandInputParameterModel,
-    V1StepModel,
-    V1WorkflowInputParameterModel,
-    V1WorkflowOutputParameterModel
-} from "../v1.0";
+
+import {V1CommandInputParameterModel} from "../v1.0/V1CommandInputParameterModel";
+import {V1WorkflowInputParameterModel} from "../v1.0/V1WorkflowInputParameterModel";
+import {V1WorkflowOutputParameterModel} from "../v1.0/V1WorkflowOutputParameterModel";
+import {V1StepModel} from "../v1.0/V1StepModel";
+
 import {V1WorkflowStepInputModel} from "../v1.0/V1WorkflowStepInputModel";
 import {V1WorkflowStepOutputModel} from "../v1.0/V1WorkflowStepOutputModel";
 import {

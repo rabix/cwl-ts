@@ -16,7 +16,7 @@ export abstract class WorkflowInputParameterModel extends ValidationBase impleme
     public id: string;
     public type: ParameterTypeModel;
     public fileTypes: string[] = [];
-    public secondaryFiles: ExpressionModel[] = [];
+    public secondaryFiles: ExpressionModel[] | any  = [];
 
     public inputBinding?: any;
 
@@ -69,6 +69,8 @@ export abstract class WorkflowInputParameterModel extends ValidationBase impleme
         this.type.updateLoc(`${loc}.type`);
     }
 
+    abstract addParameter(attr: any): void;
+
 
     abstract addSecondaryFile(file: V1Expression | SBDraft2Expression | string): ExpressionModel;
 
@@ -76,7 +78,7 @@ export abstract class WorkflowInputParameterModel extends ValidationBase impleme
                                                            exprConstructor: new(...args: any[]) => T,
                                                            locBase: string): T {
         const loc = incrementLastLoc(this.secondaryFiles, `${locBase}.secondaryFiles`);
-        const f   = new exprConstructor(file, loc, this.eventHub);
+        const f = new exprConstructor(file, loc, this.eventHub);
         this.secondaryFiles.push(f);
         f.setValidationCallback(err => this.updateValidity(err));
         return f;

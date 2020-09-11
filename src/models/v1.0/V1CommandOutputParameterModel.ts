@@ -4,7 +4,14 @@ import {Expression} from "../../mappings/v1.0/Expression";
 import {CommandOutputParameterModel} from "../generic/CommandOutputParameterModel";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
 import {EventHub} from "../helpers/EventHub";
-import {commaSeparatedToArray, ensureArray, isType, spreadAllProps, spreadSelectProps, isFileType} from "../helpers/utils";
+import {
+    commaSeparatedToArray,
+    ensureArray,
+    isType,
+    spreadAllProps,
+    spreadSelectProps,
+    isFileType
+} from "../helpers/utils";
 import {Serializable} from "../interfaces/Serializable";
 import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
 import {V1ExpressionModel} from "./V1ExpressionModel";
@@ -13,7 +20,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
     public label: string;
     public outputBinding: V1CommandOutputBindingModel;
     public description: string;
-    public secondaryFiles: V1ExpressionModel[] = [];
+    public secondaryFiles: V1ExpressionModel[] | any = [];
     public streamable: boolean;
     public id: string;
 
@@ -37,6 +44,18 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
 
     removeSecondaryFile(index: number) {
         this._removeSecondaryFile(index);
+    }
+
+    addParameter(attr: CommandOutputParameter | CommandOutputRecordField) {
+
+        this.type = new ParameterTypeModel(
+            attr.type,
+            V1CommandOutputParameterModel,
+            `${this.id}_field`,
+            `${this.loc}.type`,
+            this.eventHub);
+
+        this.type.setValidationCallback(err => this.updateValidity(err));
     }
 
     serialize(): CommandOutputParameter {
@@ -79,8 +98,8 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
 
         this.id = (<CommandOutputParameter> attr).id || (<CommandOutputRecordField> attr).name;
 
-        this.type = new ParameterTypeModel(attr.type, V1CommandOutputParameterModel, `${this.id}_field`, `${this.loc}.type`, this.eventHub);
-        this.type.setValidationCallback(err => this.updateValidity(err));
+        this.addParameter(attr);
+
         this.type.hasDirectoryType = true;
 
         if (isType(this, ["record", "enum"]) && !this.type.name) {
@@ -91,7 +110,7 @@ export class V1CommandOutputParameterModel extends CommandOutputParameterModel i
         this.outputBinding.setValidationCallback(err => this.updateValidity(err));
 
         this.label       = attr.label;
-        this.description = ensureArray(attr.doc).join("\n\n");
+        this.description = ensureArray(attr.doc).join("\n");
 
         // properties only on inputs, not on fields
         this.secondaryFiles = ensureArray((<CommandOutputParameter> attr).secondaryFiles).map(f => this.addSecondaryFile(f));

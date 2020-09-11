@@ -15,6 +15,8 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
     hasExprPrimitive = true;
     hasShellQuote    = true;
 
+    bindingModel = V1CommandLineBindingModel;
+
     constructor(arg?: CommandLineBinding | string, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
 
@@ -31,7 +33,7 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
 
     toggleBinding(state: boolean): void {
         if (state) {
-            this.binding   = new V1CommandLineBindingModel({}, this.loc, this.eventHub);
+            this.binding   = new this.bindingModel({}, this.loc, this.eventHub);
             this.binding.setValidationCallback(ev => this.updateValidity(ev));
             this.primitive.clearIssue(ErrorCode.ALL);
             this.primitive = undefined;
@@ -54,7 +56,7 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
 
     updateBinding(binding: CommandLineBinding) {
         this.binding.prefix        = binding.prefix;
-        this.binding.position      = binding.position;
+        this.binding.position      =  !isNaN(<any> binding.position) ? parseInt(<any> binding.position): 0;
         this.binding.separate      = binding.separate;
         this.binding.itemSeparator = binding.itemSeparator;
         this.binding.shellQuote    = binding.shellQuote;
@@ -90,13 +92,13 @@ export class V1CommandArgumentModel extends CommandArgumentModel implements Seri
             this.hasBinding = false;
             this.primitive  = new V1ExpressionModel(attr, this.loc, this.eventHub);
             this.primitive.setValidationCallback(err => this.updateValidity(err));
-        } else if (attr instanceof V1CommandLineBindingModel) {
+        } else if (attr instanceof this.bindingModel) {
             this.hasBinding = true;
-            this.binding    = new V1CommandLineBindingModel(attr.serialize(), this.loc, this.eventHub);
+            this.binding    = new this.bindingModel(attr.serialize(), this.loc, this.eventHub);
             this.binding.setValidationCallback(err => this.updateValidity(err));
         } else if (typeof attr === 'object') {
             this.hasBinding = true;
-            this.binding    = new V1CommandLineBindingModel(attr, this.loc, this.eventHub);
+            this.binding    = new this.bindingModel(attr, this.loc, this.eventHub);
             this.binding.setValidationCallback(err => this.updateValidity(err));
         }
     }

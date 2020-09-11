@@ -1,11 +1,14 @@
 import {CommandLineToolModel} from "../generic/CommandLineToolModel";
+import {CommandInputParameterModel} from "../generic/CommandInputParameterModel";
 import {CommandLinePart} from "./CommandLinePart";
 import {CommandLinePrepare} from "./CommandLinePrepare";
-import {isEmpty} from "./utils";
+import {isEmpty, isType} from "./utils";
 import {JobHelper} from "./JobHelper";
 
-export const generateCommandLineParts = (tool: CommandLineToolModel, jobInputs, runtime): Promise<CommandLinePart[]> => {
-    const flatInputs = CommandLinePrepare.flattenInputsAndArgs([].concat(tool.arguments).concat(tool.inputs));
+
+export const generateCommandLineParts = async (tool: CommandLineToolModel, jobInputs, runtime): Promise<CommandLinePart[]> => {
+    const flatInputs = await CommandLinePrepare
+        .flattenInputsAndArgs([].concat(tool.arguments).concat(tool.inputs), tool.getContext());
 
     const job = isEmpty(jobInputs) ? // if job has not been populated
         {...{inputs: JobHelper.getJobInputs(tool)}, ...{runtime: runtime}} : // supply dummy values
@@ -23,15 +26,39 @@ export const generateCommandLineParts = (tool: CommandLineToolModel, jobInputs, 
         });
     });
 
-    const inputPromise = flatInputs.map(input => {
-        return CommandLinePrepare.prepare(input, flatJobInputs, tool.getContext(input), input.loc)
-    }).filter(i => i instanceof Promise).map(promise => {
-        return promise.then(succ => succ, err => {
-            return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type);
+    const inputPromise = flatInputs
+        .map(input => {
+            return CommandLinePrepare.prepare(input, flatJobInputs, tool.getContext(input), input.loc)
+        }).filter(i => i instanceof Promise).map(promise => {
+            return promise.then(succ => succ, err => {
+                return new CommandLinePart(`<${err.type} at ${err.loc}>`, err.type);
+            });
         });
-    });
 
-    const stdInPromise  = CommandLinePrepare.prepare(tool.stdin, flatJobInputs, tool.getContext(), tool.stdin.loc, "stdin");
+
+    const stdinSet = tool.stdin.serialize();
+    const stdinInputs =
+        tool.inputs.filter((input: any) => (input instanceof CommandInputParameterModel && isType(input, ["stdin"])));
+
+    const hasMultiple = stdinSet ? stdinInputs.length > 0 : stdinInputs.length > 1;
+
+    let stdInPromise;
+
+    // If stdIn is set and there is an input with stdIn type or there are multiple inputs with stdIn then its an error
+    if (hasMultiple) {
+        stdInPromise = new CommandLinePart(`<There are multiple stdIn values set>`, 'warning');
+    } else {
+
+        const stdInInput = stdinInputs[0];
+
+        if (stdInInput) {
+            stdInPromise = CommandLinePrepare.prepare(stdInInput, flatJobInputs, tool.getContext(stdInInput), stdInInput.loc)
+        } else {
+            stdInPromise = CommandLinePrepare.prepare(tool.stdin, flatJobInputs, tool.getContext(), tool.stdin.loc, "stdin");
+        }
+
+    }
+
     const stdOutPromise = CommandLinePrepare.prepare(tool.stdout, flatJobInputs, tool.getContext(), tool.stdout.loc, "stdout");
 
     return Promise.all([].concat(baseCmdPromise, inputPromise, stdInPromise, stdOutPromise)).then((parts: CommandLinePart[]) => {

@@ -83,7 +83,7 @@ export class CommandLineParsers {
         });
     }
 
-    static record(input, job, value, context, cmdType, loc): Promise<CommandLinePart> {
+    static async record(input, job, value, context, cmdType, loc): Promise<CommandLinePart> {
         CommandLineParsers.checkMismatch(input, job, value);
 
         const prefix    = input.inputBinding.prefix || "";
@@ -93,7 +93,7 @@ export class CommandLineParsers {
         // input.type.fields will be populated if the record is not in an array
         // the empty array is passed in case the type of input isn't really a record, but its value in the job was malformed
         // to make it look like it is a record, in this case the parser will return nothing
-        const flatFields = CommandLinePrepare.flattenInputsAndArgs(input.fields || input.type.fields || []);
+        const flatFields = await CommandLinePrepare.flattenInputsAndArgs(input.fields || input.type.fields || [], context);
         const flatRecordValue = CommandLinePrepare.flattenJob(value, {});
 
 
@@ -199,6 +199,22 @@ export class CommandLineParsers {
         return new Promise(res => {
             res(new CommandLinePart(prefix, "input", loc));
         });
+    }
+
+    static stdin(input, job, value, context, cmdType, loc) : Promise<CommandLinePart> {
+
+        let checkedValue = (value !== undefined && value !== null) ? value : job[input.id];
+
+        if (checkedValue && checkedValue.hasOwnProperty("path")) {
+            checkedValue = checkedValue.path;
+        }
+
+        const result = checkedValue ? `< ${checkedValue}` : "";
+
+        return new Promise(res => {
+            res(new CommandLinePart(result, cmdType, loc));
+        });
+
     }
 
     static stream(stream, job, value, context, cmdType, loc): Promise<CommandLinePart> {

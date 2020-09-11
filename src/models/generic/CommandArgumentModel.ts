@@ -19,7 +19,7 @@ export abstract class CommandArgumentModel extends ValidationBase implements Ser
         return this.binding ? this.binding.prefix : undefined;
     }
 
-    get position(): number {
+    get position(): number | ExpressionModel {
         return this.binding ? this.binding.position || 0 : 0;
     }
 

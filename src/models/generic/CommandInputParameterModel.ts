@@ -26,7 +26,7 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
     public hasStageInput: boolean;
     public hasSecondaryFiles: boolean;
     public hasSecondaryFilesInRoot: boolean;
-    public secondaryFiles: ExpressionModel[];
+    public secondaryFiles: ExpressionModel[] | any;
 
     /** Human readable short name */
     public label?: string;

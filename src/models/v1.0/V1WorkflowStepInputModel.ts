@@ -88,7 +88,7 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
         this.type.hasDirectoryType = true;
 
         this.doc         = attr["doc"];
-        this.description = ensureArray(this.doc).join("\n\n");
+        this.description = ensureArray(this.doc).join("\n");
         this.label       = attr["label"];
 
         this.fileTypes = attr["fileTypes"];

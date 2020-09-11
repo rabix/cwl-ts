@@ -43,7 +43,7 @@ export interface CommandLineBinding extends InputBinding {
     /**
      * The sorting key.  Default position is 0.
      */
-    position?: number;
+    position?: number | Expression;
 
 
     /**

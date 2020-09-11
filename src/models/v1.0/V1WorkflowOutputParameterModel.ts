@@ -46,7 +46,7 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
         this.type.hasDirectoryType = true;
 
         this._label      = output.label;
-        this.description = ensureArray(output.doc).join("\n\n");
+        this.description = ensureArray(output.doc).join("\n");
         this.doc         = this.description;
 
         if (!this.isField) {

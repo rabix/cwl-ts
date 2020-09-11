@@ -315,6 +315,21 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         return spreadAllProps(base, this.customProps);
     }
 
+    addInput(input, index) {
+        this.addEntry(new V1WorkflowInputParameterModel(input, `${this.loc}.inputs[${index}]`, this.eventHub), "inputs");
+    }
+
+    addOutput(output, index) {
+        this.addEntry(new V1WorkflowOutputParameterModel(output, `${this.loc}.outputs[${index}]`, this.eventHub), "outputs");
+    }
+
+    addStep(step, index) {
+        if (step.run && typeof step.run !== "string") {
+            step.run.cwlVersion = step.run.cwlVersion || "v1.0";
+        }
+        this.addEntry(new V1StepModel(step, `${this.loc}.steps[${index}]`, this.eventHub), "steps");
+    }
+
     deserialize(workflow: Workflow): void {
         const serializedKeys = [
             "class",
@@ -339,22 +354,19 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         this.sbgId = workflow["sbg:id"];
 
         this.label       = workflow.label;
-        this.description = workflow.doc;
+        this.description = ensureArray(workflow.doc).join("\n");
         this.namespaces  = new NamespaceBag(workflow.$namespaces);
 
         ensureArray(workflow.inputs, "id", "type").forEach((input, i) => {
-            this.addEntry(new V1WorkflowInputParameterModel(input, `${this.loc}.inputs[${i}]`, this.eventHub), "inputs");
+            this.addInput(input, i);
         });
 
         ensureArray(workflow.outputs, "id", "type").forEach((output, i) => {
-            this.addEntry(new V1WorkflowOutputParameterModel(output, `${this.loc}.outputs[${i}]`, this.eventHub), "outputs");
+            this.addOutput(output, i);
         });
 
         ensureArray(workflow.steps, "id").forEach((step, i) => {
-            if (step.run && typeof step.run !== "string") {
-                step.run.cwlVersion = step.run.cwlVersion || "v1.0";
-            }
-            this.addEntry(new V1StepModel(step, `${this.loc}.steps[${i}]`, this.eventHub), "steps");
+            this.addStep(step, i);
         });
 
         this.hints = ensureArray(workflow.hints).map((hint, i) => {

@@ -99,7 +99,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         ];
 
         this.id          = step.id || "";
-        this.description = step.doc;
+        this.description = ensureArray(step.doc).join("\n");
         this._label      = step.label;
         const hasRun     = step.run && (step.run as any).class;
 
