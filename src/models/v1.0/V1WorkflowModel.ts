@@ -228,11 +228,6 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         base.requirements = requirements;
 
-        /* Deleting all user supplied requirements is inadvisable
-           It is best to superimpose detected requirements on top of any
-           the User has supplied */ 
-        //delete this.customProps.requirements;
-
         return spreadAllProps(base, this.customProps);
     }
 
