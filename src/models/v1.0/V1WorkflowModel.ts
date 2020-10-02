@@ -175,7 +175,9 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         let reqMap = {
             SubworkflowFeatureRequirement: false,
             ScatterFeatureRequirement: false,
-            MultipleInputFeatureRequirement: false
+            MultipleInputFeatureRequirement: false,
+            InlineJavascriptRequirement: false,
+            StepInputExpressionRequirement: false
         };
 
         // feature detection
@@ -194,10 +196,18 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
             for (let j = 0; j < step.in.length; j++) {
                 const inPort = step.in[j];
+
                 if (inPort.source && inPort.source.length > 1) {
                     reqMap.MultipleInputFeatureRequirement = true;
                 }
+
+                if (inPort.valueFrom) {
+                    reqMap.InlineJavascriptRequirement = true;
+                    reqMap.StepInputExpressionRequirement = true;
+                }
+
             }
+
         }
 
         // requirement setting
@@ -217,8 +227,6 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
         }
 
         base.requirements = requirements;
-
-        delete this.customProps.requirements;
 
         return spreadAllProps(base, this.customProps);
     }
