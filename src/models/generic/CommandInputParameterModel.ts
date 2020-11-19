@@ -33,6 +33,8 @@ export abstract class CommandInputParameterModel extends ValidationBase implemen
     /** Human readable description */
     public description?: string;
 
+    public isSecret: boolean;
+
     public customProps: any = {};
 
     protected eventHub: EventHub;

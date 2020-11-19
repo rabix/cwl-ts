@@ -109,6 +109,8 @@ export class SBDraft2CommandInputParameterModel extends CommandInputParameterMod
 
         this.type.hasMapType = true;
 
+        this.isSecret = Boolean(input['sbg:secretAlias']);
+
         this.attachFileTypeListeners();
 
         // populates object with all custom attributes not covered in model

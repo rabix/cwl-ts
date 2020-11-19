@@ -134,6 +134,7 @@ export class V1CommandInputParameterModel extends CommandInputParameterModel imp
         this.fileTypes      = commaSeparatedToArray(attr["sbg:fileTypes"]);
         this.streamable     = (<CommandInputParameter> attr).streamable;
         this.default        = (<CommandInputParameter> attr).default;
+        this.isSecret       = Boolean(attr['sbg:secretAlias']);
 
         this.attachFileTypeListeners();
 
