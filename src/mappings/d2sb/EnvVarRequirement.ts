@@ -1,4 +1,7 @@
 import {ProcessRequirement} from "./ProcessRequirement";
-export interface EnvVarRequirement  extends ProcessRequirement {
+import {EnvironmentDef} from "./EnvironmentDef";
 
+export interface EnvVarRequirement extends ProcessRequirement {
+    class: string;
+    envDef: EnvironmentDef[];
 }
