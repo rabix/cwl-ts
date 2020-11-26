@@ -1,4 +1,4 @@
-import {CommandLineTool, ProcessRequirement} from "../../mappings/v1.0/";
+import {CommandLineTool, EnvironmentDef, EnvVarRequirement, ProcessRequirement} from "../../mappings/v1.0/";
 import {CommandInputParameter} from "../../mappings/v1.0/CommandInputParameter";
 import {CommandLineBinding} from "../../mappings/v1.0/CommandLineBinding";
 import {CommandOutputParameter} from "../../mappings/v1.0/CommandOutputParameter";
@@ -30,6 +30,8 @@ import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1InitialWorkDirRequirementModel} from "./V1InitialWorkDirRequirementModel";
 import {V1InlineJavascriptRequirementModel} from "./V1InlineJavascriptRequirementModel";
 import {V1ResourceRequirementModel} from "./V1ResourceRequirementModel";
+import {V1EnvVarRequirementModel} from "./V1EnvVarRequirementModel";
+import {EnvironmentDefModel} from "../generic/EnvVarRequirementModel";
 
 export class V1CommandLineToolModel extends CommandLineToolModel {
 
@@ -154,6 +156,24 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.baseCommand.push(cmd);
     }
 
+    public addEnvironmentVariable(env: EnvironmentDef): EnvironmentDefModel {
+
+        const envDef: EnvironmentDefModel = {
+            envName: env.envName,
+            envValue: new V1ExpressionModel(
+                env.envValue,
+                `${this.loc}.requirements[${this.requirements.length}].envVars.envDef[${this.envVars.envDef.length}]`,
+                this.eventHub
+            ),
+        }
+
+        envDef.envValue.setValidationCallback(err => this.updateValidity(err));
+
+        this.envVars.envDef.push(envDef);
+
+        return envDef;
+    }
+
     public setRequirement(req: ProcessRequirement, hint?: boolean) {
         this.createReq(req, null, hint);
     }
@@ -183,6 +203,12 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
                 this.resources = new V1ResourceRequirementModel(req, loc, this.eventHub);
                 this.resources.setValidationCallback(err => this.updateValidity(err));
                 this.resources.isHint = hint;
+                return;
+
+            case "EnvVarRequirement":
+                loc = this.envVars ? this.envVars.loc || loc : loc;
+                this.envVars = new V1EnvVarRequirementModel(req as EnvVarRequirement, loc, this.eventHub);
+                this.envVars.setValidationCallback(err => this.updateValidity(err));
                 return;
 
             case "InlineJavascriptRequirement":
@@ -272,6 +298,12 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
             this.resources = new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${++this.requirementsCounter}]`, this.eventHub);
         }
         this.resources.setValidationCallback(err => this.updateValidity(err));
+
+        // create EnvVarRequirement for manipulation
+        if (!this.envVars) {
+            this.envVars = new V1EnvVarRequirementModel(<EnvVarRequirement> {}, `${this.loc}.requirements[${++this.requirementsCounter}]`, this.eventHub);
+        }
+        this.envVars.setValidationCallback(err => this.updateValidity(err));
 
         // create InlineJavascriptRequirement for manipulation
         if (!this.inlineJavascriptRequirement) {
@@ -382,6 +414,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         if (this.fileRequirement.serialize()) {
             const dest = this.fileRequirement.isHint ? "hints" : "requirements";
             (base[dest] as Array<ProcessRequirement>).push(this.fileRequirement.serialize());
+        }
+
+        if (this.envVars.serialize()) {
+            base.requirements.push(this.envVars.serialize());
         }
 
         if (!base.requirements.length) delete base.requirements;
