@@ -169,20 +169,19 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         return super._addOutput(SBDraft2CommandOutputParameterModel, output);
     }
 
-    addEnvironmentVariable(env: EnvironmentDef): EnvironmentDefModel {
+    createEnvVariable (env: EnvironmentDef, type: "expression" | "string"): EnvironmentDefModel {
 
         const envDef: EnvironmentDefModel = {
             envName: env.envName,
             envValue: new SBDraft2ExpressionModel(
-                env.envValue,
+                '',
                 `${this.loc}.requirements[${this.requirements.length}].envVars.envDef[${this.envVars.envDef.length}]`,
                 this.eventHub
             ),
         }
 
+        envDef.envValue.setValue(env.envValue, type);
         envDef.envValue.setValidationCallback(err => this.updateValidity(err));
-
-        this.envVars.envDef.push(envDef);
 
         return envDef;
     }

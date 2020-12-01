@@ -156,7 +156,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         this.baseCommand.push(cmd);
     }
 
-    public addEnvironmentVariable(env: EnvironmentDef): EnvironmentDefModel {
+    public createEnvVariable(env: EnvironmentDef, valueType?: "expression" | "string"): EnvironmentDefModel {
 
         const envDef: EnvironmentDefModel = {
             envName: env.envName,
@@ -168,8 +168,6 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         }
 
         envDef.envValue.setValidationCallback(err => this.updateValidity(err));
-
-        this.envVars.envDef.push(envDef);
 
         return envDef;
     }

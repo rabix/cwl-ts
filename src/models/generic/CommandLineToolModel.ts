@@ -523,7 +523,11 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
         return generateCommandLineParts(this, this.jobInputs, this.runtime);
     }
 
-    abstract addEnvironmentVariable(env: EnvironmentDef): EnvironmentDefModel;
+    addEnvVariable(envDef: EnvironmentDefModel): void {
+        this.envVars.envDef.push(envDef);
+    }
+
+    abstract createEnvVariable(env: EnvironmentDef, valueType?: "expression" | "string"): EnvironmentDefModel;
 
     // SERIALIZATION //
 
