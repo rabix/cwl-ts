@@ -6,7 +6,9 @@ import {SecondaryFileSchema} from "../../mappings/v1.1/SecondaryFileSchema";
 import {EventHub} from "../helpers/EventHub";
 import {ErrorCode} from "../helpers/validation";
 
-export class V1_1SecondaryFileSchemaModel extends ValidationBase implements Serializable<SecondaryFileSchema> {
+export abstract class V1_1SecondaryFileSchemaModel extends ValidationBase implements Serializable<SecondaryFileSchema> {
+
+    protected defaultRequiredValue: boolean;
 
     pattern: V1ExpressionModel;
     required: boolean | V1ExpressionModel;
@@ -55,7 +57,15 @@ export class V1_1SecondaryFileSchemaModel extends ValidationBase implements Seri
         const isString = typeof attr === 'string';
         const pattern = isString ? (attr.endsWith('?') ? attr.slice(0, -1) : attr) : (attr.pattern || "");
         this.setPattern(pattern);
-        let required = isString ? !attr.endsWith('?') : attr.required;
+
+        let required;
+
+        if (isString) {
+            required = attr.endsWith('?') ? false : this.defaultRequiredValue;
+        } else {
+            required = attr.required === undefined ? this.defaultRequiredValue : attr.required;
+        }
+
         this.setRequired(required);
 
     }
@@ -75,3 +85,12 @@ export class V1_1SecondaryFileSchemaModel extends ValidationBase implements Seri
     }
 
 }
+
+export class V1_1InputSecondaryFileSchemaModel extends V1_1SecondaryFileSchemaModel {
+    defaultRequiredValue = true;
+}
+
+export class V1_1OutputSecondaryFileSchemaModel extends V1_1SecondaryFileSchemaModel {
+    defaultRequiredValue = false;
+}
+
