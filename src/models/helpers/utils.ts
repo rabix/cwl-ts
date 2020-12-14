@@ -2,7 +2,8 @@ import {
     CommandInputParameterModel,
     CommandOutputParameterModel,
     ParameterTypeModel,
-    WorkflowOutputParameterModel
+    WorkflowOutputParameterModel,
+    WorkflowStepInputModel
 } from "../generic";
 import {InputParameterModel} from "../generic/InputParameterModel";
 import {ErrorCode, Issue, ValidityError} from "./validation";
@@ -332,6 +333,14 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
 
         // if not file or fileTypes not defined
         return true;
+    }
+
+    if (pointAItems === pointBType) {
+        const selectedScatterId = (id: string) => pointB instanceof WorkflowStepInputModel && pointB.id == id;
+
+        if (pointB.parentStep && pointB.parentStep.scatter.some(selectedScatterId)) {
+            return true;
+        }
     }
 
     // if types are both defined and do not match
