@@ -292,18 +292,7 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         this.baseCommand = [];
 
-        (<Array<string | Expression>> tool.baseCommand).reduce((acc, curr) => {
-            if (typeof curr === "string") {
-                if (typeof acc[acc.length - 1] === "string") {
-                    acc[acc.length - 1] += ` ${curr}`;
-                    return acc;
-                } else {
-                    return acc.concat([curr]);
-                }
-            } else {
-                return acc.concat([curr]);
-            }
-        }, []).forEach((cmd) => {
+        tool.baseCommand.forEach((cmd) => {
             this.addBaseCommand(cmd);
         });
 
