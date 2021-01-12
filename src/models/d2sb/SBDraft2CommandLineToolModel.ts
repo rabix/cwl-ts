@@ -32,6 +32,10 @@ import {SBDraft2CommandOutputParameterModel} from "./SBDraft2CommandOutputParame
 import {SBDraft2CreateFileRequirementModel} from "./SBDraft2CreateFileRequirementModel";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
 import {SBDraft2ResourceRequirementModel} from "./SBDraft2ResourceRequirementModel";
+import {SBDraft2EnvRequirementModel} from "./SBDraft2EnvRequirementModel";
+import {EnvVarRequirement} from "../../mappings/d2sb/EnvVarRequirement";
+import {EnvironmentDef} from "../../mappings/v1.0";
+import {EnvironmentDefModel} from "../generic/EnvVarRequirementModel";
 
 export class SBDraft2CommandLineToolModel extends CommandLineToolModel implements Serializable<CommandLineTool> {
     cwlVersion = "sbg:draft-2";
@@ -165,6 +169,23 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         return super._addOutput(SBDraft2CommandOutputParameterModel, output);
     }
 
+    createEnvVariable (env: EnvironmentDef, type: "expression" | "string"): EnvironmentDefModel {
+
+        const envDef: EnvironmentDefModel = {
+            envName: env.envName,
+            envValue: new SBDraft2ExpressionModel(
+                '',
+                `${this.loc}.requirements[${this.requirements.length}].envVars.envDef[${this.envVars.envDef.length}]`,
+                this.eventHub
+            ),
+        }
+
+        envDef.envValue.setValue(env.envValue, type);
+        envDef.envValue.setValidationCallback(err => this.updateValidity(err));
+
+        return envDef;
+    }
+
     setRequirement(req: ProcessRequirement, hint?: boolean) {
         const prop = hint ? "hints" : "requirements";
         this.createReq(req, `${this.loc}.${prop}[${this[prop].length}]`, hint);
@@ -189,6 +210,10 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
                 reqModel             = new SBDraft2CreateFileRequirementModel(<CreateFileRequirement>req, loc, this.eventHub);
                 this.fileRequirement = <SBDraft2CreateFileRequirementModel> reqModel;
                 reqModel.setValidationCallback(err => this.updateValidity(err));
+                return;
+            case "EnvVarRequirement":
+                this.envVars = new SBDraft2EnvRequirementModel(<EnvVarRequirement>req, loc, this.eventHub);
+                this.envVars.setValidationCallback(err => this.updateValidity(err));
                 return;
             case "sbg:CPURequirement":
                 this.resources.cores = new SBDraft2ExpressionModel((<SBGCPURequirement>req).value, `${loc}.value`, this.eventHub);
@@ -275,6 +300,9 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
 
         this.fileRequirement = this.fileRequirement || new SBDraft2CreateFileRequirementModel(<CreateFileRequirement> {}, `${this.loc}.requirements[${this.requirements.length}]`, this.eventHub);
         this.fileRequirement.setValidationCallback(err => this.updateValidity(err));
+
+        this.envVars = this.envVars || new SBDraft2EnvRequirementModel(<EnvVarRequirement>{}, `${this.loc}.requirements[${this.requirements.length}]`, this.eventHub);
+        this.envVars.setValidationCallback(err => this.updateValidity(err));
 
         this.updateStream(new SBDraft2ExpressionModel(tool.stdin, `${this.loc}.stdin`, this.eventHub), "stdin");
         this.updateStream(new SBDraft2ExpressionModel(tool.stdout, `${this.loc}.stdout`, this.eventHub), "stdout");
@@ -370,6 +398,8 @@ export class SBDraft2CommandLineToolModel extends CommandLineToolModel implement
         }
 
         if (this.fileRequirement.serialize()) base.requirements.push(this.fileRequirement.serialize());
+
+        if (this.envVars.serialize()) base.requirements.push(this.envVars.serialize());
 
         if (!base.requirements.length) delete base.requirements;
 
