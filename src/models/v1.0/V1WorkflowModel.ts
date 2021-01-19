@@ -46,6 +46,7 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
         this.graph = this.constructGraph();
         this.validateAllExpressions();
+        this.validateAllInputs();
         this.validateGraph();
     }
 

@@ -50,6 +50,7 @@ export class SBDraft2WorkflowModel extends WorkflowModel implements Serializable
 
         this.graph = this.constructGraph();
         this.validateAllExpressions();
+        this.validateAllInputs();
         this.validateGraph();
 
         this.eventHub.on("io.change.id", (node, oldId)=> {
