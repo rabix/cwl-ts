@@ -23,6 +23,7 @@
         "dist",
         "node_modules",
         "**/*.json",
-        "**/*.spec.ts"
+        "**/*.spec.ts",
+        "src/tests"
     ]
 }
