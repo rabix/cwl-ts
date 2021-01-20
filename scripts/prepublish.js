@@ -26,5 +26,6 @@ clean.then(() => Promise.all([
     fs.copy(`${srcDir}/../package.json`, `${distDir}/package.json`),
     fs.copy(`${srcDir}/../package-lock.json`, `${distDir}/package-lock.json`),
 ])).catch(err => {
+    console.log(err);
     process.exit(1);
 });
