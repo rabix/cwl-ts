@@ -12,7 +12,7 @@
     "v1-test": "mocha src/tests/*.v1.spec.js",
     "publish:prepare": "node ./scripts/prepublish.js && ./node_modules/typescript/bin/tsc",
     "publish:dist": "npm run publish:prepare && cd dist && npm publish",
-    "postinstall": "npm run publish:prepare"
+    "preinstall": "npm run publish:prepare"
   },
   "repository": {
     "type": "git",
