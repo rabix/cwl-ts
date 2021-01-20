@@ -24,7 +24,7 @@ clean.then(() => Promise.all([
     fs.copy(`${schemaSource}/cwl-v10.json`, `${schemaDist}/cwl-v10.json`),
     fs.copy(`${schemaSource}/cwl-mixed.json`, `${schemaDist}/cwl-mixed.json`),
     fs.copy(`${srcDir}/../package.json`, `${distDir}/package.json`),
-    fs.copy(`${srcDir}/../package-lock.json`, `${distDir}/package-lock.json`),
+    // fs.copy(`${srcDir}/../package-lock.json`, `${distDir}/package-lock.json`),
 ])).catch(err => {
     console.log(err);
     process.exit(1);
