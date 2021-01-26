@@ -22,7 +22,7 @@ export class SBDraft2CommandOutputBindingModel extends CommandOutputBindingModel
     }
 
     set glob(value: SBDraft2ExpressionModel) {
-        this.setGlob(value, SBDraft2ExpressionModel);
+        this.setGlobExpression(value, SBDraft2ExpressionModel);
     }
 
     protected _outputEval: SBDraft2ExpressionModel;
