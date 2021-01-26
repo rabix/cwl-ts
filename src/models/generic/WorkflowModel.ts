@@ -260,6 +260,13 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         });
     }
 
+    protected validateAllInputs() {
+        console.log('validateAllInputs');
+        this.inputs.forEach(input => {
+            this.validationPromises.push(input.validate());
+        });
+    }
+
     /**
      * Emitted after a step is created
      * @param {"step.create"} event
@@ -1221,6 +1228,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
         inPort.isVisible = show;
 
         this.eventHub.emit("input.create", input);
+
+        this.validationPromises.push(input.validate());
 
         // connect input with inPort
         this.connect(input, inPort, show);
