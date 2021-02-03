@@ -3,8 +3,9 @@ import {
     CommandOutputParameterModel,
     ExpressionModel,
     ParameterTypeModel,
+    StepModel,
+    WorkflowInputParameterModel,
     WorkflowOutputParameterModel,
-    WorkflowStepInputModel
 } from "../generic";
 import {InputParameterModel} from "../generic/InputParameterModel";
 import {ErrorCode, Issue, ValidityError} from "./validation";
@@ -290,6 +291,29 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
         }
     };
 
+    const stepHasScatterInput = (step: StepModel, scatter: string) => {
+        return step && ensureArray(step.scatter).some(s => s == scatter);
+    };
+
+    const checkBothPointsForSameScatter = () => {
+        if (pointA instanceof WorkflowInputParameterModel ||
+            pointA instanceof WorkflowOutputParameterModel ||
+            pointB instanceof WorkflowInputParameterModel ||
+            pointB instanceof WorkflowOutputParameterModel) {
+            return true;
+        }
+
+        if (!stepHasScatterInput(pointB.parentStep, pointB.id) ||
+            !stepHasScatterInput(pointA.parentStep, pointB.id)) {
+            throw new ValidityError(
+                `Invalid connection. Scatter '${pointB.id}' is making a mismatch in connection`,
+                ErrorCode.CONNECTION_SCATTER_TYPE
+            );
+        }
+
+        return true;
+    }
+
     // fetch type
     const pointAType  = pointA.type.type;
     const pointBType  = pointB.type.type;
@@ -332,6 +356,10 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
             }
         }
 
+        if (pointAType === pointBType) {
+            return checkBothPointsForSameScatter();
+        }
+
         if (pointB.secondaryFiles.length) {
 
             if (pointB.secondaryFiles.length > pointA.secondaryFiles.length) {
@@ -367,12 +395,9 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
         return true;
     }
 
-    if (pointAItems === pointBType) {
-        const selectedScatterId = (id: string) => pointB instanceof WorkflowStepInputModel && pointB.id == id;
-
-        if (pointB.parentStep && pointB.parentStep.scatter.some(selectedScatterId)) {
-            return true;
-        }
+    // mark connection as valid if pointB has scatter and pointA[]
+    if ((pointAItems === pointBType) && stepHasScatterInput(pointB.parentStep, pointB.id)) {
+        return true;
     }
 
     // if types are both defined and do not match
