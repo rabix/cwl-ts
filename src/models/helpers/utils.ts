@@ -352,7 +352,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
                 }
 
                 const secondaryFilePattern = `${secondaryFile}`;
-                const foundSamePattern = outputSecondaryFiles.find(sf => `${sf.toUpperCase()}` === secondaryFilePattern.toUpperCase());
+                const foundSamePattern = outputSecondaryFiles.find(sf => sf.toString().toUpperCase() === secondaryFilePattern.toUpperCase());
 
                 if (!foundSamePattern) {
                     throw new ValidityError(`Input connection is missing required secondary files with a pattern: ${secondaryFilePattern}`, ErrorCode.CONNECTION_SEC_FILES);
