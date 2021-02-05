@@ -112,8 +112,8 @@ export class CommandLineParsers {
 
         const prefix        = input.inputBinding.prefix || "";
         const separator     = input.inputBinding.separate !== false ? " " : "";
-        let itemSeparator = typeof input.inputBinding.itemSeparator === "string" ?
-            input.inputBinding.itemSeparator : " ";
+        const itemSeparatorEnabled = typeof input.inputBinding.itemSeparator === "string";
+        let itemSeparator = itemSeparatorEnabled ? input.inputBinding.itemSeparator : " ";
 
         // Cannot import SBDraft2CommandLineBindingModel since its then a circular dependency
         // So check if its SBDraft2 by checking if does not have flag hasSecondaryFiles
@@ -146,7 +146,9 @@ export class CommandLineParsers {
                 return CommandLinePrepare.prepare(item, value, value[item.id]) as Promise<CommandLinePart>;
             })
         ) as Promise<any>).then((res: Array<CommandLinePart>) => {
-            return new CommandLinePart(prefix + separator + res.map(part => part.value).join(itemSeparator), cmdType, loc);
+            const valueJoined = res.map(part => part.value).join(itemSeparator);
+            const value = itemSeparatorEnabled ? `'${valueJoined}'` : valueJoined;
+            return new CommandLinePart(prefix + separator + value, cmdType, loc);
         });
 
     }
