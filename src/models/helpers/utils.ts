@@ -292,7 +292,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
     };
 
     const stepHasScatterInput = (step: StepModel, scatter: string) => {
-        return step && ensureArray(step.scatter).some(s => s == scatter);
+        return ensureArray(step.scatter).some(s => s == scatter);
     };
 
     const checkBothPointsForSameScatter = () => {
@@ -303,12 +303,19 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
             return true;
         }
 
-        if (!stepHasScatterInput(pointB.parentStep, pointB.id) ||
-            !stepHasScatterInput(pointA.parentStep, pointB.id)) {
-            throw new ValidityError(
-                `Invalid connection. Scatter '${pointB.id}' is making a mismatch in connection`,
-                ErrorCode.CONNECTION_SCATTER_TYPE
-            );
+        if (pointB.parentStep && pointA.parentStep) {
+            const stepBHasDefinedScatter = stepHasScatterInput(pointB.parentStep, pointB.id);
+            const stepAHasDefinedScatter = stepHasScatterInput(pointA.parentStep, pointB.id);
+
+            if ((!stepAHasDefinedScatter && stepBHasDefinedScatter) ||
+                (stepAHasDefinedScatter && !stepBHasDefinedScatter)) {
+                throw new ValidityError(
+                    `Invalid connection. Scatter '${pointB.id}' is making a mismatch in connection`,
+                    ErrorCode.CONNECTION_SCATTER_TYPE
+                );
+            }
+
+            return true;
         }
 
         return true;
@@ -357,7 +364,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
         }
 
         if (pointAType === pointBType) {
-            return checkBothPointsForSameScatter();
+            checkBothPointsForSameScatter();
         }
 
         if (pointB.secondaryFiles.length) {
