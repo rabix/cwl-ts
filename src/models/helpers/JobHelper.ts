@@ -66,6 +66,7 @@ export class JobHelper {
             boolean: true,
             record: {},
             map: {},
+            any: {},
             array: {
                 File: [
                     file(name + "-1"),

@@ -1193,9 +1193,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             }
         }
 
-        let type = inPort.type ? inPort.type.serialize() : "null";
+        let type = inPort.type ? inPort.type.serialize() : "boolean";
 
         if (isType(inPort, ['stdin'])) type = 'File';
+
+        // Default to boolean because its a common use case
+        if (isType(inPort, ['any'])) type = 'boolean';
 
         // create new input on the workflow to connect with the port
         const inputParam = Object.assign({

@@ -84,14 +84,17 @@ export class V1WorkflowStepInputModel extends WorkflowStepInputModel implements 
         // properties that will not be serialized on the step.in,
         // but are necessary for internal functions
         this.type = attr["type"];
-        if (!this.type) this.type = new ParameterTypeModel(null);
+        if (!this.type) {
+            this.type = new ParameterTypeModel("any");
+            this.type.isNullable = true;
+        }
         this.type.hasDirectoryType = true;
 
         this.doc         = attr["doc"];
         this.description = ensureArray(this.doc).join("\n");
         this.label       = attr["label"];
 
-        this.fileTypes = attr["fileTypes"];
+        this.fileTypes = attr["fileTypes"] || [];
 
         this.secondaryFiles = attr["secondaryFiles"];
 

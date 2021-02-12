@@ -11,12 +11,13 @@ import {WorkflowFactory} from "../generic/WorkflowFactory";
 import {WorkflowModel} from "../generic/WorkflowModel";
 import {EventHub} from "../helpers/EventHub";
 import {
-    ensureArray,
+    ensureArray, getNextAvailableId, incrementLastLoc,
     isFileType,
     snakeCase,
     spreadAllProps,
     spreadSelectProps
 } from "../helpers/utils";
+import {ErrorCode} from "../helpers/validation";
 import {Serializable} from "../interfaces/Serializable";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1WorkflowStepInputModel} from "./V1WorkflowStepInputModel";
@@ -250,6 +251,55 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
             return model;
         }).filter(port => port !== undefined);
+
+        // Get only unique values
+        const unique = this.in.concat(remaining)
+            .reduce((acc, item) => {
+
+                const exist = acc.find((port) => port.id === item.id);
+                return exist ? acc : [...acc, item];
+
+            }, [] as Array<V1WorkflowStepInputModel>);
+
+        this.in = unique;
+
+    }
+
+    addCustomInPort() {
+
+        const loc = incrementLastLoc(this.in, `${this.loc}.in`);
+
+        // Id should be unique
+        const id = getNextAvailableId("custom_input",
+            [...this.in, ...this.out, ...this.run.inputs, ...this.run.outputs]);
+
+        const customIn = new V1WorkflowStepInputModel({id: id}, this, loc, this.eventHub);
+
+        customIn.setValidationCallback(err => this.updateValidity(err));
+
+        this.in.push(customIn);
+
+        return customIn;
+    }
+
+    removeCustomInPort(inPort) {
+
+        const index = this.in.indexOf(inPort);
+        if (index < 0) {
+            return;
+        }
+
+        this.in[index].clearIssue(ErrorCode.ALL);
+        this.in[index].clearListeners();
+        this.in.splice(index, 1);
+
+        // start at the index and update location of all arguments after it
+        for (let i = index; i < this.in.length; i++) {
+            this.in[i].updateLoc(`${this.loc}.in[${i}]`);
+        }
+
+        this.eventHub.emit("step.outPort.remove", inPort);
+
     }
 
     protected compareOutPorts(isUpdate = false) {

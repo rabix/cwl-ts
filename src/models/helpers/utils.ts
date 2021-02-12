@@ -294,6 +294,10 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
     const pointAItems = getType(pointA.type.items);
     const pointBItems = getType(pointB.type.items);
 
+    if (pointAType === 'any' || pointBType === 'any') {
+        return true;
+    }
+
     if (pointAType === 'File' && pointBType === 'stdin') {
         return true
     }
