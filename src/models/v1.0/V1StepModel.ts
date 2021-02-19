@@ -298,7 +298,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             this.in[i].updateLoc(`${this.loc}.in[${i}]`);
         }
 
-        this.eventHub.emit("step.outPort.remove", inPort);
+        this.eventHub.emit("step.inPort.remove", inPort);
 
     }
 
