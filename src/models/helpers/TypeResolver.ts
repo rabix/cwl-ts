@@ -20,6 +20,7 @@ export type PrimitiveType =
     | "Directory"
     | "map"
     | "stdin"
+    | "any"
 
 export interface TypeResolution {
     type: PrimitiveType;
