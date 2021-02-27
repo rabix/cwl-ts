@@ -50,9 +50,9 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
         this.eventHub = eventHub;
     }
 
-    public get inAsMap(): {[key: string]: WorkflowStepInputModel} {
+    public get inAsMap(): { [key: string]: WorkflowStepInputModel } {
         return this.in.reduce((acc, curr) => {
-            return {...acc, ... {[curr.id]: curr}};
+            return {...acc, ...{[curr.id]: curr}};
         }, {});
     }
 
@@ -71,9 +71,11 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
 
     customProps: any = {};
 
-    protected compareInPorts(isUpdate = false) {}
+    protected compareInPorts(isUpdate = false) {
+    }
 
-    protected compareOutPorts(isUpdate = false) {}
+    protected compareOutPorts(isUpdate = false) {
+    }
 
     public serializeEmbedded(): any {
         new UnimplementedMethodException("serializeEmbedded", "StepModel");
@@ -87,9 +89,9 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
     protected createReq(req: ProcessRequirement, constructor, loc?: string, hint = false): RequirementBaseModel {
         let reqModel: RequirementBaseModel;
         const property = hint ? "hints" : "requirements";
-        loc            = loc || `${this.loc}.${property}[${this[property].length}]`;
+        loc = loc || `${this.loc}.${property}[${this[property].length}]`;
 
-        reqModel        = new RequirementBaseModel(req, constructor, loc);
+        reqModel = new RequirementBaseModel(req, constructor, loc);
         reqModel.isHint = hint;
 
         (this[property] as Array<ProcessRequirementModel>).push(reqModel);
@@ -108,8 +110,8 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
 
     static portDifference(stepPorts: Ports, runParameters: InputParameterModel[]): [InputParameterModel[], Ports, Ports] {
         const inserted = []; // contains only InputParamModels from run.inputs
-        let remaining: Ports  = []; // contains whatever is left from inPorts that's still in run.inputs
-        const removed: Ports  = [...stepPorts]; // contains what isn't in run.inputs
+        let remaining: Ports = []; // contains whatever is left from inPorts that's still in run.inputs
+        const removed: Ports = [...stepPorts]; // contains what isn't in run.inputs
 
         for (let i = 0; i < runParameters.length; i++) {
             const index = removed.findIndex(inp => inp.id === runParameters[i].id);
@@ -120,6 +122,15 @@ export class StepModel extends ValidationBase implements Serializable<any>, Plot
             }
         }
 
-        return [inserted, remaining, removed];
+        // If there is in port with 'any' then we should not removed it
+        const customInputs = removed
+            .filter((r) => r.type && r.type.type === 'any');
+
+        customInputs.forEach((item) => {
+            const index = removed.findIndex(r => r === item);
+            removed.splice(index, 1);
+        });
+
+        return [inserted, [...remaining, ...customInputs], removed];
     }
 }
