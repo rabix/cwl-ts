@@ -1209,7 +1209,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
             label: inPort.label,
             ["sbg:fileTypes"]: inPort.fileTypes,
             inputBinding: inPort["inputBinding"],
-            secondaryFiles: inPort["secondaryFiles"]
+            secondaryFiles: inPort["secondaryFiles"],
+            ["sbg:secretAlias"]: inPort.customProps["sbg:secretAlias"],
         }, data.customProps);
         const input      = new inputConstructor(<InputParameter>inputParam, `${this.loc}.inputs[${this.inputs.length}]`, this.eventHub);
 

@@ -19,6 +19,8 @@ import {ProcessRequirement} from "./ProcessRequirement";
 import {ProcessRequirementModel} from "./ProcessRequirementModel";
 import {RequirementBaseModel} from "./RequirementBaseModel";
 import {ResourceRequirementModel} from "./ResourceRequirementModel";
+import {EnvironmentDefModel, EnvVarRequirementModel} from "./EnvVarRequirementModel";
+import {EnvironmentDef} from "../../mappings/v1.0";
 
 export abstract class CommandLineToolModel extends ValidationBase implements Serializable<any> {
     // TOOL METADATA //
@@ -54,6 +56,8 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     fileRequirement: CreateFileRequirementModel;
 
     resources: ResourceRequirementModel;
+
+    envVars: EnvVarRequirementModel;
 
     /** Set of all expressions the tool contains */
     private expressions                        = new Set<ExpressionModel>();
@@ -518,6 +522,12 @@ export abstract class CommandLineToolModel extends ValidationBase implements Ser
     generateCommandLineParts(): Promise<CommandLinePart[]> {
         return generateCommandLineParts(this, this.jobInputs, this.runtime);
     }
+
+    addEnvVariable(envDef: EnvironmentDefModel): void {
+        this.envVars.envDef.push(envDef);
+    }
+
+    abstract createEnvVariable(env: EnvironmentDef, valueType?: "expression" | "string"): EnvironmentDefModel;
 
     // SERIALIZATION //
 

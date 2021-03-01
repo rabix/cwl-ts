@@ -217,6 +217,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
                 "sbg:toolDefaultValue": input.customProps["sbg:toolDefaultValue"],
                 "sbg:category": input.customProps["sbg:category"],
                 "sbg:altPrefix": input.customProps["sbg:altPrefix"],
+                "sbg:secretAlias": input.customProps["sbg:secretAlias"],
                 ...serialized // serialized match goes last so changed properties are overwritten
             }, this, `${this.loc}.in[${index}]`, this.eventHub);
 
