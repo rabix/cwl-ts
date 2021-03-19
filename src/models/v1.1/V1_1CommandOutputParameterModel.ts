@@ -3,7 +3,7 @@ import {V1CommandOutputParameterModel} from "../v1.0/V1CommandOutputParameterMod
 import {ParameterTypeModel} from "../generic";
 import {incrementLastLoc, isType} from "../helpers/utils";
 
-import {V1_1SecondaryFileSchemaModel} from "./V1_1SecondaryFileSchemaModel";
+import {V1_1OutputSecondaryFileSchemaModel} from "./V1_1SecondaryFileSchemaModel";
 import {LoadListing} from "../elements/load-listing";
 
 
@@ -11,12 +11,12 @@ export class V1_1CommandOutputParameterModel extends V1CommandOutputParameterMod
 
     loadListing: LoadListing;
 
-    secondaryFiles: V1_1SecondaryFileSchemaModel[];
+    secondaryFiles: V1_1OutputSecondaryFileSchemaModel[];
 
     addSecondaryFile(file: any): any {
 
         const loc = incrementLastLoc(this.secondaryFiles, `${this.loc}.secondaryFiles`);
-        const secondaryFile = new V1_1SecondaryFileSchemaModel(file, loc,  this.eventHub);
+        const secondaryFile = new V1_1OutputSecondaryFileSchemaModel(file, loc, this.eventHub);
         secondaryFile.setValidationCallback(err => this.updateValidity(err));
         this.secondaryFiles.push(secondaryFile);
         return secondaryFile;

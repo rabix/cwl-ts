@@ -60,10 +60,13 @@ export class JobHelper {
             'enum': symbols ? symbols[0] : name,
             string: name + '-string-value',
             int: getRandomInt(0, 11),
+            long: getRandomInt(0, 11),
             float: getRandomFloat(0, 11),
+            double: getRandomFloat(0, 11),
             boolean: true,
             record: {},
             map: {},
+            any: {},
             array: {
                 File: [
                     file(name + "-1"),

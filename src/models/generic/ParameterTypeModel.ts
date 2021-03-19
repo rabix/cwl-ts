@@ -29,6 +29,7 @@ export type PrimitiveParameterType =
     | "Directory"
     | "map"
     | "stdin"
+    | "any"
 
 export class ParameterTypeModel extends ValidationBase implements Serializable<any>, TypeResolution {
     get symbols(): string[] {
