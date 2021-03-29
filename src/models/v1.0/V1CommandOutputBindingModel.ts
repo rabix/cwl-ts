@@ -13,14 +13,18 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     static INHERIT_REGEX = /.*(?:\s*)inheritMetadata\((?:\s*)self(?:\s*),(?:\s*)inputs.(.*?)(?:\s*)\)(?:\s*).*/g;
     public inheritMetadataFrom: string;
 
-    protected _glob: V1ExpressionModel;
+    protected _glob: V1ExpressionModel | Array<string>;
 
-    get glob(): V1ExpressionModel {
+    get glob(): V1ExpressionModel | Array<string> {
         return this._glob;
     }
 
-    set glob(value: V1ExpressionModel) {
-        this.setGlob(value, V1ExpressionModel);
+    set glob(value: V1ExpressionModel | Array<string>) {
+        if (value instanceof V1ExpressionModel) {
+            this.setGlobExpression(value, V1ExpressionModel);
+        } else {
+            this._glob = value;
+        }
     }
 
     protected _outputEval: V1ExpressionModel;
@@ -81,15 +85,14 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     }
 
     public deserialize(binding: CommandOutputBinding) {
-        let glob = binding.glob;
-
         if (Array.isArray(binding.glob)) {
-            glob = binding.glob[0];
+            this._glob = binding.glob;
+            return;
         }
 
         this.loadContents = binding.loadContents === true;
 
-        this._glob = new V1ExpressionModel(<string> glob, `${this.loc}.glob`, this.eventHub);
+        this._glob = new V1ExpressionModel(<string> binding.glob, `${this.loc}.glob`, this.eventHub);
         this._glob.setValidationCallback(err => this.updateValidity(err));
         this.validateGlob();
 
@@ -108,10 +111,23 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     public serialize(): CommandOutputBinding {
         let base: CommandOutputBinding = <CommandOutputBinding> {};
 
-        if (this.loadContents) base.loadContents = true;
+        if (this.loadContents) {
+            base.loadContents = true;
+        }
 
-        if (this._glob && this._glob.serialize() !== undefined) base.glob = this._glob.serialize();
-        if (this._outputEval && this._outputEval.serialize() !== undefined) base.outputEval = this._outputEval.serialize();
+        if (this._glob) {
+            const globSerialized = this._glob instanceof V1ExpressionModel
+                ? this._glob.serialize()
+                : this._glob;
+
+            if (globSerialized) {
+                base.glob = globSerialized;
+            }
+        }
+
+        if (this._outputEval && this._outputEval.serialize() !== undefined) {
+            base.outputEval = this._outputEval.serialize();
+        }
 
         return base;
     }
