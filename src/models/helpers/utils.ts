@@ -1,6 +1,7 @@
 import {
     CommandInputParameterModel,
     CommandOutputParameterModel,
+    ExpressionModel,
     ParameterTypeModel,
     StepModel,
     WorkflowInputParameterModel,
@@ -368,6 +369,37 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
 
         if (pointAType === pointBType) {
             checkBothPointsForSameScatter();
+        }
+
+        if (pointB.secondaryFiles.length) {
+
+            if (pointB.secondaryFiles.length > pointA.secondaryFiles.length) {
+                throw new ValidityError(`Input connection is missing required secondary files`, ErrorCode.CONNECTION_SEC_FILES);
+            }
+
+            const isRequired = (secondaryFile): boolean => secondaryFile.required !== undefined ? secondaryFile.required : true;
+            const getPattern = (secondaryFile): ExpressionModel => secondaryFile.pattern ? secondaryFile.pattern : secondaryFile;
+
+            const requiredSecondaryFiles = pointB.secondaryFiles
+                .filter(isRequired)
+                .map(getPattern);
+
+            const outputSecondaryFiles = pointA.secondaryFiles.map(getPattern);
+
+            requiredSecondaryFiles.forEach(secondaryFile => {
+                if (secondaryFile.isExpression) {
+                    return;
+                }
+
+                const secondaryFilePattern = `${secondaryFile}`;
+                const foundSamePattern = outputSecondaryFiles.find(sf => sf.toString().toUpperCase() === secondaryFilePattern.toUpperCase());
+
+                if (!foundSamePattern) {
+                    throw new ValidityError(`Input connection is missing required secondary files with a pattern: ${secondaryFilePattern}`, ErrorCode.CONNECTION_SEC_FILES);
+                }
+            });
+
+            return true;
         }
 
         // if not file or fileTypes not defined

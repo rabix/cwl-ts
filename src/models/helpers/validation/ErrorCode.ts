@@ -18,6 +18,7 @@ export enum ErrorCode {
     CONNECTION_FILE_TYPE    = 302,
     CONNECTION_SAME_STEP    = 303,
     CONNECTION_SCATTER_TYPE = 304,
+    CONNECTION_SEC_FILES    = 305,
 
     OUTPUT_ALL              = 400,
     OUTPUT_GLOB_MISSING     = 401,
