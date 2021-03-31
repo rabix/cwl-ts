@@ -1,8 +1,11 @@
 import {
     CommandInputParameterModel,
     CommandOutputParameterModel,
+    ExpressionModel,
     ParameterTypeModel,
-    WorkflowOutputParameterModel
+    StepModel,
+    WorkflowInputParameterModel,
+    WorkflowOutputParameterModel,
 } from "../generic";
 import {InputParameterModel} from "../generic/InputParameterModel";
 import {ErrorCode, Issue, ValidityError} from "./validation";
@@ -288,6 +291,36 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
         }
     };
 
+    const stepHasScatterInput = (step: StepModel, scatter: string) => {
+        return ensureArray(step.scatter).some(s => s == scatter);
+    };
+
+    const checkBothPointsForSameScatter = () => {
+        if (pointA instanceof WorkflowInputParameterModel ||
+            pointA instanceof WorkflowOutputParameterModel ||
+            pointB instanceof WorkflowInputParameterModel ||
+            pointB instanceof WorkflowOutputParameterModel) {
+            return true;
+        }
+
+        if (pointB.parentStep && pointA.parentStep) {
+            const stepBHasDefinedScatter = stepHasScatterInput(pointB.parentStep, pointB.id);
+            const stepAHasDefinedScatter = stepHasScatterInput(pointA.parentStep, pointB.id);
+
+            if ((!stepAHasDefinedScatter && stepBHasDefinedScatter) ||
+                (stepAHasDefinedScatter && !stepBHasDefinedScatter)) {
+                throw new ValidityError(
+                    `Invalid connection. Scatter '${pointB.id}' is making a mismatch in connection`,
+                    ErrorCode.CONNECTION_SCATTER_TYPE
+                );
+            }
+
+            return true;
+        }
+
+        return true;
+    }
+
     // fetch type
     const pointAType  = pointA.type.type;
     const pointBType  = pointB.type.type;
@@ -334,7 +367,47 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
             }
         }
 
+        if (pointAType === pointBType) {
+            checkBothPointsForSameScatter();
+        }
+
+        if (pointB.secondaryFiles.length) {
+
+            if (pointB.secondaryFiles.length > pointA.secondaryFiles.length) {
+                throw new ValidityError(`Input connection is missing required secondary files`, ErrorCode.CONNECTION_SEC_FILES);
+            }
+
+            const isRequired = (secondaryFile): boolean => secondaryFile.required !== undefined ? secondaryFile.required : true;
+            const getPattern = (secondaryFile): ExpressionModel => secondaryFile.pattern ? secondaryFile.pattern : secondaryFile;
+
+            const requiredSecondaryFiles = pointB.secondaryFiles
+                .filter(isRequired)
+                .map(getPattern);
+
+            const outputSecondaryFiles = pointA.secondaryFiles.map(getPattern);
+
+            requiredSecondaryFiles.forEach(secondaryFile => {
+                if (secondaryFile.isExpression) {
+                    return;
+                }
+
+                const secondaryFilePattern = `${secondaryFile}`;
+                const foundSamePattern = outputSecondaryFiles.find(sf => sf.toString().toUpperCase() === secondaryFilePattern.toUpperCase());
+
+                if (!foundSamePattern) {
+                    throw new ValidityError(`Input connection is missing required secondary files with a pattern: ${secondaryFilePattern}`, ErrorCode.CONNECTION_SEC_FILES);
+                }
+            });
+
+            return true;
+        }
+
         // if not file or fileTypes not defined
+        return true;
+    }
+
+    // mark connection as valid if pointB has scatter and pointA[]
+    if ((pointAItems === pointBType) && stepHasScatterInput(pointB.parentStep, pointB.id)) {
         return true;
     }
 
