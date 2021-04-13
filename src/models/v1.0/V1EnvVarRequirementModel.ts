@@ -1,7 +1,7 @@
 import {EnvVarRequirementModel} from "../generic/EnvVarRequirementModel";
 import {Serializable} from "../interfaces";
 import {EnvironmentDef, EnvVarRequirement} from "../../mappings/v1.0";
-import {spreadAllProps, spreadSelectProps} from "../helpers";
+import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 
 export class V1EnvVarRequirementModel extends EnvVarRequirementModel implements Serializable<EnvVarRequirement> {
@@ -46,7 +46,7 @@ export class V1EnvVarRequirementModel extends EnvVarRequirementModel implements 
             }
         };
 
-        this.envDef = attr.envDef ? attr.envDef.map(transformToModel) : [];
+        this.envDef = attr.envDef ? ensureArray(attr.envDef).map(transformToModel) : [];
 
         return spreadSelectProps(attr, this.customProps, ["class", "envDef"]);
     }
