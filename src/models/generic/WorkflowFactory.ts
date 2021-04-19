@@ -1,3 +1,4 @@
+import {V1_2WorkflowModel} from "../v1.2/V1_2WorkflowModel";
 import {WorkflowModel} from "./WorkflowModel";
 import {V1WorkflowModel} from "../v1.0/V1WorkflowModel";
 
@@ -14,6 +15,8 @@ export class WorkflowFactory {
 
         if (workflow) {
             switch (workflow.cwlVersion) {
+                case "v1.2":
+                    return new V1_2WorkflowModel(workflow as V1Workflow, loc);
                 case "v1.1":
                     return new V1_1WorkflowModel(workflow as V1Workflow, loc);
                 case "v1.0":

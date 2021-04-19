@@ -5,6 +5,7 @@ import {CommandLineTool as V1CommandLineTool} from "../../mappings/v1.0/CommandL
 import {V1_1CommandLineToolModel} from "../v1.1/V1_1CommandLineToolModel";
 import {V1CommandLineToolModel} from "../v1.0/V1CommandLineToolModel";
 import {SBDraft2CommandLineToolModel} from "../d2sb/SBDraft2CommandLineToolModel";
+import {V1_2CommandLineToolModel} from "../v1.2/V1_2CommandLineToolModel";
 
 
 export class CommandLineToolFactory {
@@ -14,6 +15,8 @@ export class CommandLineToolFactory {
 
         if (tool) {
             switch (tool.cwlVersion) {
+                case "v1.2":
+                    return new V1_2CommandLineToolModel(tool as V1CommandLineTool, loc);
                 case "v1.1":
                     return new V1_1CommandLineToolModel(tool as V1CommandLineTool, loc);
                 case "v1.0":

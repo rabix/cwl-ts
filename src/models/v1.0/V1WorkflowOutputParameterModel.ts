@@ -1,3 +1,4 @@
+import {LinkMerge} from "../elements/link-merge";
 import {WorkflowOutputParameterModel} from "../generic/WorkflowOutputParameterModel";
 import {WorkflowOutputParameter} from "../../mappings/v1.0/WorkflowOutputParameter";
 import {ParameterTypeModel} from "../generic/ParameterTypeModel";
@@ -7,14 +8,13 @@ import {
 } from "../helpers/utils";
 import {V1ExpressionModel} from "./V1ExpressionModel";
 import {V1CommandOutputBindingModel} from "./V1CommandOutputBindingModel";
-import {LinkMergeMethod} from "../../mappings/v1.0/LinkMergeMethod";
 import {EventHub} from "../helpers/EventHub";
 import {OutputRecordField} from "../../mappings/v1.0/OutputRecordField";
 import {Expression} from "../../mappings/v1.0";
 import {ExpressionModel} from "../generic/ExpressionModel";
 
 export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel {
-    linkMerge: LinkMergeMethod;
+    linkMerge: LinkMerge;
     streamable?: boolean;
     outputBinding?: V1CommandOutputBindingModel;
     doc?: string;
@@ -25,10 +25,19 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
     }
 
     deserialize(output: WorkflowOutputParameter | OutputRecordField) {
-        const serializedKeys = ["id", "name", "outputSource", "type", "label", "doc", "sbg:fileTypes", "secondaryFiles"];
+        const serializedKeys = [
+            "id",
+            "name",
+            "outputSource",
+            "linkMerge",
+            "type",
+            "label",
+            "doc",
+            "sbg:fileTypes",
+            "secondaryFiles"];
         //@todo deserialization of outputBinding, streamable, linkMerge, secondaryFiles
 
-        this.isField = !!(<OutputRecordField> output).name; // record fields don't have ids
+        this.isField = !!(<OutputRecordField>output).name; // record fields don't have ids
         this.isField ? serializedKeys.push("name") : serializedKeys.push("id");
 
         if (this.isField) {
@@ -41,19 +50,21 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
             this.source = ensureArray((output as WorkflowOutputParameter).outputSource);
         }
 
+        this.linkMerge = new LinkMerge((output as WorkflowOutputParameter).linkMerge);
+
         this.type = new ParameterTypeModel(output.type, V1WorkflowOutputParameterModel, `${this.id}_field`, `${this.loc}.type`, this.eventHub);
         this.type.setValidationCallback(err => this.updateValidity(err));
         this.type.hasDirectoryType = true;
 
-        this._label      = output.label;
+        this._label = output.label;
         this.description = ensureArray(output.doc).join("\n");
-        this.doc         = this.description;
+        this.doc = this.description;
 
         if (!this.isField) {
             this.fileTypes = commaSeparatedToArray((output as WorkflowOutputParameter)["sbg:fileTypes"]);
         }
 
-        this.secondaryFiles = ensureArray((<WorkflowOutputParameter> output).secondaryFiles).map(f => this.addSecondaryFile(f));
+        this.secondaryFiles = ensureArray((<WorkflowOutputParameter>output).secondaryFiles).map(f => this.addSecondaryFile(f));
 
         this.attachFileTypeListeners();
 
@@ -63,16 +74,22 @@ export class V1WorkflowOutputParameterModel extends WorkflowOutputParameterModel
     serialize(): WorkflowOutputParameter {
         const base: WorkflowOutputParameter | OutputRecordField = <any>{};
         if (!this.isField) {
-            (<WorkflowOutputParameter> base).id = this.id;
-            if (this.source.length)  {
-                (<WorkflowOutputParameter> base).outputSource = this.source.slice();
+            (<WorkflowOutputParameter>base).id = this.id;
+            if (this.source.length) {
+                (<WorkflowOutputParameter>base).outputSource = this.source.slice();
             }
             if (isFileType(this) && this.fileTypes.length) {
                 (base as WorkflowOutputParameter)["sbg:fileTypes"] = this.fileTypes.join(", ");
             }
 
         } else {
-            (<OutputRecordField> base).name = this.id;
+            (<OutputRecordField>base).name = this.id;
+        }
+
+        const linkMerge = this.linkMerge && this.linkMerge.serialize();
+
+        if (linkMerge) {
+            (base as WorkflowOutputParameter).linkMerge = linkMerge;
         }
 
         if (this.type) base.type = this.type.serialize("v1.0");
