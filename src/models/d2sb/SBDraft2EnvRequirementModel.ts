@@ -2,7 +2,7 @@ import {EnvVarRequirementModel} from "../generic/EnvVarRequirementModel";
 import {Serializable} from "../interfaces";
 import {EnvVarRequirement} from "../../mappings/d2sb/EnvVarRequirement";
 import {SBDraft2ExpressionModel} from "./SBDraft2ExpressionModel";
-import {spreadAllProps, spreadSelectProps} from "../helpers";
+import {ensureArray, spreadAllProps, spreadSelectProps} from "../helpers";
 import {EnvironmentDef} from "../../mappings/d2sb/EnvironmentDef";
 
 export class SBDraft2EnvRequirementModel extends EnvVarRequirementModel implements Serializable<EnvVarRequirement> {
@@ -47,7 +47,7 @@ export class SBDraft2EnvRequirementModel extends EnvVarRequirementModel implemen
             }
         };
 
-        this.envDef = attr.envDef ? attr.envDef.map(transformToModel) : [];
+        this.envDef = attr.envDef ? ensureArray(attr.envDef).map(transformToModel) : [];
 
         return spreadSelectProps(attr, this.customProps, ["class", "envDef"]);
     }
