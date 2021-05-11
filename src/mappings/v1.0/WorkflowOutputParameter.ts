@@ -1,5 +1,5 @@
+import {LinkMergeMethod} from "../../models/elements/link-merge";
 import {OutputParameter} from "./OutputParameter";
-import {LinkMergeMethod} from "./LinkMergeMethod";
 import {CWLType} from "./CWLType";
 import {OutputRecordSchema} from "./OutputRecordSchema";
 import {OutputEnumSchema} from "./OutputEnumSchema";

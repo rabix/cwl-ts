@@ -435,8 +435,8 @@ export const flatten = (arr: any[]) => {
     return res;
 };
 
-export const returnNumIfNum = (s: any): any | number => {
-    return isNaN(s) ? s : parseInt(s);
+export const returnNumIfNum = (s: any, parseAsFloat = false): any | number => {
+    return isNaN(s) ? s : (parseAsFloat ? parseFloat(s) : parseInt(s));
 };
 
 export const isFileType = (i: { type: { isNullable: boolean, type: string, items: string } }, required?): boolean => {

@@ -10,6 +10,8 @@ export class V1ResourceRequirementModel extends ResourceRequirementModel {
     mem: V1ExpressionModel;
     cores: V1ExpressionModel;
 
+    parseResourcesAsFloat = false;
+
     constructor(req?: ResourceRequirement, loc?: string, eventHub?: EventHub) {
         super(loc, eventHub);
 
@@ -32,8 +34,8 @@ export class V1ResourceRequirementModel extends ResourceRequirementModel {
         }
 
         // mem and cores were cast to string during serialization, turn back to numbers if applicable
-        mem   = returnNumIfNum(mem);
-        cores = returnNumIfNum(cores);
+        mem   = returnNumIfNum(mem, this.parseResourcesAsFloat);
+        cores = returnNumIfNum(cores, this.parseResourcesAsFloat);
 
         const base: ResourceRequirement = {
             "class": "ResourceRequirement"

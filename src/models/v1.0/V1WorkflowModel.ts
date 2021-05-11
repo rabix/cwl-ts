@@ -52,13 +52,18 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
     loc: string;
     customProps: any = {};
 
-    addStepFromProcess(proc: Process): V1StepModel {
-        const loc  = `${this.loc}.steps[${this.steps.length}]`;
-        const step = new V1StepModel({
+    createStepFromProcess(proc: Process, loc) {
+        return new V1StepModel({
             in: [],
             out: [],
             run: proc
         }, loc, this.eventHub);
+    }
+
+    addStepFromProcess(proc: Process): V1StepModel {
+        const loc  = `${this.loc}.steps[${this.steps.length}]`;
+
+        const step = this.createStepFromProcess(proc, loc);
 
         step.setValidationCallback(err => this.updateValidity(err));
         this.steps.push(step);

@@ -1,11 +1,10 @@
+import {LinkMerge} from "../elements/link-merge";
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Serializable} from "../interfaces/Serializable";
 import {Plottable} from "./Plottable";
 import {STEP_INPUT_CONNECTION_PREFIX} from "../helpers/constants";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
 import {ParameterTypeModel} from "./ParameterTypeModel";
-import {LinkMergeMethod as SBDraft2LinkMergeMethod} from "../../mappings/v1.0/LinkMergeMethod";
-import {LinkMergeMethod as V1LinkMergeMethod} from "../../mappings/d2sb/LinkMergeMethod";
 import {EventHub} from "../helpers/EventHub";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
 import {ExpressionModel} from "./ExpressionModel";
@@ -34,7 +33,7 @@ export abstract class WorkflowOutputParameterModel extends ValidationBase implem
         this.eventHub.emit("io.change", this);
     }
 
-    public linkMerge: SBDraft2LinkMergeMethod | V1LinkMergeMethod;
+    public linkMerge: LinkMerge;
 
     public isVisible = true;
 

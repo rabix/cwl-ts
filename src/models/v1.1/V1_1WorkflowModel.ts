@@ -1,13 +1,14 @@
+import {CWLVersion, Workflow} from "../../mappings/v1.0";
+import {Process} from "../generic/Process";
+import {Customizable} from "../interfaces/Customizable";
+import {V1WorkflowInputParameterModel, V1WorkflowOutputParameterModel} from "../v1.0";
 import {V1WorkflowModel} from "../v1.0/V1WorkflowModel";
+import {V1WorkflowStepInputModel} from "../v1.0/V1WorkflowStepInputModel";
+import {V1WorkflowStepOutputModel} from "../v1.0/V1WorkflowStepOutputModel";
+import {V1_1StepModel} from "./V1_1StepModel";
 
 import {V1_1WorkflowInputParameterModel} from "./V1_1WorkflowInputParameterModel";
 import {V1_1WorkflowOutputParameterModel} from "./V1_1WorkflowOutputParameterModel";
-import {CWLVersion, Workflow} from "../../mappings/v1.0";
-import {V1_1StepModel} from "./V1_1StepModel";
-import {V1WorkflowStepInputModel} from "../v1.0/V1WorkflowStepInputModel";
-import {Customizable} from "../interfaces/Customizable";
-import {V1WorkflowInputParameterModel, V1WorkflowOutputParameterModel} from "../v1.0";
-import {V1WorkflowStepOutputModel} from "../v1.0/V1WorkflowStepOutputModel";
 
 export class V1_1WorkflowModel extends V1WorkflowModel {
 
@@ -21,6 +22,14 @@ export class V1_1WorkflowModel extends V1WorkflowModel {
 
     constructor(workflow?: Workflow, loc?: string) {
         super(workflow, loc);
+    }
+
+    createStepFromProcess(proc: Process, loc) {
+        return new V1_1StepModel({
+            in: [],
+            out: [],
+            run: proc
+        }, loc, this.eventHub);
     }
 
     createInputFromPort(inPort: V1WorkflowStepInputModel | string,
@@ -62,7 +71,7 @@ export class V1_1WorkflowModel extends V1WorkflowModel {
 
         const base = super._serialize(embed, retainSource);
 
-        base.cwlVersion = "v1.1";
+        base.cwlVersion = this.cwlVersion;
 
         const hasPortDirectory = [...this.inputs, ...this.outputs]
             .find((port) => {

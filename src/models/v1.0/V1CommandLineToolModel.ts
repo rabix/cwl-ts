@@ -172,6 +172,10 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
         return envDef;
     }
 
+    public createRequirement(req, loc, eventHub): V1ResourceRequirementModel {
+        return new V1ResourceRequirementModel(req, loc, eventHub);
+    }
+
     public setRequirement(req: ProcessRequirement, hint?: boolean) {
         this.createReq(req, null, hint);
     }
@@ -198,7 +202,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
             case "ResourceRequirement":
                 loc            = this.resources ? this.resources.loc || loc : loc;
-                this.resources = new V1ResourceRequirementModel(req, loc, this.eventHub);
+                this.resources = this.createRequirement(req, loc, this.eventHub);
                 this.resources.setValidationCallback(err => this.updateValidity(err));
                 this.resources.isHint = hint;
                 return;
@@ -293,7 +297,7 @@ export class V1CommandLineToolModel extends CommandLineToolModel {
 
         // create ResourceRequirement for manipulation
         if (!this.resources) {
-            this.resources = new V1ResourceRequirementModel(<ResourceRequirement> {}, `${this.loc}.requirements[${++this.requirementsCounter}]`, this.eventHub);
+            this.resources = this.createRequirement(<ResourceRequirement> {}, `${this.loc}.requirements[${++this.requirementsCounter}]`, this.eventHub);
         }
         this.resources.setValidationCallback(err => this.updateValidity(err));
 

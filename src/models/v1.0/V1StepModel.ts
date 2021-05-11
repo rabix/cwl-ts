@@ -111,10 +111,8 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             this.createRun(step.run);
         }
 
-        this.in  = ensureArray(step.in, "id", "source")
-            .map((i, index) => new V1WorkflowStepInputModel(i, this, `${this.loc}.in[${index}]`, this.eventHub));
-        this.out = ensureArray(step.out, "id")
-            .map((o, index) => new V1WorkflowStepOutputModel(o, this, `${this.loc}.out[${index}]`));
+        this.in  = ensureArray(step.in, "id", "source").map((i, index) => this.createWorkflowStepInputModel(i, index));
+        this.out = ensureArray(step.out, "id").map((o, index) => this.createWorkflowStepOutputModel(o, index));
 
         if (hasRun) {
             this.compareInPorts();
@@ -156,6 +154,14 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
 
             this.eventHub.emit("step.update", this);
         }
+    }
+
+    createWorkflowStepInputModel(input, index) {
+        return new V1WorkflowStepInputModel(input, this, `${this.loc}.in[${index}]`, this.eventHub);
+    }
+
+    createWorkflowStepOutputModel(output, index) {
+        return new V1WorkflowStepOutputModel(output, this, `${this.loc}.out[${index}]`);
     }
 
     private createRun(process: { class?: string }): void {
@@ -208,18 +214,20 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
             const serialized = match ? match.serialize() : {id: input.id};
 
             // here will set source and default if they exist
-            const model = new V1WorkflowStepInputModel({
-                type: input.type,
-                fileTypes: input.fileTypes || [],
-                doc: input.description,
-                label: input.label,
-                secondaryFiles: input.secondaryFiles,
-                "sbg:toolDefaultValue": input.customProps["sbg:toolDefaultValue"],
-                "sbg:category": input.customProps["sbg:category"],
-                "sbg:altPrefix": input.customProps["sbg:altPrefix"],
-                "sbg:secretAlias": input.customProps["sbg:secretAlias"],
-                ...serialized // serialized match goes last so changed properties are overwritten
-            }, this, `${this.loc}.in[${index}]`, this.eventHub);
+            const model = this.createWorkflowStepInputModel({
+                    type: input.type,
+                    fileTypes: input.fileTypes || [],
+                    doc: input.description,
+                    label: input.label,
+                    secondaryFiles: input.secondaryFiles,
+                    "sbg:toolDefaultValue": input.customProps["sbg:toolDefaultValue"],
+                    "sbg:category": input.customProps["sbg:category"],
+                    "sbg:altPrefix": input.customProps["sbg:altPrefix"],
+                    "sbg:secretAlias": input.customProps["sbg:secretAlias"],
+                    ...serialized // serialized match goes last so changed properties are overwritten
+                },
+                `${this.loc}.in[${index}]`
+            );
 
             model.setValidationCallback((err) => this.updateValidity(err));
 
@@ -274,7 +282,7 @@ export class V1StepModel extends StepModel implements Serializable<WorkflowStep>
         const id = getNextAvailableId("custom_input",
             [...this.in, ...this.out, ...this.run.inputs, ...this.run.outputs]);
 
-        const customIn = new V1WorkflowStepInputModel({id: id}, this, loc, this.eventHub);
+        const customIn = this.createWorkflowStepInputModel({id: id}, this);
 
         customIn.setValidationCallback(err => this.updateValidity(err));
 
