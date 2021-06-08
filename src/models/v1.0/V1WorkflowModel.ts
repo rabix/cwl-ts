@@ -106,6 +106,8 @@ export class V1WorkflowModel extends WorkflowModel implements Serializable<Workf
 
                 let source = this.graph.getVertexData(this.getSourceConnectionId(sourceId));
 
+                if (!source) { return }
+
                 const sourceType = source.type;
                 // If has parent step then source is step, otherwise its input
                 source = source.parentStep || source;
