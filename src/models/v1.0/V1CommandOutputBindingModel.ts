@@ -87,14 +87,13 @@ export class V1CommandOutputBindingModel extends CommandOutputBindingModel {
     public deserialize(binding: CommandOutputBinding) {
         if (Array.isArray(binding.glob)) {
             this._glob = binding.glob;
-            return;
+        } else {
+            this._glob = new V1ExpressionModel(<string> binding.glob, `${this.loc}.glob`, this.eventHub);
+            this._glob.setValidationCallback(err => this.updateValidity(err));
+            this.validateGlob();
         }
 
         this.loadContents = binding.loadContents === true;
-
-        this._glob = new V1ExpressionModel(<string> binding.glob, `${this.loc}.glob`, this.eventHub);
-        this._glob.setValidationCallback(err => this.updateValidity(err));
-        this.validateGlob();
 
         this._outputEval = new V1ExpressionModel(binding.outputEval, `${this.loc}.outputEval`, this.eventHub);
         this._outputEval.setValidationCallback(err => this.updateValidity(err));
