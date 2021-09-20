@@ -9,7 +9,7 @@ import {ErrorCode} from "../helpers/validation/ErrorCode";
 
 export class V1CommandLineBindingModel extends CommandLineBindingModel implements Serializable<CommandLineBinding> {
     public valueFrom: V1ExpressionModel;
-    public shellQuote = false;
+    public shellQuote = true;
     public hasSecondaryFiles = false;
     public hasShellQuote     = true;
 
