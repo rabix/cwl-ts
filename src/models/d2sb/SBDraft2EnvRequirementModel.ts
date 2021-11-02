@@ -47,7 +47,9 @@ export class SBDraft2EnvRequirementModel extends EnvVarRequirementModel implemen
             }
         };
 
-        this.envDef = attr.envDef ? ensureArray(attr.envDef).map(transformToModel) : [];
+        this.envDef = attr.envDef
+            ? ensureArray(attr.envDef, 'envName', 'envValue').map(transformToModel)
+            : [];
 
         return spreadSelectProps(attr, this.customProps, ["class", "envDef"]);
     }

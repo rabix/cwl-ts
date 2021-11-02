@@ -46,7 +46,9 @@ export class V1EnvVarRequirementModel extends EnvVarRequirementModel implements 
             }
         };
 
-        this.envDef = attr.envDef ? ensureArray(attr.envDef).map(transformToModel) : [];
+        this.envDef = attr.envDef
+            ? ensureArray(attr.envDef, 'envName', 'envValue').map(transformToModel)
+            : [];
 
         return spreadSelectProps(attr, this.customProps, ["class", "envDef"]);
     }
