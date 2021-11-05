@@ -23,6 +23,7 @@ import {WorkflowStepInputModel} from "./WorkflowStepInputModel";
 import {WorkflowStepOutputModel} from "./WorkflowStepOutputModel";
 import {ErrorCode} from "../helpers/validation/ErrorCode";
 import {ExpressionModel} from "./ExpressionModel";
+import {JobHelper} from "../helpers/JobHelper";
 
 type VertexNode = WorkflowInputParameterModel | WorkflowOutputParameterModel | StepModel | WorkflowStepInputModel | WorkflowStepOutputModel;
 
@@ -242,19 +243,26 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
     }
 
     protected validateExpression(expression: ExpressionModel): Promise<any> {
-        let input;
-        if (/inputs|outputs|steps/.test(expression.loc)) {
-            const loc = /.*(?:inputs\[\d+]|.*outputs\[\d+]|.*fields\[\d+]|.*steps\[\d+])/
-                .exec(expression.loc)[0] // take the first match
+        let context;
+        if (/inputs/.test(expression.loc)) {
+            const loc = /.*inputs\[\d+]/
+                .exec(expression.loc)[0]
                 .replace("document", ""); // so loc is relative to root
-            input     = fetchByLoc(this, loc);
+
+            const input = fetchByLoc(this, loc);
+            context = { self: JobHelper.generateMockJobData(input) };
         }
 
-        if (!input) {
-            return expression.validate();
+        if (/steps/.test(expression.loc)) {
+            const loc = /.*steps\[\d+]/
+                .exec(expression.loc)[0]
+                .replace("document", ""); // so loc is relative to root
+
+            const step = fetchByLoc(this, loc);
+            context = this.getContext(step);
         }
 
-        return expression.validate(this.getContext(input));
+        return expression.validate(context);
     }
 
     protected validateAllExpressions() {
