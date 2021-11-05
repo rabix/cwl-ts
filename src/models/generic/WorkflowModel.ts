@@ -243,15 +243,18 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
     protected validateExpression(expression: ExpressionModel): Promise<any> {
         let input;
-        if (/inputs|outputs/.test(expression.loc)) {
-            const loc = /.*(?:inputs\[\d+]|.*outputs\[\d+]|.*fields\[\d+])/
+        if (/inputs|outputs|steps/.test(expression.loc)) {
+            const loc = /.*(?:inputs\[\d+]|.*outputs\[\d+]|.*fields\[\d+]|.*steps\[\d+])/
                 .exec(expression.loc)[0] // take the first match
                 .replace("document", ""); // so loc is relative to root
             input     = fetchByLoc(this, loc);
         }
 
-        return expression.validate();
-        // return expression.validate(this.getContext(input));
+        if (!input) {
+            return expression.validate();
+        }
+
+        return expression.validate(this.getContext(input));
     }
 
     protected validateAllExpressions() {

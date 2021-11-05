@@ -81,4 +81,8 @@ export class V1ExpressionModel extends ExpressionModel {
         this.setValue(clone.serialize());
         this.setIssue({...clone.issues});
     }
+
+    cloneValidationCallback(clone: V1ExpressionModel) {
+        clone.setValidationCallback(err => this.updateValidity(err));
+    }
 }
