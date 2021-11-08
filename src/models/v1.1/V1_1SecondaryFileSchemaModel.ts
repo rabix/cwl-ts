@@ -8,17 +8,15 @@ import {ErrorCode} from "../helpers/validation";
 
 export abstract class V1_1SecondaryFileSchemaModel extends ValidationBase implements Serializable<SecondaryFileSchema> {
 
-    protected defaultRequiredValue: boolean;
+    protected abstract defaultRequiredValue: boolean;
 
     pattern: V1ExpressionModel;
     required: boolean | V1ExpressionModel;
 
     customProps: any;
 
-    constructor(attr: string | any, loc?: string, private eventHub?: EventHub) {
+    protected constructor(loc?: string, private eventHub?: EventHub) {
         super(loc);
-
-        this.deserialize(attr);
     }
 
     setPattern(value: string) {
@@ -88,9 +86,19 @@ export abstract class V1_1SecondaryFileSchemaModel extends ValidationBase implem
 
 export class V1_1InputSecondaryFileSchemaModel extends V1_1SecondaryFileSchemaModel {
     defaultRequiredValue = true;
+
+    constructor(attr: string | any, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
+        this.deserialize(attr);
+    }
 }
 
 export class V1_1OutputSecondaryFileSchemaModel extends V1_1SecondaryFileSchemaModel {
     defaultRequiredValue = false;
+
+    constructor(attr: string | any, loc?: string, eventHub?: EventHub) {
+        super(loc, eventHub);
+        this.deserialize(attr);
+    }
 }
 
