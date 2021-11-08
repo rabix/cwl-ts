@@ -251,6 +251,8 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
 
             const input = fetchByLoc(this, loc);
             context = { self: JobHelper.generateMockJobData(input) };
+
+            return expression.validate(context);
         }
 
         if (/steps/.test(expression.loc)) {
@@ -259,10 +261,13 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 .replace("document", ""); // so loc is relative to root
 
             const step = fetchByLoc(this, loc);
-            context = this.getContext(step);
-        }
 
-        return expression.validate(context);
+            if (!step) {
+                return expression.validate();
+            }
+
+            return expression.validate(this.getContext(step));
+        }
     }
 
     protected validateAllExpressions() {
