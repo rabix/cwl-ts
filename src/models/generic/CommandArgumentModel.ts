@@ -40,6 +40,10 @@ export abstract class CommandArgumentModel extends ValidationBase implements Ser
         return this.binding ? (<any> this.binding).shellQuote : undefined;
     }
 
+    set shellQuote(val: boolean) {
+        this.binding.shellQuote = val;
+    }
+
     customProps: any = {};
 
     constructor(loc?: string, protected eventHub?: EventHub) {
