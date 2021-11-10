@@ -250,8 +250,12 @@ export abstract class WorkflowModel extends ValidationBase implements Serializab
                 .replace("document", ""); // so loc is relative to root
 
             const input = fetchByLoc(this, loc);
-            context = { self: JobHelper.generateMockJobData(input) };
 
+            if (!input) {
+                return expression.validate();
+            }
+
+            context = { self: JobHelper.generateMockJobData(input) };
             return expression.validate(context);
         }
 
