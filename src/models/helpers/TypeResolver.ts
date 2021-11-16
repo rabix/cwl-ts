@@ -109,7 +109,6 @@ export class TypeResolver {
             }
 
             if (type.length !== 1) {
-                result.type = "array";
                 // check if type has only two remaining values
                 if (type.length === 2) {
                     // resolve types to TypeResolution
@@ -123,12 +122,12 @@ export class TypeResolver {
                         result.isItemOrArray = true;
                     } else {
                         result.unionType = type;
-                        console.warn(`TypeResolverWarning: Union types only partially supported. Found type ${JSON.stringify(type)}`);
+                        return result;
                     }
 
                 } else {
                     result.unionType = type;
-                    console.warn(`TypeResolverWarning: Union types only partially supported! Found type ${JSON.stringify(type)}`);
+                    return result;
                 }
             }
 
