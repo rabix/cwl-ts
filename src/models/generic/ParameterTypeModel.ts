@@ -265,16 +265,6 @@ export class ParameterTypeModel extends ValidationBase implements Serializable<a
             }
         }
 
-        if (this.unionType) {
-            this.setIssue({
-                [this.loc]: {
-                    type: "info",
-                    message: `Union type is not supported yet: ${this.unionType}`,
-                    code: ErrorCode.TYPE_UNSUPPORTED
-                }
-            });
-        }
-
         return Promise.all(promises).then(res => {
             return this.issues;
         });

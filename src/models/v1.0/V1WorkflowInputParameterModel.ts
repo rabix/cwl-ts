@@ -89,7 +89,7 @@ export class V1WorkflowInputParameterModel extends WorkflowInputParameterModel {
             }
         }
 
-        if (this.type.type) base.type = this.type.serialize("v1.0");
+        if (this.type.type || this.type.unionType) base.type = this.type.serialize("v1.0");
 
         if (this._label) base.label = this._label;
         if (this.description) base.doc = this.description;
