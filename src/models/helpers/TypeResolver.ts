@@ -109,7 +109,6 @@ export class TypeResolver {
             }
 
             if (type.length !== 1) {
-                result.type = "array";
                 // check if type has only two remaining values
                 if (type.length === 2) {
                     // resolve types to TypeResolution
@@ -123,13 +122,13 @@ export class TypeResolver {
                         result.isItemOrArray = true;
                     } else {
                         result.unionType = type;
+                        throw new ValidityError(`TypeResolverError: Union types not supported yet. Found type ${type}`, ErrorCode.TYPE_UNSUPPORTED);
                     }
 
                 } else {
                     result.unionType = type;
+                    throw new ValidityError(`TypeResolverError: Union types not supported yet! Found type ${type}`, ErrorCode.TYPE_UNSUPPORTED);
                 }
-
-                return result;
             }
 
             if (typeof type[0] === 'string') {
