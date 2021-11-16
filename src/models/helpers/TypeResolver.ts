@@ -123,13 +123,13 @@ export class TypeResolver {
                         result.isItemOrArray = true;
                     } else {
                         result.unionType = type;
-                        console.warn(`TypeResolverWarning: Union types only partially supported. Found type ${JSON.stringify(type)}`);
                     }
 
                 } else {
                     result.unionType = type;
-                    console.warn(`TypeResolverWarning: Union types only partially supported! Found type ${JSON.stringify(type)}`);
                 }
+
+                return result;
             }
 
             if (typeof type[0] === 'string') {
