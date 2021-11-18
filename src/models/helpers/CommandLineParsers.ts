@@ -146,7 +146,14 @@ export class CommandLineParsers {
                 return CommandLinePrepare.prepare(item, value, value[item.id]) as Promise<CommandLinePart>;
             })
         ) as Promise<any>).then((res: Array<CommandLinePart>) => {
-            return new CommandLinePart(prefix + separator + res.map(part => part.value).join(itemSeparator), cmdType, loc);
+            const partValuesSeparated = res.map(part => part.value).join(itemSeparator);
+
+            // Check against hasSecondaryFiles flag to make sure it's CWL v1.0
+            const partValues = input.hasSecondaryFiles && typeof input.inputBinding.itemSeparator === "string"
+                ? `'${partValuesSeparated}'`
+                : partValuesSeparated;
+
+            return new CommandLinePart(prefix + separator + partValues, cmdType, loc);
         });
 
     }
