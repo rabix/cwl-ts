@@ -36,7 +36,7 @@ CommandLineToolModel should:
 - evaluate and validate expressions
 - enable operations on complex child objects (inputs, outputs, arguments, etc)
 
-WorkflowModel should:.
+WorkflowModel should:
 
 - generate DAG of workflow
 - enable adding and connecting steps
