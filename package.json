@@ -41,9 +41,6 @@
     "ajv": "^6.1.1",
     "js-yaml": "^3.10.0"
   },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  },
   "devDependencies": {
     "@types/chai": "^4.1.2",
     "@types/chai-as-promised": "^7.1.0",
