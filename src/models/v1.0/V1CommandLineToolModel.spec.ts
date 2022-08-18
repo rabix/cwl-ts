@@ -1247,7 +1247,6 @@ describe("V1CommandLineToolModel", () => {
 
             const serialize = tool.serialize();
             expect(serialize.requirements).to.not.be.empty;
-            expect(serialize.requirements).to.have.length(2);
             const hasInlineJavascriptRequirement =
                 !!serialize.requirements.find((req) => req.class && req.class === "InlineJavascriptRequirement");
 
