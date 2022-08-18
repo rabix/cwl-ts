@@ -22,8 +22,8 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
         }
     };
 
-    const stepHasScatterInput = (step: { scatter: string | string[] }, scatter: string) => {
-        return ensureArray(step.scatter).some(s => s == scatter);
+    const stepHasScatterInput = (step: { scatter?: string | string[] }, scatter: string) => {
+        return step.scatter && ensureArray(step.scatter).some(s => s == scatter);
     };
 
     const checkBothPointsForSameScatter = () => {
@@ -138,7 +138,7 @@ export const checkIfConnectionIsValid = (pointA, pointB, ltr = true) => {
     }
 
     // mark connection as valid if pointB has scatter and pointA[]
-    if ((pointAItems === pointBType) && stepHasScatterInput(pointB.parentStep, pointB.id)) {
+    if ((pointAItems === pointBType) && pointB.parentStep && stepHasScatterInput(pointB.parentStep, pointB.id)) {
         return true;
     }
 
