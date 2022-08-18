@@ -5,7 +5,8 @@ import {STEP_INPUT_CONNECTION_PREFIX, STEP_OUTPUT_CONNECTION_PREFIX} from "../he
 import {EventHub} from "../helpers/EventHub";
 import {Edge, EdgeNode, Graph} from "../helpers/Graph";
 import {UnimplementedMethodException} from "../helpers/UnimplementedMethodException";
-import {checkIfConnectionIsValid, fetchByLoc, incrementString, isType, validateID} from "../helpers/utils";
+import {fetchByLoc, incrementString, isType, validateID} from "../helpers/utils";
+import {checkIfConnectionIsValid} from '../helpers/connection-util';
 import {ValidationBase} from "../helpers/validation/ValidationBase";
 import {Customizable} from '../interfaces/Customizable';
 import {Serializable} from "../interfaces/Serializable";
