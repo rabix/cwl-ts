@@ -71,6 +71,10 @@ test:
     script:
         - *install_deps
         - npm run test
+        - npm run coverage
+    artifacts:
+        paths:
+            - coverage
 
 
 internal-publish:

@@ -6,3 +6,4 @@ compiled/
 coverage/
 dist
 compiled
+.nyc_output
