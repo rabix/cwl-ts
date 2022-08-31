@@ -11,6 +11,7 @@ variables:
 
 stages:
     - build
+    - test
     - publish
 
 
@@ -61,6 +62,19 @@ build:
     artifacts:
         paths:
             - dist
+
+test:
+    stage: test
+    <<: *setup_cache
+    dependencies:
+        - build
+    script:
+        - *install_deps
+        - npm run test
+        - npm run coverage
+    artifacts:
+        paths:
+            - coverage
 
 
 internal-publish:

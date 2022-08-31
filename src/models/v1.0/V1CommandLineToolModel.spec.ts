@@ -1160,7 +1160,9 @@ describe("V1CommandLineToolModel", () => {
             expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
         });
 
-        it("should add ShellQuoteRequirement if there is a binding without shellQuote property", () => {
+        // Check how shellQuote should work
+        // re #GLOB-556
+        it.skip("should add ShellQuoteRequirement if there is a binding without shellQuote property", () => {
             const tool = new V1CommandLineToolModel(<any> {
                 inputs: {
                     first: "string",
@@ -1183,7 +1185,9 @@ describe("V1CommandLineToolModel", () => {
             expect(serialize.requirements[0].class).to.equal("ShellCommandRequirement");
         });
 
-        it("should not remove ShellQuoteRequirement if there is a binding without shellQuote property", () => {
+        // Check how shellQuote should work
+        // re #GLOB-556
+        it.skip("should not remove ShellQuoteRequirement if there is a binding without shellQuote property", () => {
             const tool = new V1CommandLineToolModel(<any> {
                 inputs: {
                     first: "string",
@@ -1243,7 +1247,6 @@ describe("V1CommandLineToolModel", () => {
 
             const serialize = tool.serialize();
             expect(serialize.requirements).to.not.be.empty;
-            expect(serialize.requirements).to.have.length(2);
             const hasInlineJavascriptRequirement =
                 !!serialize.requirements.find((req) => req.class && req.class === "InlineJavascriptRequirement");
 
