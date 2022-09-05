@@ -5,7 +5,7 @@
   "scripts": {
     "tsc": "npx tsc",
     "test": "npx nyc mocha --ui bdd -r ts-node/register ./src/**/*.spec.ts",
-    "coverage": "npx nyc report --reporter=text-summary",
+    "coverage": "npx nyc report --reporter=text-summary --reporter=lcov",
     "regenerate": "./node_modules/cwl-ts-parser/src/bin/generate.js ./src/mappings",
     "schemas": "npm install cwl-ts-parser && scripts/schemas.sh",
     "d2sb-test": "mocha src/tests/*.d2sb.spec.js",
