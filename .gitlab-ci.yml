@@ -52,6 +52,16 @@ before_script:
 .install_deps: &install_deps
     - npm ci --cache $CACHE_DIR --prefer-offline --no-audit --verbose
 
+# a template for ssh setup
+.setup_ssh: &setup_ssh
+    before_script:
+        # export the SSH_AUTH_SOCK and SSH_AGENT_PID variables
+        - eval "$(infinity ssh agent)"
+        # Use infinity to add gitlab runner to known host for git clone (using ssh)
+        - infinity ssh set-knownhosts
+        # We add a custom user for git operations during CI
+        - git config --global user.email $INFINITY_USER_EMAIL
+        - git config --global user.name $INFINITY_USER_NAME
 
 build:
     stage: build
@@ -89,6 +99,8 @@ internal-publish:
 
 release-tag:
     stage: tag
+    <<: *setup_ssh
+    <<: *use_cache
     rules:
         - if: '$CI_COMMIT_BRANCH == "master"'
     dependencies:
@@ -96,5 +108,6 @@ release-tag:
         - test
     script:
         - *install_deps
-        - infinity npm run release:ci
+        - npm run release:tag
         - infinity git push --include-tags
+
