@@ -13,6 +13,7 @@ stages:
     - build
     - test
     - publish
+    - tag
 
 
 #===========================================================
@@ -85,3 +86,15 @@ internal-publish:
     script:
         - npm config set registry $NEXUS3_NPM_REGISTRY
         - infinity npm publish dist/
+
+release-tag:
+    stage: tag
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "master"'
+    dependencies:
+        - build
+        - test
+    script:
+        - *install_deps
+        - npm run release:tag
+        - infinity git push --include-tags
