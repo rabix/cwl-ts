@@ -107,7 +107,20 @@ release-tag:
         - build
         - test
     script:
+        # we create temporary folder to hold newly cloned project
+        - PROJECT_CLONE=$(mktemp -d)
+        # we clone git project into temporary folder
+        - infinity git clone --destination $PROJECT_CLONE --branch $CI_COMMIT_REF_NAME
+        # we copy cache directory to cloned project
+        - if [ -d $CACHE_DIR ]; then cp -r $CACHE_DIR $PROJECT_CLONE/$CACHE_DIR; fi
+        # we enter the repository root
+        - cd $PROJECT_CLONE
+        # now that our repository is up-to-date we need to install dependencies
         - *install_deps
+        # now we can run standard-version
         - npm run release:tag
+        # we push the changes to the triggering branch, including the tag created by standard-version
         - infinity git push --include-tags
+        # remove cloned repository
+        - rm -rf $PROJECT_CLONE
 
