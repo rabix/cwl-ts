@@ -56,7 +56,7 @@
     "fs-extra": "^5.0.0",
     "istanbul": "^0.4.5",
     "jsonschema": "^1.2.2",
-    "mocha": "^5.0.0",
+    "mocha": "^10.0.0",
     "nyc": "^15.1.0",
     "standard-version": "^9.5.0",
     "ts-node": "^4.1.0",
