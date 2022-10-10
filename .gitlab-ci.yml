@@ -96,5 +96,5 @@ release-tag:
         - test
     script:
         - *install_deps
-        - npm run release:tag
+        - infinity npm run release:tag
         - infinity git push --include-tags
