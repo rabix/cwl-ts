@@ -102,7 +102,7 @@ release-tag:
     <<: *setup_ssh
     <<: *use_cache
     rules:
-        - if: '$CI_COMMIT_BRANCH == "master"'
+        - if: '$CI_COMMIT_BRANCH == "master" && $CI_COMMIT_MESSAGE =~ /^release: (\d+\.\d+\.\d+|auto)/'
     dependencies:
         - build
         - test
