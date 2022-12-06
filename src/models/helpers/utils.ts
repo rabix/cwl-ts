@@ -407,3 +407,9 @@ export const checkPortIdUniqueness = (ports: Array<{ id: string, loc: string }>)
         }
     }
 };
+
+export const sanitizeExpressionLib = (expressionLib: string): string => {
+    return expressionLib
+        .replace(/\n/g, "")
+        .replace(/\s+/g, "");
+};
