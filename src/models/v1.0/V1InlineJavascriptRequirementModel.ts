@@ -15,7 +15,7 @@ export class V1InlineJavascriptRequirementModel extends ProcessRequirementModel 
 
     addExpressionLib(lib: string) {
         if (this.expressionLib[0] 
-            && sanitizeExpressionLib(this.expressionLib[0]) === sanitizeExpressionLib(lib)) {
+            && sanitizeExpressionLib(this.expressionLib[0]) !== sanitizeExpressionLib(lib)) {
             this.expressionLib[0] = lib;
             return;
         }
