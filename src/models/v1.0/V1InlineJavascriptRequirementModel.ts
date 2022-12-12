@@ -14,12 +14,9 @@ export class V1InlineJavascriptRequirementModel extends ProcessRequirementModel 
     }
 
     addExpressionLib(lib: string) {
-        if (this.expressionLib[0]) {
-            if (sanitizeExpressionLib(this.expressionLib[0]) !== sanitizeExpressionLib(lib)) {
-                this.expressionLib[0] = lib;
-                return;
-            } else
-                return;
+        if (this.expressionLib.length > 0) {
+            this.expressionLib.splice(0, this.expressionLib.length, lib);
+            return;
         }
 
         if (this.expressionLib.indexOf(lib) === -1) {
