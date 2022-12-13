@@ -1,6 +1,6 @@
 import {ProcessRequirementModel} from "../generic/ProcessRequirementModel";
 import {InlineJavascriptRequirement} from "../../mappings/v1.0/InlineJavascriptRequirement";
-import {spreadAllProps, spreadSelectProps, sanitizeExpressionLib} from "../helpers/utils";
+import {spreadAllProps, spreadSelectProps} from "../helpers/utils";
 
 export class V1InlineJavascriptRequirementModel extends ProcessRequirementModel {
     class                   = "InlineJavascriptRequirement";
@@ -19,9 +19,7 @@ export class V1InlineJavascriptRequirementModel extends ProcessRequirementModel 
             return;
         }
 
-        if (this.expressionLib.indexOf(lib) === -1) {
-            this.expressionLib.push(lib);
-        }
+        this.expressionLib.push(lib);
     }
 
     removeExpressionLib(lib: string) {
