@@ -13,7 +13,6 @@ npm install cwlts
 ```
 
 ## Build
-
 The npm package can be built locally by running the following command. It will generate `.d.ts` and compiled `.js` files into the `/lib` directory.
 ```bash
 ./scripts/package.sh
