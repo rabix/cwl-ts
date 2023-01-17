@@ -61,7 +61,7 @@
     "standard-version": "^9.5.0",
     "ts-node": "^4.1.0",
     "typescript": "2.7.1",
-    "typescript-json-schema": "0.20.0"
+    "typescript-json-schema": "0.54.0"
   },
   "engines": {
     "npm": "~5.5.0"
