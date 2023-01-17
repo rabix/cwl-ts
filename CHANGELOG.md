@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.23.9](https://github.com/rabix/cwl-ts/compare/1.23.8...1.23.9) (2023-01-17)
+
 ### [1.23.8](https://github.com/rabix/cwl-ts/compare/1.23.7...1.23.8) (2022-12-20)
 
 ### [1.23.7](https://github.com/rabix/cwl-ts/compare/1.23.6...1.23.7) (2022-12-20)
